@@ -1,0 +1,23 @@
+
+<!--<form class="form-horizontal col-sm-12" #heroForm="ngForm" (ngSubmit)="addCard(); heroForm.reset();">-->
+<!-- Portfolio Grid Section -->
+<section class="portfolio" id="portfolio" >
+  <div class="container">
+
+
+
+    <div class="row">
+      <div class="card col-sm-4"  *ngFor="let product of products; let i = index"  id="product_{{index}}">
+        <div  class="card-body">
+          <h5  class="card-title">{{product.description}}</h5>
+          <img src="{{product.icon}}">
+          <p style="color: red; margin-bottom: 0px;" >{{product.price}}&euro;(Oferta)</p>
+          <p>{{product.before_price}}&euro;(Normal)</p>
+          <button class="btn btn-primary" (click)="addCard(i)"  >+</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+<!--</form>-->
