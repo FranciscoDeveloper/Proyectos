@@ -17,3 +17,28 @@
     </li>
 </ul>
 
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <h3>WEB SERVICE</h3>
+    <div class="form-group">
+      <label for="username">URL</label>
+      <input type="text" formControlName="username" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.username.errors }" />
+      <div *ngIf="submitted && f.username.errors" class="invalid-feedback">
+        <div *ngIf="f.username.errors.required">Username is required</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="password">Method</label>
+      <select class="browser-default custom-select">
+        <option selected>POST</option>
+        <option value="1">GET</option>
+        <option value="2">PATCH</option>
+        <option value="3">PUT</option>
+      </select>
+    </div>
+
+    <h3>HEADERS</h3>
+    <div class="form-group">
+      <button [disabled]="loading" class="btn btn-primary">Crear</button>
+    </div>
+
+
