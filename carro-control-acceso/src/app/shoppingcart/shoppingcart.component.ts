@@ -16,7 +16,7 @@ export class ShoppingcartComponent implements OnInit {
   private total:number;
   private icons:any;
   private offer_color:string='red';
-
+  private currency_code:string;
   constructor() {
     /* this.icons = [
        '../img/portfolio/cabin.png',
@@ -27,6 +27,7 @@ export class ShoppingcartComponent implements OnInit {
        '../img/portfolio/safe.png'
      ];*/
  //   this.title='hola';
+    this.currency_code= ' € '  ;
     this.icons = [
       '/app/multimedia/videos/chrono_crusade_op_1',
       '/app/multimedia/videos/d_gray_man _hallow_op_1',
