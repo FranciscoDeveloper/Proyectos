@@ -1,0 +1,55 @@
+<ion-header>
+    <ion-navbar color="bg-alma">
+     
+      <button ion-button menuToggle>
+          <ion-icon name="more"></ion-icon>
+      </button>
+      
+      <ion-buttons end>
+        <button ion-button icon-only>
+            <img src="assets/imgs/logo-h.png" width="75" alt="user">
+        </button>
+      </ion-buttons>
+  
+    </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+
+  <ion-card class="card-alma" >
+    <hr/>
+
+    <!--
+    <ion-grid>
+      <ion-row>
+        <ion-col col-4>DATOS</ion-col>
+        <ion-col col-4>MINUTOS</ion-col>
+        <ion-col col-4>SMS</ion-col>
+      </ion-row>
+    </ion-grid> 
+    -->
+
+    <ion-grid>
+      <ion-row>      
+        <ion-col *ngFor="let l of lista" col-4>
+          {{l.typetrafficdescription}} 
+          <br/><br/> {{l.totalunits}}
+        </ion-col>           
+      </ion-row>
+    </ion-grid> 
+
+    
+    <!--
+    <ion-list>
+      <ion-item-sliding *ngFor="let l of lista" >
+        <ion-item>        
+          <h3>{{l.typetrafficdescription}} - {{l.totalunits}}</h3>       
+        </ion-item>
+      </ion-item-sliding>
+    </ion-list>
+    -->
+
+    
+  </ion-card>
+
+</ion-content>

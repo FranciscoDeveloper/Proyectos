@@ -1,0 +1,50 @@
+<ion-content class="bg-login">
+
+    <h1 class="titulo">Dirección</h1>
+  
+      <ion-item class="datosLogin">
+        <ion-label floating>Dirección</ion-label>
+        <ion-input type="text"></ion-input>
+      </ion-item>
+  
+      <ion-item class="datosLogin">
+        <ion-label floating>N° Domicilio</ion-label>
+        <ion-input type="text"></ion-input>
+      </ion-item>
+
+      <br>
+  
+      <ion-item class="datosLogin">
+        <ion-label>Región</ion-label>
+        <ion-select [(ngModel)]="region">
+          <ion-option value="nes">1</ion-option>
+          <ion-option value="n64">2</ion-option>
+          <ion-option value="ps">3</ion-option>
+          <ion-option value="genesis">4</ion-option>
+          <ion-option value="saturn">5</ion-option>
+          <ion-option value="snes">6</ion-option>
+        </ion-select>
+      </ion-item>
+
+      <br>
+
+      <ion-item class="datosLogin">
+          <ion-label>Comuna</ion-label>
+          <ion-select [(ngModel)]="comuna">
+            <ion-option value="nes">1</ion-option>
+            <ion-option value="n64">2</ion-option>
+            <ion-option value="ps">3</ion-option>
+            <ion-option value="genesis">4</ion-option>
+            <ion-option value="saturn">5</ion-option>
+            <ion-option value="snes">6</ion-option>
+          </ion-select>
+        </ion-item>
+          
+      
+  
+        <br>
+  
+    <button ion-button (click)="btnAddCode()" class="cta-naranjo">Siguiente</button>
+    <p>Deseas iniciar sesión?,  <a href="#" (click)="btnRediret()" class="link-a">Solicitar aquí</a></p>
+    
+  </ion-content>

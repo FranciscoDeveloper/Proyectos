@@ -1,0 +1,13 @@
+<ion-content class="bg-login">
+    <img src="/assets/imgs/logo-blanco.png" class="logo"/>
+  
+    <h1>Ingresa tu número para inciar sesión</h1>
+
+      <ion-item class="datosLogin">
+        <ion-label floating>N° Teléfonico</ion-label>
+        <ion-input [(ngModel)]="nPhone" type="number" required></ion-input>
+      </ion-item>
+
+    <button ion-button (click)="btnCheck()" class="cta-naranjo">Verificar</button>
+    
+  </ion-content>

@@ -1,0 +1,199 @@
+// http://ionicframework.com/docs/theming/
+
+
+// App Global Sass
+// --------------------------------------------------
+// Put style rules here that you want to apply globally. These
+// styles are for the entire app and not just one component.
+// Additionally, this file can be also used as an entry point
+// to import other Sass files to be included in the output CSS.
+//
+// Shared Sass variables, which can be used to adjust Ionic's
+// default Sass variables, belong in "theme/variables.scss".
+//
+// To declare rules for a specific mode, create a child rule
+// for the .md, .ios, or .wp mode classes. The mode class is
+// automatically applied to the <body> element in the app.
+
+//Letras
+@import url('https://fonts.googleapis.com/css?family=Text+Me+One');
+
+// Card
+
+.card-alma{
+	border: #FF6E00 1px solid;
+	border-radius: 5px;
+	text-align: center;
+	margin-bottom: 5px;
+	padding: 20px 10px 15px 10px;
+}
+
+.tit{
+	font-size: 60px;
+}
+
+//Menu
+
+.borde-naranjo{
+	border: #FF6E00 2px solid;
+	border-radius: 50px;
+}
+
+.icon-menu{
+	color: #FFFFFF;
+}
+
+.icon-menu:hover,
+.icon-menu:focus,
+.icon-menu:active{
+	color: #FF6E00;
+}
+
+// Fondos
+
+ion-content, ion-header{
+	font-family: 'Text Me One', sans-serif;
+}
+.bg-alma{
+	background-color: #001230;
+	color:#FFFFFF;
+}
+
+.bg-login{
+    background-image: url("/assets/imgs/bg-login.png");
+    background-color: #001230;
+    background-origin:border-box;
+    background-size: cover;
+    text-align: center;
+    color: #fff;
+}
+
+.bg-login .logo{
+	margin-top: 100px;
+}
+.bg-login .titulo{
+	margin-top: 50px;
+}
+//Botones
+
+.link-a{
+    color:#FF6E00;
+    border-radius: 5px;
+    padding: 3px;
+    border: solid #FF6E00 1px;
+    text-decoration: none;
+}
+
+.link-a:hover{
+    color:#FFFFFF;
+    background-color: #FF6E00;
+}
+
+.btn-alma{
+	background-color: #001230;
+	color: #FFFFFF;
+	border-radius: 0px;
+	padding: 5px 20px 5px 20px;
+}
+
+.cta-naranjo{
+	background-color: #FF6E00;
+	color: #fff;
+	border-radius: 0px;
+	margin-top: 5px;
+}
+
+.btn-alma:hover{
+	background-color: #FF6E00;
+	color: #FFFFFF;
+	border-radius: 0px;
+}
+
+.btn-circ-n{
+	background-color: #001230;
+	color: #FFFFFF;
+	border-radius: 30px;
+	width: 70%;
+}
+
+.btn-circ-n:hover,
+.btn-circ-n:focus{
+	background-color: #FF6E00;
+	color: #FFFFFF;
+	border-radius: 30px;
+}
+
+.btn-circ-a{
+	background-color: #FF6E00;
+	color: #FFFFFF;
+	border-radius: 30px;
+	padding-left: 18px;
+	padding-right: 18px;
+}
+
+.btn-circ-a:hover,
+.btn-circ-a:focus{
+	background-color: #001230;
+	color: #FFFFFF;
+	border-radius: 30px;
+}
+
+.btn-circ-a-badge{
+	font-size: 11px;
+	height: 25px;
+	background-color: #001230;
+	color: #FFFFFF;
+	border-radius: 30px;
+}
+
+.btn-circ-a-badge:hover,
+.btn-circ-a-badge:focus{
+	background-color: #FF6E00;
+	color: #FFFFFF;
+	border-radius: 30px;
+}
+
+//Inputs
+.datosLogin{
+    background-color: transparent;
+    color: #fff;
+    opacity: .35;
+}
+
+// BreadCrump
+/* Breadcrumb */
+.breadcrumb {
+	list-style: none;
+	background: #F5F5F5;
+	height: 40px;
+	color: #001230;
+	overflow: hidden;
+	li {
+		margin-top: 10px;
+	  display: inline-block;
+	  color: #001230;
+	  font-weight:bold;
+	}
+	a {
+	  color:#FF6E00;
+	  text-decoration: none;
+	  font-weight: 100;
+	}
+	.icon-breadcrump {
+	  font-size: 13px;
+	}
+  }
+  @media (max-width: 600px) {
+	ul {
+		margin-top:0px;
+	  margin-left: -10%;
+	}
+  }
+  .view-container {
+	overflow: hidden;
+  }
+
+  .icon-help{
+	font-size: 100px;
+	color:#FF6E00;
+}

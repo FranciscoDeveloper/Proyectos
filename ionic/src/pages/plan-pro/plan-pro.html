@@ -1,0 +1,58 @@
+<ion-header>
+    <ion-navbar color="bg-alma">
+      <button ion-button menuToggle>
+        <ion-icon name="more"></ion-icon>
+      </button>
+      
+      <ion-buttons end>
+        <button ion-button icon-only  (click)="btnBegin()">
+            <img src="assets/imgs/logo-h.png" width="75" alt="user">
+        </button>
+      </ion-buttons>
+        
+    </ion-navbar>
+  
+  </ion-header>
+
+<ion-content>
+    <ul class="breadcrumb">
+      <li><a href="#">Contratación </a><ion-icon name="arrow-forward" class="icon-breadcrump"></ion-icon></li>
+      <li class="active">Plan Pro</li>
+    </ul>
+
+    <ion-card class="card-alma">
+
+        <ion-card-header>
+            <h1 class="tit"><em><strong>Plan Pro</strong></em></h1>
+        </ion-card-header>
+      
+        <ion-card-content>
+          <!-- Add card content here! -->
+          
+          <p>Por la cantidad de días que necesites, Portate a Alma y obten el mejor Plan para tu familia <strong>¿Que esperas?</strong> </p>
+        
+          <h3>Quiero mi Plan por:</h3>
+          
+          <ion-grid>
+              <ion-row>
+
+                <ion-col col-6>
+                    <button ion-button class="cta-naranjo">15 Días</button><br>
+                </ion-col>
+
+                <ion-col col-6>
+                    <button ion-button class="cta-naranjo">30 Días</button><br>
+                </ion-col>
+
+              </ion-row>
+          </ion-grid>
+
+          <span class="tit"><strong>$500</strong></span>
+          
+          <button ion-button class="btn-circ-n">PIDE TU PLAN</button><br>
+
+        </ion-card-content>
+      
+      </ion-card>
+      
+</ion-content>

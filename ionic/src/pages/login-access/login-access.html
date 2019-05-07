@@ -1,0 +1,43 @@
+<ion-content class="bg-login">
+    <img src="/assets/imgs/logo-blanco.png" class="logo"/>
+  
+    <h1>Ingresa el código de 4 digitos enviad al +56 9 1234 5678</h1>
+
+    <ion-grid>
+      <ion-row>
+          <ion-col col-3>
+              <ion-item class="datosLogin">
+                  <ion-input type="number" [(ngModel)]="cod1" maxlength="1" ></ion-input>
+                </ion-item>
+          </ion-col>
+
+          <ion-col col-3>
+              <ion-item class="datosLogin">
+                  <ion-input type="number" [(ngModel)]="cod2" maxlength="1"></ion-input>
+                </ion-item>
+          </ion-col>
+
+          <ion-col col-3>
+              <ion-item class="datosLogin">
+                  <ion-input type="number" [(ngModel)]="cod3" maxlength="1"></ion-input>
+                </ion-item>
+          </ion-col>
+
+          <ion-col col-3>
+              <ion-item class="datosLogin">
+                  <ion-input type="number" [(ngModel)]="cod4" maxlength="1"></ion-input>
+                </ion-item>
+          </ion-col>
+      </ion-row>
+    </ion-grid>
+
+      
+
+    <button ion-button round (click)="btnAccess()" class="cta-naranjo">
+        Acceder 
+        <ion-icon name="arrow-round-forward"></ion-icon>
+    </button>
+
+    <p>¿No recibiste el código? <a href="#" class="link-a">Reeviar</a></p>
+    
+  </ion-content>

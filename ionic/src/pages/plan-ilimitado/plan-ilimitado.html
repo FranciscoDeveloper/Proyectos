@@ -1,0 +1,65 @@
+<ion-header>
+    <ion-navbar color="bg-alma">
+      <button ion-button menuToggle>
+        <ion-icon name="more"></ion-icon>
+      </button>
+      
+      <ion-buttons end>
+        <button ion-button icon-only  (click)="btnBegin()">
+            <img src="assets/imgs/logo-h.png" width="75" alt="user">
+        </button>
+      </ion-buttons>
+        
+    </ion-navbar>
+  
+  </ion-header>
+
+<ion-content>
+    <ul class="breadcrumb">
+      <li><a href="#">Contratación </a><ion-icon name="arrow-forward" class="icon-breadcrump"></ion-icon></li>
+      <li class="active">Plan Ilimitado</li>
+    </ul>
+
+    <ion-card class="card-alma">
+
+        <ion-card-header>
+            <h1 class="tit"><em><strong>Plan Ilimitado</strong></em></h1>
+        </ion-card-header>
+      
+        <ion-card-content>
+          <!-- Add card content here! -->
+          <ion-grid>
+            <ion-row>
+              <ion-col col-4><button ion-button class="btn-circ-a-badge">IPHONE X</button></ion-col>
+              <ion-col col-4><button ion-button class="btn-circ-a-badge">LG G6</button></ion-col>
+              <ion-col col-4><button ion-button class="btn-circ-a-badge">SAMSUNG S9</button></ion-col>
+            </ion-row>
+            
+          </ion-grid>
+
+          <h2><strong>y llama ilimitadamente</strong><br>
+            Tenemos el mejor Plan para ti</h2>
+
+            <ion-grid>
+              <ion-row>
+                <ion-col col-4>
+                  <img src="assets/imgs/phone.png">
+                  <h3><strong>20Gb 4G</strong><br>
+                    SAMSUNG S9</h3>
+                </ion-col>
+                <ion-col col-8>
+                  Navega y llama  ilimitadamente, tenemos el mejor Plan para ti las primeras 12 Cuotas por:
+                  <span class="tit"><strong>$500</strong></span>
+                      <button ion-button class="btn-circ-a">PIDE TU PLAN</button><br>
+                </ion-col>
+              </ion-row>
+              
+            </ion-grid>
+
+            <h2>ADEMAS TE DAMOS LAS ÚLTIMAS 6 CUOTAS GRATIS</h2>
+          
+        </ion-card-content>
+      
+      </ion-card>
+      
+</ion-content>

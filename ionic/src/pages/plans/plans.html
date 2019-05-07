@@ -1,0 +1,43 @@
+<ion-header>
+  <ion-navbar color="bg-alma">
+    <button ion-button menuToggle>
+      <ion-icon name="more"></ion-icon>
+    </button>
+    
+    <ion-buttons end>
+      <button ion-button icon-only  (click)="btnBegin()">
+          <img src="assets/imgs/logo-h.png" width="75" alt="user">
+      </button>
+    </ion-buttons>
+      
+  </ion-navbar>
+  
+</ion-header>
+
+<ion-content>
+    <ul class="breadcrumb">
+      <li><a href="#">Contratación </a><ion-icon name="arrow-forward" class="icon-breadcrump"></ion-icon></li>
+      <li class="active">Planes</li>
+    </ul>
+
+    <ion-card class="card-alma">
+
+        <ion-card-header>
+            <h1 class="tit"><em><strong>Pide tu Plan</strong></em></h1>
+        </ion-card-header>
+        
+      
+        <ion-card-content>
+          <!-- Add card content here! -->
+          <button (click)="btnPlanPro()" ion-button class="btn-circ-n">PLAN PRO</button><br>
+          <button (click)="btnPlanProUnidos()" ion-button class="btn-circ-n">PLAN PRO UNIDOS</button><br>
+          <button (click)="btnPlanIlimitado()" ion-button class="btn-circ-n">PLAN ILIMITADO</button>
+        </ion-card-content>
+
+        <p>Por que sabemos que necesitas el mejor plan, elige el que mas te guste!</p>
+      
+      </ion-card>
+
+
+
+</ion-content>

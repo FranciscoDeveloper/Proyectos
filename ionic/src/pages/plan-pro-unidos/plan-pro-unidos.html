@@ -1,0 +1,115 @@
+<ion-header>
+    <ion-navbar color="bg-alma">
+      <button ion-button menuToggle>
+        <ion-icon name="more"></ion-icon>
+      </button>
+      
+      <ion-buttons end>
+        <button ion-button icon-only  (click)="btnBegin()">
+            <img src="assets/imgs/logo-h.png" width="75" alt="user">
+        </button>
+      </ion-buttons>
+        
+    </ion-navbar>
+  
+  </ion-header>
+
+<ion-content>
+    <ul class="breadcrumb">
+      <li><a href="#">Contratación </a><ion-icon name="arrow-forward" class="icon-breadcrump"></ion-icon></li>
+      <li class="active">Plan Pro Unidos</li>
+    </ul>
+
+    <ion-card class="card-alma">
+
+        <ion-card-header>
+            <h1 class="tit"><em><strong>Plan Pro Unidos</strong></em></h1>
+        </ion-card-header>
+      
+        <ion-card-content>
+          <!-- Add card content here! -->
+
+          <h3>¿Cuantas Lineas deseas?</h3>
+
+          <ion-grid>
+              <ion-row>
+
+                <ion-col col-3>
+                    <button ion-button class="btn-circ-a">2</button><br>
+                </ion-col>
+
+                <ion-col col-3>
+                    <button ion-button class="btn-circ-a">3</button><br>
+                </ion-col>
+
+                <ion-col col-3>
+                    <button ion-button class="btn-circ-a">4</button><br>
+                </ion-col>
+
+                <ion-col col-3>
+                    <button ion-button class="btn-circ-a">5</button><br>
+                </ion-col>
+              </ion-row>
+          </ion-grid>
+
+          <h3>Quiero mi Plan por:<strong></strong> </h3>
+          
+          <ion-grid>
+              <ion-row>
+
+                <ion-col col-6>
+                    <button ion-button class="btn-alma">15 Días</button><br>
+                </ion-col>
+
+                <ion-col col-6>
+                    <button ion-button class="btn-alma">30 Días</button><br>
+                </ion-col>
+
+              </ion-row>
+          </ion-grid>
+
+          <span class="tit"><strong>$500</strong></span>
+
+          <ion-grid>
+              <ion-row>
+
+                <ion-col col-2>
+                </ion-col>
+
+                <ion-col col-2>
+                    <img src="assets/imgs/canada.png">
+                </ion-col>
+
+                <ion-col col-2>
+                    <img src="assets/imgs/costarica.png">
+                </ion-col>
+
+                <ion-col col-2>
+                    <img src="assets/imgs/mex.png">
+                </ion-col>
+
+                <ion-col col-2>
+                    <img src="assets/imgs/usa.png">
+                </ion-col>
+
+              </ion-row>
+          </ion-grid>
+          
+          <ion-item>
+              <ion-label>Acepto las condiciones para este plan</ion-label>
+              <ion-checkbox color="bg-n" checked="false"></ion-checkbox>
+          </ion-item>
+
+          
+
+          <button ion-button class="btn-circ-n">PIDE TU PLAN</button><br>
+          
+          
+        </ion-card-content>
+        
+      
+      </ion-card>
+
+
+
+</ion-content>

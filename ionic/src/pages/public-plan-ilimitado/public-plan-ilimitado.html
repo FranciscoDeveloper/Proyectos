@@ -1,0 +1,67 @@
+<ion-header>
+  <ion-navbar color="bg-alma">
+    <button ion-button menuToggle>
+      <ion-icon name="more"></ion-icon>
+    </button>
+    
+    <ion-buttons end>
+      <button ion-button icon-only  (click)="btnBegin()">
+          <img src="assets/imgs/logo-h.png" width="75" alt="user">
+      </button>
+    </ion-buttons>
+      
+  </ion-navbar>
+
+</ion-header>
+
+<ion-content>
+
+
+<ion-slides >
+  <ion-slide *ngFor="let plan of plans">
+    <ion-card class="card-alma" >
+
+      <ion-card-header>
+          <h1 class="tit"><em><strong>{{plan.descriptionTariffPlan}}}</strong></em></h1>
+      </ion-card-header>
+    
+      <ion-card-content>
+        <!-- Add card content here! -->
+        
+        <p>Por la cantidad de días que necesites, Portate a Alma y obten el mejor Plan para tu familia <strong>¿Que esperas?</strong> </p>
+      
+               
+        <span class="tit"><strong>$500/</strong></span><strong>15 </strong>
+        <p>Redes sociales ilimitadas</p>
+        <ion-grid>
+          <ion-row>
+            <ion-col col-2>
+              <ion-icon ios="logo-instagram" md="logo-instagram"></ion-icon>
+            </ion-col>
+            <ion-col col-2>
+              <ion-icon ios="logo-facebook" md="logo-facebook"></ion-icon>
+            </ion-col>
+            <ion-col col-2>
+              <ion-icon ios="logo-twitter" md="logo-twitter"></ion-icon>
+            </ion-col>
+            <ion-col col-2>
+              <ion-icon ios="logo-instagram" md="logo-instagram"></ion-icon>
+            </ion-col>
+            <ion-col col-2>
+              <ion-icon ios="logo-instagram" md="logo-instagram"></ion-icon>
+            </ion-col>
+            <ion-col col->
+              <ion-icon ios="logo-instagram" md="logo-instagram"></ion-icon>
+            </ion-col>
+          </ion-row>
+      </ion-grid>
+     
+        <button ion-button class="btn-circ-n">CONTRATAR</button><br>
+       
+      </ion-card-content>
+    
+    </ion-card>
+  </ion-slide>
+ 
+</ion-slides>
+</ion-content>
