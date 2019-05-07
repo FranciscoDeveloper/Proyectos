@@ -27,7 +27,8 @@ export class PlansProvider {
       return new Promise(resolve => {
         this.httpClient.post("http://192.168.119.84:19080/ServicesPlanListWS/api/planService/getTariffPlanList/", typePlan, {})
         .subscribe(data => {
-          resolve(data.tariffPlanList);
+            resolve(data);
+        //  resolve(data.tariffPlanList);
          }, error => {
           console.log(error);
         });

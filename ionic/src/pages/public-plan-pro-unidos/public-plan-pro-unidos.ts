@@ -27,7 +27,7 @@ export class PublicPlanProUnidosPage {
     }
    
     plansProvider.getTariffPlanList("",typePlan).then(data => {
-      this.plans=data.tariffPlanList;
+      this.plans=data;
     }) ;
    
   }
