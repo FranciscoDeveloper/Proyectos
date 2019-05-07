@@ -16,14 +16,16 @@ import { AlertService, AuthenticationService, UserService } from './_services';
 import { HomeComponent } from './home';
 import { LoginComponent } from './login';
 import { RegisterComponent } from './register';
-import { ShoppingcartComponent } from './shoppingcart/shoppingcart.component';
-
+import { ShoppingcartComponent } from './shoppingcart/shoppingcart.component';;
+import { SolarSystemComponent } from './solar-system/solar-system.component'
+import { HttpModule } from '@angular/http';
 @NgModule({
     imports: [
         BrowserModule,
         ReactiveFormsModule,
         HttpClientModule,
-        routing
+        routing,
+        HttpModule
     ],
     declarations: [
         AppComponent,
@@ -31,7 +33,8 @@ import { ShoppingcartComponent } from './shoppingcart/shoppingcart.component';
         HomeComponent,
         LoginComponent,
         RegisterComponent,
-        ShoppingcartComponent    ],
+        ShoppingcartComponent ,
+        SolarSystemComponent   ],
     providers: [
         AuthGuard,
         AlertService,

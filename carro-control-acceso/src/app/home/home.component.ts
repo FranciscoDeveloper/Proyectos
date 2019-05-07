@@ -20,7 +20,7 @@ export class HomeComponent implements OnInit {
 
     deleteUser(id: number) {
         this.userService.delete(id).pipe(first()).subscribe(() => {
-            this.loadAllUsers()
+            this.loadAllUsers();
         });
     }
 
@@ -29,4 +29,7 @@ export class HomeComponent implements OnInit {
             this.users = users;
         });
     }
+
+
+    
 }
