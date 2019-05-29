@@ -2,7 +2,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { ReactiveFormsModule }    from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-
+import { FormsModule }   from '@angular/forms';
 // used to create fake backend
 import { fakeBackendProvider } from './_helpers';
 
@@ -19,13 +19,16 @@ import { RegisterComponent } from './register';
 import { ShoppingcartComponent } from './shoppingcart/shoppingcart.component';;
 import { SolarSystemComponent } from './solar-system/solar-system.component'
 import { HttpModule } from '@angular/http';
+import {MusicService} from './_services/music.service';
+
 @NgModule({
     imports: [
         BrowserModule,
         ReactiveFormsModule,
         HttpClientModule,
         routing,
-        HttpModule
+        HttpModule,
+        FormsModule
     ],
     declarations: [
         AppComponent,
@@ -39,6 +42,7 @@ import { HttpModule } from '@angular/http';
         AuthGuard,
         AlertService,
         AuthenticationService,
+        MusicService,
         UserService,
         { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
