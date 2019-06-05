@@ -1,0 +1,79 @@
+<ion-header>
+  <ion-navbar color="bg-alma">
+    <button ion-button menuToggle>
+      <ion-icon name="more"></ion-icon>
+    </button>
+    
+    <ion-buttons end>
+      <button ion-button icon-only  (click)="btnBegin()">
+          <img src="assets/imgs/logo-h.png" width="75" alt="user">
+      </button>
+    </ion-buttons>
+      
+  </ion-navbar>
+
+</ion-header>
+
+<ion-content>
+
+
+<ion-slides pager >
+  <ion-slide *ngFor="let plan of plans">
+
+    <ion-card class="card-body shadow ">
+                
+      <div class="mas" style="border-top:73px solid #3d61a8"></div>
+    
+      <ion-icon name="add" (click)="showAlertMas()"class="icon-mas titulo-card"></ion-icon>
+      
+    
+              
+      <!-- <br> -->
+    
+      <ion-grid>
+          <h4 class="titulo-card">{{plan.nameCommercialOffer}}</h4>
+        <ion-row>
+          <ion-col col-12><p class="text-center">Llamadas , Datos y SMS Ilimitados por la cantidad de días seleccionados</p></ion-col>
+        </ion-row>
+        
+        <ion-row>
+          <ion-col col-12 class="text-center">
+            <span class="precio-card">{{plan.grossCost}} /</span> <span class="dias" [innerHTML]="plan.validity | converthtml"> </span>
+          </ion-col>
+        </ion-row>
+    
+        <ion-row>
+          <ion-col col-12 class="text-center">
+            <p class="text-center">{{plan.nameCommercialOffer}}</p>
+          </ion-col>
+        </ion-row>
+    
+        <ion-row>
+          <ion-col col-12 class="social text-center">
+            <img class="icon-rrss" *ngFor="let s of plan.socialNetworksList.socialNetworksList" src="{{s.urlsocialnetworks}}" alt="">
+          </ion-col>
+        <!-- </ion-row> -->
+    
+        <!-- <ion-row> -->
+          <ion-col col-12>
+            <p class="text-mini text-center">Costo de activación $100, <br>
+              {{plan.serviceDetailSinglePayment}}, </p>
+          </ion-col>
+        </ion-row>
+        
+        <ion-row>
+          <ion-col col-12 class="text-center">
+            <button class="nav-link small" style="background-color:#3d61a8;" (click)="btnRegister()" ion-button>Contratar</button>
+          </ion-col>
+        </ion-row>
+    
+    
+      </ion-grid>
+     </ion-card>
+  </ion-slide>
+ 
+</ion-slides>
+
+</ion-content>
+
+
