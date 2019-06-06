@@ -1,0 +1,54 @@
+
+<ion-header>
+   
+    <ion-navbar color="bg-alma">
+      <button ion-button menuToggle>
+        <ion-icon name="more"></ion-icon>
+      </button>
+      
+      <ion-buttons end>
+        <button ion-button icon-only  (click)="btnBegin()">
+            <img src="assets/imgs/logo-h.png" width="75" alt="user">
+        </button>
+      </ion-buttons>
+     
+    </ion-navbar>
+    
+    <ion-navbar>
+        <ion-title>Lista de Facturas</ion-title>
+      </ion-navbar>
+
+</ion-header>
+<ion-content padding>
+    <ion-list class="card-alma-info">
+       
+        <ion-item>
+            <ion-row class="text-mini text-center">
+                <ion-col col-4><strong>FECHA</strong></ion-col>
+                <ion-col col-4><strong>VALOR</strong></ion-col>
+                <ion-col col-4><strong>DESCARGA</strong></ion-col>
+              </ion-row>
+        </ion-item>
+    <!-- *ngFor="let history of historys"-->
+        <ion-item > 
+            <ion-row class="text-mini text-center"  *ngFor="let history of historys| slice:pageInit:pageFin; let i=index" >
+                <ion-col col-4>{{history.dateEndBill}}</ion-col>
+                <ion-col col-4>{{history.totalDue}}</ion-col>
+                <ion-col col-4 ><a [href]="baseUrl+history.id+extention" download="file.pdf"><ion-icon class="text-verde" name="download"></ion-icon></a> </ion-col>
+              <!--  <ion-col col-4><a href="{{baseUrl}}{{history.id}}"><ion-icon name="download"></ion-icon></a></ion-col> -->
+              </ion-row>
+        </ion-item>
+       
+      </ion-list>
+      <ion-grid *ngIf="showPages">
+        <ion-row>
+          <ion-col col-3><button ion-button class="bg-azul-alma" icon-only round clear (click)="getPrev()"><ion-icon name="arrow-back"></ion-icon></button></ion-col>
+          <ion-col col-3></ion-col>
+          <ion-col col-3></ion-col>
+          <ion-col col-3><button class="bg-azul-alma" round style="float: right;" ion-button icon-only clear (click)="getNext()"><ion-icon name="arrow-forward"></ion-icon></button></ion-col>
+        </ion-row>
+      </ion-grid>
+      
+      
+
+</ion-content>

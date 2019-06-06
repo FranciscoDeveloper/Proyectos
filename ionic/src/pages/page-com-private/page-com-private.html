@@ -1,0 +1,81 @@
+<ion-header>
+  <ion-navbar color="bg-alma">
+    <button ion-button menuToggle>
+      <ion-icon name="more"></ion-icon>
+    </button>
+
+    <ion-buttons end>
+      <button ion-button icon-only (click)="btnBegin()">
+        <img src="assets/imgs/logo-h.png" width="75" alt="user">
+      </button>
+    </ion-buttons>
+
+  </ion-navbar>
+
+</ion-header>
+
+<ion-content>
+  <ul class="breadcrumb">
+    <li><a href="#">Contratación </a>
+      <ion-icon name="arrow-forward" class="icon-breadcrump"></ion-icon>
+    </li>
+    <li class="active">Servicio Adicional</li>
+  </ul>
+  <ion-slides pager>
+
+    <ion-slide *ngFor="let l of lista">
+
+      <ion-card class="card-body shadow ">
+
+        <div class="mas" style="border-top:73px solid #3d61a8"></div>
+
+        <ion-icon name="add" (click)="showAlertMas()" class="icon-mas titulo-card"></ion-icon>
+
+        <ion-grid>
+          <h4 class="titulo-card">PLAN FULL ILIMITADO</h4>
+          <ion-row>
+            <ion-col col-12>
+              <p class="text-center"> {{l.descriptionService}}</p>
+            </ion-col>
+
+
+          </ion-row>
+
+          <ion-row>
+            <ion-col col-12 class="text-center">
+              <span class="precio-card">${{l.grossCost}} /</span> <span class="dias" [innerHTML]="l.validity | converthtml"> </span>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col col-12 class="text-center">
+              <p class="text-center">{{l.socialNetworksTitle}}</p>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col col-12 class="social text-center">
+
+              <img class="icon-rrss" *ngFor="let s of l.socialNetworksList.socialNetworksList" src="{{s.urlsocialnetworks}}" alt="">
+
+            </ion-col>
+            
+            <ion-col col-12>
+              <p class="text-mini text-center">{{l.titleServicepayment}}, <br>
+                {{l.serviceDetailSinglePayment}} </p>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col col-12 class="text-center">
+              <button class="nav-link small" (click)="registerPage()" style="background-color:#3d61a8;" ion-button>Contratar</button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card>
+    </ion-slide>
+  </ion-slides>
+
+  <!-- </ion-card> -->
+
+</ion-content>

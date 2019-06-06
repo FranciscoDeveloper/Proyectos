@@ -1,0 +1,55 @@
+<!--
+  Generated template for the ListRecargasPage page.
+
+  See http://ionicframework.com/docs/components/#navigation for more info on
+  Ionic pages and navigation.
+-->
+<ion-header>
+   
+        <ion-navbar color="bg-alma">
+          <button ion-button menuToggle>
+            <ion-icon name="more"></ion-icon>
+          </button>
+          
+          <ion-buttons end>
+            <button ion-button icon-only  (click)="btnBegin()">
+                <img src="assets/imgs/logo-h.png" width="75" alt="user">
+            </button>
+          </ion-buttons>
+            
+        </ion-navbar>
+        
+      
+  <ion-navbar>
+    <ion-title>Lista de recargas</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <ion-list class="card-alma-info">
+
+    <ion-item>
+      <ion-row class="text-mini text-center">
+          <ion-col col-4><strong>FECHA</strong></ion-col>
+          <ion-col col-4><strong>CODIGO</strong></ion-col>
+          <ion-col col-4><strong>VALOR</strong></ion-col>
+        </ion-row>
+  </ion-item>
+    <ion-item *ngFor="let history of historys">
+        <ion-row class="text-mini text-center" >
+            <ion-col col-4><strong> {{history.insertDate | date: 'dd/MM/yyyy'}}</strong></ion-col>
+            <ion-col col-4><strong> {{history.idBusinessManagement}}</strong></ion-col>
+            <ion-col col-4><strong>{{history.amount}}</strong></ion-col>
+          </ion-row>
+    </ion-item>
+    
+  </ion-list>
+  <ion-grid *ngIf="showPages">
+    <ion-row>
+      <ion-col col-3><button ion-button class="bg-azul-alma" icon-only round clear (click)="getPrev()"><ion-icon name="arrow-back"></ion-icon></button></ion-col>
+      <ion-col col-3></ion-col>
+      <ion-col col-3></ion-col>
+      <ion-col col-3><button class="bg-azul-alma" round style="float: right;" ion-button icon-only clear (click)="getNext()"><ion-icon name="arrow-forward"></ion-icon></button></ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

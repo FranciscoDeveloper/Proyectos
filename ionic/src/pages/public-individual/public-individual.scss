@@ -1,0 +1,72 @@
+page-public-individual {
+    .col-md-4{
+        display: inline-block;
+        margin-left:-10px;
+      }
+      
+      
+      .card-body {
+        -ms-flex: 1 1 auto;
+        flex: 1 1 auto;
+        padding: 1.25rem;
+        margin-top: -80px;
+      }
+      
+      .shadow {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+      }
+      
+      .precio-card{
+          font-size: 58px;
+          font-weight: bold;
+          color: #000;
+          float: left;
+      }
+      
+      .dias{
+          font-size: 20px;
+          font-weight: bold;
+          float: left;
+          line-height: 23px;
+          margin-top: 21px;
+      }
+      
+      
+      .mas{
+          position: relative;
+          top: -6px;
+          right: -219px;
+          margin-right: 20px;
+          width: 0;
+          border-left: 73px solid transparent;
+      }  
+      
+      .social{
+          margin: 5px 0px 5px 0px
+      }
+      
+      .titulo-card{
+          font-size: 23px;
+          margin-top: -55px;
+          // text-align: left;
+      }
+      
+      .icon-rrss{
+          text-align: center;
+          width: 28px;
+          float: left;
+          margin-left: 10px;
+      }
+      
+      .icon-mas{
+          position: absolute;
+          margin-left: 20px;
+          color: #fff;
+          font-size: 30px;
+          font-weight: bold;
+          top: 75px;
+          right: 24px;
+          z-index: 999;
+      }
+  
+}
