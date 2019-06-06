@@ -20,6 +20,9 @@ export class LoginComponent implements OnInit {
         private alertService: AlertService) {}
 
     ngOnInit() {
+       
+       
+
         this.loginForm = this.formBuilder.group({
             username: ['', Validators.required],
             password: ['', Validators.required]
@@ -54,5 +57,15 @@ export class LoginComponent implements OnInit {
                     this.alertService.error(error);
                     this.loading = false;
                 });
+    }
+
+
+    //login con facebook
+    logout(){
+      
+            FB.logout(function(response) {
+                // user is now logged out
+              });
+        
     }
 }
