@@ -11,11 +11,11 @@ export class HomeComponent implements OnInit {
 
     constructor(private userService: UserService) {
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        localStorage.setItem('sdaas','ffffff');
+      
     }
 
     ngOnInit() {
-        this.loadAllUsers();
+      //  this.loadAllUsers();
     }
 
     deleteUser(id: number) {

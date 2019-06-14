@@ -10,7 +10,7 @@ const appRoutes: Routes = [
     { path: '', component: HomeComponent, canActivate: [AuthGuard] },
     { path: 'login', component: LoginComponent },
     { path: 'register', component: RegisterComponent },
-    { path: 'shoppingcart', component: ShoppingcartComponent },
+    { path: 'shoppingcart', component: ShoppingcartComponent, canActivate: [AuthGuard] },
     { path: 'solarsystem', component: SolarSystemComponent },
     // otherwise redirect to home
     { path: '**', redirectTo: '' }

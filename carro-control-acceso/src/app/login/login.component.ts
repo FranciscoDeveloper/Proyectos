@@ -2,22 +2,31 @@
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first } from 'rxjs/operators';
-
+import { AngularFireAuth  } from '@angular/fire/auth';
 import { AlertService, AuthenticationService } from '../_services';
+import * as firebase from 'firebase/app';
+import { User } from '../_models';
+@Component({
+    templateUrl: 'login.component.html',
+    styleUrls: ['login.component.css']
 
-@Component({templateUrl: 'login.component.html'})
+})
 export class LoginComponent implements OnInit {
     loginForm: FormGroup;
     loading = false;
     submitted = false;
     returnUrl: string;
-
+     firebase = require('firebase');
+     firebaseui = require('firebaseui');
     constructor(
         private formBuilder: FormBuilder,
         private route: ActivatedRoute,
         private router: Router,
         private authenticationService: AuthenticationService,
-        private alertService: AlertService) {}
+        private alertService: AlertService,
+        public afAuth: AngularFireAuth) {
+           
+        }
 
     ngOnInit() {
        
@@ -59,13 +68,52 @@ export class LoginComponent implements OnInit {
                 });
     }
 
+    doFacebookLogin(){
+        return new Promise<any>((resolve, reject) => {
+          let provider = new firebase.auth.FacebookAuthProvider();
+          this.afAuth.auth
+          .signInWithPopup(provider)
+          .then(res => {
+            resolve(res);
+            this.userAccessControl(res);
+          }, err => {
+            console.log(err);
+            reject(err);
+          })
+        })
+     }
 
-    //login con facebook
-    logout(){
+
+     doGoogleLogin(){
+        return new Promise<any>((resolve, reject) => {
+          let provider = new firebase.auth.GoogleAuthProvider();
+          provider.addScope('profile');
+          provider.addScope('email');
+          this.afAuth.auth
+          .signInWithPopup(provider)
+          .then(res => {
+            resolve(res);
+            this.userAccessControl(res);
+          })
+        })
       
-            FB.logout(function(response) {
-                // user is now logged out
-              });
-        
-    }
+      }
+  
+
+      userAccessControl(res){
+        if (res.user && res.credential.accessToken) {
+          // store user details and jwt token in local storage to keep user logged in between page refreshes
+          var currentUser: User= new User();
+          currentUser.firstName=res.user.displayName;
+          localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        }
+        this.router.navigate([this.returnUrl]);
+      }
+
+     
+
+
+
+
+      
 }
