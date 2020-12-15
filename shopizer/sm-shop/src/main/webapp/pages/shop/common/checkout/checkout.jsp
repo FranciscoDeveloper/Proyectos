@@ -1473,7 +1473,7 @@ $(document).ready(function() {
 							style="height: 250px;"></div>
 						<!-- end confirm shipping box -->
 						<br />
-
+<p class="muted common-row"><s:message code="label.checkout.logon" text="${token}"/></p>
 
 						<c:if test="${fn:length(paymentMethods)>0}">
 							<!-- payment box -->

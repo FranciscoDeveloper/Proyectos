@@ -443,7 +443,7 @@ public class ShoppingOrderController extends AbstractController {
 		com.salesmanager.shop.transbank.WebPay wp= new com.salesmanager.shop.transbank.WebPay();
 		String token=wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124", 350.0, "http://riquelmesolutions.cl/shop");
 		model.addAttribute("tokne",token);
-		return "redirect:/shop/order/webpay.html";
+		return "redirect:/shop/order/checkout.html";
 	}
 	
 	
@@ -983,7 +983,7 @@ public class ShoppingOrderController extends AbstractController {
 			}
 
 	        //redirect to completd
-	        return "redirect:/shop/order/confirmation.html";
+	        return "redirect:/shop/common/checkout/confirmation.html";
 
 		
 	}
