@@ -3,6 +3,7 @@ package com.salesmanager.shop.transbank;
 import java.io.IOException;
 
 import cl.transbank.common.IntegrationType;
+import cl.transbank.webpay.exception.TransactionCommitException;
 import cl.transbank.webpay.exception.TransactionCreateException;
 import cl.transbank.webpay.webpayplus.WebpayPlus;
 import cl.transbank.webpay.webpayplus.model.WebpayPlusTransactionCommitResponse;
@@ -14,15 +15,15 @@ public class WebPay {
 		WebpayPlus.Transaction.setApiKey("579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C");
 		WebpayPlus.Transaction.setIntegrationType(IntegrationType.TEST);
 	}
-	
-	public void generateTransaction(String buyOrder, String sessionId, double amount, String returnUrl){
+
+	public void generateTransaction(String buyOrder, String sessionId, double amount, String returnUrl) {
 		try {
-			final WebpayPlusTransactionCreateResponse preResponse = WebpayPlus.Transaction.create(
-					  buyOrder, sessionId, amount, returnUrl
-					);
-			
+			final WebpayPlusTransactionCreateResponse preResponse = WebpayPlus.Transaction.create(buyOrder, sessionId,
+					amount, returnUrl);
+
 			final WebpayPlusTransactionCommitResponse response = WebpayPlus.Transaction.commit(preResponse.getToken());
-		} catch (TransactionCreateException | IOException e) {
+
+		} catch (TransactionCreateException | IOException | TransactionCommitException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
