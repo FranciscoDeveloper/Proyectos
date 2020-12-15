@@ -589,8 +589,6 @@ function initPayment(paymentSelection) {
 			</div>
 		</div>
 		
-
-		
 		<!-- coupon-area end -->		
 		<!-- checkout-area start -->
 		<div class="checkout-area pb-50">

@@ -7,6 +7,6 @@
 <title>Insert title here</title>
 </head>
 <body>
-
+<p class="muted common-row"><s:message code="label.checkout.logon" text="${token}"/></p>
 </body>
 </html>

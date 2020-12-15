@@ -16,14 +16,27 @@ public class WebPay {
 		WebpayPlus.Transaction.setIntegrationType(IntegrationType.TEST);
 	}
 
-	public void generateTransaction(String buyOrder, String sessionId, double amount, String returnUrl) {
+	public String generateTransaction(String buyOrder, String sessionId, double amount, String returnUrl) {
 		try {
 			final WebpayPlusTransactionCreateResponse preResponse = WebpayPlus.Transaction.create(buyOrder, sessionId,
 					amount, returnUrl);
 
-			final WebpayPlusTransactionCommitResponse response = WebpayPlus.Transaction.commit(preResponse.getToken());
+			return preResponse.getToken();
 
-		} catch (TransactionCreateException | IOException | TransactionCommitException e) {
+		} catch (TransactionCreateException | IOException  e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return "";
+	}
+	
+	public void commitTransaction(String token) {
+		try {
+			final WebpayPlusTransactionCommitResponse response = WebpayPlus.Transaction.commit(token);
+		} catch (TransactionCommitException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
