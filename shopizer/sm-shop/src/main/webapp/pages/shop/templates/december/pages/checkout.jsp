@@ -1067,7 +1067,7 @@ function initPayment(paymentSelection) {
 								
 								<div id="formErrorMessage" class="alert"></div>
 								<div class="order-button-payment">
-								<a href="<c:url value="/shop/order/webpay.html"/>
+								<p><a href="<c:url value="/shop/order/webpay.html" /> pagar con webpay <p>
 			
 												<!-- submit can be a post or a pre ajax query -->
 								</div>

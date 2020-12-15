@@ -5,6 +5,7 @@ import java.io.IOException;
 import cl.transbank.common.IntegrationType;
 import cl.transbank.webpay.exception.TransactionCreateException;
 import cl.transbank.webpay.webpayplus.WebpayPlus;
+import cl.transbank.webpay.webpayplus.model.WebpayPlusTransactionCommitResponse;
 import cl.transbank.webpay.webpayplus.model.WebpayPlusTransactionCreateResponse;
 
 public class WebPay {
@@ -16,9 +17,11 @@ public class WebPay {
 	
 	public void generateTransaction(String buyOrder, String sessionId, double amount, String returnUrl){
 		try {
-			final WebpayPlusTransactionCreateResponse response = WebpayPlus.Transaction.create(
+			final WebpayPlusTransactionCreateResponse preResponse = WebpayPlus.Transaction.create(
 					  buyOrder, sessionId, amount, returnUrl
 					);
+			
+			final WebpayPlusTransactionCommitResponse response = WebpayPlus.Transaction.commit(preResponse.getToken());
 		} catch (TransactionCreateException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
