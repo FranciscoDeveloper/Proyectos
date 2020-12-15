@@ -436,6 +436,16 @@ public class ShoppingOrderController extends AbstractController {
 		
 	}
 	
+	@SuppressWarnings("unused")
+	@RequestMapping("/webpay.html")
+	public String crearPago(){
+		
+		com.salesmanager.shop.transbank.WebPay wp= new com.salesmanager.shop.transbank.WebPay();
+		wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124", 350.0, "http://riquelmesolutions.cl/shop");
+		return "redirect:/shop/order/checkout.html";
+	}
+	
+	
 	
 	@RequestMapping("/commitPreAuthorized.html")
 	public String commitPreAuthorizedOrder(Model model, HttpServletRequest request, HttpServletResponse response, Locale locale) throws Exception {

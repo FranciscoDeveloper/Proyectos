@@ -1067,16 +1067,13 @@ function initPayment(paymentSelection) {
 								
 								<div id="formErrorMessage" class="alert"></div>
 								<div class="order-button-payment">
-												<button id="submitOrder" type="button" class=" 
-												<c:if test="${errorMessages!=null}"> btn-disabled</c:if>" 
-												<c:if test="${errorMessages!=null}"> disabled="true"</c:if>
-												><s:message code="button.label.submitorder" text="Submit order"/>
-												</button>
+								<a href="<c:url value="/shop/order/webpay.html"/>
 			
 												<!-- submit can be a post or a pre ajax query -->
 								</div>
 							</div>
 						</c:if>
+						gdfgdf
 					</div>
 						</div>
 					</form:form>
