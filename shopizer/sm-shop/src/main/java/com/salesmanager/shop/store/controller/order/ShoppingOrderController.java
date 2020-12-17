@@ -98,6 +98,8 @@ public class ShoppingOrderController extends AbstractController {
 	private static final Logger LOGGER = LoggerFactory
 	.getLogger(ShoppingOrderController.class);
 	
+	private static final String WEB_PAY_TOKEN = "WebPayToken";
+	
 	@Value("${config.googleMapsKey}")
 	private String googleMapsKey;
 	
@@ -438,13 +440,14 @@ public class ShoppingOrderController extends AbstractController {
 	
 	@SuppressWarnings("unused")
 	@RequestMapping("/webpay.html")
-	public void crearPago(Model model){
+	public String crearPago(Model model, HttpServletRequest request, HttpServletResponse response){
 		
 		com.salesmanager.shop.transbank.WebPay wp= new com.salesmanager.shop.transbank.WebPay();
 		String token=wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124", 350.0, "http://riquelmesolutions.cl/shop");
-		model.addAttribute("token",token);
-		System.out.println("MI TOKEN ES "+token);
-		LOGGER.info("MI TOKEN ES "+token);
+
+		request.setAttribute(WEB_PAY_TOKEN,token);
+		
+		return "http://riquelmesolutions.cl/shop/order/checkout.html";
 	}
 	
 	
