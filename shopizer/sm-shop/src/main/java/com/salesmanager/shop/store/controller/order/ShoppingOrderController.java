@@ -447,7 +447,7 @@ public class ShoppingOrderController extends AbstractController {
 
 		request.setAttribute(WEB_PAY_TOKEN,token);
 		
-		return "http://riquelmesolutions.cl/shop/order/checkout.html";
+		return "redirect:/shop/order/checkout.html";
 	}
 	
 	
