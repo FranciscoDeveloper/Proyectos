@@ -1192,9 +1192,9 @@ $(document).ready(function() {
 									title='Imagen' name='button1'
 									src='https://www.webpay.cl/portalpagodirecto/img/pagar01.png'
 									value='Boton 1' />
-									<input input="button " value="Boton 1"/>
+								
 							</form>
-
+	<input input="button " value="Boton 1"/>
 						</div>
 						<!-- end billing box -->
 
