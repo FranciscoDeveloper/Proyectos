@@ -566,7 +566,7 @@ function initPayment(paymentSelection) {
 				<div class="row">
 					<div class="col-md-12">
 						<div class="entry-header">
-							<h1 class="entry-title"><s:message code="${token}" text="${token}" /></h1>
+							<h1 class="entry-title"><s:message code="label.checkout" text="Checkout" /></h1>
 						</div>
 					</div>
 				</div>
@@ -581,7 +581,7 @@ function initPayment(paymentSelection) {
 						<div class="coupon-accordion">
 							<!-- ACCORDION START -->
 							<sec:authorize access="!hasRole('AUTH_CUSTOMER') and !fullyAuthenticated">
-								<p class="muted common-row"><a href="<c:url value="/shop/customer/customLogon.html"/>"><s:message code="label.checkout.logon" text="${token}"/></a></p>
+								<p class="muted common-row"><a href="<c:url value="/shop/customer/customLogon.html"/>"><s:message code="label.checkout.logon" text="Logon or signup to simplify the online purchase process!"/></a></p>
 							</sec:authorize>					
 						</div>
 					</div>
