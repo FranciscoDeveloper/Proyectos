@@ -438,14 +438,13 @@ public class ShoppingOrderController extends AbstractController {
 	
 	@SuppressWarnings("unused")
 	@RequestMapping("/webpay.html")
-	public String crearPago(Model model){
+	public void crearPago(Model model){
 		
 		com.salesmanager.shop.transbank.WebPay wp= new com.salesmanager.shop.transbank.WebPay();
 		String token=wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124", 350.0, "http://riquelmesolutions.cl/shop");
 		model.addAttribute("token",token);
 		System.out.println("MI TOKEN ES "+token);
 		LOGGER.info("MI TOKEN ES "+token);
-		return "redirect:/shop/order/checkout.html";
 	}
 	
 	
