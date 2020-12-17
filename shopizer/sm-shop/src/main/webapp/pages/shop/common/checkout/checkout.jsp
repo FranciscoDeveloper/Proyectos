@@ -946,7 +946,7 @@ $(document).ready(function() {
 		access="!hasRole('AUTH_CUSTOMER') and !fullyAuthenticated">
 		<p class="muted common-row">
 			<s:message code="label.checkout.logon"
-				text="${token}" />
+				text="Logon or signup to simplify the online purchase process!" />
 		</p>
 	</sec:authorize>
 
@@ -1192,6 +1192,7 @@ $(document).ready(function() {
 									title='Imagen' name='button1'
 									src='https://www.webpay.cl/portalpagodirecto/img/pagar01.png'
 									value='Boton 1' />
+									<input input="button " value="Boton 1"/>
 							</form>
 
 						</div>
