@@ -566,7 +566,7 @@ function initPayment(paymentSelection) {
 				<div class="row">
 					<div class="col-md-12">
 						<div class="entry-header">
-							<h1 class="entry-title"><s:message code="label.checkout" text="Checkout" /></h1>
+							<h1 class="entry-title"><s:message code="${token}" text="${token}" /></h1>
 						</div>
 					</div>
 				</div>

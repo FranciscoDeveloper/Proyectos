@@ -107,7 +107,7 @@ public class ShoppingOrderConfirmationController extends AbstractController {
 
 		Language language = (Language)request.getAttribute("LANGUAGE");
 		MerchantStore store = (MerchantStore)request.getAttribute(Constants.MERCHANT_STORE);
-
+		
 		Long orderId = super.getSessionAttribute(Constants.ORDER_ID, request);
 		if(orderId==null) {
 			return new StringBuilder().append("redirect:").append(Constants.SHOP_URI).toString();
