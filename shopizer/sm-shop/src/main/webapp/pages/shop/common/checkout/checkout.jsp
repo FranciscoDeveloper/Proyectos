@@ -946,7 +946,7 @@ $(document).ready(function() {
 		access="!hasRole('AUTH_CUSTOMER') and !fullyAuthenticated">
 		<p class="muted common-row">
 			<s:message code="label.checkout.logon"
-				text="Logon or signup to simplify the online purchase process!" />
+				text="${token}" />
 		</p>
 	</sec:authorize>
 
@@ -1473,7 +1473,6 @@ $(document).ready(function() {
 							style="height: 250px;"></div>
 						<!-- end confirm shipping box -->
 						<br />
-<p class="muted common-row"><s:message code="label.checkout.logon" text="${token}"/></p>
 
 						<c:if test="${fn:length(paymentMethods)>0}">
 							<!-- payment box -->
