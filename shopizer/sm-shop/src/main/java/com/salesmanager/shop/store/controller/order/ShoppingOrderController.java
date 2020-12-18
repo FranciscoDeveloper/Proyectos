@@ -161,8 +161,8 @@ public class ShoppingOrderController extends AbstractController {
 		Language language = (Language)request.getAttribute("LANGUAGE");
 		MerchantStore store = (MerchantStore)request.getAttribute(Constants.MERCHANT_STORE);
 		Customer customer = (Customer)request.getSession().getAttribute(Constants.CUSTOMER);
-		Object token = request.getAttribute(WEB_PAY_TOKEN);
-		System.out.println("Mi token fue recepcionado con exito "+token.toString());
+		Object token = request.getSession().getAttribute(WEB_PAY_TOKEN);
+//		System.out.println("Mi token fue recepcionado con exito "+token.toString());
 		model.addAttribute("googleMapsKey",googleMapsKey);
 		
 		/**
@@ -446,7 +446,7 @@ public class ShoppingOrderController extends AbstractController {
 		com.salesmanager.shop.transbank.WebPay wp= new com.salesmanager.shop.transbank.WebPay();
 		String token=wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124", 350.0, "http://riquelmesolutions.cl/shop");
 
-		request.setAttribute(WEB_PAY_TOKEN,token);
+		request.getSession().setAttribute(WEB_PAY_TOKEN,token);
 		
 		return "redirect:/shop/order/checkout.html";
 	}
