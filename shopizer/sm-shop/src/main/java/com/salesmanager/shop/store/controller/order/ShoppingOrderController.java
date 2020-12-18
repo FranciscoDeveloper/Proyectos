@@ -161,7 +161,7 @@ public class ShoppingOrderController extends AbstractController {
 		Language language = (Language)request.getAttribute("LANGUAGE");
 		MerchantStore store = (MerchantStore)request.getAttribute(Constants.MERCHANT_STORE);
 		Customer customer = (Customer)request.getSession().getAttribute(Constants.CUSTOMER);
-		Object token = request.getAttribute(WEB_PAY_TOKEN);
+//		Object token = request.getAttribute(WEB_PAY_TOKEN);
 //		System.out.println("Mi token fue recepcionado con exito "+token.toString());
 		model.addAttribute("googleMapsKey",googleMapsKey);
 		
