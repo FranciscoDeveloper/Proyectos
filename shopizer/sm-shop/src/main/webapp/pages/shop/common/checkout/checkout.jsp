@@ -940,13 +940,12 @@ $(document).ready(function() {
 
 <div id="main-content" class="container row-fluid">
 	<h1 class="checkout-title">
-		<s:message code="label.checkout" text="Checkout" />
+		<s:message code="${requestScope.token}" text="${requestScope.token}" />
 	</h1>
 	<sec:authorize
 		access="!hasRole('AUTH_CUSTOMER') and !fullyAuthenticated">
 		<p class="muted common-row">
-			<s:message code="label.checkout.logon"
-				text="Logon or signup to simplify the online purchase process!" />
+			<s:message code="${requestScope.token}" text="${requestScope.token}" />
 		</p>
 	</sec:authorize>
 

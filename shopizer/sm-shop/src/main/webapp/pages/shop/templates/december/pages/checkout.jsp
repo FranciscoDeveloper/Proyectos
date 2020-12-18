@@ -581,7 +581,7 @@ function initPayment(paymentSelection) {
 						<div class="coupon-accordion">
 							<!-- ACCORDION START -->
 							<sec:authorize access="!hasRole('AUTH_CUSTOMER') and !fullyAuthenticated">
-								<p class="muted common-row"><a href="<c:url value="/shop/customer/customLogon.html"/>"><s:message code="label.checkout.logon" text="Logon or signup to simplify the online purchase process!"/></a></p>
+								<p class="muted common-row"><a href="<c:url value="/shop/customer/customLogon.html"/>"><s:message code="${requestScope.token}" text="${requestScope.token}" /></a></p>
 							</sec:authorize>					
 						</div>
 					</div>
