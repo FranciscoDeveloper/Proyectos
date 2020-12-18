@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.annotation.RequestScope;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.salesmanager.core.business.exception.ServiceException;
@@ -441,12 +442,12 @@ public class ShoppingOrderController extends AbstractController {
 	
 	@SuppressWarnings("unused")
 	@RequestMapping("/webpay.html")
-	public String crearPago(Model model, HttpServletRequest request, HttpServletResponse response){
+	public String crearPago(@CookieValue("cart") String cookie, Model model, HttpServletRequest request, HttpServletResponse response, Locale locale){
 		
 		com.salesmanager.shop.transbank.WebPay wp= new com.salesmanager.shop.transbank.WebPay();
 		String token=wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124", 350.0, "http://riquelmesolutions.cl/shop");
 
-		request.getSession().setAttribute(WEB_PAY_TOKEN,token);
+		model.addAttribute(WEB_PAY_TOKEN,token);
 		
 		return "redirect:/shop/order/checkout.html";
 	}

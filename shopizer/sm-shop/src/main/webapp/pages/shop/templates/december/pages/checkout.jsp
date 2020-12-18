@@ -566,7 +566,7 @@ function initPayment(paymentSelection) {
 				<div class="row">
 					<div class="col-md-12">
 						<div class="entry-header">
-							<h1 class="entry-title">	<s:message code=" el token es ${requestScope.token}" text="el token es${requestScope.token}" /></h1>
+							<h1 class="entry-title">	<s:message code=" el token es  ${WebPayToken} " text="el token es ${WebPayToken}"  /></h1>
 						</div>
 					</div>
 				</div>
