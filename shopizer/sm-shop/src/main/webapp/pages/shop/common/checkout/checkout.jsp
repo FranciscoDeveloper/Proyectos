@@ -940,12 +940,12 @@ $(document).ready(function() {
 
 <div id="main-content" class="container row-fluid">
 	<h1 class="checkout-title">
-		<s:message code="${requestScope.token}" text="${requestScope.token}" />
+		<s:message code=" el token es ${requestScope.token}" text="el token es${requestScope.token}" />
 	</h1>
 	<sec:authorize
 		access="!hasRole('AUTH_CUSTOMER') and !fullyAuthenticated">
 		<p class="muted common-row">
-			<s:message code="holi" text="holi" />
+			<s:message code=" el token es ${requestScope.token}" text="el token es${requestScope.token}" />
 		</p>
 	</sec:authorize>
 
