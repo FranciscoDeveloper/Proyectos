@@ -945,7 +945,7 @@ $(document).ready(function() {
 	<sec:authorize
 		access="!hasRole('AUTH_CUSTOMER') and !fullyAuthenticated">
 		<p class="muted common-row">
-			<s:message code="${requestScope.token}" text="${requestScope.token}" />
+			<s:message code="holi" text="holi" />
 		</p>
 	</sec:authorize>
 
