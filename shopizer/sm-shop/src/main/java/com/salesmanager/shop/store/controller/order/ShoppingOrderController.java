@@ -442,15 +442,14 @@ public class ShoppingOrderController extends AbstractController {
 	
 	@SuppressWarnings("unused")
 	@RequestMapping("/webpay.html")
-	public ModelAndView crearPago(@CookieValue("cart") String cookie, Model model, HttpServletRequest request, HttpServletResponse response, Locale locale){
+	public String crearPago(@CookieValue("cart") String cookie, Model model, HttpServletRequest request, HttpServletResponse response, Locale locale){
 		
 		com.salesmanager.shop.transbank.WebPay wp= new com.salesmanager.shop.transbank.WebPay();
 		String token=wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124", 350.0, "http://riquelmesolutions.cl/shop");
-		ModelAndView modelAndView = new ModelAndView("redirect:/shop/order/checkout.html");
 		TransbankDTO transbank = new TransbankDTO();
 		transbank.setToken(token);
-	    modelAndView.addObject(WEB_PAY_TOKEN, transbank);
-		return modelAndView ;
+		model.addAttribute(WEB_PAY_TOKEN, transbank);
+		return "redirect:/shop/order/checkout.html" ;
 	}
 	
 	
