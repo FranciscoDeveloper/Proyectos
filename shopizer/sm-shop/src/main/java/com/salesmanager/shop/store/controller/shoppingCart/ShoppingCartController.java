@@ -36,6 +36,7 @@ import com.salesmanager.shop.model.shoppingcart.ShoppingCartData;
 import com.salesmanager.shop.model.shoppingcart.ShoppingCartItem;
 import com.salesmanager.shop.store.controller.AbstractController;
 import com.salesmanager.shop.store.controller.ControllerConstants;
+import com.salesmanager.shop.store.controller.order.ShoppingOrderController;
 import com.salesmanager.shop.store.controller.shoppingCart.facade.ShoppingCartFacade;
 import com.salesmanager.shop.utils.LabelUtils;
 import com.salesmanager.shop.utils.LanguageUtils;
@@ -105,7 +106,8 @@ public class ShoppingCartController extends AbstractController {
 	@Inject
 	private LanguageUtils languageUtils;
 	
-	
+	private static final Logger LOGGER = LoggerFactory
+	.getLogger(ShoppingCartController.class);
 
 	/**
 	 * Add an item to the ShoppingCart (AJAX exposed method)
@@ -118,10 +120,9 @@ public class ShoppingCartController extends AbstractController {
 	public @ResponseBody
 	ShoppingCartData addShoppingCartItem(@RequestBody final ShoppingCartItem item, final HttpServletRequest request, final HttpServletResponse response, final Locale locale) throws Exception {
 
-
 		ShoppingCartData shoppingCart=null;
 		
-
+		LOGGER.info("ESTOY AGREGANDO AL CARRO"+ item.getName());
 		//Look in the HttpSession to see if a customer is logged in
 	    MerchantStore store = getSessionAttribute(Constants.MERCHANT_STORE, request);
 	    Language language = (Language)request.getAttribute(Constants.LANGUAGE);
@@ -169,6 +170,7 @@ public class ShoppingCartController extends AbstractController {
 		}
 
 		shoppingCart=shoppingCartFacade.addItemsToShoppingCart( shoppingCart, item, store, language, customer );
+		LOGGER.info("SE AGREGA ELEMENTO AL CARRITO");
 		request.getSession().setAttribute(Constants.SHOPPING_CART, shoppingCart.getCode());
 
 
