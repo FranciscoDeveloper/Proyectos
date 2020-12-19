@@ -121,7 +121,6 @@ public class ShoppingCartController extends AbstractController {
 	ShoppingCartData addShoppingCartItem(@RequestBody final ShoppingCartItem item, final HttpServletRequest request, final HttpServletResponse response, final Locale locale) throws Exception {
 
 		ShoppingCartData shoppingCart=null;
-		
 		LOGGER.info("ESTOY AGREGANDO AL CARRO"+ item.getName());
 		//Look in the HttpSession to see if a customer is logged in
 	    MerchantStore store = getSessionAttribute(Constants.MERCHANT_STORE, request);
