@@ -1,5 +1,8 @@
 package com.salesmanager.shop.transbank;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class TransbankDTO {
 
 	
