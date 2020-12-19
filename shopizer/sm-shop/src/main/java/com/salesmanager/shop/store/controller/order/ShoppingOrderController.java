@@ -84,6 +84,7 @@ import com.salesmanager.shop.store.controller.ControllerConstants;
 import com.salesmanager.shop.store.controller.customer.facade.CustomerFacade;
 import com.salesmanager.shop.store.controller.order.facade.OrderFacade;
 import com.salesmanager.shop.store.controller.shoppingCart.facade.ShoppingCartFacade;
+import com.salesmanager.shop.transbank.TransbankDTO;
 import com.salesmanager.shop.utils.EmailTemplatesUtils;
 import com.salesmanager.shop.utils.LabelUtils;
 
@@ -446,7 +447,9 @@ public class ShoppingOrderController extends AbstractController {
 		com.salesmanager.shop.transbank.WebPay wp= new com.salesmanager.shop.transbank.WebPay();
 		String token=wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124", 350.0, "http://riquelmesolutions.cl/shop");
 		ModelAndView modelAndView = new ModelAndView("redirect:/shop/order/checkout.html");
-	    modelAndView.addObject(WEB_PAY_TOKEN, token);
+		TransbankDTO transbank = new TransbankDTO();
+		transbank.setToken(token);
+	    modelAndView.addObject(WEB_PAY_TOKEN, transbank);
 		return modelAndView ;
 	}
 	

@@ -18,5 +18,10 @@ public class TransbankDTO {
 		this.url = url;
 	}
 	
+	@Override
+	public String toString(){
+		return this.token;
+	}
+	
 	
 }
