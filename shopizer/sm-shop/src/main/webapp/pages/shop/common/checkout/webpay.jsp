@@ -18,4 +18,4 @@ response.setDateHeader ("Expires", -1);
 
 
 
-<p class="muted common-row"><s:message code="label.checkout.logon" text="${token}"/></p>
+<p class="muted common-row"><s:message code="label.checkout.logon" text="hola mundo!!"/></p>
