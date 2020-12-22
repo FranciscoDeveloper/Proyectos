@@ -449,7 +449,7 @@ public class ShoppingOrderController extends AbstractController {
 		TransbankDTO transbank = new TransbankDTO();
 		transbank.setToken(token);
 		model.addAttribute(WEB_PAY_TOKEN, transbank);
-		return "redirect:/shop/order/webpay.html";
+		return "redirect:www.google.cl";
 	}
 	
 	
