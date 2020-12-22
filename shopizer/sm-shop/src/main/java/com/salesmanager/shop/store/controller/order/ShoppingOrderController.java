@@ -441,7 +441,7 @@ public class ShoppingOrderController extends AbstractController {
 	}
 	
 	@SuppressWarnings("unused")
-	@RequestMapping("/webpay.html")
+	@RequestMapping("/webpay")
 	public String crearPago(@CookieValue("cart") String cookie, Model model, HttpServletRequest request, HttpServletResponse response, Locale locale){
 		
 		com.salesmanager.shop.transbank.WebPay wp= new com.salesmanager.shop.transbank.WebPay();
