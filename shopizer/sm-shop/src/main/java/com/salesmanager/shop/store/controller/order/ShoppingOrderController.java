@@ -87,7 +87,7 @@ import com.salesmanager.shop.store.controller.shoppingCart.facade.ShoppingCartFa
 import com.salesmanager.shop.transbank.TransbankDTO;
 import com.salesmanager.shop.utils.EmailTemplatesUtils;
 import com.salesmanager.shop.utils.LabelUtils;
-
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Displays checkout form and deals with ajax user input
@@ -432,6 +432,7 @@ public class ShoppingOrderController extends AbstractController {
 		
 		model.addAttribute("order",order);
 		model.addAttribute("paymentMethods", paymentMethods);
+
 		
 		/** template **/
 		StringBuilder template = new StringBuilder().append(ControllerConstants.Tiles.Checkout.checkout).append(".").append(store.getStoreTemplate());
@@ -443,13 +444,12 @@ public class ShoppingOrderController extends AbstractController {
 	@SuppressWarnings("unused")
 	@RequestMapping("/webpay")
 	public String crearPago(@CookieValue("cart") String cookie, Model model, HttpServletRequest request, HttpServletResponse response, Locale locale){
-		
 		com.salesmanager.shop.transbank.WebPay wp= new com.salesmanager.shop.transbank.WebPay();
-		String token=wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124", 350.0, "http://riquelmesolutions.cl/shop");
-		TransbankDTO transbank = new TransbankDTO();
-		transbank.setToken(token);
-		model.addAttribute(WEB_PAY_TOKEN, transbank);
-		return "redirect:www.google.cl";
+		TransbankDTO transbank =wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124", 350.0, "http://riquelmesolutions.cl/shop/order/confirmation.html");
+		MerchantStore store = (MerchantStore)request.getAttribute(Constants.MERCHANT_STORE);
+		model.addAttribute("token_ws", transbank.getToken());
+		/** template **/
+    return "redirect:"+transbank.getUrl()+"?token_ws="+transbank.getToken();
 	}
 	
 	
