@@ -16,18 +16,21 @@ public class WebPay {
 		WebpayPlus.Transaction.setIntegrationType(IntegrationType.TEST);
 	}
 
-	public String generateTransaction(String buyOrder, String sessionId, double amount, String returnUrl) {
+	public TransbankDTO generateTransaction(String buyOrder, String sessionId, double amount, String returnUrl) {
+		TransbankDTO transbank = new TransbankDTO();
 		try {
 			final WebpayPlusTransactionCreateResponse preResponse = WebpayPlus.Transaction.create(buyOrder, sessionId,
 					amount, returnUrl);
 
-			return preResponse.getToken();
-
+			
+			transbank.setToken(preResponse.getToken());
+			transbank.setUrl(preResponse.getUrl());
+			return transbank;
 		} catch (TransactionCreateException | IOException  e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e.getStackTrace();
+			transbank.setCodeError(1);
 		}
-		return "";
+		return transbank;
 	}
 	
 	public void commitTransaction(String token) {

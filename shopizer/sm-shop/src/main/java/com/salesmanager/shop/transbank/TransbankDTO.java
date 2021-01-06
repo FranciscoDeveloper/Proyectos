@@ -8,6 +8,7 @@ public class TransbankDTO {
 	
 	private String token;
 	private String url;
+	private int codeError;
 	public String getToken() {
 		return token;
 	}
@@ -24,6 +25,12 @@ public class TransbankDTO {
 	@Override
 	public String toString(){
 		return this.token;
+	}
+	public int getCodeError() {
+		return codeError;
+	}
+	public void setCodeError(int codeError) {
+		this.codeError = codeError;
 	}
 	
 	

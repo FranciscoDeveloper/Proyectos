@@ -1026,14 +1026,10 @@ function initPayment(paymentSelection) {
 										</div>
 								
 								</div>
-						<form name='rec74435197_btn1' method='post'
-								action='https://www.webpay.cl/portalpagodirecto/pages/datos.jsf'>
-								<input type='hidden' name='idRecaudacion' value='74435197' /><input
-									type='hidden' name='monto' value='XXXXX' /><input type='image'
-									title='Imagen' name='button1'
-									src='https://www.webpay.cl/portalpagodirecto/img/pagar01.png'
-									value='Boton 1' />
-							</form>
+												<div class="wc-proceed-to-checkout">
+													<a href="<c:url value="/shop/order/webpay"/>"><s:message
+															code="label.proceed.checkout" text="Proceed to checkout" /></a>
+												</div>
 								<c:if
 									test="${requestScope.CONFIGS['displayCustomerAgreement']==true}">
 									<!-- customer agreement -->
