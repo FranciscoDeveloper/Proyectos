@@ -1,5 +1,6 @@
 package com.salesmanager.shop.store.controller.order;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -445,7 +446,9 @@ public class ShoppingOrderController extends AbstractController {
 	@RequestMapping("/webpay")
 	public String crearPago(@CookieValue("cart") String cookie, Model model, HttpServletRequest request, HttpServletResponse response, Locale locale){
 		com.salesmanager.shop.transbank.WebPay wp= new com.salesmanager.shop.transbank.WebPay();
-		TransbankDTO transbank =wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124", 350.0, "http://riquelmesolutions.cl/shop/order/confirmation.html");
+		ShopOrder order = super.getSessionAttribute(Constants.ORDER, request);
+		BigDecimal total= order.getOrderTotalSummary().getTotal();
+		TransbankDTO transbank =wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124", total.doubleValue(), "http://riquelmesolutions.cl/shop/order/confirmation.html");
 		MerchantStore store = (MerchantStore)request.getAttribute(Constants.MERCHANT_STORE);
 		model.addAttribute("token_ws", transbank.getToken());
 		/** template **/
