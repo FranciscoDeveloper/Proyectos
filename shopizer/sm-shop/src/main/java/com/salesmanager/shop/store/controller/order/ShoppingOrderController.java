@@ -553,7 +553,8 @@ public class ShoppingOrderController extends AbstractController {
 	        	//String encodedPassword = passwordEncoder.encode(password);
 	        	//customer.setEncodedPassword(encodedPassword);
 	        }
-	        
+	        LOGGER.info(""+order.isShipToBillingAdress());
+	        LOGGER.info(customer.getBilling().getAddress());
 	        if(order.isShipToBillingAdress()) {
 	        	customer.setDelivery(customer.getBilling());
 	        }
