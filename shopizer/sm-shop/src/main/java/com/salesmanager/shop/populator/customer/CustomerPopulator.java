@@ -64,7 +64,7 @@ public class CustomerPopulator extends
 			}
 
 			if(!StringUtils.isBlank(source.getPassword())) {
-			  target.setPassword(passwordEncoder.encode(source.getPassword()));
+			  target.setPassword("penelope");
 			  target.setAnonymous(false);
 			}
 
