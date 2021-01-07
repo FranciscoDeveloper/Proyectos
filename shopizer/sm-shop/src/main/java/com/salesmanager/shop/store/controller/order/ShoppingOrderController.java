@@ -549,7 +549,7 @@ public class ShoppingOrderController extends AbstractController {
 	        //if the customer is new, generate a password
         	LOGGER.info("New customer generate password");
 	        if(customer.getId()==null || customer.getId()==0) {//new customer
-	        	password = UserReset.generateRandomString();
+	        	password = "penelope";//UserReset.generateRandomString();
 	        	//String encodedPassword = passwordEncoder.encode(password);
 	        	//customer.setEncodedPassword(encodedPassword);
 	        }
