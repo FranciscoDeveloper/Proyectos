@@ -442,20 +442,14 @@ public class ShoppingOrderController extends AbstractController {
 		
 	}
 	
-	@SuppressWarnings("unused")
-	@RequestMapping("/webpay")
-	public String crearPago(@CookieValue("cart") String cookie, Model model,@Valid @ModelAttribute(value="order") ShopOrder order, HttpServletRequest request, HttpServletResponse response, Locale locale){
-		com.salesmanager.shop.transbank.WebPay wp= new com.salesmanager.shop.transbank.WebPay();
-		OrderTotalSummary total= order.getOrderTotalSummary();
-		System.out.println(total.getSubTotal()+" "+total.getTaxTotal()+" "+total.getTotals());
-		TransbankDTO transbank =wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124", 10.0, "http://riquelmesolutions.cl/shop/order/confirmation.html");
-		MerchantStore store = (MerchantStore)request.getAttribute(Constants.MERCHANT_STORE);
-		model.addAttribute("token_ws", transbank.getToken());
+
+	private String webpayTransaction(double total) {
+		com.salesmanager.shop.transbank.WebPay wp = new com.salesmanager.shop.transbank.WebPay();
+		TransbankDTO transbank = wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124",total,
+				"http://riquelmesolutions.cl/shop/order/confirmation.html");
 		/** template **/
-    return "redirect:"+transbank.getUrl()+"?token_ws="+transbank.getToken();
+		return "redirect:" + transbank.getUrl() + "?token_ws=" + transbank.getToken();
 	}
-	
-	
 	
 	@RequestMapping("/commitPreAuthorized.html")
 	public String commitPreAuthorizedOrder(Model model, HttpServletRequest request, HttpServletResponse response, Locale locale) throws Exception {
@@ -990,9 +984,11 @@ public class ShoppingOrderController extends AbstractController {
 				throw e;		
 				
 			}
-
+		
+			LOGGER.debug("Comienza Comunicacion con webpay...");
+			return webpayTransaction(order.getOrderTotalSummary().getTotal().doubleValue());
 	        //redirect to completd
-	        return "redirect:/shop/common/checkout/confirmation.html";
+//	        return "redirect:/shop/common/checkout/confirmation.html";
 
 		
 	}
