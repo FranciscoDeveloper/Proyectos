@@ -1027,8 +1027,7 @@ function initPayment(paymentSelection) {
 								
 								</div>
 												<div class="wc-proceed-to-checkout">
-													<a href="<c:url value="/shop/order/webpay"/>"><s:message
-															code="label.proceed.checkout" text="Proceed to checkout" /></a>
+													<input type="submit" value="Submit">
 												</div>
 								<c:if
 									test="${requestScope.CONFIGS['displayCustomerAgreement']==true}">
