@@ -447,7 +447,7 @@ public class ShoppingOrderController extends AbstractController {
 	public String crearPago(@CookieValue("cart") String cookie, Model model, HttpServletRequest request, HttpServletResponse response, Locale locale){
 		com.salesmanager.shop.transbank.WebPay wp= new com.salesmanager.shop.transbank.WebPay();
 		ShopOrder order = super.getSessionAttribute(Constants.ORDER, request);
-//		BigDecimal total= order.getOrderTotalSummary().getTotal();
+		BigDecimal total= order.getOrderTotalSummary().getTotal();
 		TransbankDTO transbank =wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124", 10.0, "http://riquelmesolutions.cl/shop/order/confirmation.html");
 		MerchantStore store = (MerchantStore)request.getAttribute(Constants.MERCHANT_STORE);
 		model.addAttribute("token_ws", transbank.getToken());
