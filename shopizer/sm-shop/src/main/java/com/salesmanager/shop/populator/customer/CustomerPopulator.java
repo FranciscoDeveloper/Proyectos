@@ -90,10 +90,10 @@ public class CustomerPopulator extends
 			if(target.getGender()==null) {
 				target.setGender( com.salesmanager.core.model.customer.CustomerGender.M);
 			}
-
+			 LOG.info( "VA POR PAISES Y ZONAS" );
 			Map<String,Country> countries = countryService.getCountriesMap(language);
 			Map<String,Zone> zones = zoneService.getZones(language);
-			
+			LOG.info( "RECUPERA PAISES Y ZONAS" );
 			target.setMerchantStore( store );
 
 			Address sourceBilling = source.getBilling();
