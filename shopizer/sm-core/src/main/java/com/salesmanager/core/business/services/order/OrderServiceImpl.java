@@ -272,7 +272,7 @@ public class OrderServiceImpl  extends SalesManagerEntityServiceImpl<Long, Order
                 }
             }
         }
-        
+        LOGGER.info(summary.getProducts().size()+" size");
         //only in order page, otherwise invokes too many processing
         if(
         		OrderSummaryType.ORDERTOTAL.name().equals(summary.getOrderSummaryType().name()) ||
