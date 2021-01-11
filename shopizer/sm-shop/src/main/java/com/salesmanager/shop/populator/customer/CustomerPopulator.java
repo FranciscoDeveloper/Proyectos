@@ -90,19 +90,19 @@ public class CustomerPopulator extends
 			if(target.getGender()==null) {
 				target.setGender( com.salesmanager.core.model.customer.CustomerGender.M);
 			}
-			 LOG.info( "VA POR PAISES Y ZONAS" );
 			Map<String,Country> countries = countryService.getCountriesMap(language);
 			Map<String,Zone> zones = zoneService.getZones(language);
-			LOG.info( "RECUPERA PAISES Y ZONAS" );
+			
 			target.setMerchantStore( store );
 
 			Address sourceBilling = source.getBilling();
-			if(sourceBilling!=null) {
+			if(sourceBilling!=null) 
+				LOG.info( "obtiene facturacion" );{
 				Billing billing = target.getBilling();
 				billing.setAddress(sourceBilling.getAddress());
 				billing.setCity(sourceBilling.getCity());
 				billing.setCompany(sourceBilling.getCompany());
-				//billing.setCountry(country);
+//				billing.setCountry(country);
 				if (!StringUtils.isEmpty(sourceBilling.getFirstName()))
 					billing.setFirstName(sourceBilling.getFirstName());
 				if (!StringUtils.isEmpty(sourceBilling.getLastName()))
@@ -113,12 +113,13 @@ public class CustomerPopulator extends
 				Country billingCountry = null;
 				if(!StringUtils.isBlank(sourceBilling.getCountry())) {
 					billingCountry = countries.get(sourceBilling.getCountry());
+				
 					if(billingCountry==null) {
 						throw new ConversionException("Unsuported country code " + sourceBilling.getCountry());
 					}
 					billing.setCountry(billingCountry);
 				}
-				
+				LOG.info( "RECUPERA "+billingCountry.getName() );
 				if(billingCountry!=null && !StringUtils.isBlank(sourceBilling.getZone())) {
 					Zone zone = zoneService.getByCode(sourceBilling.getZone());
 					if(zone==null) {
@@ -157,7 +158,7 @@ public class CustomerPopulator extends
 				Country deliveryCountry = null;
 				
 				
-				
+				LOG.info( "RECUPERA "+delivery.getFirstName() );
 				if(!StringUtils.isBlank(sourceShipping.getCountry())) {
 					deliveryCountry = countries.get(sourceShipping.getCountry());
 					if(deliveryCountry==null) {
