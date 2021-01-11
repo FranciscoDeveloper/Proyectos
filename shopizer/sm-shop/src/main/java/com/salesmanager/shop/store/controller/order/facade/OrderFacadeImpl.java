@@ -1303,7 +1303,7 @@ public class OrderFacadeImpl implements OrderFacade {
 					LOGGER.error("Cannot send order confirmation email", e);
 				}
 			}
-
+			LOGGER.info( "Se procesa orden" );
 			return modelOrder;
 
 		} catch (Exception e) {
