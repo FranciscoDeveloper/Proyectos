@@ -565,7 +565,7 @@ public class ShoppingOrderController extends AbstractController {
 			try {//set groups
 				if(authCustomer==null) {//not authenticated, create a new volatile user
 					modelCustomer = customerFacade.getCustomerModel(customer, store, language);
-					customerFacade.setCustomerModelDefaultProperties(modelCustomer, store);
+				//	customerFacade.setCustomerModelDefaultProperties(modelCustomer, store);
 					userName = modelCustomer.getNick();
 					LOGGER.debug( "About to persist volatile customer to database." );
 					if(modelCustomer.getDefaultLanguage() == null) {

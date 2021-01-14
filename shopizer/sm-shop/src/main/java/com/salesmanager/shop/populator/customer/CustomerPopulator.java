@@ -232,7 +232,7 @@ public class CustomerPopulator extends
 			}
 			
 			if(target.getDefaultLanguage()==null) {
-				
+					
 				Language lang = source.getLanguage() == null ?
 						language : languageService.getByCode(source.getLanguage());
 
@@ -244,10 +244,7 @@ public class CustomerPopulator extends
 		} catch (Exception e) {
 			throw new ConversionException(e);
 		}
-		
-		
-		
-		
+
 		return target;
 	}
 

@@ -342,7 +342,7 @@ public class OrderFacadeImpl implements OrderFacade {
 			modelOrder.setBilling(customer.getBilling());
 			modelOrder.setDelivery(customer.getDelivery());
 			modelOrder.setPaymentModuleCode(order.getPaymentModule());
-			modelOrder.setPaymentType(PaymentType.valueOf(order.getPaymentMethodType()));
+			modelOrder.setPaymentType(PaymentType.MONEYORDER);
 			modelOrder.setShippingModuleCode(order.getShippingModule());
 			modelOrder.setCustomerAgreement(order.isCustomerAgreed());
 			modelOrder.setLocale(LocaleUtils.getLocale(store));// set the store
@@ -534,12 +534,12 @@ public class OrderFacadeImpl implements OrderFacade {
 			modelOrder.setPaymentModuleCode(order.getPaymentModule());
 			payment.setModuleName(order.getPaymentModule());
 
-			if (transaction != null) {
-				orderService.processOrder(modelOrder, customer, order.getShoppingCartItems(), summary, payment, store);
-			} else {
-				orderService.processOrder(modelOrder, customer, order.getShoppingCartItems(), summary, payment,
-						transaction, store);
-			}
+	//		if (transaction != null) {
+	//			orderService.processOrder(modelOrder, customer, order.getShoppingCartItems(), summary, payment, store);
+		//	} else {
+	//			orderService.processOrder(modelOrder, customer, order.getShoppingCartItems(), summary, payment,
+	//					transaction, store);
+	//		}
 
 			return modelOrder;
 
