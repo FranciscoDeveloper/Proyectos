@@ -680,8 +680,7 @@ public class ShoppingOrderController extends AbstractController {
 		
 		model.addAttribute("order", order);
 		OrderTotalSummary totalSummary = super.getSessionAttribute(Constants.ORDER_SUMMARY, request);
-		Map<String, Object> configs = (Map<String, Object>) request.getAttribute(Constants.REQUEST_CONFIGS);
-		
+		order.setOrderTotalSummary(totalSummary);
 
    
    		try {

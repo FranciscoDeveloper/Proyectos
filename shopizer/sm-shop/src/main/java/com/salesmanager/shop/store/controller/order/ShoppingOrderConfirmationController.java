@@ -17,6 +17,7 @@ import com.salesmanager.core.model.reference.language.Language;
 import com.salesmanager.core.model.reference.zone.Zone;
 import com.salesmanager.shop.constants.Constants;
 import com.salesmanager.shop.model.order.ReadableOrderProductDownload;
+import com.salesmanager.shop.model.order.ShopOrder;
 import com.salesmanager.shop.model.order.v0.ReadableOrder;
 import com.salesmanager.shop.populator.order.ReadableOrderProductDownloadPopulator;
 import com.salesmanager.shop.store.controller.AbstractController;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.inject.Inject;
@@ -103,10 +105,11 @@ public class ShoppingOrderConfirmationController extends AbstractController {
 	 * @throws Exception
 	 */
 	@RequestMapping("/confirmation.html")
-	public String displayConfirmation(Model model, HttpServletRequest request, HttpServletResponse response, Locale locale) throws Exception {
+	public String displayConfirmation(Model model, HttpServletRequest request, HttpServletResponse response, Locale locale,
+			@ModelAttribute(value="token_ws") String token) throws Exception {
+	//llegara este parametro	 = token_ws
 
-
-		
+		LOGGER.info("Mi token "+token);
 		/** template **/
 		StringBuilder template = new StringBuilder().append(ControllerConstants.Tiles.Checkout.confirmation).append(".").append("december");
 		return template.toString();
