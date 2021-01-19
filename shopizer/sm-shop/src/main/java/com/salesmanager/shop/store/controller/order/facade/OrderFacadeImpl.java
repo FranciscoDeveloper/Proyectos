@@ -351,7 +351,7 @@ public class OrderFacadeImpl implements OrderFacade {
 																// country for
 																// order $
 																// formatting
-
+      LOGGER.info("payment p "+modelOrder.getPaymentType());
 			List<ShoppingCartItem> shoppingCartItems = order.getShoppingCartItems();
 			Set<OrderProduct> orderProducts = new LinkedHashSet<OrderProduct>();
 
@@ -847,12 +847,12 @@ public class OrderFacadeImpl implements OrderFacade {
 			}
 
 			// validate shipping
-			if (shippingService.requiresShipping(order.getShoppingCartItems(), store)
-					&& order.getSelectedShippingOption() == null) {
-				ServiceException serviceException = new ServiceException(ServiceException.EXCEPTION_VALIDATION,
-						"shipping.required");
-				throw serviceException;
-			}
+		//	if (shippingService.requiresShipping(order.getShoppingCartItems(), store)
+		//			&& order.getSelectedShippingOption() == null) {
+		//		ServiceException serviceException = new ServiceException(ServiceException.EXCEPTION_VALIDATION,
+		//				"shipping.required");
+		//		throw serviceException;
+		//	}
 
 			// pre-validate credit card
 			if (PaymentType.CREDITCARD.name().equals(paymentType)
