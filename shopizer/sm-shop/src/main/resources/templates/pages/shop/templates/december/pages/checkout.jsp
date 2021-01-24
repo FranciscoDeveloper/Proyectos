@@ -689,7 +689,6 @@ function initPayment(paymentSelection) {
 									</div>								
 									</sec:authorize>
 								</div>
-								<c:if test="${shippingQuote!=null}">
 								<div class="different-address">
 										<div class="ship-different-title">
 											<h3>
@@ -766,7 +765,6 @@ function initPayment(paymentSelection) {
 										</div>									
 									</div>
 								</div>
-								</c:if>													
 							</div>
 						</div>	
 						<div class="col-lg-6 col-md-6">
