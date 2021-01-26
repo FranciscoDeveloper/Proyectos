@@ -438,97 +438,13 @@ public class OrderFacadeImpl implements OrderFacade {
 				modelOrder.setShippingModuleCode(order.getShippingModule());
 			}
 
-			String paymentType = order.getPaymentMethodType();
 			Payment payment = new Payment();
 			payment.setPaymentType(PaymentType.MONEYORDER);
 			payment.setAmount(order.getOrderTotalSummary().getTotal());
 			payment.setModuleName(order.getPaymentModule());
 			payment.setCurrency(modelOrder.getCurrency());
 
-			if (order.getPayment() != null && order.getPayment().get("paymentToken") != null) {// set
-																								// any
-																								// tokenization
-																								// payment
-																								// token
-				String paymentToken = order.getPayment().get("paymentToken");
-				Map<String, String> paymentMetaData = new HashMap<String, String>();
-				payment.setPaymentMetaData(paymentMetaData);
-				paymentMetaData.put("paymentToken", paymentToken);
-			}
-
-			if (PaymentType.CREDITCARD.name().equals(paymentType)) {
-
-				payment = new CreditCardPayment();
-				((CreditCardPayment) payment).setCardOwner(order.getPayment().get("creditcard_card_holder"));
-				((CreditCardPayment) payment)
-						.setCredidCardValidationNumber(order.getPayment().get("creditcard_card_cvv"));
-				((CreditCardPayment) payment).setCreditCardNumber(order.getPayment().get("creditcard_card_number"));
-				((CreditCardPayment) payment)
-						.setExpirationMonth(order.getPayment().get("creditcard_card_expirationmonth"));
-				((CreditCardPayment) payment)
-						.setExpirationYear(order.getPayment().get("creditcard_card_expirationyear"));
-
-				Map<String, String> paymentMetaData = order.getPayment();
-				payment.setPaymentMetaData(paymentMetaData);
-				payment.setPaymentType(PaymentType.valueOf(paymentType));
-				payment.setAmount(order.getOrderTotalSummary().getTotal());
-				payment.setModuleName(order.getPaymentModule());
-				payment.setCurrency(modelOrder.getCurrency());
-
-				CreditCardType creditCardType = null;
-				String cardType = order.getPayment().get("creditcard_card_type");
-
-				// supported credit cards
-				if (CreditCardType.AMEX.name().equalsIgnoreCase(cardType)) {
-					creditCardType = CreditCardType.AMEX;
-				} else if (CreditCardType.VISA.name().equalsIgnoreCase(cardType)) {
-					creditCardType = CreditCardType.VISA;
-				} else if (CreditCardType.MASTERCARD.name().equalsIgnoreCase(cardType)) {
-					creditCardType = CreditCardType.MASTERCARD;
-				} else if (CreditCardType.DINERS.name().equalsIgnoreCase(cardType)) {
-					creditCardType = CreditCardType.DINERS;
-				} else if (CreditCardType.DISCOVERY.name().equalsIgnoreCase(cardType)) {
-					creditCardType = CreditCardType.DISCOVERY;
-				}
-
-				((CreditCardPayment) payment).setCreditCard(creditCardType);
-
-				if (creditCardType != null) {
-
-					CreditCard cc = new CreditCard();
-					cc.setCardType(creditCardType);
-					cc.setCcCvv(((CreditCardPayment) payment).getCredidCardValidationNumber());
-					cc.setCcOwner(((CreditCardPayment) payment).getCardOwner());
-					cc.setCcExpires(((CreditCardPayment) payment).getExpirationMonth() + "-"
-							+ ((CreditCardPayment) payment).getExpirationYear());
-
-					// hash credit card number
-					if (!StringUtils.isBlank(cc.getCcNumber())) {
-						String maskedNumber = CreditCardUtils
-								.maskCardNumber(order.getPayment().get("creditcard_card_number"));
-						cc.setCcNumber(maskedNumber);
-						modelOrder.setCreditCard(cc);
-					}
-
-				}
-
-			}
-
-			if (PaymentType.PAYPAL.name().equals(paymentType)) {
-
-				// check for previous transaction
-				if (transaction == null) {
-					throw new ServiceException("payment.error");
-				}
-
-				payment = new com.salesmanager.core.model.payments.PaypalPayment();
-
-				((com.salesmanager.core.model.payments.PaypalPayment) payment)
-						.setPayerId(transaction.getTransactionDetails().get("PAYERID"));
-				((com.salesmanager.core.model.payments.PaypalPayment) payment)
-						.setPaymentToken(transaction.getTransactionDetails().get("TOKEN"));
-
-			}
+			
 
 			modelOrder.setShoppingCartCode(shoppingCartCode);
 			modelOrder.setPaymentModuleCode(order.getPaymentModule());
