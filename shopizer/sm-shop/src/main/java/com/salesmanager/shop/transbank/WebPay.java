@@ -15,6 +15,15 @@ public class WebPay {
 		WebpayPlus.Transaction.setApiKey("579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C");
 		WebpayPlus.Transaction.setIntegrationType(IntegrationType.TEST);
 	}
+	
+	private static WebPay webpay;
+	
+	public static WebPay getInstance() {
+		if(webpay == null) {
+			webpay = new WebPay(); 
+		}
+		return webpay;
+	}
 
 	public TransbankDTO generateTransaction(String buyOrder, String sessionId, double amount, String returnUrl) {
 		TransbankDTO transbank = new TransbankDTO();
