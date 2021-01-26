@@ -591,10 +591,10 @@ public class ShoppingOrderController extends AbstractController {
 		Transaction initialTransaction = (Transaction) super.getSessionAttribute(Constants.INIT_TRANSACTION_KEY,
 				request);
 		if (initialTransaction != null) {
-			// modelOrder=orderFacade.processOrder(order, modelCustomer, initialTransaction,
-			// store, language);
+			 modelOrder=orderFacade.processOrder(order, modelCustomer, initialTransaction,
+			 store, language);
 		} else {
-			// modelOrder=orderFacade.processOrder(order, modelCustomer, store, language);
+			 modelOrder=orderFacade.processOrder(order, modelCustomer, store, language);
 		}
 
 		// save order id in session
