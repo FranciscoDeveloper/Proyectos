@@ -755,7 +755,7 @@ public class ShoppingOrderController extends AbstractController {
 					freeShoppingCart = false;
 				}
 			}
-
+			this.commitOrder(order, request, locale);
 			try {
 				ObjectMapper mapper = new ObjectMapper();
 				String jsonInString = mapper.writeValueAsString(order);
