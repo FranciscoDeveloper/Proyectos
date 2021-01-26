@@ -758,7 +758,7 @@ public class ShoppingOrderController extends AbstractController {
 			Order order = this.commitOrder(shopOrder, request, locale);
 			try {
 				ObjectMapper mapper = new ObjectMapper();
-				String jsonInString = mapper.writeValueAsString(shopOrder);
+				String jsonInString = mapper.writeValueAsString(order);
 				LOGGER.info("Commit order -> " + jsonInString);
 				jsonInString = mapper.writeValueAsString(cart);
 				LOGGER.info("Commit cart -> " + jsonInString);
