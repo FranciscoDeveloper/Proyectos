@@ -654,18 +654,18 @@ public class ShoppingOrderController extends AbstractController {
 			}
 
 			// send order confirmation email to customer
-			emailTemplatesUtils.sendOrderEmail(modelCustomer.getEmailAddress(), modelCustomer, modelOrder, locale,
-					language, store, request.getContextPath());
-
-			if (orderService.hasDownloadFiles(modelOrder)) {
-				emailTemplatesUtils.sendOrderDownloadEmail(modelCustomer, modelOrder, store, locale,
-						request.getContextPath());
-
-			}
-
-			// send order confirmation email to merchant
-			emailTemplatesUtils.sendOrderEmail(store.getStoreEmailAddress(), modelCustomer, modelOrder, locale,
-					language, store, request.getContextPath());
+//			emailTemplatesUtils.sendOrderEmail(modelCustomer.getEmailAddress(), modelCustomer, modelOrder, locale,
+//					language, store, request.getContextPath());
+//
+//			if (orderService.hasDownloadFiles(modelOrder)) {
+//				emailTemplatesUtils.sendOrderDownloadEmail(modelCustomer, modelOrder, store, locale,
+//						request.getContextPath());
+//
+//			}
+//
+//			// send order confirmation email to merchant
+//			emailTemplatesUtils.sendOrderEmail(store.getStoreEmailAddress(), modelCustomer, modelOrder, locale,
+//					language, store, request.getContextPath());
 
 		} catch (Exception e) {
 			LOGGER.error("Error while post processing order", e);
