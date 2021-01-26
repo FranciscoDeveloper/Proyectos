@@ -504,7 +504,7 @@ public class ShoppingOrderController extends AbstractController {
 			//already validated, proceed with commit
 			Order orderModel = this.commitOrder(order, request, locale);
 			super.setSessionAttribute(Constants.ORDER_ID, orderModel.getId(), request);
-			
+			  Order modelOrder = commitOrder(order, request, locale);
 			return "redirect:/shop/order/confirmation.html";
 			
 		} catch(Exception e) {
