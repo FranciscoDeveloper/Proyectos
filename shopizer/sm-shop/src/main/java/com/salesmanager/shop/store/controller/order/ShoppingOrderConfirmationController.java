@@ -115,7 +115,7 @@ public class ShoppingOrderConfirmationController extends AbstractController {
 		// llegara este parametro = token_ws
 
 
-		WebpayPlusTransactionCommitResponse webpayPlusTransactionCommitResponse= wp.commitTransaction(token);
+		 wp.commitTransaction(token);
 //		Order modelOrder = orderService.getOrder(response., store);
 //		orderService.saveOrUpdate(modelOrder);
 		/** template **/

@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.salesmanager.shop.store.controller.order.CreateWebpayPlusTransactionResponse;
 import com.salesmanager.shop.store.controller.order.ShoppingOrderConfirmationController;
 
 import cl.transbank.common.IntegrationType;
