@@ -86,6 +86,7 @@ import com.salesmanager.shop.store.controller.customer.facade.CustomerFacade;
 import com.salesmanager.shop.store.controller.order.facade.OrderFacade;
 import com.salesmanager.shop.store.controller.shoppingCart.facade.ShoppingCartFacade;
 import com.salesmanager.shop.transbank.TransbankDTO;
+import com.salesmanager.shop.transbank.WebPay;
 import com.salesmanager.shop.utils.EmailTemplatesUtils;
 import com.salesmanager.shop.utils.LabelUtils;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -442,9 +443,9 @@ public class ShoppingOrderController extends AbstractController {
 		
 	}
 	
-
+	private static WebPay wp;
 	private String webpayTransaction(double total) {
-		com.salesmanager.shop.transbank.WebPay wp = new com.salesmanager.shop.transbank.WebPay();
+		wp = WebPay.getInstance();
 		TransbankDTO transbank = wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124",total,
 				"http://riquelmesolutions.cl/shop/order/confirmation.html");
 		/** template **/
@@ -501,8 +502,8 @@ public class ShoppingOrderController extends AbstractController {
 			order.setOrderTotalSummary(totalSummary);
 			
 			//already validated, proceed with commit
-		//	Order orderModel = this.commitOrder(order, request, locale);
-		//	super.setSessionAttribute(Constants.ORDER_ID, orderModel.getId(), request);
+			Order orderModel = this.commitOrder(order, request, locale);
+			super.setSessionAttribute(Constants.ORDER_ID, orderModel.getId(), request);
 			
 			return "redirect:/shop/order/confirmation.html";
 			
