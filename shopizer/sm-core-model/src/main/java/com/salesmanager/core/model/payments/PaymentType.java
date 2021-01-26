@@ -10,7 +10,7 @@ public enum PaymentType {
 	private String paymentType;
 	
 	PaymentType(String type) {
-		paymentType = type;
+		this.paymentType = type;
 	}
 	
     public static PaymentType fromString(String text) {
@@ -23,5 +23,13 @@ public enum PaymentType {
 		      }
 		    }
 		    return null;
+	}
+
+	public String getPaymentType() {
+		return paymentType;
+	}
+
+	public void setPaymentType(String paymentType) {
+		this.paymentType = paymentType;
 	}
 }
