@@ -578,7 +578,7 @@ public class ShoppingOrderController extends AbstractController {
 
 				}
 
-				customerService.saveOrUpdate(modelCustomer);
+//				customerService.saveOrUpdate(modelCustomer);
 
 			} else {// use existing customer
 
