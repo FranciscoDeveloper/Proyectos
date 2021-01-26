@@ -445,7 +445,6 @@ public class ShoppingOrderController extends AbstractController {
 	private  WebPay wp;
 
 	private String webpayTransaction(double total,Order order) {
-		wp = WebPay.getInstance();
 		TransbankDTO transbank = wp.generateTransaction(order.getId().toString(), "sdfsdfdhgf0124", total,
 				"http://riquelmesolutions.cl/shop/order/confirmation.html");
 		/** template **/
