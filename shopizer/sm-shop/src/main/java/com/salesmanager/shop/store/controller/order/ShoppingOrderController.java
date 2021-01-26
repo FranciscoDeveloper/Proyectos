@@ -444,11 +444,12 @@ public class ShoppingOrderController extends AbstractController {
 	@Autowired
 	private  WebPay wp;
 
-	private String webpayTransaction(double total) {
+	private String webpayTransaction(double total,Order order) {
 		wp = WebPay.getInstance();
-		TransbankDTO transbank = wp.generateTransaction("sdfsdfsdfds", "sdfsdfdhgf0124", total,
+		TransbankDTO transbank = wp.generateTransaction(order.getId().toString(), "sdfsdfdhgf0124", total,
 				"http://riquelmesolutions.cl/shop/order/confirmation.html");
 		/** template **/
+		
 		return "redirect:" + transbank.getUrl() + "?token_ws=" + transbank.getToken();
 	}
 
@@ -678,7 +679,7 @@ public class ShoppingOrderController extends AbstractController {
 	@SuppressWarnings("unchecked")
 	@RequestMapping("/commitOrder.html")
 	public String commitOrder(@CookieValue("cart") String cookie,
-			@Valid @ModelAttribute(value = "order") ShopOrder order, BindingResult bindingResult, Model model,
+			@Valid @ModelAttribute(value = "order") ShopOrder shopOrder, BindingResult bindingResult, Model model,
 			HttpServletRequest request, HttpServletResponse response, Locale locale) throws Exception {
 
 		MerchantStore store = (MerchantStore) request.getAttribute(Constants.MERCHANT_STORE);
@@ -694,9 +695,9 @@ public class ShoppingOrderController extends AbstractController {
 			model.addAttribute("cssClass", "required");
 		}
 
-		model.addAttribute("order", order);
+		model.addAttribute("order", shopOrder);
 		OrderTotalSummary totalSummary = super.getSessionAttribute(Constants.ORDER_SUMMARY, request);
-		order.setOrderTotalSummary(totalSummary);
+		shopOrder.setOrderTotalSummary(totalSummary);
 
 		try {
 
@@ -744,7 +745,7 @@ public class ShoppingOrderController extends AbstractController {
 
 			Set<ShoppingCartItem> items = cart.getLineItems();
 			List<ShoppingCartItem> cartItems = new ArrayList<ShoppingCartItem>(items);
-			order.setShoppingCartItems(cartItems);
+			shopOrder.setShoppingCartItems(cartItems);
 
 			for (com.salesmanager.core.model.shoppingcart.ShoppingCartItem item : items) {
 
@@ -755,10 +756,10 @@ public class ShoppingOrderController extends AbstractController {
 					freeShoppingCart = false;
 				}
 			}
-			this.commitOrder(order, request, locale);
+			Order order = this.commitOrder(shopOrder, request, locale);
 			try {
 				ObjectMapper mapper = new ObjectMapper();
-				String jsonInString = mapper.writeValueAsString(order);
+				String jsonInString = mapper.writeValueAsString(shopOrder);
 				LOGGER.info("Commit order -> " + jsonInString);
 				jsonInString = mapper.writeValueAsString(cart);
 				LOGGER.info("Commit cart -> " + jsonInString);
