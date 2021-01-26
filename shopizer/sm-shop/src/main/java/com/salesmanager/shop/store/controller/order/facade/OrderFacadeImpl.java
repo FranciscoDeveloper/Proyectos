@@ -440,7 +440,7 @@ public class OrderFacadeImpl implements OrderFacade {
 
 			String paymentType = order.getPaymentMethodType();
 			Payment payment = new Payment();
-			payment.setPaymentType(PaymentType.valueOf(paymentType));
+			payment.setPaymentType(PaymentType.MONEYORDER);
 			payment.setAmount(order.getOrderTotalSummary().getTotal());
 			payment.setModuleName(order.getPaymentModule());
 			payment.setCurrency(modelOrder.getCurrency());
