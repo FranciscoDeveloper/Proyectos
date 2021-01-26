@@ -765,6 +765,7 @@ public class ShoppingOrderController extends AbstractController {
 			} catch (Exception de) {
 				LOGGER.error(de.getMessage());
 			}
+			orderService.saveOrUpdate(order);
 			LOGGER.info(totalSummary + " tt " + totalSummary);
 			LOGGER.debug("Comienza Comunicacion con webpay...");
 			return webpayTransaction(totalSummary.getTotal().doubleValue(),order);
