@@ -68,7 +68,7 @@ public class ShopApplicationConfiguration implements WebMvcConfigurer {
     tilesConfigurer.setCheckRefresh(true);
     return tilesConfigurer;
   }
-  
+  @Bean
   public WebPay configPayment() {
 	  WebPay wepay = new WebPay();
 	  return wepay;
