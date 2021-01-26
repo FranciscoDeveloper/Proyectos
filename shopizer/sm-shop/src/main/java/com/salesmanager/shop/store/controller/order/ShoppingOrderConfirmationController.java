@@ -25,10 +25,15 @@ import com.salesmanager.shop.store.controller.ControllerConstants;
 import com.salesmanager.shop.store.controller.customer.facade.CustomerFacade;
 import com.salesmanager.shop.store.controller.order.facade.OrderFacade;
 import com.salesmanager.shop.store.controller.shoppingCart.facade.ShoppingCartFacade;
+import com.salesmanager.shop.transbank.WebPay;
 import com.salesmanager.shop.utils.LabelUtils;
+
+import cl.transbank.webpay.webpayplus.model.WebpayPlusTransactionCommitResponse;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -44,59 +49,59 @@ import java.util.Locale;
 import java.util.Map;
 
 @Controller
-@RequestMapping(Constants.SHOP_URI+"/order")
+@RequestMapping(Constants.SHOP_URI + "/order")
 public class ShoppingOrderConfirmationController extends AbstractController {
-	
-	private static final Logger LOGGER = LoggerFactory
-	.getLogger(ShoppingOrderConfirmationController.class);
-	
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ShoppingOrderConfirmationController.class);
+
 	@Inject
 	private ShoppingCartFacade shoppingCartFacade;
-	
-    @Inject
-    private ShoppingCartService shoppingCartService;
-	
 
-	
+	@Inject
+	private ShoppingCartService shoppingCartService;
+
 	@Inject
 	private PaymentService paymentService;
-	
+
 	@Inject
 	private ShippingService shippingService;
-	
 
 	@Inject
 	private OrderService orderService;
-	
+
 	@Inject
 	private ProductService productService;
-	
+
 	@Inject
 	private CountryService countryService;
-	
+
 	@Inject
 	private ZoneService zoneService;
-	
+
 	@Inject
 	private OrderFacade orderFacade;
-	
+
 	@Inject
 	private LabelUtils messages;
-	
+
 	@Inject
 	private PricingService pricingService;
 
-    @Inject
-    private  CustomerFacade customerFacade;
-	
 	@Inject
-    private AuthenticationManager customerAuthenticationManager;
-	
+	private CustomerFacade customerFacade;
+
+	@Inject
+	private AuthenticationManager customerAuthenticationManager;
+
 	@Inject
 	private OrderProductDownloadService orderProdctDownloadService;
+	
+	@Autowired
+	private  WebPay wp;
 
 	/**
 	 * Invoked once the payment is complete and order is fulfilled
+	 * 
 	 * @param model
 	 * @param request
 	 * @param response
@@ -105,19 +110,19 @@ public class ShoppingOrderConfirmationController extends AbstractController {
 	 * @throws Exception
 	 */
 	@RequestMapping("/confirmation.html")
-	public String displayConfirmation(Model model, HttpServletRequest request, HttpServletResponse response, Locale locale,
-			@ModelAttribute(value="token_ws") String token) throws Exception {
-	//llegara este parametro	 = token_ws
+	public String displayConfirmation(Model model, HttpServletRequest request, HttpServletResponse response,
+			Locale locale, @ModelAttribute(value = "token_ws") String token) throws Exception {
+		// llegara este parametro = token_ws
 
-		LOGGER.info("Mi token "+token);
+
+		WebpayPlusTransactionCommitResponse webpayPlusTransactionCommitResponse= wp.commitTransaction(token);
+//		Order modelOrder = orderService.getOrder(response., store);
+//		orderService.saveOrUpdate(modelOrder);
 		/** template **/
-		StringBuilder template = new StringBuilder().append(ControllerConstants.Tiles.Checkout.confirmation).append(".").append("december");
+		StringBuilder template = new StringBuilder().append(ControllerConstants.Tiles.Checkout.confirmation).append(".")
+				.append("december");
 		return template.toString();
 
-		
 	}
-	
-	
-
 
 }

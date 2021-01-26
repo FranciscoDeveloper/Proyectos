@@ -38,7 +38,10 @@ import com.salesmanager.core.business.configuration.CoreApplicationConfiguration
 import com.salesmanager.shop.filter.AdminFilter;
 import com.salesmanager.shop.filter.CorsFilter;
 import com.salesmanager.shop.filter.StoreFilter;
+import com.salesmanager.shop.transbank.WebPay;
 import com.salesmanager.shop.utils.LabelUtils;
+
+import cl.transbank.webpay.Webpay;
 
 @Configuration
 @ComponentScan({"com.salesmanager.shop"})
@@ -64,6 +67,11 @@ public class ShopApplicationConfiguration implements WebMvcConfigurer {
         "/WEB-INF/tiles/tiles-shop.xml");
     tilesConfigurer.setCheckRefresh(true);
     return tilesConfigurer;
+  }
+  
+  public WebPay configPayment() {
+	  WebPay wepay = new WebPay();
+	  return wepay;
   }
 
   /** Configure ViewResolvers to deliver preferred views. */
