@@ -124,7 +124,7 @@ public class OrdersController {
 					entry.put("customer", order.getBilling().getFirstName() + " " + order.getBilling().getLastName());
 					entry.put("amount", priceUtil.getAdminFormatedAmountWithCurrency(store,order.getTotal()));//todo format total
 					entry.put("date", DateUtil.formatDate(order.getDatePurchased()));
-					entry.put("status", order.getStatus().name());
+					entry.put("status", "Ordenada");
 					
 					
 					if ( paymentModules!= null && paymentModules.size() > 0 ) 
