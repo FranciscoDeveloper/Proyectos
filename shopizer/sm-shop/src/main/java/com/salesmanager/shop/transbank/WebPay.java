@@ -53,19 +53,32 @@ public class WebPay {
 		return transbank;
 	}
 	
-	public void  commitTransaction(String token) {
+	public Long  commitTransaction(String token) {
 		try {
 			
 			final WebpayPlusTransactionCommitResponse response = WebpayPlus.Transaction.commit(token);
-			ObjectMapper mapper = new ObjectMapper();
-			String jsonInString = mapper.writeValueAsString(response);
-			LOGGER.info(jsonInString);
+			if(response.getStatus()==Status.AUTHORIZED.name()) {
+				return Long.parseLong(response.getBuyOrder());
+			}else if(response.getStatus()==Status.CAPTURED.name()) {
+				return 0L;
+			}else if(response.getStatus()==Status.FAILED.name()) {
+				return 0L;
+			}else if(response.getStatus()==Status.INITIALIZED.name()) {
+				return 0L;
+			}else if(response.getStatus()==Status.REVERSED.name()) {
+				return 0L;
+			}else {
+				return 0L;
+			}
+		
 		} catch (TransactionCommitException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return 0L;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return 0L;
 		}
 	}
 }

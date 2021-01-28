@@ -115,9 +115,9 @@ public class ShoppingOrderConfirmationController extends AbstractController {
 		// llegara este parametro = token_ws
 
 
-		 wp.commitTransaction(token);
-//		Order modelOrder = orderService.getOr
-//		orderService.saveOrUpdate(modelOrder);
+		 Long orderId = wp.commitTransaction(token);
+		 Order order  = orderService.getById(orderId);
+		 //con la orden debo dibujar boleta del comercio
 		/** template **/
 		StringBuilder template = new StringBuilder().append(ControllerConstants.Tiles.Checkout.confirmation).append(".")
 				.append("december");
