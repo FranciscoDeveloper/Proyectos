@@ -1022,7 +1022,7 @@ function initPayment(paymentSelection) {
 												<c:if test="${errorMessages!=null}"> disabled="true"</c:if>
 												><s:message code="button.label.submitorder" text="Submit order"/>
 												</button>
-			<button type="submit" class="btn btn-primary"  value="enviar"/>
+			<img src="/resources/img/payment/icons/weboatplus.png" ><button type="submit" class="btn btn-primary"  value="enviar"/></img>
 												<!-- submit can be a post or a pre ajax query -->
 								</div>
 							</div>
