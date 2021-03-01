@@ -807,11 +807,21 @@ public class ShoppingOrderController extends AbstractController {
 	}
 	
 	public String getCode() {
-	    int leftLimit = 1;
-	    int rightLimit = 100;
-	    return  Integer.toHexString((leftLimit + (int) (Math.random() * (rightLimit - leftLimit)))+
-	    		(leftLimit + (int) (Math.random() * (rightLimit - leftLimit)))+
-	    		(leftLimit + (int) (Math.random() * (rightLimit - leftLimit))));
+		int leftLimit = 1;
+		int rightLimit = 100;
+		return Integer
+				.toHexString((leftLimit + (int) (Math.random() * (rightLimit - leftLimit)))
+						+ (leftLimit + (int) (Math.random() * (rightLimit - leftLimit)))
+						+ (leftLimit + (int) (Math.random() * (rightLimit - leftLimit))))
+				+ Integer.toHexString((leftLimit + (int) (Math.random() * (rightLimit - leftLimit)))
+						+ (leftLimit + (int) (Math.random() * (rightLimit - leftLimit)))
+						+ (leftLimit + (int) (Math.random() * (rightLimit - leftLimit))))
+				+ Integer.toHexString((leftLimit + (int) (Math.random() * (rightLimit - leftLimit)))
+						+ (leftLimit + (int) (Math.random() * (rightLimit - leftLimit)))
+						+ (leftLimit + (int) (Math.random() * (rightLimit - leftLimit))))
+				+ Integer.toHexString((leftLimit + (int) (Math.random() * (rightLimit - leftLimit)))
+						+ (leftLimit + (int) (Math.random() * (rightLimit - leftLimit)))
+						+ (leftLimit + (int) (Math.random() * (rightLimit - leftLimit))));
 
 	}
 
