@@ -444,7 +444,7 @@ public class ShoppingOrderController extends AbstractController {
 	private  WebPay wp;
 
 	private String webpayTransaction(double total,Order order) {
-		TransbankDTO transbank = wp.generateTransaction("AVF"+order.getId(), "sdfsdfdhgf0124", total,
+		TransbankDTO transbank = wp.generateTransaction("abs1548", "sdfsdfdhgf0124", total,
 				"http://riquelmesolutions.cl/shop/order/confirmation.html");
 		/** template **/
 		
@@ -770,7 +770,6 @@ public class ShoppingOrderController extends AbstractController {
 			
 
 			order.setId(getCode());
-			
 			return webpayTransaction(totalSummary.getTotal().doubleValue(),order);
 			// redirect to completd
 //	        return "redirect:/shop/common/checkout/confirmation.html";
