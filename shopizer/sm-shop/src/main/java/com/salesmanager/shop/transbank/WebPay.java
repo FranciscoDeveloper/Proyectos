@@ -57,6 +57,7 @@ public class WebPay {
 		try {
 			
 			final WebpayPlusTransactionCommitResponse response = WebpayPlus.Transaction.commit(token);
+			LOGGER.info("transaccion :"+response.getStatus());
 			if(response.getStatus()==Status.AUTHORIZED.name()) {
 				return Long.parseLong(response.getBuyOrder());
 			}else if(response.getStatus()==Status.CAPTURED.name()) {
