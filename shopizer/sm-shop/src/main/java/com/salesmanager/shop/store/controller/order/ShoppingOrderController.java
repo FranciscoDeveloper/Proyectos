@@ -443,8 +443,8 @@ public class ShoppingOrderController extends AbstractController {
 	@Autowired
 	private  WebPay wp;
 
-	private String webpayTransaction(double total,Order order) {
-		TransbankDTO transbank = wp.generateTransaction("abs1548", "sdfsdfdhgf0124", total,
+	private String webpayTransaction(double total,String order) {
+		TransbankDTO transbank = wp.generateTransaction(order, "sdfsdfdhgf0124", total,
 				"http://riquelmesolutions.cl/shop/order/confirmation.html");
 		/** template **/
 		
@@ -769,8 +769,7 @@ public class ShoppingOrderController extends AbstractController {
 			LOGGER.debug("Comienza Comunicacion con webpay...");
 			
 
-			order.setId(getCode());
-			return webpayTransaction(totalSummary.getTotal().doubleValue(),order);
+			return webpayTransaction(totalSummary.getTotal().doubleValue(),getCode());
 			// redirect to completd
 //	        return "redirect:/shop/common/checkout/confirmation.html";
 		} catch (ServiceException se) {
@@ -807,12 +806,12 @@ public class ShoppingOrderController extends AbstractController {
 
 	}
 	
-	public long getCode() {
-	    long leftLimit = 1L;
-	    long rightLimit = 10L;
-	    return  (leftLimit + (long) (Math.random() * (rightLimit - leftLimit)))+
-	    		(leftLimit + (long) (Math.random() * (rightLimit - leftLimit)))+
-	    		(leftLimit + (long) (Math.random() * (rightLimit - leftLimit)));
+	public String getCode() {
+	    int leftLimit = 1;
+	    int rightLimit = 100;
+	    return  Integer.toHexString((leftLimit + (int) (Math.random() * (rightLimit - leftLimit)))+
+	    		(leftLimit + (int) (Math.random() * (rightLimit - leftLimit)))+
+	    		(leftLimit + (int) (Math.random() * (rightLimit - leftLimit))));
 
 	}
 
