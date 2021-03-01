@@ -770,6 +770,7 @@ public class ShoppingOrderController extends AbstractController {
 			
 
 			order.setId(getCode());
+			LOGGER.info("CODIGO DE ORDEN "+order.getId());
 			return webpayTransaction(totalSummary.getTotal().doubleValue(),order);
 			// redirect to completd
 //	        return "redirect:/shop/common/checkout/confirmation.html";
