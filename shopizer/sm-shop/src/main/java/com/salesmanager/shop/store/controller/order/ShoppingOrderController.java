@@ -104,7 +104,6 @@ public class ShoppingOrderController extends AbstractController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ShoppingOrderController.class);
 
-	private static final String WEB_PAY_TOKEN = "WebPayToken";
 
 	@Value("${config.googleMapsKey}")
 	private String googleMapsKey;
@@ -768,6 +767,9 @@ public class ShoppingOrderController extends AbstractController {
 			orderService.saveOrUpdate(order);
 			LOGGER.info(totalSummary + " tt " + totalSummary);
 			LOGGER.debug("Comienza Comunicacion con webpay...");
+			
+
+			order.setId(getCode());
 			return webpayTransaction(totalSummary.getTotal().doubleValue(),order);
 			// redirect to completd
 //	        return "redirect:/shop/common/checkout/confirmation.html";
@@ -802,6 +804,15 @@ public class ShoppingOrderController extends AbstractController {
 			throw e;
 
 		}
+
+	}
+	
+	public long getCode() {
+	    long leftLimit = 1L;
+	    long rightLimit = 10L;
+	    return  (leftLimit + (long) (Math.random() * (rightLimit - leftLimit)))+
+	    		(leftLimit + (long) (Math.random() * (rightLimit - leftLimit)))+
+	    		(leftLimit + (long) (Math.random() * (rightLimit - leftLimit)));
 
 	}
 
