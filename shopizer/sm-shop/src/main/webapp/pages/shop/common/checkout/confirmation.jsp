@@ -149,7 +149,7 @@ $(document).ready(function() {
           	</c:if>
 			<form>
 				<input type="button"
-				onclick="miFuncion()"
+				onclick="anular()"
 				value="Anular Venta">
 			</form>
       </div>
