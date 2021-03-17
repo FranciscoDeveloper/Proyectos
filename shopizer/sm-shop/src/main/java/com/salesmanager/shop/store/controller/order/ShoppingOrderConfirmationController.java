@@ -133,7 +133,7 @@ public class ShoppingOrderConfirmationController extends AbstractController {
 
 
 		 String data= wp.refundTransaction(token, 0.0);
-		 Order order  = orderService.getById(orderId);
+		 Order order  = orderService.getById(0L);
 		 //con la orden debo dibujar boleta del comercio
 		/** template **/
 		StringBuilder template = new StringBuilder().append(ControllerConstants.Tiles.Checkout.confirmation).append(".")
