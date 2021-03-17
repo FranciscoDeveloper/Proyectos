@@ -139,7 +139,7 @@ public class ShoppingOrderConfirmationController extends AbstractController {
 		/** template **/
 		StringBuilder template = new StringBuilder().append(ControllerConstants.Tiles.Checkout.confirmation).append(".")
 				.append("december");
-		return template.toString();
+		return "https://riquelmesolutions.cl/shop";
 
 	}
 
