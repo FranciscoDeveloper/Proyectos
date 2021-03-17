@@ -124,5 +124,22 @@ public class ShoppingOrderConfirmationController extends AbstractController {
 		return template.toString();
 
 	}
+	
+	
+	@RequestMapping("/refund.html")
+	public String displayrefund(Model model, HttpServletRequest request, HttpServletResponse response,
+			Locale locale, @ModelAttribute(value = "token_ws") String token,@ModelAttribute(value = "amount") double amount) throws Exception {
+		// llegara este parametro = token_ws
+
+
+		 String data= wp.refundTransaction(token, 0.0);
+		 Order order  = orderService.getById(orderId);
+		 //con la orden debo dibujar boleta del comercio
+		/** template **/
+		StringBuilder template = new StringBuilder().append(ControllerConstants.Tiles.Checkout.confirmation).append(".")
+				.append("december");
+		return template.toString();
+
+	}
 
 }
