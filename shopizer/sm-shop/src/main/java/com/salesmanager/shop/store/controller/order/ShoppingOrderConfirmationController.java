@@ -133,13 +133,12 @@ public class ShoppingOrderConfirmationController extends AbstractController {
 
 
 		 String data= wp.refundTransaction(token, amount);
-		 LOGGER.info(data);
+		 LOGGER.info("la data es "+data);
 		// Order order  = orderService.getById(0L);
 		 //con la orden debo dibujar boleta del comercio
 		/** template **/
-		StringBuilder template = new StringBuilder().append(ControllerConstants.Tiles.Checkout.confirmation).append(".")
-				.append("december");
-		return "https://riquelmesolutions.cl/shop";
+
+		return data;
 
 	}
 

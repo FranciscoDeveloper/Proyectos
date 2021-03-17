@@ -82,6 +82,25 @@ $(document).ready(function() {
 
 
 	//]]> 
+	
+	funcion anular(){
+				$.ajax({  
+			 type: 'POST',  
+			 url: 'http://riquelmesolutions.cl/shop/order/anulacion',  
+			 data: scItem, 
+			 contentType: 'application/json;charset=utf-8',
+			 dataType: 'json', 
+			 cache:false,
+			 error: function(e) { 
+				log('Error while adding to cart '+e);	 
+			 },
+			 success: function(cart) {
+
+			  	console.log(cart)
+			 } 
+		});
+	}
+
 </script>
 
 </c:if>
@@ -128,8 +147,9 @@ $(document).ready(function() {
 	            	<sm:pageContent contentCode="confirmation"/>
 	          	</div>
           	</c:if>
-             					<c:set var="commitUrl" value="${pageContext.request.contextPath}/shop/order/anulacion"/>
-   					<form:form id="checkoutForm" method="GET"  modelAttribute="order" action="${commitUrl}">
-   						<button type="submit" class="btn btn-primary"  value="anular venta"/>
-   					</form:form>
+			<form>
+				<input type="button"
+				onclick="miFuncion()"
+				value="Anular Venta">
+			</form>
       </div>
