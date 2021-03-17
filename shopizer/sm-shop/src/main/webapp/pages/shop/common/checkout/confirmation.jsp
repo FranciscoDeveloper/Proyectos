@@ -129,7 +129,7 @@ $(document).ready(function() {
 	          	</div>
           	</c:if>
              					<c:set var="commitUrl" value="${pageContext.request.contextPath}/shop/order/anulacion"/>
-   					<form:form id="checkoutForm" method="POST" enctype="multipart/form-data" modelAttribute="order" action="${commitUrl}">
+   					<form:form id="checkoutForm" method="GET"  modelAttribute="order" action="${commitUrl}">
    						<button type="submit" class="btn btn-primary"  value="anular venta"/>
    					</form:form>
       </div>
