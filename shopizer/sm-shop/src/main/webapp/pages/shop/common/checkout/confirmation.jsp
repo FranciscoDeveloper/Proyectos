@@ -83,7 +83,7 @@ $(document).ready(function() {
 
 	//]]> 
 	
-	funcion anular(){
+	function anular(){
 				$.ajax({  
 			 type: 'POST',  
 			 url: 'http://riquelmesolutions.cl/shop/order/anulacion',  
