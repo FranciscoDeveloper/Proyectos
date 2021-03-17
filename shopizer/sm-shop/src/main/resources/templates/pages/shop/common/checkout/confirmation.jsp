@@ -86,7 +86,7 @@ $(document).ready(function() {
 
 </c:if>
 
-
+<p>eeeeeeeeeeeeeee</p>
 	<div id="main-content" class="container clearfix no-padding-left">
 		<h1><s:message code="label.checkout.confirmation" text="Order completed 1" /></h1>
 		<div class="row-fluid">
@@ -121,7 +121,7 @@ $(document).ready(function() {
             </div>
             
 
-            	
+            	T
             </div>
             <c:if test="${requestScope.CONTENT['confirmation']!=null}">
 	            <div class="span12">
