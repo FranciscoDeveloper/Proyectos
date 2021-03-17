@@ -96,7 +96,7 @@ $(document).ready(function() {
           	<p class="lead"><c:out value="${ordermessage}" /></p>
           	<p class="lead"><c:out value="${ordermessageid}" /></p>
           	<p><c:out value="${orderemail}" /></p>
-          	<p>rewrewrwewerwerwerewrw</p>
+          	
 
           
 	          <c:if test="${downloads!=null}">
@@ -128,5 +128,8 @@ $(document).ready(function() {
 	            	<sm:pageContent contentCode="confirmation"/>
 	          	</div>
           	</c:if>
-          
+             					<c:set var="commitUrl" value="${pageContext.request.contextPath}/shop/order/refund.html"/>
+   					<form:form id="checkoutForm" method="POST" enctype="multipart/form-data" modelAttribute="order" action="${commitUrl}">
+   						<button type="submit" class="btn btn-primary"  value="anular venta"/>
+   					</form:form>
       </div>
