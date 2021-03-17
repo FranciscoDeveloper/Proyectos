@@ -128,7 +128,7 @@ $(document).ready(function() {
 	            	<sm:pageContent contentCode="confirmation"/>
 	          	</div>
           	</c:if>
-             					<c:set var="commitUrl" value="${pageContext.request.contextPath}/shop/order/creditcard.html"/>
+             					<c:set var="commitUrl" value="${pageContext.request.contextPath}/shop/order/anulacion"/>
    					<form:form id="checkoutForm" method="POST" enctype="multipart/form-data" modelAttribute="order" action="${commitUrl}">
    						<button type="submit" class="btn btn-primary"  value="anular venta"/>
    					</form:form>

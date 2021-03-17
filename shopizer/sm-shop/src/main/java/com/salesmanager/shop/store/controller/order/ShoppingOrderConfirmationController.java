@@ -126,7 +126,7 @@ public class ShoppingOrderConfirmationController extends AbstractController {
 	}
 	
 	
-	@RequestMapping("/creditcard.html")
+	@RequestMapping("/anulacion")
 	public String displayrefund(Model model, HttpServletRequest request, HttpServletResponse response,
 			Locale locale, @ModelAttribute(value = "token_ws") String token,@ModelAttribute(value = "amount") double amount) throws Exception {
 		// llegara este parametro = token_ws
