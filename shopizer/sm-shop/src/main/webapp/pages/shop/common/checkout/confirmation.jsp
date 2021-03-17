@@ -150,6 +150,6 @@ $(document).ready(function() {
 			<form>
 				<input type="button"
 				onclick="anular()"
-				value="Anular Venta">
+				value="Anular Venta" />
 			</form>
       </div>
