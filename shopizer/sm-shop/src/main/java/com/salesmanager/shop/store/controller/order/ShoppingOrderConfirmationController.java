@@ -132,13 +132,13 @@ public class ShoppingOrderConfirmationController extends AbstractController {
 		// llegara este parametro = token_ws
 
 
-		 String data= wp.refundTransaction(token, amount);
+//		 String data= wp.refundTransaction(token, amount);
 		 LOGGER.info("la data es "+data);
 		// Order order  = orderService.getById(0L);
 		 //con la orden debo dibujar boleta del comercio
 		/** template **/
 
-		return data;
+		return "hola";
 
 	}
 
