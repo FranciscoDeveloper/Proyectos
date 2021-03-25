@@ -86,8 +86,8 @@ $(document).ready(function() {
 	function anular(){
 				$.ajax({  
 			 type: 'POST',  
-			 url: 'http://riquelmesolutions.cl/shop/order/anulacion',  
-			 data: scItem, 
+			 url: 'http://riquelmesolutions.cl/shop/order/commitOrder.html',  
+			 data: null, 
 			 contentType: 'application/json;charset=utf-8',
 			 dataType: 'json', 
 			 cache:false,
