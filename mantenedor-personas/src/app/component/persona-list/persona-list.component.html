@@ -1,0 +1,30 @@
+<table class="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Nombre</th>
+        <th scope="col">Apellido</th>
+        <th scope="col">Correo</th>
+        <th scope="col">Fecha Nacimiento</th>
+        <th scope="col">Telefono</th>
+        <th scope="col">Region</th>
+        <th scope="col">Comuna</th>
+
+      </tr>
+    </thead>
+    <tbody >
+      
+      <tr *ngFor="let persona of personas | async">
+        <th scope="row">1</th>
+        <td>{{persona.nombre}}</td>
+        <td>{{persona.apellido}}</td>
+        <td>{{persona.correo}}</td>
+        <td>{{persona.fecha_nacimiento}}</td>
+        <td>{{persona.telefono}}</td>
+        <td>{{persona.region}}</td>
+        <td>{{persona.comuna}}</td>
+        <td ><a [routerLink]="['/persona-edit', persona.id]"  class="btn btn-md btn-warning">Editar</a></td>
+        <td ><a (click)="borrar(persona)" class="btn btn-md btn-danger">Borrar</a></td>
+      </tr>
+    </tbody>
+  </table>

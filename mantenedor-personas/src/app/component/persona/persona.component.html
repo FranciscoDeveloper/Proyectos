@@ -1,0 +1,75 @@
+
+
+<form [formGroup]="formPersona" (ngSubmit)="enviar()" novalidate>
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <label for="nombre">Nombre</label>
+            <input type="text" class="form-control" name="nombre_id" placeholder="Nombre" 
+              formControlName="nombre">
+          </div>
+      <div class="form-group col-md-6">
+        <label for="apellido">Apellido</label>
+        <input type="text" class="form-control" name="apellido_id" placeholder="Apellido"
+          formControlName="apellido" >
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group col-md-6">
+        <label for="correo">Correo</label>
+        <input type="email" class="form-control" name="correo_id" placeholder="Correo"
+         formControlName="correo" >
+      </div>
+    
+    
+    <div class="form-group col-md-6">
+      <label for="fecha_nacimiento">Fecha Nacimiento</label>
+      <input type="date" class="form-control" name="nacimiento_id" placeholder="dd/mm/yyy"
+        formControlName="fecha_nacimiento" >
+    </div>
+</div>
+<div class="form-row">
+  <div class="form-group col-md-6">
+    <div class="form-group">
+      <label for="telefono">Telefono</label>
+      <input type="number" class="form-control" name="telefono_id"  formControlName="telefono" 
+       >
+      </div> 
+  </div>
+  </div>
+<div class="form-row">
+    <div class="form-group col-md-6">
+
+      <mat-form-field appearance="fill">
+        <mat-label>Region</mat-label>
+        <mat-select [(value)]="selectedRegion" (selectionChange)="change(selectedRegion)">
+          <mat-option *ngFor="let region of regiones" [value]="region.id">
+            {{region.descripcion}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+     
+    </div>
+
+
+      <div class="form-group col-md-6">
+        <div class="form-group">
+            <mat-form-field appearance="fill">
+              <mat-label>Comuna</mat-label>
+              <mat-select [(value)]="selectedComuna">
+                <mat-option *ngFor="let comuna of comunas" [value]="comuna.id">
+                  {{comuna.descripcion}}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+      </div>
+    </div>
+    
+    <p *ngIf="this.formPersona.status=='INVALID'">
+      <button type="submit" class="btn btn-primary" disabled>Enviar</button>
+    </p>
+    <p *ngIf="this.formPersona.status=='VALID'">
+      <button type="submit" class="btn btn-primary" >Enviar</button>
+    </p>
+   
+  </form>
