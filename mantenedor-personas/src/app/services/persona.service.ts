@@ -8,10 +8,10 @@ import { Persona } from '../models/persona';
   providedIn: 'root'
 })
 export class PersonaService {
-  urlListPersonas = 'assets/list.json';
-  urlGuardar = '';
-  urlEliminar = '';
-  urlEditar = '';
+  urlListPersonas = 'assets/list.json';//debe ser manejado el intercambio de recursos de origen cruzado (CORS) desde el backend en un escenario real.
+  urlGuardar = 'localhost:8080/crear';
+  urlEliminar = 'localhost:8080/borrar';
+  urlEditar =  'localhost:8080/editar';
   public personas:Persona[]=[];
   constructor(private http: HttpClient) {
 
@@ -22,20 +22,20 @@ export class PersonaService {
   }
 
    guardar(persona:Persona){
-    this.post(persona);
+    this.post(persona,this.urlGuardar);
    }
    editar(persona:Persona){
-    this.post(persona);
+    this.post(persona,this.urlEditar);
    }
    eliminar(persona:Persona){
-    this.post(persona);
+    this.post(persona,this.urlEliminar);
    }
 
-   private post(persona:Persona){
-    this.http.post(this.urlListPersonas,persona);
+   private post(persona:Persona,url:string){
+    
     let json = JSON.stringify(persona);
 		let headers = new HttpHeaders({'Content-Type':'application/json'});
-		return this.http.post(this.urlListPersonas, json, {headers: headers}).subscribe(
+		return this.http.post(url, json, {headers: headers}).subscribe(
       (data: {}) => {
        // this.persona = data;
       },
