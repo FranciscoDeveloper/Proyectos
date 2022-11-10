@@ -1,0 +1,7 @@
+com\example\demo\model\Comuna.class
+com\example\demo\model\Persona.class
+com\example\demo\services\PersonaServices.class
+com\example\demo\repository\PersonaRepository.class
+com\example\demo\CrudApplication.class
+com\example\demo\controller\RestController.class
+com\example\demo\model\Region.class
