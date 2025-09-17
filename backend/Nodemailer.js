@@ -6,7 +6,7 @@ const transporter = nodemailer.createTransport({
   secure: false, // true para 465, false para otros puertos
   auth: {
     user: 'luis.abugoch@mundolab.cl',
-    pass: '91919191' // Tu contraseña o token de aplicación
+    pass: 'xxxxxx' // Tu contraseña o token de aplicación
   }
 });
 
@@ -36,4 +36,5 @@ transporter.sendMail(mailOptions, (error, info) => {
     return console.error('Error enviando correo:', error);
   }
   console.log('Correo enviado:', info.response);
+
 });
