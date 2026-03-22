@@ -1,0 +1,366 @@
+.supplier-list-page {
+  max-width: 1400px;
+}
+
+.filter-active-badge {
+  color: #6366f1;
+  font-weight: 600;
+}
+
+/* ===== FILTERS BAR ===== */
+.filters-bar {
+  margin-bottom: 20px;
+}
+
+.filters-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.search-input {
+  padding-left: 40px;
+}
+
+.filter-select {
+  min-width: 150px;
+  flex-shrink: 0;
+
+  @media (max-width: 768px) { min-width: 130px; }
+}
+
+/* ===== TABLE ===== */
+.table-card {
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+.supplier-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.supplier-avatar-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.supplier-cell-name {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 13px;
+}
+
+.supplier-cell-code {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+.sort-icon {
+  width: 14px;
+  height: 14px;
+  display: inline;
+  margin-left: 4px;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+
+  &.desc { transform: rotate(180deg); }
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.delete-btn {
+  color: #ef4444 !important;
+  &:hover { background: #fee2e2 !important; }
+}
+
+.country-flag { font-size: 16px; }
+
+/* ===== VIEW TOGGLE ===== */
+.view-toggle {
+  display: flex;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+}
+
+.view-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  transition: all 0.2s ease;
+
+  svg { width: 16px; height: 16px; }
+
+  &.active {
+    background: #6366f1;
+    color: white;
+  }
+
+  &:not(.active):hover { background: #f9fafb; color: #374151; }
+}
+
+/* ===== PAGINATION ===== */
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-top: 1px solid #f3f4f6;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pagination-info {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.page-btn {
+  min-width: 36px;
+  justify-content: center;
+  background: white;
+  border: 1.5px solid #e5e7eb;
+  color: #374151;
+
+  &.active {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: white;
+    font-weight: 600;
+  }
+
+  &:not(.active):hover { border-color: #6366f1; color: #6366f1; }
+}
+
+/* ===== GRID VIEW ===== */
+.supplier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.supplier-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  overflow: hidden;
+
+  &:hover {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    transform: translateY(-3px);
+  }
+}
+
+.supplier-card-header {
+  padding: 20px 20px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.supplier-avatar-lg {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.supplier-card-body {
+  padding: 0 20px 16px;
+  flex: 1;
+}
+
+.sc-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 2px;
+}
+
+.sc-code {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 10px;
+}
+
+.sc-divider {
+  height: 1px;
+  background: #f3f4f6;
+  margin: 14px 0;
+}
+
+.sc-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.sc-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
+
+  svg { width: 13px; height: 13px; flex-shrink: 0; }
+}
+
+.sc-stats {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.sc-stat {
+  flex: 1;
+  text-align: center;
+}
+
+.sc-stat-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.sc-stat-label {
+  font-size: 10px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.sc-stat-divider {
+  width: 1px;
+  height: 28px;
+  background: #e5e7eb;
+}
+
+.supplier-card-footer {
+  padding: 14px 20px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  gap: 8px;
+}
+
+/* ===== DELETE MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal {
+  background: white;
+  border-radius: 20px;
+  padding: 32px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+  animation: slideUp 0.25s ease;
+}
+
+.modal-icon {
+  width: 60px;
+  height: 60px;
+  background: #fee2e2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  color: #ef4444;
+
+  svg { width: 26px; height: 26px; }
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.modal-desc {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }

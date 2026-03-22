@@ -1,0 +1,316 @@
+<div class="supplier-list-page">
+  <!-- Header -->
+  <div class="page-header" style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+    <div>
+      <h1 class="page-title">Suppliers</h1>
+      <p class="page-subtitle">
+        {{ filteredSuppliers().length }} suppliers found
+        <span *ngIf="hasActiveFilters()" class="filter-active-badge"> · Filtered</span>
+      </p>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <!-- View Toggle -->
+      <div class="view-toggle">
+        <button class="view-btn" [class.active]="viewMode() === 'table'" (click)="viewMode.set('table')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+            <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+            <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
+        </button>
+        <button class="view-btn" [class.active]="viewMode() === 'grid'" (click)="viewMode.set('grid')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+        </button>
+      </div>
+      <a routerLink="/suppliers/new" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        New Supplier
+      </a>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar card">
+    <div class="card-body" style="padding: 16px 24px;">
+      <div class="filters-row">
+        <!-- Search -->
+        <div class="search-wrapper">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            class="form-control search-input"
+            placeholder="Search by name, code, email, contact..."
+            [value]="filters().search"
+            (input)="updateFilter({ search: $any($event.target).value })"
+          />
+        </div>
+
+        <!-- Category Filter -->
+        <select class="form-control filter-select" [value]="filters().category"
+          (change)="updateFilter({ category: $any($event.target).value })">
+          <option value="">All Categories</option>
+          <option *ngFor="let cat of categories" [value]="cat">{{ cat | titlecase }}</option>
+        </select>
+
+        <!-- Status Filter -->
+        <select class="form-control filter-select" [value]="filters().status"
+          (change)="updateFilter({ status: $any($event.target).value })">
+          <option value="">All Statuses</option>
+          <option *ngFor="let s of statuses" [value]="s">{{ s | titlecase }}</option>
+        </select>
+
+        <!-- Country Filter -->
+        <select class="form-control filter-select" [value]="filters().country"
+          (change)="updateFilter({ country: $any($event.target).value })">
+          <option value="">All Countries</option>
+          <option *ngFor="let c of countries()" [value]="c">{{ c }}</option>
+        </select>
+
+        <!-- Clear Filters -->
+        <button class="btn btn-ghost btn-sm" *ngIf="hasActiveFilters()" (click)="clearFilters()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          Clear
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE VIEW -->
+  <div class="card table-card" *ngIf="viewMode() === 'table'">
+    <div style="overflow-x: auto;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="sortable" (click)="setSort('name')">
+              Supplier
+              <svg *ngIf="sortField() === 'name'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="sort-icon" [class.desc]="sortDir() === 'desc'">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </th>
+            <th class="sortable" (click)="setSort('category')">Category</th>
+            <th class="sortable" (click)="setSort('status')">Status</th>
+            <th class="hide-mobile">Country</th>
+            <th class="sortable hide-mobile" (click)="setSort('rating')">Rating</th>
+            <th class="sortable hide-mobile" (click)="setSort('totalOrders')">Orders</th>
+            <th class="sortable hide-mobile" (click)="setSort('totalSpent')">Spent</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of paginatedSuppliers()">
+            <td>
+              <div class="supplier-cell">
+                <div class="supplier-avatar-sm" [style.background]="getAvatarColor(s.name)">
+                  {{ s.name.charAt(0) }}
+                </div>
+                <div>
+                  <div class="supplier-cell-name">{{ s.name }}</div>
+                  <div class="supplier-cell-code">{{ s.code }}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge-category">{{ s.category }}</span></td>
+            <td><span class="badge-status" [class]="s.status">{{ s.status }}</span></td>
+            <td class="hide-mobile">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="country-flag">🌍</span> {{ s.country }}
+              </div>
+            </td>
+            <td class="hide-mobile">
+              <div class="star-rating">
+                <span *ngFor="let full of getStars(s.rating)">{{ full ? '★' : '☆' }}</span>
+                <span class="rating-value">{{ s.rating }}</span>
+              </div>
+            </td>
+            <td class="hide-mobile">{{ s.totalOrders }}</td>
+            <td class="hide-mobile">{{ formatCurrency(s.totalSpent) }}</td>
+            <td>
+              <div class="action-buttons">
+                <a [routerLink]="['/suppliers', s.id]" class="btn btn-ghost btn-icon" title="View">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </a>
+                <a [routerLink]="['/suppliers', s.id, 'edit']" class="btn btn-ghost btn-icon" title="Edit">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </a>
+                <button class="btn btn-ghost btn-icon delete-btn" title="Delete" (click)="confirmDelete(s.id)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+                    <path d="M10 11v6"/><path d="M14 11v6"/>
+                    <path d="M9 6V4h6v2"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="filteredSuppliers().length === 0">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <h3>No suppliers found</h3>
+        <p>Try adjusting your search or filters</p>
+        <button class="btn btn-outline" (click)="clearFilters()">Clear all filters</button>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-bar" *ngIf="totalPages() > 1">
+      <span class="pagination-info">
+        Showing {{ (currentPage() - 1) * pageSize + 1 }}–{{ minVal(currentPage() * pageSize, filteredSuppliers().length) }} of {{ filteredSuppliers().length }}
+      </span>
+      <div class="pagination-controls">
+        <button class="btn btn-outline btn-sm" [disabled]="currentPage() === 1" (click)="prevPage()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        <button
+          *ngFor="let p of pages()"
+          class="btn btn-sm page-btn"
+          [class.active]="p === currentPage()"
+          (click)="currentPage.set(p)">
+          {{ p }}
+        </button>
+        <button class="btn btn-outline btn-sm" [disabled]="currentPage() === totalPages()" (click)="nextPage()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRID VIEW -->
+  <div class="supplier-grid" *ngIf="viewMode() === 'grid'">
+    <div class="supplier-card" *ngFor="let s of paginatedSuppliers()">
+      <div class="supplier-card-header">
+        <div class="supplier-avatar-lg" [style.background]="getAvatarColor(s.name)">
+          {{ s.name.charAt(0) }}
+        </div>
+        <span class="badge-status" [class]="s.status">{{ s.status }}</span>
+      </div>
+      <div class="supplier-card-body">
+        <h3 class="sc-name">{{ s.name }}</h3>
+        <p class="sc-code">{{ s.code }}</p>
+        <span class="badge-category">{{ s.category }}</span>
+        <div class="sc-divider"></div>
+        <div class="sc-meta">
+          <div class="sc-meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            {{ s.city }}, {{ s.country }}
+          </div>
+          <div class="sc-meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            {{ s.email }}
+          </div>
+        </div>
+        <div class="sc-stats">
+          <div class="sc-stat">
+            <div class="sc-stat-value">{{ s.totalOrders }}</div>
+            <div class="sc-stat-label">Orders</div>
+          </div>
+          <div class="sc-stat-divider"></div>
+          <div class="sc-stat">
+            <div class="sc-stat-value">{{ formatCurrency(s.totalSpent) }}</div>
+            <div class="sc-stat-label">Spent</div>
+          </div>
+          <div class="sc-stat-divider"></div>
+          <div class="sc-stat">
+            <div class="sc-stat-value">{{ s.rating }}</div>
+            <div class="sc-stat-label">Rating</div>
+          </div>
+        </div>
+      </div>
+      <div class="supplier-card-footer">
+        <a [routerLink]="['/suppliers', s.id]" class="btn btn-outline btn-sm" style="flex:1; justify-content:center;">View</a>
+        <a [routerLink]="['/suppliers', s.id, 'edit']" class="btn btn-primary btn-sm" style="flex:1; justify-content:center;">Edit</a>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="filteredSuppliers().length === 0" style="grid-column:1/-1;">
+      <div class="empty-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+        </svg>
+      </div>
+      <h3>No suppliers found</h3>
+      <p>Try adjusting your search or filters</p>
+      <button class="btn btn-outline" (click)="clearFilters()">Clear filters</button>
+    </div>
+  </div>
+
+  <!-- Grid Pagination -->
+  <div class="pagination-bar card" *ngIf="viewMode() === 'grid' && totalPages() > 1" style="margin-top:16px; border-radius:12px;">
+    <div class="card-body" style="padding:12px 20px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span class="pagination-info">{{ filteredSuppliers().length }} suppliers</span>
+        <div class="pagination-controls">
+          <button class="btn btn-outline btn-sm" [disabled]="currentPage() === 1" (click)="prevPage()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <button *ngFor="let p of pages()" class="btn btn-sm page-btn" [class.active]="p === currentPage()" (click)="currentPage.set(p)">{{ p }}</button>
+          <button class="btn btn-outline btn-sm" [disabled]="currentPage() === totalPages()" (click)="nextPage()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showDeleteModal() !== null" (click)="cancelDelete()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+        <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+      </svg>
+    </div>
+    <h3 class="modal-title">Delete Supplier</h3>
+    <p class="modal-desc">Are you sure you want to delete this supplier? This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" (click)="cancelDelete()">Cancel</button>
+      <button class="btn btn-danger" (click)="executeDelete()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+        </svg>
+        Delete
+      </button>
+    </div>
+  </div>
+</div>

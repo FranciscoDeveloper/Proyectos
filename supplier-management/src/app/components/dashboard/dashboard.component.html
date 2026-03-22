@@ -1,0 +1,155 @@
+<div class="dashboard">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-subtitle">Welcome back! Here's what's happening with your suppliers.</p>
+    </div>
+    <a routerLink="/suppliers/new" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Add Supplier
+    </a>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-card" *ngFor="let card of statCards()" [class]="'stat-card--' + card.color">
+      <div class="stat-icon">
+        <!-- Users Icon -->
+        <svg *ngIf="card.icon === 'users'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <!-- Check Circle -->
+        <svg *ngIf="card.icon === 'check-circle'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <!-- Clock -->
+        <svg *ngIf="card.icon === 'clock'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <!-- Dollar -->
+        <svg *ngIf="card.icon === 'dollar'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">
+          {{ card.isCurrency ? formatCurrency(card.value) : card.value }}
+        </div>
+        <div class="stat-label">{{ card.label }}</div>
+      </div>
+      <div class="stat-change" [class.positive]="card.positive" [class.negative]="!card.positive">
+        <svg *ngIf="card.positive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+          <polyline points="17 6 23 6 23 12"/>
+        </svg>
+        <svg *ngIf="!card.positive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+          <polyline points="17 18 23 18 23 12"/>
+        </svg>
+        {{ card.change }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Row -->
+  <div class="content-row">
+    <!-- Recent Suppliers -->
+    <div class="card flex-1">
+      <div class="card-header">
+        <span class="card-title">Recent Activity</span>
+        <a routerLink="/suppliers" class="btn btn-ghost btn-sm">View all</a>
+      </div>
+      <div class="recent-list">
+        <div class="recent-item" *ngFor="let supplier of recentSuppliers()">
+          <div class="supplier-avatar" [style.background]="getAvatarColor(supplier.name)">
+            {{ supplier.name.charAt(0) }}
+          </div>
+          <div class="recent-info">
+            <div class="recent-name">{{ supplier.name }}</div>
+            <div class="recent-meta">{{ supplier.category | titlecase }} · {{ supplier.city }}</div>
+          </div>
+          <span class="badge-status" [class]="supplier.status">{{ supplier.status }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Rated -->
+    <div class="card sidebar-card">
+      <div class="card-header">
+        <span class="card-title">Top Rated</span>
+      </div>
+      <div class="top-suppliers">
+        <div class="top-supplier-item" *ngFor="let supplier of topSuppliers(); let i = index">
+          <div class="rank-badge" [class]="'rank-' + (i+1)">#{{ i + 1 }}</div>
+          <div class="supplier-info-col">
+            <div class="supplier-name-text">{{ supplier.name }}</div>
+            <div class="star-rating">
+              <span *ngFor="let star of getStars(supplier.rating)">
+                <span *ngIf="star === 'full'">★</span>
+                <span *ngIf="star !== 'full'" style="opacity:0.3">★</span>
+              </span>
+              <span class="rating-value">{{ supplier.rating }}</span>
+            </div>
+          </div>
+          <div class="supplier-orders">{{ supplier.totalOrders }} orders</div>
+        </div>
+      </div>
+
+      <!-- Category Distribution -->
+      <div class="category-section">
+        <div class="section-title">By Status</div>
+        <div class="status-bars">
+          <div class="status-bar-item">
+            <div class="status-bar-label">
+              <span>Active</span>
+              <span class="status-bar-value">{{ stats().active }}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill active"
+                [style.width.%]="(stats().active / stats().total) * 100"></div>
+            </div>
+          </div>
+          <div class="status-bar-item">
+            <div class="status-bar-label">
+              <span>Inactive</span>
+              <span class="status-bar-value">{{ stats().inactive }}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill inactive"
+                [style.width.%]="(stats().inactive / stats().total) * 100"></div>
+            </div>
+          </div>
+          <div class="status-bar-item">
+            <div class="status-bar-label">
+              <span>Pending</span>
+              <span class="status-bar-value">{{ stats().pending }}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill pending"
+                [style.width.%]="(stats().pending / stats().total) * 100"></div>
+            </div>
+          </div>
+          <div class="status-bar-item">
+            <div class="status-bar-label">
+              <span>Blacklisted</span>
+              <span class="status-bar-value">{{ stats().blacklisted }}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill blacklisted"
+                [style.width.%]="(stats().blacklisted / stats().total) * 100"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
