@@ -1,7 +1,8 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, computed } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SchemaService } from './services/schema.service';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +13,7 @@ import { SchemaService } from './services/schema.service';
 })
 export class AppComponent {
   private schemaService = inject(SchemaService);
+  readonly auth = inject(AuthService);
 
   sidebarOpen = signal(true);
 
@@ -19,7 +21,15 @@ export class AppComponent {
     this.sidebarOpen.update(v => !v);
   }
 
-  /** Dashboard + all entities from SchemaService (populated dynamically from backend JSON) */
+  logout() {
+    this.auth.logout();
+  }
+
+  getUserFirstName(): string {
+    return this.auth.user()?.name?.split(' ')[0] ?? '';
+  }
+
+  /** Dashboard + authorized entities from the backend auth response */
   get navItems() {
     const entities = this.schemaService.getAvailableEntities();
     return [

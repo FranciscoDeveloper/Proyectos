@@ -1,12 +1,20 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { EntityMeta, EntityPayload, EntitySchema } from '../models/entity-schema.model';
+import { AuthService } from './auth.service';
 
 /**
- * Simulates a backend API that returns entity schemas + data.
- * In a real app, this would call HttpClient.get<EntityPayload>(`/api/schema/${key}`).
+ * Provides entity schemas to the rest of the app.
+ *
+ * After login, the schemas come from AuthService (which received them from the
+ * backend auth response). This means the frontend only renders what the backend
+ * authorized for the current user.
+ *
+ * The static `catalog` still holds the seed data (mock rows), but the available
+ * schemas and navigation are controlled by the auth response.
  */
 @Injectable({ providedIn: 'root' })
 export class SchemaService {
+  private auth = inject(AuthService);
 
   private readonly catalog: Record<string, EntityPayload> = {
 
@@ -194,18 +202,41 @@ export class SchemaService {
     }
   };
 
-  /** Returns the list of all available entity metadata (for sidebar navigation) */
+  /**
+   * Returns entity metadata for sidebar navigation.
+   * SOURCE: authorized schemas from the backend auth response.
+   * Only entities the backend granted access to are returned.
+   */
   getAvailableEntities(): EntityMeta[] {
+    const authorized = this.auth.getAuthorizedSchemas();
+    if (authorized.length > 0) {
+      return authorized.map(s => s.entity);
+    }
+    // Fallback to full catalog (used in tests / before login)
     return Object.values(this.catalog).map(p => p.schema.entity);
   }
 
-  /** Returns the full payload (schema + data) for a given entity key */
+  /**
+   * Returns the full payload (schema + data) for a given entity key.
+   * Schema definition comes from the auth response when available,
+   * data rows come from the local catalog (mock store).
+   */
   getEntityPayload(key: string): EntityPayload | null {
-    return this.catalog[key] ?? null;
+    if (!this.catalog[key]) return null;
+    const authorizedSchema = this.auth.getAuthorizedSchemas().find(s => s.entity.key === key);
+    return {
+      schema: authorizedSchema ?? this.catalog[key].schema,
+      data: this.catalog[key].data
+    };
   }
 
-  /** Returns only the schema for a given entity key */
+  /**
+   * Returns only the schema for a given entity key.
+   * Prefers the schema from the auth response (backend-driven).
+   */
   getSchema(key: string): EntitySchema | null {
+    const authorizedSchema = this.auth.getAuthorizedSchemas().find(s => s.entity.key === key);
+    if (authorizedSchema) return authorizedSchema;
     return this.catalog[key]?.schema ?? null;
   }
 }

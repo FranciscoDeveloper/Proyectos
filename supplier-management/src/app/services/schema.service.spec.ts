@@ -1,10 +1,27 @@
+import { Injector, runInInjectionContext } from '@angular/core';
+import { Router } from '@angular/router';
 import { SchemaService } from './schema.service';
+import { AuthService } from './auth.service';
+
+function buildSchemaService(): SchemaService {
+  const mockRouter = { navigate: jest.fn() } as unknown as Router;
+  // Provide AuthService in the injector so inject(AuthService) resolves during SchemaService construction
+  const injector = Injector.create({
+    providers: [
+      { provide: Router, useValue: mockRouter },
+      { provide: AuthService, useFactory: () => new AuthService(mockRouter) }
+    ]
+  });
+  let service!: SchemaService;
+  runInInjectionContext(injector, () => { service = new SchemaService(); });
+  return service;
+}
 
 describe('SchemaService', () => {
   let service: SchemaService;
 
   beforeEach(() => {
-    service = new SchemaService();
+    service = buildSchemaService();
   });
 
   it('should be created', () => {

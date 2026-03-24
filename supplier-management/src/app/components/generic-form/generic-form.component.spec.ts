@@ -6,6 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder } from '@angular/forms';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
+import { AuthService } from '../../services/auth.service';
 import { GenericFormComponent } from './generic-form.component';
 import { FieldDefinition } from '../../models/entity-schema.model';
 
@@ -27,7 +28,15 @@ function buildComponent(entityKey: string, recordId?: number): {
     }
   };
 
-  const schema = new SchemaService();
+  const mockRouterForSchema = { navigate: jest.fn() } as unknown as Router;
+  const rootInjector = Injector.create({
+    providers: [
+      { provide: Router, useValue: mockRouterForSchema },
+      { provide: AuthService, useFactory: () => new AuthService(mockRouterForSchema) }
+    ]
+  });
+  let schema!: SchemaService;
+  runInInjectionContext(rootInjector, () => { schema = new SchemaService(); });
   const crud = new GenericCrudService(schema);
 
   const injector = Injector.create({

@@ -1,13 +1,31 @@
+import { Injector, runInInjectionContext } from '@angular/core';
+import { Router } from '@angular/router';
 import { SchemaService } from './schema.service';
 import { GenericCrudService } from './generic-crud.service';
+import { AuthService } from './auth.service';
+
+function buildServices(): { service: GenericCrudService; schemaService: SchemaService } {
+  const mockRouter = { navigate: jest.fn() } as unknown as Router;
+  const injector = Injector.create({
+    providers: [
+      { provide: Router, useValue: mockRouter },
+      { provide: AuthService, useFactory: () => new AuthService(mockRouter) }
+    ]
+  });
+  let schemaService!: SchemaService;
+  runInInjectionContext(injector, () => { schemaService = new SchemaService(); });
+  const service = new GenericCrudService(schemaService);
+  return { service, schemaService };
+}
 
 describe('GenericCrudService', () => {
   let service: GenericCrudService;
   let schemaService: SchemaService;
 
   beforeEach(() => {
-    schemaService = new SchemaService();
-    service = new GenericCrudService(schemaService);
+    const built = buildServices();
+    service = built.service;
+    schemaService = built.schemaService;
   });
 
   describe('initStore()', () => {

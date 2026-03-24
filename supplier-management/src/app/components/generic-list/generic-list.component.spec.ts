@@ -6,6 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
+import { AuthService } from '../../services/auth.service';
 import { GenericListComponent } from './generic-list.component';
 import { FieldDefinition } from '../../models/entity-schema.model';
 
@@ -15,7 +16,15 @@ function buildComponent(entityKey = 'suppliers'): GenericListComponent {
     paramMap: of({ get: (k: string) => k === 'entityKey' ? entityKey : null })
   } as unknown as ActivatedRoute;
 
-  const schemaService = new SchemaService();
+  // SchemaService uses inject(AuthService), so we need an injection context that provides it
+  const rootInjector = Injector.create({
+    providers: [
+      { provide: Router, useValue: mockRouter },
+      { provide: AuthService, useFactory: () => new AuthService(mockRouter) }
+    ]
+  });
+  let schemaService!: SchemaService;
+  runInInjectionContext(rootInjector, () => { schemaService = new SchemaService(); });
   const crudService = new GenericCrudService(schemaService);
 
   const injector = Injector.create({

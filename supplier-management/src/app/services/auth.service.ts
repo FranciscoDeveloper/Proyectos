@@ -1,0 +1,208 @@
+import { Injectable, signal, computed } from '@angular/core';
+import { Router } from '@angular/router';
+import { Observable, of, throwError, delay } from 'rxjs';
+import { LoginCredentials, AuthResponse, AuthState, AuthUser } from '../models/auth.model';
+import { EntitySchema } from '../models/entity-schema.model';
+
+// ─── Mock schema definitions (same data as SchemaService) ────────────────────
+// Kept inline so they can be composed per-role in the mock backend response.
+
+const SCHEMA_SUPPLIERS: EntitySchema = {
+  entity: { key: 'suppliers', singular: 'Proveedor', plural: 'Proveedores', icon: 'users', description: 'Gestión de proveedores y socios comerciales' },
+  fields: [
+    { name: 'name',          type: 'text',     label: 'Nombre',            required: true,  isTitle: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true,  filterType: 'search', minLength: 2, maxLength: 100 },
+    { name: 'code',          type: 'text',     label: 'Código',            required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  sortable: true,  pattern: '^[A-Z]{2}-\\d{3,}$', patternMessage: 'Formato: XX-000' },
+    { name: 'email',         type: 'email',    label: 'Email',             required: true,                   showInList: false, showInDetail: true },
+    { name: 'phone',         type: 'tel',      label: 'Teléfono',          required: true,                   showInList: false, showInDetail: true },
+    { name: 'category',      type: 'select',   label: 'Categoría',         required: true,  isBadge: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true,  filterType: 'select',
+      options: [
+        { value: 'technology',    label: 'Tecnología'      },
+        { value: 'manufacturing', label: 'Manufactura'     },
+        { value: 'logistics',     label: 'Logística'       },
+        { value: 'services',      label: 'Servicios'       },
+        { value: 'raw-materials', label: 'Materias Primas' },
+        { value: 'food-beverage', label: 'Alimentos'       },
+        { value: 'healthcare',    label: 'Salud'           },
+        { value: 'construction',  label: 'Construcción'    }
+      ],
+      badgeColors: { technology: '#6366f1', manufacturing: '#f59e0b', logistics: '#3b82f6', services: '#10b981', 'raw-materials': '#8b5cf6', 'food-beverage': '#ec4899', healthcare: '#14b8a6', construction: '#f97316' }
+    },
+    { name: 'status',        type: 'select',   label: 'Estado',            required: true,  isBadge: true,    showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
+      options: [{ value: 'active', label: 'Activo' }, { value: 'inactive', label: 'Inactivo' }, { value: 'pending', label: 'Pendiente' }, { value: 'blacklisted', label: 'Bloqueado' }],
+      badgeColors: { active: '#10b981', inactive: '#6b7280', pending: '#f59e0b', blacklisted: '#ef4444' }
+    },
+    { name: 'country',       type: 'text',     label: 'País',              required: true,                   showInList: true,  showInDetail: true,  sortable: true,  filterable: true,  filterType: 'select' },
+    { name: 'city',          type: 'text',     label: 'Ciudad',            required: true,                   showInList: false, showInDetail: true },
+    { name: 'address',       type: 'text',     label: 'Dirección',         required: true,                   showInList: false, showInDetail: true },
+    { name: 'website',       type: 'url',      label: 'Sitio Web',                                           showInList: false, showInDetail: true },
+    { name: 'taxId',         type: 'text',     label: 'ID Fiscal',         required: true,                   showInList: false, showInDetail: true },
+    { name: 'contactPerson', type: 'text',     label: 'Contacto',          required: true,                   showInList: true,  showInDetail: true },
+    { name: 'rating',        type: 'range',    label: 'Calificación',      required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 1, max: 5, step: 0.1, format: 'stars' },
+    { name: 'totalOrders',   type: 'number',   label: 'Total Órdenes',     required: true,                   showInList: false, showInDetail: true,  min: 0 },
+    { name: 'totalSpent',    type: 'number',   label: 'Total Gastado',     required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 0, format: 'currency' },
+    { name: 'notes',         type: 'textarea', label: 'Notas',                                               showInList: false, showInDetail: true },
+    { name: 'tags',          type: 'tags',     label: 'Etiquetas',                                           showInList: false, showInDetail: true }
+  ]
+};
+
+const SCHEMA_PRODUCTS: EntitySchema = {
+  entity: { key: 'products', singular: 'Producto', plural: 'Productos', icon: 'package', description: 'Catálogo de productos e inventario' },
+  fields: [
+    { name: 'name',        type: 'text',     label: 'Nombre del Producto', required: true,  isTitle: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true, filterType: 'search', minLength: 2 },
+    { name: 'sku',         type: 'text',     label: 'SKU',                 required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  sortable: true,  pattern: '^[A-Z]{3}-\\d{4}$', patternMessage: 'Formato: ABC-0000' },
+    { name: 'category',    type: 'select',   label: 'Categoría',           required: true,  isBadge: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true, filterType: 'select',
+      options: [{ value: 'electronics', label: 'Electrónica' }, { value: 'clothing', label: 'Ropa' }, { value: 'food', label: 'Alimentos' }, { value: 'tools', label: 'Herramientas' }, { value: 'furniture', label: 'Muebles' }, { value: 'books', label: 'Libros' }],
+      badgeColors: { electronics: '#6366f1', clothing: '#ec4899', food: '#10b981', tools: '#f59e0b', furniture: '#8b5cf6', books: '#3b82f6' }
+    },
+    { name: 'status',      type: 'select',   label: 'Estado',              required: true,  isBadge: true,    showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
+      options: [{ value: 'available', label: 'Disponible' }, { value: 'low_stock', label: 'Stock Bajo' }, { value: 'out_of_stock', label: 'Sin Stock' }, { value: 'discontinued', label: 'Descontinuado' }],
+      badgeColors: { available: '#10b981', low_stock: '#f59e0b', out_of_stock: '#ef4444', discontinued: '#6b7280' }
+    },
+    { name: 'price',       type: 'number',   label: 'Precio',              required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 0, format: 'currency' },
+    { name: 'stock',       type: 'number',   label: 'Stock',               required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 0 },
+    { name: 'supplier',    type: 'text',     label: 'Proveedor',           required: true,                   showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
+    { name: 'weight',      type: 'number',   label: 'Peso (kg)',                                             showInList: false, showInDetail: true,  min: 0 },
+    { name: 'description', type: 'textarea', label: 'Descripción',                                          showInList: false, showInDetail: true },
+    { name: 'tags',        type: 'tags',     label: 'Etiquetas',                                             showInList: false, showInDetail: true }
+  ]
+};
+
+const SCHEMA_PATIENTS: EntitySchema = {
+  entity: { key: 'patients', singular: 'Paciente', plural: 'Pacientes', icon: 'heart', description: 'Registro y seguimiento de pacientes' },
+  fields: [
+    { name: 'fullName',      type: 'text',     label: 'Nombre Completo',   required: true,  isTitle: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true, filterType: 'search', minLength: 3 },
+    { name: 'patientId',     type: 'text',     label: 'ID Paciente',       required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  sortable: true,  pattern: '^PAC-\\d{5}$', patternMessage: 'Formato: PAC-00000' },
+    { name: 'status',        type: 'select',   label: 'Estado',            required: true,  isBadge: true,    showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
+      options: [{ value: 'active', label: 'Activo' }, { value: 'discharged', label: 'Alta' }, { value: 'critical', label: 'Crítico' }, { value: 'scheduled', label: 'Programado' }],
+      badgeColors: { active: '#10b981', discharged: '#6b7280', critical: '#ef4444', scheduled: '#3b82f6' }
+    },
+    { name: 'age',           type: 'number',   label: 'Edad',              required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 0, max: 150 },
+    { name: 'gender',        type: 'select',   label: 'Género',            required: true,                   showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
+      options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
+    },
+    { name: 'bloodType',     type: 'select',   label: 'Tipo de Sangre',    required: true,  isBadge: true,    showInList: true,  showInDetail: true,
+      options: [{ value: 'A+', label: 'A+' }, { value: 'A-', label: 'A-' }, { value: 'B+', label: 'B+' }, { value: 'B-', label: 'B-' }, { value: 'O+', label: 'O+' }, { value: 'O-', label: 'O-' }, { value: 'AB+', label: 'AB+' }, { value: 'AB-', label: 'AB-' }],
+      badgeColors: { 'A+': '#ef4444', 'A-': '#f97316', 'B+': '#3b82f6', 'B-': '#6366f1', 'O+': '#10b981', 'O-': '#14b8a6', 'AB+': '#8b5cf6', 'AB-': '#ec4899' }
+    },
+    { name: 'phone',         type: 'tel',      label: 'Teléfono',          required: true,                   showInList: false, showInDetail: true },
+    { name: 'email',         type: 'email',    label: 'Email',                                               showInList: false, showInDetail: true },
+    { name: 'doctor',        type: 'text',     label: 'Médico Asignado',   required: true,                   showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
+    { name: 'admissionDate', type: 'date',     label: 'Fecha de Ingreso',  required: true,                   showInList: true,  showInDetail: true,  sortable: true,  format: 'date' },
+    { name: 'diagnosis',     type: 'textarea', label: 'Diagnóstico',       required: true,                   showInList: false, showInDetail: true },
+    { name: 'allergies',     type: 'tags',     label: 'Alergias',                                            showInList: false, showInDetail: true }
+  ]
+};
+
+// ─── Mock users + their authorized schemas ────────────────────────────────────
+
+interface MockUser {
+  user: AuthUser;
+  password: string;
+  schemas: EntitySchema[];
+}
+
+const MOCK_USERS: MockUser[] = [
+  {
+    password: 'admin123',
+    user: { id: 1, name: 'Admin General', email: 'admin@empresa.com', role: 'admin', avatar: 'AG' },
+    schemas: [SCHEMA_SUPPLIERS, SCHEMA_PRODUCTS, SCHEMA_PATIENTS]
+  },
+  {
+    password: 'compras123',
+    user: { id: 2, name: 'Jefe de Compras', email: 'compras@empresa.com', role: 'manager', avatar: 'JC' },
+    schemas: [SCHEMA_SUPPLIERS, SCHEMA_PRODUCTS]
+  },
+  {
+    password: 'medico123',
+    user: { id: 3, name: 'Dra. Morales', email: 'medico@hospital.com', role: 'manager', avatar: 'DM' },
+    schemas: [SCHEMA_PATIENTS]
+  },
+  {
+    password: 'viewer123',
+    user: { id: 4, name: 'Auditor', email: 'auditor@empresa.com', role: 'viewer', avatar: 'AU' },
+    schemas: [SCHEMA_SUPPLIERS]
+  }
+];
+
+const SESSION_KEY = 'auth_session';
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private _state = signal<AuthState>(this.loadFromStorage());
+
+  readonly user    = computed(() => this._state().user);
+  readonly token   = computed(() => this._state().token);
+  readonly schemas = computed(() => this._state().schemas);
+  readonly isAuthenticated = computed(() => this._state().authenticated);
+
+  constructor(private router: Router) {}
+
+  /**
+   * Simulates a POST /api/auth/login call.
+   * Returns Observable<AuthResponse> — swap the body for HttpClient in production.
+   */
+  login(credentials: LoginCredentials): Observable<AuthResponse> {
+    const found = MOCK_USERS.find(
+      u => u.user.email === credentials.email && u.password === credentials.password
+    );
+
+    if (!found) {
+      return throwError(() => new Error('Credenciales inválidas. Verifique su email y contraseña.'));
+    }
+
+    const response: AuthResponse = {
+      token: this.generateToken(found.user),
+      expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(), // 8h
+      user: found.user,
+      schemas: found.schemas
+    };
+
+    // Simulate network delay
+    return of(response).pipe(delay(600));
+  }
+
+  /**
+   * Stores the auth response from the backend and updates the reactive state.
+   */
+  handleAuthResponse(response: AuthResponse): void {
+    const state: AuthState = {
+      authenticated: true,
+      token: response.token,
+      user: response.user,
+      schemas: response.schemas
+    };
+    this._state.set(state);
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
+  }
+
+  logout(): void {
+    this._state.set({ authenticated: false, token: null, user: null, schemas: [] });
+    sessionStorage.removeItem(SESSION_KEY);
+    this.router.navigate(['/login']);
+  }
+
+  /** Returns the authorized entity schemas — the backend decides what the user can see */
+  getAuthorizedSchemas(): EntitySchema[] {
+    return this._state().schemas;
+  }
+
+  /** Check if user has access to a specific entity key */
+  canAccessEntity(key: string): boolean {
+    return this._state().schemas.some(s => s.entity.key === key);
+  }
+
+  private loadFromStorage(): AuthState {
+    try {
+      const raw = sessionStorage.getItem(SESSION_KEY);
+      if (raw) return JSON.parse(raw) as AuthState;
+    } catch { /* ignore */ }
+    return { authenticated: false, token: null, user: null, schemas: [] };
+  }
+
+  private generateToken(user: AuthUser): string {
+    const payload = btoa(JSON.stringify({ sub: user.id, email: user.email, role: user.role, iat: Date.now() }));
+    return `mock.${payload}.signature`;
+  }
+}
