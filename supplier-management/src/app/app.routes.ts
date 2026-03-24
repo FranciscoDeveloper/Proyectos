@@ -10,21 +10,22 @@ export const routes: Routes = [
     path: 'dashboard',
     loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent)
   },
+  // Generic entity routes — schema-driven CRUD
   {
-    path: 'suppliers',
-    loadComponent: () => import('./components/supplier-list/supplier-list.component').then(m => m.SupplierListComponent)
+    path: 'entity/:entityKey',
+    loadComponent: () => import('./components/generic-list/generic-list.component').then(m => m.GenericListComponent)
   },
   {
-    path: 'suppliers/new',
-    loadComponent: () => import('./components/supplier-form/supplier-form.component').then(m => m.SupplierFormComponent)
+    path: 'entity/:entityKey/new',
+    loadComponent: () => import('./components/generic-form/generic-form.component').then(m => m.GenericFormComponent)
   },
   {
-    path: 'suppliers/:id/edit',
-    loadComponent: () => import('./components/supplier-form/supplier-form.component').then(m => m.SupplierFormComponent)
+    path: 'entity/:entityKey/:id/edit',
+    loadComponent: () => import('./components/generic-form/generic-form.component').then(m => m.GenericFormComponent)
   },
   {
-    path: 'suppliers/:id',
-    loadComponent: () => import('./components/supplier-detail/supplier-detail.component').then(m => m.SupplierDetailComponent)
+    path: 'entity/:entityKey/:id',
+    loadComponent: () => import('./components/generic-detail/generic-detail.component').then(m => m.GenericDetailComponent)
   },
   {
     path: '**',

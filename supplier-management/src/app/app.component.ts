@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { SchemaService } from './services/schema.service';
 
 @Component({
   selector: 'app-root',
@@ -10,14 +11,20 @@ import { CommonModule } from '@angular/common';
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
+  private schemaService = inject(SchemaService);
+
   sidebarOpen = signal(true);
 
   toggleSidebar() {
     this.sidebarOpen.update(v => !v);
   }
 
-  navItems = [
-    { label: 'Dashboard', icon: 'grid', route: '/dashboard' },
-    { label: 'Suppliers', icon: 'users', route: '/suppliers' }
-  ];
+  /** Dashboard + all entities from SchemaService (populated dynamically from backend JSON) */
+  get navItems() {
+    const entities = this.schemaService.getAvailableEntities();
+    return [
+      { label: 'Dashboard', icon: 'grid', route: '/dashboard' },
+      ...entities.map(e => ({ label: e.plural, icon: e.icon, route: '/entity/' + e.key }))
+    ];
+  }
 }
