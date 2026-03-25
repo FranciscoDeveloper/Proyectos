@@ -62,7 +62,10 @@ export class LoginComponent {
       next: (response) => {
         this.auth.handleAuthResponse(response);
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
-        this.router.navigateByUrl(returnUrl);
+        // Defer navigation one tick so Angular can process the *ngIf change in AppComponent
+        // (the loginOutlet router-outlet is destroyed, the app-shell router-outlet is created)
+        // before the router tries to render the target route.
+        setTimeout(() => this.router.navigateByUrl(returnUrl));
       },
       error: (err: Error) => {
         this.loading.set(false);
