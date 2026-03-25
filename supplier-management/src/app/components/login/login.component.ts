@@ -78,7 +78,7 @@ export class LoginComponent implements OnDestroy {
         const target = (raw && raw.startsWith('/') && !raw.startsWith('//') && raw !== '/')
           ? raw
           : '/dashboard';
-        window.location.href = target;
+        window.location.href = '/#' + target;
       },
       error: (err: Error) => {
         this.loading.set(false);
