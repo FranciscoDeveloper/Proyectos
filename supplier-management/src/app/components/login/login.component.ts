@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 
@@ -24,7 +24,8 @@ interface DemoAccount {
 export class LoginComponent implements OnDestroy {
   private fb    = inject(FormBuilder);
   private auth  = inject(AuthService);
-  private route = inject(ActivatedRoute);
+  private route  = inject(ActivatedRoute);
+  private router = inject(Router);
   private sub?: Subscription;
 
   loading  = signal(false);
@@ -69,16 +70,11 @@ export class LoginComponent implements OnDestroy {
         // 1. Persist auth state to sessionStorage BEFORE navigating
         this.auth.handleAuthResponse(response);
 
-        // 2. Navigate via window.location — full page reload.
-        //    This sidesteps any Angular Router timing issue in the static bundle
-        //    (guard redirect chains, lazy-chunk scheduling, Zone.js scheduler).
-        //    Angular reads sessionStorage on bootstrap and restores the session.
         const raw = this.route.snapshot.queryParamMap.get('returnUrl') ?? '';
-        // Only trust returnUrl if it is an internal relative path
         const target = (raw && raw.startsWith('/') && !raw.startsWith('//') && raw !== '/')
           ? raw
           : '/dashboard';
-        window.location.href = '/#' + target;
+        this.router.navigateByUrl(target);
       },
       error: (err: Error) => {
         this.loading.set(false);
