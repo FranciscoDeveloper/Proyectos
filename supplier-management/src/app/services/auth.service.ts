@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, of, throwError, delay } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { LoginCredentials, AuthResponse, AuthState, AuthUser } from '../models/auth.model';
 import { EntitySchema } from '../models/entity-schema.model';
 
@@ -154,13 +154,14 @@ export class AuthService {
 
     const response: AuthResponse = {
       token: this.generateToken(found.user),
-      expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(), // 8h
+      expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
       user: found.user,
       schemas: found.schemas
     };
 
-    // Simulate network delay
-    return of(response).pipe(delay(600));
+    // Synchronous mock response — no async scheduler, no Zone.js dependency.
+    // In production replace of(response) with HttpClient.post<AuthResponse>('/api/auth/login', credentials)
+    return of(response);
   }
 
   /**
@@ -174,7 +175,9 @@ export class AuthService {
       schemas: response.schemas
     };
     this._state.set(state);
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
+    } catch { /* storage unavailable (private mode, quota exceeded) */ }
   }
 
   logout(): void {

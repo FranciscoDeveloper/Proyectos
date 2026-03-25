@@ -1,7 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 
 interface DemoAccount {
@@ -20,11 +21,12 @@ interface DemoAccount {
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
   private fb      = inject(FormBuilder);
   private auth    = inject(AuthService);
   private router  = inject(Router);
   private route   = inject(ActivatedRoute);
+  private sub?: Subscription;
 
   loading  = signal(false);
   error    = signal('');
@@ -49,6 +51,10 @@ export class LoginComponent {
 
   togglePass() { this.showPass.update(v => !v); }
 
+  ngOnDestroy() {
+    this.sub?.unsubscribe();
+  }
+
   submit() {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
@@ -57,16 +63,27 @@ export class LoginComponent {
     this.error.set('');
 
     const { email, password } = this.form.getRawValue();
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
 
-    this.auth.login({ email: email!, password: password! }).subscribe({
-      next: (response) => {
-        this.auth.handleAuthResponse(response);
-        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
-        this.router.navigateByUrl(returnUrl);
+    this.sub = this.auth.login({ email: email!, password: password! }).subscribe({
+      next: async (response) => {
+        try {
+          this.auth.handleAuthResponse(response);
+          const navigated = await this.router.navigateByUrl(returnUrl);
+          if (!navigated) {
+            // Navigation was blocked (guard returned false or route not found)
+            this.loading.set(false);
+            this.error.set('Error al redirigir. Intenta de nuevo.');
+          }
+          // If navigated === true, this component is destroyed — no more updates needed.
+        } catch (navErr) {
+          this.loading.set(false);
+          this.error.set('Error inesperado al iniciar sesión. Intenta de nuevo.');
+        }
       },
       error: (err: Error) => {
         this.loading.set(false);
-        this.error.set(err.message);
+        this.error.set(err.message ?? 'Credenciales inválidas.');
       }
     });
   }
