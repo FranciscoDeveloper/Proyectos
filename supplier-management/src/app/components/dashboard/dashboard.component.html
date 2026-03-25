@@ -77,7 +77,7 @@
             <div class="recent-name">{{ supplier.name }}</div>
             <div class="recent-meta">{{ supplier.category | titlecase }} · {{ supplier.city }}</div>
           </div>
-          <span class="badge-status" [class]="supplier.status">{{ supplier.status }}</span>
+          <span class="badge-status" [ngClass]="supplier.status">{{ supplier.status }}</span>
         </div>
       </div>
     </div>
@@ -89,7 +89,7 @@
       </div>
       <div class="top-suppliers">
         <div class="top-supplier-item" *ngFor="let supplier of topSuppliers(); let i = index">
-          <div class="rank-badge" [class]="'rank-' + (i+1)">#{{ i + 1 }}</div>
+          <div class="rank-badge" [ngClass]="'rank-' + (i+1)">#{{ i + 1 }}</div>
           <div class="supplier-info-col">
             <div class="supplier-name-text">{{ supplier.name }}</div>
             <div class="star-rating">
