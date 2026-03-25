@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 
@@ -22,10 +22,9 @@ interface DemoAccount {
   styleUrl: './login.component.scss'
 })
 export class LoginComponent implements OnDestroy {
-  private fb      = inject(FormBuilder);
-  private auth    = inject(AuthService);
-  private router  = inject(Router);
-  private route   = inject(ActivatedRoute);
+  private fb    = inject(FormBuilder);
+  private auth  = inject(AuthService);
+  private route = inject(ActivatedRoute);
   private sub?: Subscription;
 
   loading  = signal(false);
@@ -66,20 +65,20 @@ export class LoginComponent implements OnDestroy {
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
 
     this.sub = this.auth.login({ email: email!, password: password! }).subscribe({
-      next: async (response) => {
-        try {
-          this.auth.handleAuthResponse(response);
-          const navigated = await this.router.navigateByUrl(returnUrl);
-          if (!navigated) {
-            // Navigation was blocked (guard returned false or route not found)
-            this.loading.set(false);
-            this.error.set('Error al redirigir. Intenta de nuevo.');
-          }
-          // If navigated === true, this component is destroyed — no more updates needed.
-        } catch (navErr) {
-          this.loading.set(false);
-          this.error.set('Error inesperado al iniciar sesión. Intenta de nuevo.');
-        }
+      next: (response) => {
+        // 1. Persist auth state to sessionStorage BEFORE navigating
+        this.auth.handleAuthResponse(response);
+
+        // 2. Navigate via window.location — full page reload.
+        //    This sidesteps any Angular Router timing issue in the static bundle
+        //    (guard redirect chains, lazy-chunk scheduling, Zone.js scheduler).
+        //    Angular reads sessionStorage on bootstrap and restores the session.
+        const raw = this.route.snapshot.queryParamMap.get('returnUrl') ?? '';
+        // Only trust returnUrl if it is an internal relative path
+        const target = (raw && raw.startsWith('/') && !raw.startsWith('//') && raw !== '/')
+          ? raw
+          : '/dashboard';
+        window.location.href = target;
       },
       error: (err: Error) => {
         this.loading.set(false);
