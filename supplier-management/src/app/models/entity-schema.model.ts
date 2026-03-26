@@ -10,7 +10,8 @@ export type FieldType =
   | 'url'
   | 'tel'
   | 'range'
-  | 'tags';
+  | 'tags'
+  | 'object-list';
 
 /** Determines which view component renders this entity's overview */
 export type ModuleType = 'crud' | 'calendar' | 'clinical-record';

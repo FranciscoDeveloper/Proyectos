@@ -292,7 +292,43 @@ export class SchemaService {
           soapSubjective: 'Paciente refiere cefalea occipital moderada (EVA 4/10) de inicio matutino hace 3 días. Niega visión borrosa, tinitus o náuseas. Cumple tratamiento antihipertensivo regularmente.',
           soapObjective: 'PA: 132/85 mmHg (brazo derecho), FC: 72 lpm, T: 36.6°C, SatO2: 97%. Examen neurológico normal. Sin edema en extremidades inferiores.',
           soapAssessment: 'HTA esencial en control subóptimo. Cefalea tensional asociada. Sin signos de crisis hipertensiva ni daño de órgano blanco.',
-          soapPlan: '1. Ajuste Losartán → 100mg c/24h\n2. Control PA en 7 días\n3. Paracetamol 500mg c/8h PRN cefalea\n4. Derivar a nutricionista para reducción de sal\n5. Traer perfil lipídico próxima consulta'
+          soapPlan: '1. Ajuste Losartán → 100mg c/24h\n2. Control PA en 7 días\n3. Paracetamol 500mg c/8h PRN cefalea\n4. Derivar a nutricionista para reducción de sal\n5. Traer perfil lipídico próxima consulta',
+          encounters: [
+            {
+              encounterDate: '2026-03-24', doctor: 'Dra. Morales', motivo: 'Control mensual HTA',
+              presionArterial: '120/80 mmHg', frecuenciaCardiaca: '70 lpm', peso: '68 kg',
+              diagnostico: 'HTA esencial estabilizada', tratamiento: 'Mantiene Losartán 100mg c/24h + Atorvastatina 20mg',
+              indicaciones: 'Continuar dieta hiposódica. Caminata 30 min/día. Control en 1 mes.'
+            },
+            {
+              encounterDate: '2026-02-18', doctor: 'Dra. Morales', motivo: 'Control HTA + perfil lipídico',
+              presionArterial: '138/88 mmHg', frecuenciaCardiaca: '74 lpm', peso: '69.2 kg',
+              diagnostico: 'HTA con control subóptimo. Dislipidemia compensada.', tratamiento: 'Ajuste Losartán 50mg → 100mg c/24h',
+              examenes: 'Colesterol total 198 mg/dL, LDL 112 mg/dL, HDL 52 mg/dL, TG 170 mg/dL',
+              indicaciones: 'Reducir sal y grasas saturadas. Repetir perfil lipídico en 3 meses.'
+            },
+            {
+              encounterDate: '2026-01-10', doctor: 'Dra. Morales', motivo: 'Control tiroides + HTA',
+              presionArterial: '130/82 mmHg', frecuenciaCardiaca: '68 lpm', peso: '69.8 kg',
+              diagnostico: 'Hipotiroidismo subclínico estable. HTA en control.',
+              examenes: 'TSH 3.8 mUI/L (normal). T4L 1.1 ng/dL.',
+              tratamiento: 'Mantiene Levotiroxina 50mcg + Losartán 50mg',
+              indicaciones: 'TSH dentro de rango. Control tiroides en 6 meses.'
+            },
+            {
+              encounterDate: '2025-11-05', doctor: 'Dra. Morales', motivo: 'Control anual + vacuna influenza',
+              presionArterial: '128/80 mmHg', frecuenciaCardiaca: '71 lpm', peso: '70.1 kg',
+              diagnostico: 'HTA en control. Sin nuevas patologías.', tratamiento: 'Mantiene esquema farmacológico habitual',
+              indicaciones: 'Vacuna influenza aplicada. Mamografía anual pendiente. Control en 3 meses.'
+            },
+            {
+              encounterDate: '2025-08-22', doctor: 'Dra. Morales', motivo: 'Cefalea persistente',
+              presionArterial: '148/92 mmHg', frecuenciaCardiaca: '76 lpm', peso: '70.5 kg',
+              diagnostico: 'Crisis hipertensiva leve. Cefalea tensional secundaria.',
+              tratamiento: 'Amlodipino 5mg agregado transitoriamente. Paracetamol 1g c/8h PRN',
+              indicaciones: 'Reposo relativo 48h. Monitoreo PA domiciliario. Control urgente si PA > 160/100.'
+            }
+          ]
         },
         {
           id: 2, fullName: 'Carlos Fernández Torres', patientId: 'PAC-00002', rut: '8.765.432-1',
@@ -315,7 +351,39 @@ export class SchemaService {
           soapSubjective: 'Paciente refiere disnea de esfuerzo CF II (antes CF I). Ortopnea leve con 1 almohada. Niega dolor torácico. Refiere cumplir medicación pero olvida a veces metoprolol nocturno.',
           soapObjective: 'PA: 115/70 mmHg, FC: 58 lpm irregular, T: 36.4°C, SatO2: 96%. Auscultación: R1R2 normales, no soplos. Leve edema pretibial bilateral ++.',
           soapAssessment: 'Cardiopatía isquémica crónica post-IAM. Deterioro funcional CF I→II sugiere descompensación leve. Posible IC con FE preservada. Adherencia parcial.',
-          soapPlan: '1. Ecocardiograma Doppler urgente\n2. BNP y troponina sérica\n3. Ajuste Metoprolol → 100mg c/12h\n4. Agregar Furosemida 20mg c/24h\n5. Reforzar adherencia farmacológica\n6. Derivar a rehabilitación cardíaca'
+          soapPlan: '1. Ecocardiograma Doppler urgente\n2. BNP y troponina sérica\n3. Ajuste Metoprolol → 100mg c/12h\n4. Agregar Furosemida 20mg c/24h\n5. Reforzar adherencia farmacológica\n6. Derivar a rehabilitación cardíaca',
+          encounters: [
+            {
+              encounterDate: '2026-03-19', doctor: 'Dra. Morales', motivo: 'Ajuste de tratamiento post-IAM',
+              presionArterial: '115/70 mmHg', frecuenciaCardiaca: '58 lpm', saturacionO2: '96%',
+              diagnostico: 'Cardiopatía isquémica crónica. Deterioro funcional CF I→II.',
+              tratamiento: 'Metoprolol 100mg c/12h. Furosemida 20mg c/24h agregada.',
+              examenes: 'Pendiente: Ecocardiograma Doppler, BNP, troponina sérica.',
+              indicaciones: 'Restricción hídrica 1.5L/día. Pesar diariamente. Urgencia si aumento > 2kg en 48h.'
+            },
+            {
+              encounterDate: '2026-03-03', doctor: 'Dra. Morales', motivo: 'Revisión post-operatoria stent',
+              presionArterial: '118/72 mmHg', frecuenciaCardiaca: '62 lpm', saturacionO2: '97%',
+              diagnostico: 'Evolución favorable 6 semanas post-angioplastia. Sin signos de reestenosis.',
+              tratamiento: 'Continúa doble antiagregación (Clopidogrel + Ticagrelor). Atorvastatina 80mg.',
+              examenes: 'ECG: ritmo sinusal, sin cambios isquémicos. Troponina negativa.',
+              indicaciones: 'Mantiene restricción de esfuerzo físico moderado. Prohíbe suspender antiagregantes.'
+            },
+            {
+              encounterDate: '2026-02-10', doctor: 'Dra. Morales', motivo: 'Primer control ambulatorio post-alta',
+              presionArterial: '122/76 mmHg', frecuenciaCardiaca: '66 lpm', saturacionO2: '97%',
+              diagnostico: 'Postoperatorio inmediato favorable. Adherencia farmacológica parcial.',
+              tratamiento: 'Ajuste Enalapril 10mg c/12h. Refuerzo educativo adherencia.',
+              indicaciones: 'No levantar objetos > 5kg. Herida cicatrizando correctamente. Control en 3 semanas.'
+            },
+            {
+              encounterDate: '2026-01-28', doctor: 'Cardiología HCUCH', motivo: 'Alta hospitalaria post-IAM STEMI',
+              presionArterial: '120/75 mmHg', frecuenciaCardiaca: '70 lpm', saturacionO2: '98%',
+              diagnostico: 'IAM anterior STEMI resuelto. Stent en DA proximal exitoso. FE 45%.',
+              tratamiento: 'Alta con: Clopidogrel 75mg, Ticagrelor 90mg c/12h, Atorvastatina 80mg, Enalapril 10mg, Metoprolol 50mg, Metformina 850mg.',
+              indicaciones: 'Alta con indicación de control cardiológico en 2 semanas. Rehabilitación cardíaca programada.'
+            }
+          ]
         },
         {
           id: 3, fullName: 'Ana Martínez Soto', patientId: 'PAC-00003', rut: '16.543.210-K',
@@ -384,7 +452,47 @@ export class SchemaService {
           soapSubjective: 'Paciente consulta por aumento disnea basal desde hace 5 días. Expectoración amarillenta, más abundante. Fiebre hasta 37.8°C. Uso de salbutamol de rescate 6 veces/día (antes 1-2).',
           soapObjective: 'PA: 138/88, FC: 88, T: 37.1°C, SatO2: 91% (aire ambiente). FR: 22 rpm. Auscultación: roncus bilaterales, sibilancias espiratorias ++. Uso de músculos accesorios.',
           soapAssessment: 'Exacerbación aguda moderada de EPOC (GOLD III) de probable etiología infecciosa bacteriana. Sin criterios de hospitalización (SatO2 ≥90% con O2 suplementario).',
-          soapPlan: '1. Amoxicilina-clavulánico 875/125mg c/8h × 7 días\n2. Prednisona 40mg c/24h × 5 días\n3. Nebulización Salbutamol + Ipratropio c/4h × 48h\n4. O2 domiciliario ≥15h/día\n5. Espirometría control en 4 semanas\n6. Volver urgencia si SatO2 < 88% o no mejora en 48h'
+          soapPlan: '1. Amoxicilina-clavulánico 875/125mg c/8h × 7 días\n2. Prednisona 40mg c/24h × 5 días\n3. Nebulización Salbutamol + Ipratropio c/4h × 48h\n4. O2 domiciliario ≥15h/día\n5. Espirometría control en 4 semanas\n6. Volver urgencia si SatO2 < 88% o no mejora en 48h',
+          encounters: [
+            {
+              encounterDate: '2026-03-19', doctor: 'Dra. Morales', motivo: 'Exacerbación aguda EPOC',
+              presionArterial: '138/88 mmHg', frecuenciaCardiaca: '88 lpm', saturacionO2: '91%', frecuenciaRespiratoria: '22 rpm',
+              diagnostico: 'Exacerbación aguda EPOC GOLD III. Probable etiología bacteriana.',
+              tratamiento: 'Amoxicilina-clavulánico 875/125mg c/8h × 7d. Prednisona 40mg × 5d. Nebulizaciones c/4h.',
+              indicaciones: 'O2 domiciliario ≥15h/día. Volver a urgencia si SatO2 < 88%. Control espirometría en 4 semanas.'
+            },
+            {
+              encounterDate: '2026-01-15', doctor: 'Dra. Morales', motivo: 'Control trimestral EPOC',
+              presionArterial: '135/85 mmHg', frecuenciaCardiaca: '82 lpm', saturacionO2: '93%', frecuenciaRespiratoria: '18 rpm',
+              diagnostico: 'EPOC GOLD III estable. Sin exacerbaciones desde oct 2025.',
+              examenes: 'Espirometría: FEV1 42% del teórico (sin cambio significativo). Gasometría: pH 7.38, PaO2 68 mmHg.',
+              tratamiento: 'Mantiene Tiotropio + Salmeterol/Fluticasona + Prednisona 5mg mantenimiento.',
+              indicaciones: 'Refuerza técnica inhalatoria. Vacuna neumococo actualizada. Control en 3 meses.'
+            },
+            {
+              encounterDate: '2025-10-08', doctor: 'Dra. Morales', motivo: 'Exacerbación leve + control osteoporosis',
+              presionArterial: '132/82 mmHg', frecuenciaCardiaca: '86 lpm', saturacionO2: '92%',
+              diagnostico: 'Exacerbación leve EPOC. Osteoporosis estable (T-score -2.4 columna lumbar).',
+              tratamiento: 'Prednisona 30mg × 5d. Aumenta Salbutamol rescate. Mantiene Calcio + Vit D.',
+              examenes: 'Densitometría ósea: sin cambio vs 2024.',
+              indicaciones: 'No suspender Calcio/VitD. Evitar caídas. Próxima densitometría 2027.'
+            },
+            {
+              encounterDate: '2025-07-22', doctor: 'Broncopulmonar HCUCH', motivo: 'Control especialidad EPOC',
+              presionArterial: '130/80 mmHg', frecuenciaCardiaca: '80 lpm', saturacionO2: '94%',
+              diagnostico: 'EPOC GOLD III con respuesta limitada a broncodilatación. AIT 2019 sin secuelas.',
+              examenes: 'Test 6 minutos marcha: 240m (severamente reducido). TAC tórax: enfisema centrolobulillar difuso, sin condensación.',
+              tratamiento: 'Sin cambios en esquema. Evalúa candidatura para rehabilitación pulmonar.',
+              indicaciones: 'Derivada a programa rehabilitación pulmonar. Oxigenoterapia crónica ≥18h/día confirmada.'
+            },
+            {
+              encounterDate: '2025-04-10', doctor: 'Dra. Morales', motivo: 'Control HTA + EPOC',
+              presionArterial: '142/90 mmHg', frecuenciaCardiaca: '84 lpm', saturacionO2: '93%',
+              diagnostico: 'HTA leve en control subóptimo. EPOC estable.',
+              tratamiento: 'Aumenta Enalapril 5mg → 10mg c/24h. Mantiene esquema broncodilatador.',
+              indicaciones: 'Monitoreo PA domiciliario 2 veces/semana. Control en 6 semanas.'
+            }
+          ]
         },
         {
           id: 6, fullName: 'Luis Hernández Pérez', patientId: 'PAC-00004', rut: '9.012.345-6',
