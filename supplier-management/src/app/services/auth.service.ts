@@ -121,6 +121,86 @@ const SCHEMA_PATIENTS: EntitySchema = {
   ]
 };
 
+const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
+  entity: {
+    key: 'clinical-records',
+    singular: 'Ficha Clínica',
+    plural: 'Fichas Clínicas',
+    icon: 'clipboard',
+    moduleType: 'clinical-record',
+    description: 'Fichas clínicas y registros médicos de pacientes'
+  },
+  fields: [
+    // ── Demographics ──────────────────────────────────────────────────────
+    { name: 'fullName',       type: 'text',     label: 'Nombre Completo',     required: true,  isTitle: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'search', sortable: true },
+    { name: 'patientId',      type: 'text',     label: 'ID Paciente',         required: true,  isSubtitle: true,  showInList: true,  showInDetail: true,  section: 'demographics', pattern: '^PAC-\\d{5}$', patternMessage: 'Formato: PAC-00000' },
+    { name: 'rut',            type: 'text',     label: 'RUT',                 required: true,                    showInList: false, showInDetail: true,  section: 'demographics' },
+    { name: 'birthDate',      type: 'date',     label: 'Fecha de Nacimiento', required: true,                    showInList: false, showInDetail: true,  section: 'demographics', format: 'date' },
+    { name: 'age',            type: 'number',   label: 'Edad',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150 },
+    { name: 'gender',         type: 'select',   label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
+      options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
+    },
+    { name: 'bloodType',      type: 'select',   label: 'Grupo Sanguíneo',     required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics',
+      options: [{ value: 'A+', label: 'A+' }, { value: 'A-', label: 'A-' }, { value: 'B+', label: 'B+' }, { value: 'B-', label: 'B-' }, { value: 'O+', label: 'O+' }, { value: 'O-', label: 'O-' }, { value: 'AB+', label: 'AB+' }, { value: 'AB-', label: 'AB-' }],
+      badgeColors: { 'A+': '#ef4444', 'A-': '#f97316', 'B+': '#3b82f6', 'B-': '#6366f1', 'O+': '#10b981', 'O-': '#14b8a6', 'AB+': '#8b5cf6', 'AB-': '#ec4899' }
+    },
+    { name: 'insurance',      type: 'select',   label: 'Previsión',           required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
+      options: [
+        { value: 'fonasa_a', label: 'FONASA A' }, { value: 'fonasa_b', label: 'FONASA B' },
+        { value: 'fonasa_c', label: 'FONASA C' }, { value: 'fonasa_d', label: 'FONASA D' },
+        { value: 'isapre',   label: 'ISAPRE'   }, { value: 'particular', label: 'Particular' }
+      ],
+      badgeColors: { fonasa_a: '#6b7280', fonasa_b: '#3b82f6', fonasa_c: '#10b981', fonasa_d: '#8b5cf6', isapre: '#f59e0b', particular: '#ec4899' }
+    },
+    { name: 'phone',          type: 'tel',      label: 'Teléfono',            required: true,                    showInList: false, showInDetail: true,  section: 'demographics' },
+    { name: 'email',          type: 'email',    label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics' },
+    { name: 'address',        type: 'text',     label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics' },
+    { name: 'emergencyContact', type: 'text',   label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics' },
+    { name: 'doctor',         type: 'text',     label: 'Médico Tratante',     required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'search' },
+    { name: 'lastVisit',      type: 'date',     label: 'Última Consulta',     required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
+    { name: 'status',         type: 'select',   label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
+      options: [{ value: 'active', label: 'Activo' }, { value: 'discharged', label: 'Alta' }, { value: 'critical', label: 'Crítico' }, { value: 'scheduled', label: 'Programado' }],
+      badgeColors: { active: '#10b981', discharged: '#6b7280', critical: '#ef4444', scheduled: '#3b82f6' }
+    },
+
+    // ── Alerts (allergies + contraindications) ────────────────────────────
+    { name: 'allergies',      type: 'tags',     label: 'Alergias',            required: false, isAlert: true,     showInList: false, showInDetail: true,  section: 'alerts' },
+    { name: 'contraindications', type: 'textarea', label: 'Contraindicaciones', required: false, isAlert: true,  showInList: false, showInDetail: true,  section: 'alerts' },
+    { name: 'alertNotes',     type: 'textarea', label: 'Notas de Alerta',     required: false, isAlert: true,     showInList: false, showInDetail: true,  section: 'alerts' },
+
+    // ── Vital signs ───────────────────────────────────────────────────────
+    { name: 'bp',             type: 'text',     label: 'Presión Arterial',    required: false, isVitalSign: true, showInList: false, showInDetail: true,  section: 'vitals', placeholder: '120/80 mmHg' },
+    { name: 'heartRate',      type: 'number',   label: 'Frec. Cardíaca',      required: false, isVitalSign: true, showInList: false, showInDetail: true,  section: 'vitals', min: 20, max: 300, placeholder: 'bpm' },
+    { name: 'temperature',    type: 'number',   label: 'Temperatura',         required: false, isVitalSign: true, showInList: false, showInDetail: true,  section: 'vitals', min: 30, max: 45, step: 0.1, placeholder: '°C' },
+    { name: 'o2Saturation',   type: 'number',   label: 'Saturación O₂',       required: false, isVitalSign: true, showInList: false, showInDetail: true,  section: 'vitals', min: 50, max: 100, placeholder: '%' },
+    { name: 'weight',         type: 'number',   label: 'Peso',                required: false, isVitalSign: true, showInList: false, showInDetail: true,  section: 'vitals', min: 0, max: 500, step: 0.1, placeholder: 'kg' },
+    { name: 'height',         type: 'number',   label: 'Talla',               required: false, isVitalSign: true, showInList: false, showInDetail: true,  section: 'vitals', min: 0, max: 250, placeholder: 'cm' },
+    { name: 'bmi',            type: 'number',   label: 'IMC',                 required: false, isVitalSign: true, showInList: false, showInDetail: true,  section: 'vitals', min: 0, max: 100, step: 0.1, placeholder: 'kg/m²' },
+    { name: 'respiratoryRate', type: 'number',  label: 'Frec. Respiratoria',  required: false, isVitalSign: true, showInList: false, showInDetail: true,  section: 'vitals', min: 0, max: 60, placeholder: 'rpm' },
+
+    // ── Medical history ───────────────────────────────────────────────────
+    { name: 'personalHistory',  type: 'textarea', label: 'Antecedentes Personales',  required: false, showInList: false, showInDetail: true, section: 'history' },
+    { name: 'familyHistory',    type: 'textarea', label: 'Antecedentes Familiares',  required: false, showInList: false, showInDetail: true, section: 'history' },
+    { name: 'surgicalHistory',  type: 'textarea', label: 'Antecedentes Quirúrgicos', required: false, showInList: false, showInDetail: true, section: 'history' },
+    { name: 'habits',           type: 'textarea', label: 'Hábitos',                  required: false, showInList: false, showInDetail: true, section: 'history', placeholder: 'Tabaco, alcohol, actividad física...' },
+
+    // ── Current medications ───────────────────────────────────────────────
+    { name: 'currentMedications', type: 'textarea', label: 'Medicamentos Actuales',  required: false, showInList: false, showInDetail: true, section: 'medications', placeholder: 'Nombre · dosis · frecuencia' },
+    { name: 'chronicConditions',  type: 'tags',     label: 'Condiciones Crónicas',   required: false, showInList: false, showInDetail: true, section: 'medications' },
+
+    // ── Diagnosis ─────────────────────────────────────────────────────────
+    { name: 'diagnosisCode',   type: 'text',     label: 'Código CIE-10',       required: false,                   showInList: false, showInDetail: true, section: 'diagnosis', placeholder: 'J06.9' },
+    { name: 'diagnosisLabel',  type: 'text',     label: 'Diagnóstico',         required: false,                   showInList: false, showInDetail: true, section: 'diagnosis' },
+    { name: 'differentialDx',  type: 'textarea', label: 'Diagnóstico Diferencial', required: false,               showInList: false, showInDetail: true, section: 'diagnosis' },
+
+    // ── SOAP note ─────────────────────────────────────────────────────────
+    { name: 'soapSubjective',  type: 'textarea', label: 'Subjetivo (S)',        required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Motivo de consulta y síntomas relatados por el paciente' },
+    { name: 'soapObjective',   type: 'textarea', label: 'Objetivo (O)',         required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Hallazgos del examen físico y resultados de laboratorio' },
+    { name: 'soapAssessment',  type: 'textarea', label: 'Análisis (A)',         required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Interpretación clínica y diagnóstico de trabajo' },
+    { name: 'soapPlan',        type: 'textarea', label: 'Plan (P)',             required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Tratamiento, exámenes solicitados, indicaciones y seguimiento' }
+  ]
+};
+
 // ─── Mock users + their authorized schemas ────────────────────────────────────
 
 interface MockUser {
@@ -133,7 +213,7 @@ const MOCK_USERS: MockUser[] = [
   {
     password: 'admin123',
     user: { id: 1, name: 'Admin General', email: 'admin@empresa.com', role: 'admin', avatar: 'AG' },
-    schemas: [SCHEMA_SUPPLIERS, SCHEMA_PRODUCTS, SCHEMA_PATIENTS, SCHEMA_APPOINTMENTS]
+    schemas: [SCHEMA_SUPPLIERS, SCHEMA_PRODUCTS, SCHEMA_PATIENTS, SCHEMA_APPOINTMENTS, SCHEMA_CLINICAL_RECORDS]
   },
   {
     password: 'compras123',
@@ -143,7 +223,7 @@ const MOCK_USERS: MockUser[] = [
   {
     password: 'medico123',
     user: { id: 3, name: 'Dra. Morales', email: 'medico@hospital.com', role: 'manager', avatar: 'DM' },
-    schemas: [SCHEMA_PATIENTS, SCHEMA_APPOINTMENTS]
+    schemas: [SCHEMA_PATIENTS, SCHEMA_APPOINTMENTS, SCHEMA_CLINICAL_RECORDS]
   },
   {
     password: 'viewer123',
@@ -157,7 +237,7 @@ const SESSION_KEY = 'auth_session';
  * Increment this whenever the schema structure changes so that any cached
  * session in sessionStorage is invalidated and the user must re-login.
  */
-const SESSION_VERSION = 3;
+const SESSION_VERSION = 4;
 
 // ─────────────────────────────────────────────────────────────────────────────
 

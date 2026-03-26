@@ -13,7 +13,7 @@ export type FieldType =
   | 'tags';
 
 /** Determines which view component renders this entity's overview */
-export type ModuleType = 'crud' | 'calendar';
+export type ModuleType = 'crud' | 'calendar' | 'clinical-record';
 
 export type FieldFormat = 'currency' | 'date' | 'stars' | 'percent' | 'none';
 export type FilterType = 'search' | 'select';
@@ -55,6 +55,12 @@ export interface FieldDefinition {
   isCalendarStart?: boolean;
   /** Calendar: marks this field as the event end date/time */
   isCalendarEnd?: boolean;
+  /** Clinical record: logical section grouping (e.g. 'vitals', 'allergies', 'soap') */
+  section?: string;
+  /** Clinical record: render as vital sign metric box */
+  isVitalSign?: boolean;
+  /** Clinical record: render as high-visibility alert (allergies, contraindications) */
+  isAlert?: boolean;
 }
 
 export interface EntityMeta {

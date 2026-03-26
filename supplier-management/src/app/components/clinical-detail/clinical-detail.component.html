@@ -1,0 +1,250 @@
+<div class="cd-page" *ngIf="patient(); else loading">
+
+  <!-- ── Breadcrumb ── -->
+  <nav class="breadcrumb">
+    <a [routerLink]="['/module', entityKey]" class="bc-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+        <rect x="9" y="3" width="6" height="4" rx="1" ry="1"/>
+      </svg>
+      Fichas Clínicas
+    </a>
+    <svg class="bc-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="9 18 15 12 9 6"/>
+    </svg>
+    <span class="bc-current">{{ patient()!.fullName }}</span>
+  </nav>
+
+  <!-- ════ ALERT BANNER ════ -->
+  <div class="alert-banner" *ngIf="hasAlerts()">
+    <div class="alert-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <span>ALERTAS CLÍNICAS</span>
+    </div>
+    <div class="alert-body">
+      <div class="alert-block" *ngIf="alerts().allergies.length > 0">
+        <span class="alert-block-title">Alergias</span>
+        <div class="allergy-pills">
+          <span *ngFor="let a of alerts().allergies" class="allergy-pill">{{ a }}</span>
+        </div>
+      </div>
+      <div class="alert-block" *ngIf="alerts().contraindications">
+        <span class="alert-block-title">Contraindicaciones</span>
+        <p class="alert-text">{{ alerts().contraindications }}</p>
+      </div>
+      <div class="alert-block" *ngIf="alerts().alertNotes">
+        <span class="alert-block-title">Notas de alerta</span>
+        <p class="alert-text">{{ alerts().alertNotes }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ PATIENT HEADER ════ -->
+  <div class="patient-header card">
+    <div class="ph-avatar" [style.background]="patient()!.statusColor + '22'" [style.color]="patient()!.statusColor">
+      {{ patient()!.fullName.charAt(0) }}{{ patient()!.fullName.split(' ')[1]?.charAt(0) ?? '' }}
+    </div>
+    <div class="ph-info">
+      <div class="ph-name-row">
+        <h1 class="ph-name">{{ patient()!.fullName }}</h1>
+        <span class="status-badge" [style.background]="patient()!.statusColor + '22'" [style.color]="patient()!.statusColor">
+          {{ patient()!.statusLabel }}
+        </span>
+      </div>
+      <div class="ph-meta-row">
+        <span class="ph-meta-chip">{{ patient()!.patientId }}</span>
+        <span class="ph-meta-chip">{{ patient()!.rut }}</span>
+        <span class="ph-meta-chip">{{ patient()!.age }} años · {{ patient()!.gender }}</span>
+        <span class="blood-chip" [style.background]="patient()!.bloodTypeColor + '22'" [style.color]="patient()!.bloodTypeColor">
+          {{ patient()!.bloodType }}
+        </span>
+        <span class="ins-chip" [style.background]="patient()!.insuranceColor + '22'" [style.color]="patient()!.insuranceColor">
+          {{ patient()!.insurance }}
+        </span>
+      </div>
+      <div class="ph-contact-row">
+        <span *ngIf="patient()!.phone" class="ph-contact">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+          </svg>
+          {{ patient()!.phone }}
+        </span>
+        <span *ngIf="patient()!.doctor" class="ph-contact">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          {{ patient()!.doctor }}
+        </span>
+        <span *ngIf="patient()!.lastVisit" class="ph-contact">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          Última consulta: {{ patient()!.lastVisit | date:'d MMM yyyy' }}
+        </span>
+      </div>
+    </div>
+    <div class="ph-actions">
+      <a [routerLink]="['/entity', entityKey, id, 'edit']" class="btn btn-outline btn-sm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Editar
+      </a>
+    </div>
+  </div>
+
+  <!-- ════ TWO-COLUMN LAYOUT ════ -->
+  <div class="cd-layout">
+
+    <!-- LEFT COLUMN -->
+    <div class="cd-left">
+
+      <!-- ── Vital Signs ── -->
+      <div class="section card" *ngIf="vitals().length > 0">
+        <div class="section-header section-header--vitals">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <span>Signos Vitales</span>
+        </div>
+        <div class="vitals-grid">
+          <div *ngFor="let v of vitals()" class="vital-box">
+            <span class="vital-lbl">{{ v.label }}</span>
+            <span class="vital-val">{{ v.value }}</span>
+            <span class="vital-unit">{{ v.unit }}</span>
+            <span class="vital-normal">Normal: {{ v.normal }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SOAP Note ── -->
+      <div class="section card" *ngIf="soapItems().length > 0">
+        <div class="section-header section-header--soap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          <span>Nota Clínica (SOAP)</span>
+        </div>
+        <div class="soap-list">
+          <div *ngFor="let s of soapItems()" class="soap-block">
+            <div class="soap-label-row">
+              <span class="soap-icon" [style.background]="s.meta.color">{{ s.meta.icon }}</span>
+              <span class="soap-label">{{ s.label }}</span>
+            </div>
+            <p class="soap-text">{{ s.value }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Diagnosis ── -->
+      <div class="section card" *ngIf="diagnosisLabel()">
+        <div class="section-header section-header--dx">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>Diagnóstico</span>
+        </div>
+        <div class="dx-body">
+          <div class="dx-main">
+            <span class="cie-code" *ngIf="diagnosisCode()">{{ diagnosisCode() }}</span>
+            <span class="dx-label">{{ diagnosisLabel() }}</span>
+          </div>
+          <p class="dx-diff" *ngIf="differentialDx()">
+            <strong>Diagnóstico diferencial:</strong> {{ differentialDx() }}
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="cd-right">
+
+      <!-- ── Medical History ── -->
+      <div class="section card" *ngIf="historyFields().length > 0">
+        <div class="section-header section-header--history">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <span>Antecedentes Médicos</span>
+        </div>
+        <div class="field-list">
+          <div *ngFor="let f of historyFields()" class="field-item">
+            <span class="field-label">{{ f.label }}</span>
+            <p class="field-value">{{ f.value }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Medications ── -->
+      <div class="section card" *ngIf="medicationFields().length > 0">
+        <div class="section-header section-header--meds">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7z"/>
+          </svg>
+          <span>Medicación Actual</span>
+        </div>
+        <div class="field-list">
+          <div *ngFor="let f of medicationFields()" class="field-item">
+            <span class="field-label">{{ f.label }}</span>
+            <div *ngIf="f.field.type === 'tags'" class="tag-list">
+              <span *ngFor="let t of f.value" class="tag-chip">{{ t }}</span>
+            </div>
+            <p *ngIf="f.field.type !== 'tags'" class="field-value field-value--pre">{{ f.value }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Contact info ── -->
+      <div class="section card">
+        <div class="section-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span>Datos del Paciente</span>
+        </div>
+        <div class="contact-list">
+          <div class="contact-row" *ngIf="patient()!.address">
+            <span class="contact-label">Dirección</span>
+            <span class="contact-value">{{ patient()!.address }}</span>
+          </div>
+          <div class="contact-row" *ngIf="patient()!.phone">
+            <span class="contact-label">Teléfono</span>
+            <span class="contact-value">{{ patient()!.phone }}</span>
+          </div>
+          <div class="contact-row" *ngIf="patient()!.email">
+            <span class="contact-label">Email</span>
+            <span class="contact-value">{{ patient()!.email }}</span>
+          </div>
+          <div class="contact-row" *ngIf="patient()!.emergencyContact">
+            <span class="contact-label">Emergencia</span>
+            <span class="contact-value">{{ patient()!.emergencyContact }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Loading / Not found -->
+<ng-template #loading>
+  <div class="not-found">
+    <p>Cargando ficha clínica…</p>
+  </div>
+</ng-template>
