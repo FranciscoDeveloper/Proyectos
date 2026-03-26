@@ -74,7 +74,10 @@ export class LoginComponent implements OnDestroy {
         const target = (raw && raw.startsWith('/') && !raw.startsWith('//') && raw !== '/')
           ? raw
           : '/dashboard';
-        this.router.navigateByUrl(target);
+        // Force full page reload so Angular bootstraps fresh and reads sessionStorage.
+        // Changing the query string (?_=ts) forces a real browser reload even with hash routing.
+        // S3 always serves index.html for the root path regardless of query string.
+        window.location.href = '/?_=' + Date.now() + '#' + target;
       },
       error: (err: Error) => {
         this.loading.set(false);
