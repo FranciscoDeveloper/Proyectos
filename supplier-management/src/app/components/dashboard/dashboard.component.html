@@ -1,155 +1,144 @@
 <div class="dashboard">
-  <!-- Page Header -->
+
+  <!-- ── Header ─────────────────────────────────────────────────────── -->
   <div class="page-header">
     <div>
       <h1 class="page-title">Dashboard</h1>
-      <p class="page-subtitle">Welcome back! Here's what's happening with your suppliers.</p>
+      <p class="page-subtitle">
+        Gestionando:
+        <ng-container *ngFor="let card of entityCards(); let last = last">
+          <strong>{{ card.schema.entity.plural }}</strong>{{ !last ? ' · ' : '' }}
+        </ng-container>
+      </p>
     </div>
-    <a routerLink="/entity/suppliers/new" class="btn btn-primary">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-      </svg>
-      Add Supplier
-    </a>
   </div>
 
-  <!-- Stats Grid -->
-  <div class="stats-grid">
-    <div class="stat-card" *ngFor="let card of statCards()" [ngClass]="'stat-card--' + card.color">
-      <div class="stat-icon">
-        <!-- Users Icon -->
-        <svg *ngIf="card.icon === 'users'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-        <!-- Check Circle -->
-        <svg *ngIf="card.icon === 'check-circle'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-          <polyline points="22 4 12 14.01 9 11.01"/>
-        </svg>
-        <!-- Clock -->
-        <svg *ngIf="card.icon === 'clock'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
-        <!-- Dollar -->
-        <svg *ngIf="card.icon === 'dollar'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="1" x2="12" y2="23"/>
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-        </svg>
-      </div>
-      <div class="stat-content">
-        <div class="stat-value">
-          {{ card.isCurrency ? formatCurrency(card.value) : card.value }}
+  <!-- ── Entity Summary Cards ───────────────────────────────────────── -->
+  <div class="entities-grid">
+    <div class="entity-card" *ngFor="let card of entityCards()">
+
+      <div class="ec-header">
+        <div class="ec-icon">
+          <svg *ngIf="card.schema.entity.icon === 'users'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <svg *ngIf="card.schema.entity.icon === 'package'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/>
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+          <svg *ngIf="card.schema.entity.icon === 'heart'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          <svg *ngIf="card.schema.entity.icon !== 'users' && card.schema.entity.icon !== 'package' && card.schema.entity.icon !== 'heart'"
+               viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
         </div>
-        <div class="stat-label">{{ card.label }}</div>
+        <div class="ec-total-wrap">
+          <div class="ec-total">{{ card.total }}</div>
+          <div class="ec-name">{{ card.schema.entity.plural }}</div>
+        </div>
       </div>
-      <div class="stat-change" [class.positive]="card.positive" [class.negative]="!card.positive">
-        <svg *ngIf="card.positive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-          <polyline points="17 6 23 6 23 12"/>
+
+      <!-- Status badges -->
+      <div class="ec-status-row" *ngIf="card.statusDist.length">
+        <span class="ec-badge"
+              *ngFor="let s of card.statusDist | slice:0:4"
+              [style.background]="s.color + '18'"
+              [style.color]="s.color"
+              [style.border-color]="s.color + '40'">
+          {{ s.count }} {{ s.label }}
+        </span>
+      </div>
+
+      <!-- Currency totals -->
+      <div class="ec-kpi-row" *ngIf="card.currencyTotals.length">
+        <div class="ec-kpi" *ngFor="let c of card.currencyTotals">
+          <span class="ec-kpi-value">{{ formatCurrency(c.total) }}</span>
+          <span class="ec-kpi-label">{{ c.label }}</span>
+        </div>
+      </div>
+
+      <!-- Rating average -->
+      <div class="ec-rating" *ngIf="card.ratingAvg !== null">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
         </svg>
-        <svg *ngIf="!card.positive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
-          <polyline points="17 18 23 18 23 12"/>
-        </svg>
-        {{ card.change }}
+        {{ card.ratingAvg | number:'1.1-1' }} promedio
+      </div>
+
+      <div class="ec-actions">
+        <a [routerLink]="'/entity/' + card.schema.entity.key" class="btn btn-ghost btn-sm">Ver todo</a>
+        <a [routerLink]="'/entity/' + card.schema.entity.key + '/new'" class="btn btn-primary btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Nuevo
+        </a>
       </div>
     </div>
   </div>
 
-  <!-- Main Content Row -->
+  <!-- ── Bottom row ─────────────────────────────────────────────────── -->
   <div class="content-row">
-    <!-- Recent Suppliers -->
+
+    <!-- Recent Activity -->
     <div class="card flex-1">
       <div class="card-header">
-        <span class="card-title">Recent Activity</span>
-        <a routerLink="/entity/suppliers" class="btn btn-ghost btn-sm">View all</a>
+        <span class="card-title">Actividad Reciente</span>
       </div>
       <div class="recent-list">
-        <div class="recent-item" *ngFor="let supplier of recentSuppliers()">
-          <div class="supplier-avatar" [style.background]="getAvatarColor(supplier.name)">
-            {{ supplier.name.charAt(0) }}
+        <div class="recent-item" *ngFor="let item of recentActivity()">
+          <div class="recent-avatar" [style.background]="getAvatarColor(item.title)">
+            {{ item.title.charAt(0).toUpperCase() }}
           </div>
           <div class="recent-info">
-            <div class="recent-name">{{ supplier.name }}</div>
-            <div class="recent-meta">{{ supplier.category | titlecase }} · {{ supplier.city }}</div>
+            <div class="recent-name">{{ item.title }}</div>
+            <div class="recent-meta">
+              <span class="entity-tag">{{ item.entityPlural }}</span>
+              <span *ngIf="item.subtitle"> · {{ item.subtitle }}</span>
+            </div>
           </div>
-          <span class="badge-status" [ngClass]="supplier.status">{{ supplier.status }}</span>
+          <div class="recent-right">
+            <span *ngIf="item.hasStatus" class="badge-mini"
+                  [style.background]="item.statusColor + '18'"
+                  [style.color]="item.statusColor">
+              {{ item.statusLabel }}
+            </span>
+            <span class="recent-date">{{ formatDate(item.updatedAt) }}</span>
+          </div>
         </div>
+        <div *ngIf="recentActivity().length === 0" class="empty-state">Sin registros recientes.</div>
       </div>
     </div>
 
-    <!-- Top Rated -->
+    <!-- Status distributions -->
     <div class="card sidebar-card">
-      <div class="card-header">
-        <span class="card-title">Top Rated</span>
-      </div>
-      <div class="top-suppliers">
-        <div class="top-supplier-item" *ngFor="let supplier of topSuppliers(); let i = index">
-          <div class="rank-badge" [ngClass]="'rank-' + (i+1)">#{{ i + 1 }}</div>
-          <div class="supplier-info-col">
-            <div class="supplier-name-text">{{ supplier.name }}</div>
-            <div class="star-rating">
-              <span *ngFor="let star of getStars(supplier.rating)">
-                <span *ngIf="star === 'full'">★</span>
-                <span *ngIf="star !== 'full'" style="opacity:0.3">★</span>
-              </span>
-              <span class="rating-value">{{ supplier.rating }}</span>
+      <ng-container *ngFor="let card of entityCards(); let first = first">
+        <ng-container *ngIf="card.statusDist.length">
+          <div class="card-header" [class.section-gap]="!first">
+            <span class="card-title">{{ card.schema.entity.plural }}</span>
+            <a [routerLink]="'/entity/' + card.schema.entity.key" class="btn btn-ghost btn-sm">Ver</a>
+          </div>
+          <div class="dist-bars">
+            <div class="dist-bar-item" *ngFor="let s of card.statusDist">
+              <div class="dist-bar-label">
+                <span>{{ s.label }}</span>
+                <span class="dist-count">{{ s.count }}</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="s.pct" [style.background]="s.color"></div>
+              </div>
             </div>
           </div>
-          <div class="supplier-orders">{{ supplier.totalOrders }} orders</div>
-        </div>
-      </div>
-
-      <!-- Category Distribution -->
-      <div class="category-section">
-        <div class="section-title">By Status</div>
-        <div class="status-bars">
-          <div class="status-bar-item">
-            <div class="status-bar-label">
-              <span>Active</span>
-              <span class="status-bar-value">{{ stats().active }}</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill active"
-                [style.width.%]="(stats().active / stats().total) * 100"></div>
-            </div>
-          </div>
-          <div class="status-bar-item">
-            <div class="status-bar-label">
-              <span>Inactive</span>
-              <span class="status-bar-value">{{ stats().inactive }}</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill inactive"
-                [style.width.%]="(stats().inactive / stats().total) * 100"></div>
-            </div>
-          </div>
-          <div class="status-bar-item">
-            <div class="status-bar-label">
-              <span>Pending</span>
-              <span class="status-bar-value">{{ stats().pending }}</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill pending"
-                [style.width.%]="(stats().pending / stats().total) * 100"></div>
-            </div>
-          </div>
-          <div class="status-bar-item">
-            <div class="status-bar-label">
-              <span>Blacklisted</span>
-              <span class="status-bar-value">{{ stats().blacklisted }}</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill blacklisted"
-                [style.width.%]="(stats().blacklisted / stats().total) * 100"></div>
-            </div>
-          </div>
-        </div>
-      </div>
+        </ng-container>
+      </ng-container>
+      <div *ngIf="entityCards().length === 0" class="empty-state">Sin entidades autorizadas.</div>
     </div>
+
   </div>
 </div>

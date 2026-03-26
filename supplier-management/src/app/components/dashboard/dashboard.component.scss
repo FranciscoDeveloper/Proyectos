@@ -15,98 +15,127 @@
   flex-wrap: wrap;
 }
 
-/* ===== STATS GRID ===== */
-.stats-grid {
+/* ===== ENTITY CARDS GRID ===== */
+.entities-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
   margin-bottom: 28px;
 
-  @media (max-width: 1200px) { grid-template-columns: repeat(2, 1fr); }
   @media (max-width: 600px) { grid-template-columns: 1fr; }
 }
 
-.stat-card {
+.entity-card {
   background: white;
   border-radius: 16px;
   padding: 22px;
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
   border: 1px solid #e5e7eb;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  position: relative;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   transition: all 0.2s ease;
 
   &:hover {
     box-shadow: 0 10px 20px rgba(0,0,0,0.08);
     transform: translateY(-2px);
   }
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-  }
-
-  &--primary::after { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
-  &--success::after { background: linear-gradient(90deg, #10b981, #059669); }
-  &--warning::after { background: linear-gradient(90deg, #f59e0b, #d97706); }
-  &--info::after { background: linear-gradient(90deg, #3b82f6, #2563eb); }
 }
 
-.stat-icon {
+.ec-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ec-icon {
   width: 48px;
   height: 48px;
   border-radius: 12px;
+  background: #eef2ff;
+  color: #6366f1;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 
   svg { width: 22px; height: 22px; }
-
-  .stat-card--primary & { background: #eef2ff; color: #6366f1; }
-  .stat-card--success & { background: #d1fae5; color: #059669; }
-  .stat-card--warning & { background: #fef3c7; color: #d97706; }
-  .stat-card--info & { background: #dbeafe; color: #2563eb; }
 }
 
-.stat-content {
+.ec-total-wrap {
   flex: 1;
 }
 
-.stat-value {
-  font-size: 28px;
+.ec-total {
+  font-size: 30px;
   font-weight: 800;
   color: #111827;
   line-height: 1;
-  margin-bottom: 4px;
 }
 
-.stat-label {
+.ec-name {
   font-size: 13px;
   color: #6b7280;
   font-weight: 500;
+  margin-top: 2px;
 }
 
-.stat-change {
+/* Status badges row */
+.ec-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ec-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+/* Currency KPI row */
+.ec-kpi-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ec-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ec-kpi-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.ec-kpi-label {
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+/* Rating */
+.ec-rating {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
+  gap: 5px;
+  font-size: 13px;
   font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 6px;
+  color: #f59e0b;
+}
 
-  svg { width: 12px; height: 12px; }
-
-  &.positive { color: #059669; background: #d1fae5; }
-  &.negative { color: #d97706; background: #fef3c7; }
+/* Actions */
+.ec-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
 }
 
 /* ===== CONTENT ROW ===== */
@@ -143,7 +172,7 @@
   &:hover { background: #f9fafb; }
 }
 
-.supplier-avatar {
+.recent-avatar {
   width: 40px;
   height: 40px;
   border-radius: 12px;
@@ -174,85 +203,53 @@
   font-size: 12px;
   color: #9ca3af;
   margin-top: 2px;
-}
-
-/* ===== TOP SUPPLIERS ===== */
-.top-suppliers {
-  padding: 8px 0 16px;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.top-supplier-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 24px;
-  transition: background 0.2s ease;
-
-  &:hover { background: #f9fafb; }
+  gap: 4px;
 }
 
-.rank-badge {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+.entity-tag {
+  background: #f3f4f6;
+  color: #6b7280;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.recent-right {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
   flex-shrink: 0;
-
-  &.rank-1 { background: #fef3c7; color: #92400e; }
-  &.rank-2 { background: #f3f4f6; color: #374151; }
-  &.rank-3 { background: #fef3c7; color: #78350f; }
-  &.rank-4 { background: #eef2ff; color: #4338ca; }
 }
 
-.supplier-info-col {
-  flex: 1;
-  min-width: 0;
-}
-
-.supplier-name-text {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1f2937;
+.recent-date {
+  font-size: 11px;
+  color: #9ca3af;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 2px;
 }
 
-.supplier-orders {
-  font-size: 12px;
-  color: #9ca3af;
-  flex-shrink: 0;
-}
-
-/* ===== STATUS BARS ===== */
-.category-section {
-  padding: 16px 24px 24px;
-}
-
-.section-title {
-  font-size: 12px;
+.badge-mini {
+  font-size: 10px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #9ca3af;
-  margin-bottom: 16px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
 }
 
-.status-bars {
+/* ===== STATUS DISTRIBUTION BARS ===== */
+.dist-bars {
+  padding: 4px 24px 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.status-bar-item {}
+.dist-bar-item {}
 
-.status-bar-label {
+.dist-bar-label {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
@@ -261,7 +258,7 @@
   font-weight: 500;
 }
 
-.status-bar-value {
+.dist-count {
   font-weight: 600;
   color: #374151;
 }
@@ -277,9 +274,19 @@
   height: 100%;
   border-radius: 3px;
   transition: width 0.5s ease;
+}
 
-  &.active { background: linear-gradient(90deg, #10b981, #059669); }
-  &.inactive { background: linear-gradient(90deg, #9ca3af, #6b7280); }
-  &.pending { background: linear-gradient(90deg, #f59e0b, #d97706); }
-  &.blacklisted { background: linear-gradient(90deg, #ef4444, #dc2626); }
+/* Section gap between multiple entity distributions */
+.section-gap {
+  margin-top: 12px;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 4px;
+}
+
+/* Empty states */
+.empty-state {
+  padding: 24px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 13px;
 }
