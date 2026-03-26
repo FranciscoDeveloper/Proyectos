@@ -1,4 +1,4 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SchemaService } from '../../services/schema.service';
@@ -25,11 +25,11 @@ export class ShellComponent {
     return this.auth.user()?.name?.split(' ')[0] ?? '';
   }
 
-  get navItems() {
+  navItems = computed(() => {
     const entities = this.schemaService.getAvailableEntities();
     return [
       { label: 'Dashboard', icon: 'grid', route: '/dashboard' },
       ...entities.map(e => ({ label: e.plural, icon: e.icon, route: '/entity/' + e.key }))
     ];
-  }
+  });
 }

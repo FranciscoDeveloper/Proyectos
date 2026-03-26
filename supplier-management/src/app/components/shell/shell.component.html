@@ -24,7 +24,7 @@
     <nav class="sidebar-nav">
       <div class="nav-section-label">Menú</div>
       <ul>
-        <li *ngFor="let item of navItems">
+        <li *ngFor="let item of navItems()">
           <a [routerLink]="item.route" routerLinkActive="active"
              [routerLinkActiveOptions]="{exact: item.route === '/dashboard'}"
              class="nav-item">
