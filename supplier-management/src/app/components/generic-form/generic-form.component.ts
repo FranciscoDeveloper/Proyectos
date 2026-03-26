@@ -150,6 +150,7 @@ export class GenericFormComponent implements OnInit {
 
   getInputType(field: FieldDefinition): string {
     if (field.type === 'tags') return 'text';
+    if (field.type === 'datetime') return 'datetime-local';
     return field.type as string;
   }
 }

@@ -79,8 +79,8 @@ const SCHEMA_APPOINTMENTS: EntitySchema = {
   fields: [
     { name: 'title',       type: 'text',     label: 'Motivo de consulta', required: true,  isTitle: true,        showInList: true,  showInDetail: true,  filterable: true, filterType: 'search', minLength: 2 },
     { name: 'patientName', type: 'text',     label: 'Paciente',           required: true,  isSubtitle: true,     showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
-    { name: 'startDate',   type: 'date',     label: 'Fecha',              required: true,  isCalendarStart: true, showInList: true, showInDetail: true,  sortable: true, format: 'date' },
-    { name: 'endDate',     type: 'date',     label: 'Fin',                required: false, isCalendarEnd: true,  showInList: false, showInDetail: true,  format: 'date' },
+    { name: 'startDate',   type: 'datetime', label: 'Fecha y hora',       required: true,  isCalendarStart: true, showInList: true, showInDetail: true,  sortable: true },
+    { name: 'endDate',     type: 'datetime', label: 'Fin',                required: false, isCalendarEnd: true,  showInList: false, showInDetail: true },
     { name: 'status',      type: 'select',   label: 'Estado',             required: true,  isBadge: true,        showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
       options: [
         { value: 'scheduled',  label: 'Programada'  },
@@ -157,7 +157,7 @@ const SESSION_KEY = 'auth_session';
  * Increment this whenever the schema structure changes so that any cached
  * session in sessionStorage is invalidated and the user must re-login.
  */
-const SESSION_VERSION = 2;
+const SESSION_VERSION = 3;
 
 // ─────────────────────────────────────────────────────────────────────────────
 

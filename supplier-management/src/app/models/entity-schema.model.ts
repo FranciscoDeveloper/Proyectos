@@ -5,6 +5,7 @@ export type FieldType =
   | 'select'
   | 'textarea'
   | 'date'
+  | 'datetime'
   | 'boolean'
   | 'url'
   | 'tel'

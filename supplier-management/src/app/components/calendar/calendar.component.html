@@ -4,7 +4,7 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">
-        <span class="cal-icon">
+        <span class="cal-title-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
             <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
@@ -19,97 +19,166 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Nueva {{ schema?.entity?.singular ?? 'entrada' }}
+      Nueva {{ schema?.entity?.singular ?? 'cita' }}
     </a>
   </div>
 
-  <!-- ── Body ── -->
+  <!-- ── Toolbar (nav + view toggle) ── -->
+  <div class="cal-toolbar">
+    <div class="nav-group">
+      <button class="nav-btn" (click)="prev()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <button class="today-btn" (click)="goToToday()">Hoy</button>
+      <button class="nav-btn" (click)="next()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+      <h2 class="period-label">
+        {{ viewMode() === 'week' ? weekLabel() : monthLabel() }}
+      </h2>
+    </div>
+
+    <div class="view-toggle">
+      <button [class.active]="viewMode() === 'week'" (click)="setViewMode('week')">Semana</button>
+      <button [class.active]="viewMode() === 'month'" (click)="setViewMode('month')">Mes</button>
+    </div>
+  </div>
+
+  <!-- ── Main layout ── -->
   <div class="cal-layout">
 
-    <!-- ── Calendar grid ── -->
-    <div class="cal-main card">
+    <!-- ════════════ WEEK VIEW ════════════ -->
+    <div class="cal-main card" *ngIf="viewMode() === 'week'">
 
-      <!-- Month nav -->
-      <div class="cal-nav">
-        <button class="nav-btn" (click)="prevMonth()" title="Mes anterior">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </button>
-        <h2 class="month-label">{{ monthLabel() }}</h2>
-        <button class="nav-btn" (click)="nextMonth()" title="Mes siguiente">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </button>
-        <button class="today-btn" (click)="goToToday()">Hoy</button>
+      <!-- Day headers -->
+      <div class="week-header">
+        <div class="time-gutter-head"></div>
+        <div *ngFor="let day of weekDays()"
+             class="day-head"
+             [class.today]="day.isToday">
+          <span class="dh-dow">{{ WEEK_DAYS[day.dow] }}</span>
+          <span class="dh-num" [class.today-circle]="day.isToday">
+            {{ day.date.getDate() }}
+          </span>
+        </div>
       </div>
 
+      <!-- Scrollable time grid -->
+      <div class="week-scroll">
+        <div class="week-grid">
+
+          <!-- Time gutter -->
+          <div class="time-gutter">
+            <div *ngFor="let h of HOURS" class="time-slot">
+              {{ h | number:'2.0-0' }}:00
+            </div>
+          </div>
+
+          <!-- Day columns -->
+          <div *ngFor="let day of weekDays()"
+               class="day-col"
+               [class.today-col]="day.isToday"
+               [style.height.px]="GRID_H">
+
+            <!-- Hour grid lines -->
+            <div *ngFor="let h of HOURS" class="hour-line" [style.top.px]="(h - 8) * 64"></div>
+
+            <!-- Current-time indicator (today column only) -->
+            <div *ngIf="day.isToday && nowLinePx >= 0"
+                 class="now-line"
+                 [style.top.px]="nowLinePx">
+              <span class="now-dot"></span>
+            </div>
+
+            <!-- Event blocks -->
+            <a *ngFor="let ev of day.events"
+               [routerLink]="['/entity', ev.entityKey, ev.id]"
+               class="week-event"
+               [style.top.px]="ev.topPx"
+               [style.height.px]="ev.heightPx"
+               [style.background]="ev.statusColor + '1a'"
+               [style.border-left-color]="ev.statusColor"
+               [title]="ev.timeLabel + '–' + ev.endTimeLabel + ' · ' + ev.title">
+              <span class="we-time">{{ ev.timeLabel }}–{{ ev.endTimeLabel }}</span>
+              <span class="we-title">{{ ev.title }}</span>
+              <span class="we-sub" *ngIf="ev.heightPx > 44 && ev.subtitle">{{ ev.subtitle }}</span>
+            </a>
+
+          </div><!-- /day-col -->
+
+        </div><!-- /week-grid -->
+      </div><!-- /week-scroll -->
+
+    </div><!-- /week view -->
+
+    <!-- ════════════ MONTH VIEW ════════════ -->
+    <div class="cal-main card" *ngIf="viewMode() === 'month'">
+
       <!-- Day-of-week labels -->
-      <div class="cal-header-row">
-        <div *ngFor="let d of WEEK_DAYS" class="dow-cell">{{ d }}</div>
+      <div class="month-header-row">
+        <div *ngFor="let d of WEEK_DAYS" class="month-dow">{{ d }}</div>
       </div>
 
       <!-- Days grid -->
-      <div class="cal-grid">
+      <div class="month-grid">
         <div *ngFor="let day of calDays()"
-             class="cal-cell"
+             class="month-cell"
              [class.other-month]="!day.isCurrentMonth"
-             [class.today]="day.isToday"
-             [class.has-events]="day.events.length > 0">
-
-          <div class="day-num">{{ day.dayNum }}</div>
-
-          <div class="cell-events">
+             [class.today]="day.isToday">
+          <div class="month-day-num">{{ day.dayNum }}</div>
+          <div class="month-events">
             <a *ngFor="let ev of day.events.slice(0, 3)"
                [routerLink]="['/entity', ev.entityKey, ev.id]"
-               class="cal-event"
-               [style.background]="ev.statusColor + '20'"
+               class="month-event"
+               [style.background]="ev.statusColor + '1a'"
                [style.border-left-color]="ev.statusColor"
-               [title]="ev.title + (ev.subtitle ? ' — ' + ev.subtitle : '')">
-              <span class="ev-title">{{ ev.title }}</span>
-              <span class="ev-sub" *ngIf="ev.subtitle">{{ ev.subtitle }}</span>
+               [title]="ev.timeLabel + ' · ' + ev.title">
+              <span class="me-time">{{ ev.timeLabel }}</span>
+              <span class="me-title">{{ ev.title }}</span>
             </a>
-            <span *ngIf="day.events.length > 3" class="more-tag">
+            <span *ngIf="day.events.length > 3" class="month-more">
               +{{ day.events.length - 3 }}
             </span>
           </div>
-
         </div>
-      </div><!-- /cal-grid -->
+      </div>
 
-    </div><!-- /cal-main -->
+    </div><!-- /month view -->
 
-    <!-- ── Sidebar ── -->
+    <!-- ════════════ SIDEBAR ════════════ -->
     <aside class="cal-sidebar">
 
-      <!-- Month summary -->
+      <!-- Period summary -->
       <div class="card summary-card">
-        <h3 class="sidebar-title">Resumen del mes</h3>
+        <h3 class="sidebar-title">
+          {{ viewMode() === 'week' ? 'Esta semana' : monthLabel() }}
+        </h3>
         <div class="total-row">
-          <span class="total-num">{{ statsThisMonth().total }}</span>
-          <span class="total-lbl">{{ schema?.entity?.plural ?? 'eventos' }}</span>
+          <span class="total-num">{{ statsPeriod().total }}</span>
+          <span class="total-lbl">{{ schema?.entity?.plural ?? 'citas' }}</span>
         </div>
-        <div class="status-rows" *ngIf="statsThisMonth().statusStats.length > 0">
-          <div *ngFor="let s of statsThisMonth().statusStats" class="status-row">
+        <div class="status-list" *ngIf="statsPeriod().statusStats.length > 0">
+          <div *ngFor="let s of statsPeriod().statusStats" class="status-row">
             <span class="s-dot" [style.background]="s.color"></span>
             <span class="s-label">{{ s.label }}</span>
             <span class="s-count">{{ s.count }}</span>
           </div>
         </div>
-        <div class="empty-note" *ngIf="statsThisMonth().total === 0">
-          Sin {{ schema?.entity?.plural?.toLowerCase() ?? 'eventos' }} este mes
+        <div class="empty-note" *ngIf="statsPeriod().total === 0">
+          Sin {{ schema?.entity?.plural?.toLowerCase() ?? 'citas' }} en este período
         </div>
       </div>
 
       <!-- Upcoming -->
       <div class="card upcoming-card">
-        <h3 class="sidebar-title">Próximas entradas</h3>
-
+        <h3 class="sidebar-title">Próximas</h3>
         <div class="empty-note" *ngIf="upcomingEvents().length === 0">
-          No hay entradas próximas
+          No hay citas próximas
         </div>
-
         <ul class="upcoming-list" *ngIf="upcomingEvents().length > 0">
           <li *ngFor="let ev of upcomingEvents()" class="upcoming-item">
             <div class="up-accent" [style.background]="ev.statusColor"></div>
@@ -118,19 +187,18 @@
                 {{ ev.title }}
               </a>
               <span class="up-sub" *ngIf="ev.subtitle">{{ ev.subtitle }}</span>
-              <span class="up-date">{{ ev.date | date:'d MMM yyyy' }}</span>
+              <span class="up-date">
+                {{ ev.startDate | date:'d MMM' }} · {{ ev.timeLabel }}–{{ ev.endTimeLabel }}
+              </span>
             </div>
             <span class="up-badge"
-                  [style.background]="ev.statusColor + '20'"
+                  [style.background]="ev.statusColor + '1a'"
                   [style.color]="ev.statusColor">
               {{ ev.statusLabel }}
             </span>
           </li>
         </ul>
-
-        <a [routerLink]="['/entity', entityKey]" class="see-all">
-          Ver todas →
-        </a>
+        <a [routerLink]="['/entity', entityKey]" class="see-all">Ver lista completa →</a>
       </div>
 
     </aside>
