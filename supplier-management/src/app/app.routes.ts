@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './guards/auth.guard';
+import { CLINICAL_ROUTES } from './components/clinical/clinical.routes';
 
 export const routes: Routes = [
   // ── Public ──────────────────────────────────────────────────────────────────
@@ -60,6 +61,11 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () =>
           import('./components/generic-detail/generic-detail.component').then(m => m.GenericDetailComponent)
+      },
+      {
+        // Clinical record module: /clinical/:entityKey and sub-routes
+        path: 'clinical',
+        children: CLINICAL_ROUTES
       }
     ]
   },

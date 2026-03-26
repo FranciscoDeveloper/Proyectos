@@ -38,7 +38,9 @@ export class ShellComponent {
         icon: s.entity.icon,
         route: s.entity.moduleType === 'calendar'
           ? '/module/' + s.entity.key
-          : '/entity/' + s.entity.key
+          : s.entity.moduleType === 'clinical-record'
+            ? '/clinical/' + s.entity.key
+            : '/entity/' + s.entity.key
       }))
     ];
   });
