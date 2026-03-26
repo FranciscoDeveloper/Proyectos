@@ -11,6 +11,9 @@ export type FieldType =
   | 'range'
   | 'tags';
 
+/** Determines which view component renders this entity's overview */
+export type ModuleType = 'crud' | 'calendar';
+
 export type FieldFormat = 'currency' | 'date' | 'stars' | 'percent' | 'none';
 export type FilterType = 'search' | 'select';
 
@@ -47,6 +50,10 @@ export interface FieldDefinition {
   format?: FieldFormat;
   /** Maps option value -> hex color for badges */
   badgeColors?: Record<string, string>;
+  /** Calendar: marks this field as the event start date/time */
+  isCalendarStart?: boolean;
+  /** Calendar: marks this field as the event end date/time */
+  isCalendarEnd?: boolean;
 }
 
 export interface EntityMeta {
@@ -54,9 +61,15 @@ export interface EntityMeta {
   key: string;
   singular: string;
   plural: string;
-  /** Icon identifier: 'users' | 'package' | 'heart' | 'grid' | 'list' */
+  /** Icon identifier: 'users' | 'package' | 'heart' | 'grid' | 'list' | 'calendar' */
   icon: string;
   description?: string;
+  /**
+   * Controls which view component renders this entity's overview.
+   * 'crud' (default) → generic list/table. 'calendar' → month calendar.
+   * The backend sets this; the frontend has no hardcoded knowledge of entity types.
+   */
+  moduleType?: ModuleType;
 }
 
 export interface EntitySchema {

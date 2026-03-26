@@ -1,7 +1,6 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { SchemaService } from '../../services/schema.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -12,7 +11,6 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './shell.component.scss'
 })
 export class ShellComponent {
-  private schemaService = inject(SchemaService);
   readonly auth = inject(AuthService);
 
   sidebarOpen = signal(true);
@@ -25,11 +23,23 @@ export class ShellComponent {
     return this.auth.user()?.name?.split(' ')[0] ?? '';
   }
 
+  /**
+   * Navigation items derived purely from backend-authorized schemas.
+   * moduleType === 'calendar' → /module/:key  (calendar view)
+   * otherwise                 → /entity/:key  (CRUD list view)
+   * The shell has no hardcoded knowledge of which entities exist.
+   */
   navItems = computed(() => {
-    const entities = this.schemaService.getAvailableEntities();
+    const schemas = this.auth.schemas();
     return [
       { label: 'Dashboard', icon: 'grid', route: '/dashboard' },
-      ...entities.map(e => ({ label: e.plural, icon: e.icon, route: '/entity/' + e.key }))
+      ...schemas.map(s => ({
+        label: s.entity.plural,
+        icon: s.entity.icon,
+        route: s.entity.moduleType === 'calendar'
+          ? '/module/' + s.entity.key
+          : '/entity/' + s.entity.key
+      }))
     ];
   });
 }

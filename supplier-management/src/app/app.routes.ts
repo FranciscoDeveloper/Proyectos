@@ -37,6 +37,13 @@ export const routes: Routes = [
           import('./components/generic-list/generic-list.component').then(m => m.GenericListComponent)
       },
       {
+        // Calendar-type modules use this route instead of /entity/:entityKey
+        path: 'module/:entityKey',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./components/calendar/calendar.component').then(m => m.CalendarComponent)
+      },
+      {
         path: 'entity/:entityKey/new',
         canActivate: [authGuard],
         loadComponent: () =>

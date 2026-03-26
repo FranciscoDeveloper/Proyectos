@@ -67,6 +67,34 @@ const SCHEMA_PRODUCTS: EntitySchema = {
   ]
 };
 
+const SCHEMA_APPOINTMENTS: EntitySchema = {
+  entity: {
+    key: 'appointments',
+    singular: 'Cita',
+    plural: 'Citas',
+    icon: 'calendar',
+    moduleType: 'calendar',
+    description: 'Agenda de citas y consultas médicas'
+  },
+  fields: [
+    { name: 'title',       type: 'text',     label: 'Motivo de consulta', required: true,  isTitle: true,        showInList: true,  showInDetail: true,  filterable: true, filterType: 'search', minLength: 2 },
+    { name: 'patientName', type: 'text',     label: 'Paciente',           required: true,  isSubtitle: true,     showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
+    { name: 'startDate',   type: 'date',     label: 'Fecha',              required: true,  isCalendarStart: true, showInList: true, showInDetail: true,  sortable: true, format: 'date' },
+    { name: 'endDate',     type: 'date',     label: 'Fin',                required: false, isCalendarEnd: true,  showInList: false, showInDetail: true,  format: 'date' },
+    { name: 'status',      type: 'select',   label: 'Estado',             required: true,  isBadge: true,        showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
+      options: [
+        { value: 'scheduled',  label: 'Programada'  },
+        { value: 'completed',  label: 'Completada'  },
+        { value: 'cancelled',  label: 'Cancelada'   },
+        { value: 'no_show',    label: 'No asistió'  }
+      ],
+      badgeColors: { scheduled: '#3b82f6', completed: '#10b981', cancelled: '#ef4444', no_show: '#f59e0b' }
+    },
+    { name: 'room',        type: 'text',     label: 'Consultorio',        required: false,                       showInList: true,  showInDetail: true },
+    { name: 'notes',       type: 'textarea', label: 'Notas',              required: false,                       showInList: false, showInDetail: true }
+  ]
+};
+
 const SCHEMA_PATIENTS: EntitySchema = {
   entity: { key: 'patients', singular: 'Paciente', plural: 'Pacientes', icon: 'heart', description: 'Registro y seguimiento de pacientes' },
   fields: [
@@ -105,7 +133,7 @@ const MOCK_USERS: MockUser[] = [
   {
     password: 'admin123',
     user: { id: 1, name: 'Admin General', email: 'admin@empresa.com', role: 'admin', avatar: 'AG' },
-    schemas: [SCHEMA_SUPPLIERS, SCHEMA_PRODUCTS, SCHEMA_PATIENTS]
+    schemas: [SCHEMA_SUPPLIERS, SCHEMA_PRODUCTS, SCHEMA_PATIENTS, SCHEMA_APPOINTMENTS]
   },
   {
     password: 'compras123',
@@ -115,7 +143,7 @@ const MOCK_USERS: MockUser[] = [
   {
     password: 'medico123',
     user: { id: 3, name: 'Dra. Morales', email: 'medico@hospital.com', role: 'manager', avatar: 'DM' },
-    schemas: [SCHEMA_PATIENTS]
+    schemas: [SCHEMA_PATIENTS, SCHEMA_APPOINTMENTS]
   },
   {
     password: 'viewer123',
