@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SchemaService } from '../../services/schema.service';
@@ -165,5 +165,55 @@ export class ClinicalDetailComponent {
       .filter(f => f.section === section && !f.isVitalSign && !f.isAlert)
       .map(f => ({ label: f.label, value: r[f.name], field: f }))
       .filter(sf => sf.value != null && sf.value !== '');
+  }
+
+  // ── Encounter history tab ─────────────────────────────────────────────────
+
+  activeTab = signal<'record' | 'history'>('record');
+
+  /**
+   * Schema-driven: collects all fields with section === 'encounters'.
+   * Each field value must be an array of objects (one per encounter).
+   * The frontend makes no assumptions about which keys exist — it renders
+   * whatever the backend provides.
+   */
+  readonly encounterHistory = computed<Record<string, any>[]>(() => {
+    const r = this.record();
+    if (!r || !this.schema) return [];
+
+    const encounters = this.schema.fields
+      .filter(f => f.section === 'encounters')
+      .flatMap(f => {
+        const val = r[f.name];
+        return Array.isArray(val) ? (val as Record<string, any>[]) : [];
+      });
+
+    return encounters.sort((a, b) => {
+      const dateKey = Object.keys(a).find(k => /date|fecha/i.test(k));
+      if (!dateKey) return 0;
+      return String(b[dateKey]).localeCompare(String(a[dateKey]));
+    });
+  });
+
+  /** Converts camelCase key to human-readable label when no schema label exists. */
+  formatKey(key: string): string {
+    return key
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, s => s.toUpperCase())
+      .trim();
+  }
+
+  /** Returns non-null, non-empty entries of an encounter object. */
+  encounterEntries(enc: Record<string, any>): [string, any][] {
+    return Object.entries(enc).filter(([, v]) => v != null && v !== '');
+  }
+
+  /** Checks if a key looks like a primary date field. */
+  isDateKey(key: string): boolean {
+    return /date|fecha/i.test(key);
+  }
+
+  isArray(val: any): val is any[] {
+    return Array.isArray(val);
   }
 }
