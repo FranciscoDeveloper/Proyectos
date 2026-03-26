@@ -153,6 +153,11 @@ const MOCK_USERS: MockUser[] = [
 ];
 
 const SESSION_KEY = 'auth_session';
+/**
+ * Increment this whenever the schema structure changes so that any cached
+ * session in sessionStorage is invalidated and the user must re-login.
+ */
+const SESSION_VERSION = 2;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -204,7 +209,7 @@ export class AuthService {
     };
     this._state.set(state);
     try {
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ ...state, _v: SESSION_VERSION }));
     } catch { /* storage unavailable (private mode, quota exceeded) */ }
   }
 
@@ -227,7 +232,15 @@ export class AuthService {
   private loadFromStorage(): AuthState {
     try {
       const raw = sessionStorage.getItem(SESSION_KEY);
-      if (raw) return JSON.parse(raw) as AuthState;
+      if (raw) {
+        const parsed = JSON.parse(raw) as AuthState & { _v?: number };
+        // Stale session from a previous deploy → force re-login so new schemas apply
+        if (parsed._v !== SESSION_VERSION) {
+          sessionStorage.removeItem(SESSION_KEY);
+          return { authenticated: false, token: null, user: null, schemas: [] };
+        }
+        return parsed;
+      }
     } catch { /* ignore */ }
     return { authenticated: false, token: null, user: null, schemas: [] };
   }
