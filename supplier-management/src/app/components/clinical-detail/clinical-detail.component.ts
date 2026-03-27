@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { FieldDefinition } from '../../models/entity-schema.model';
+import { ChatService, ChatUser } from '../../services/chat.service';
 
 interface VitalSign {
   label: string;
@@ -30,6 +31,7 @@ export class ClinicalDetailComponent {
   private route     = inject(ActivatedRoute);
   private schemaSvc = inject(SchemaService);
   private crudSvc   = inject(GenericCrudService);
+  protected chatSvc = inject(ChatService);
 
   readonly entityKey = this.route.snapshot.paramMap.get('entityKey')!;
   readonly id        = Number(this.route.snapshot.paramMap.get('id')!);
@@ -237,5 +239,65 @@ export class ClinicalDetailComponent {
 
   printPrescription(): void {
     window.print();
+  }
+
+  // ── Share record ──────────────────────────────────────────────────────────
+
+  showShare      = signal(false);
+  shareMessage   = signal('');
+  shareSelected  = signal<Set<number>>(new Set());
+  shareSuccess   = signal(false);
+
+  /** All users except the currently logged-in one */
+  readonly shareContacts: ChatUser[] = this.chatSvc.allUsers.filter(
+    u => u.id !== (this.chatSvc as any).auth?.user()?.id
+  );
+
+  /** Lazy-evaluated to handle auth not ready at construction time */
+  get availableContacts(): ChatUser[] {
+    const meId = this.chatSvc.getContacts().length; // forces recalculation through service
+    return this.chatSvc.getContacts();
+  }
+
+  toggleShareUser(id: number): void {
+    this.shareSelected.update(s => {
+      const next = new Set(s);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  isShareSelected(id: number): boolean {
+    return this.shareSelected().has(id);
+  }
+
+  shareRecord(): void {
+    const r = this.record();
+    const p = this.patient();
+    if (!r || !p || this.shareSelected().size === 0) return;
+
+    const link = `#/clinical/${this.entityKey}/${this.id}`;
+    const singular = this.schema?.entity.singular ?? 'Ficha';
+    const extra = this.shareMessage().trim();
+    const msg = [
+      `📋 *${singular} compartida*`,
+      `Paciente: ${p.fullName} · ${p.patientId}`,
+      `Estado: ${p.statusLabel}`,
+      extra ? `\n"${extra}"` : '',
+      `→ Ver ficha: ${link}`
+    ].filter(Boolean).join('\n');
+
+    for (const userId of this.shareSelected()) {
+      const convId = this.chatSvc.getDMId(userId);
+      this.chatSvc.sendMessage(convId, msg);
+    }
+
+    this.shareSuccess.set(true);
+    setTimeout(() => {
+      this.showShare.set(false);
+      this.shareSuccess.set(false);
+      this.shareSelected.set(new Set());
+      this.shareMessage.set('');
+    }, 1800);
   }
 }

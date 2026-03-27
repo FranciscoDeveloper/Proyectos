@@ -98,6 +98,14 @@
         </svg>
         Nueva Atención
       </a>
+      <button class="btn btn-share btn-sm" (click)="showShare.set(true)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+        Compartir
+      </button>
       <a [routerLink]="['/clinical', entityKey, id, 'edit']" class="btn btn-outline btn-sm">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
@@ -340,6 +348,98 @@
 
   </div>
 
+</div>
+
+<!-- ════ SHARE MODAL ════ -->
+<div class="rx-overlay" *ngIf="showShare()" (click)="showShare.set(false)">
+  <div class="share-modal" (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="rx-modal-header">
+      <div class="share-modal-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+        <h2>Compartir Ficha Clínica</h2>
+      </div>
+      <button class="rx-close" (click)="showShare.set(false)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Record chip -->
+    <div class="share-record-chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+        <rect x="9" y="3" width="6" height="4" rx="1" ry="1"/>
+      </svg>
+      <span class="share-chip-name">{{ patient()!.fullName }}</span>
+      <span class="share-chip-id">{{ patient()!.patientId }}</span>
+    </div>
+
+    <!-- Success state -->
+    <div class="share-success" *ngIf="shareSuccess()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <span>¡Ficha compartida con éxito!</span>
+    </div>
+
+    <ng-container *ngIf="!shareSuccess()">
+      <!-- Contact list -->
+      <div class="share-section-label">Selecciona destinatarios</div>
+      <ul class="share-user-list">
+        <li *ngFor="let u of availableContacts"
+            class="share-user-item"
+            [class.selected]="isShareSelected(u.id)"
+            (click)="toggleShareUser(u.id)">
+          <div class="share-user-avatar"
+               [style.background]="chatSvc.getUserColor(u.id) + '33'"
+               [style.color]="chatSvc.getUserColor(u.id)">
+            {{ u.avatar }}
+            <span class="share-presence" [class.online]="u.online"></span>
+          </div>
+          <div class="share-user-info">
+            <span class="share-user-name">{{ u.name }}</span>
+            <span class="share-user-role">{{ u.role }}</span>
+          </div>
+          <div class="share-check" [class.checked]="isShareSelected(u.id)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" *ngIf="isShareSelected(u.id)">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+        </li>
+      </ul>
+
+      <!-- Optional message -->
+      <div class="share-section-label">Mensaje (opcional)</div>
+      <textarea class="share-msg-input"
+                rows="2"
+                placeholder="Agrega un comentario para los destinatarios…"
+                [value]="shareMessage()"
+                (input)="shareMessage.set($any($event.target).value)">
+      </textarea>
+    </ng-container>
+
+    <!-- Actions -->
+    <div class="rx-modal-actions">
+      <button class="btn btn-outline btn-sm" (click)="showShare.set(false)">Cancelar</button>
+      <button class="btn btn-primary btn-sm"
+              [disabled]="shareSelected().size === 0 || shareSuccess()"
+              (click)="shareRecord()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+        Compartir vía Chat
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- ════ PRESCRIPTION MODAL ════ -->
