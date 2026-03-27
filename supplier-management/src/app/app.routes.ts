@@ -63,6 +63,12 @@ export const routes: Routes = [
           import('./components/generic-detail/generic-detail.component').then(m => m.GenericDetailComponent)
       },
       {
+        path: 'chat',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./components/chat/chat.component').then(m => m.ChatComponent)
+      },
+      {
         // Clinical record module: /clinical/:entityKey and sub-routes
         path: 'clinical',
         children: CLINICAL_ROUTES

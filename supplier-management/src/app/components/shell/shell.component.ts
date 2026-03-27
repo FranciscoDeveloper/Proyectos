@@ -32,7 +32,7 @@ export class ShellComponent {
   navItems = computed(() => {
     const schemas = this.auth.schemas();
     return [
-      { label: 'Dashboard', icon: 'grid', route: '/dashboard' },
+      { label: 'Dashboard', icon: 'grid',      route: '/dashboard' },
       ...schemas.map(s => ({
         label: s.entity.plural,
         icon: s.entity.icon,
@@ -41,7 +41,8 @@ export class ShellComponent {
           : s.entity.moduleType === 'clinical-record'
             ? '/clinical/' + s.entity.key
             : '/entity/' + s.entity.key
-      }))
+      })),
+      { label: 'Chat',      icon: 'chat',      route: '/chat'      }
     ];
   });
 }
