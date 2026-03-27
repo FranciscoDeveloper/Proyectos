@@ -38,10 +38,12 @@ export class LoginComponent implements OnDestroy {
   });
 
   readonly demoAccounts: DemoAccount[] = [
-    { email: 'admin@empresa.com',   password: 'admin123',   role: 'Administrador', name: 'Admin General',  access: 'Proveedores · Productos · Pacientes', color: '#6366f1' },
-    { email: 'compras@empresa.com', password: 'compras123', role: 'Manager',       name: 'Jefe de Compras', access: 'Proveedores · Productos',            color: '#10b981' },
-    { email: 'medico@hospital.com', password: 'medico123',  role: 'Manager',       name: 'Dra. Morales',   access: 'Pacientes',                           color: '#ef4444' },
-    { email: 'auditor@empresa.com', password: 'viewer123',  role: 'Viewer',        name: 'Auditor',        access: 'Proveedores (solo lectura)',           color: '#f59e0b' }
+    { email: 'admin@empresa.com',        password: 'admin123',   role: 'Administrador', name: 'Admin General',       access: 'Proveedores · Productos · Pacientes', color: '#6366f1' },
+    { email: 'compras@empresa.com',      password: 'compras123', role: 'Manager',       name: 'Jefe de Compras',     access: 'Proveedores · Productos',             color: '#10b981' },
+    { email: 'medico@hospital.com',      password: 'medico123',  role: 'Manager',       name: 'Dra. Morales',        access: 'Pacientes · Fichas Clínicas',          color: '#ef4444' },
+    { email: 'auditor@empresa.com',      password: 'viewer123',  role: 'Viewer',        name: 'Auditor',             access: 'Proveedores (solo lectura)',           color: '#f59e0b' },
+    { email: 'psicologia@clinica.com',   password: 'psico123',   role: 'Manager',       name: 'Ps. Carolina Vega',   access: 'Sesiones · Fichas Psicológicas',       color: '#8b5cf6' },
+    { email: 'odontologia@clinica.com',  password: 'denti123',   role: 'Manager',       name: 'Dr. Ramírez',         access: 'Citas Dentales · Fichas Dentales',     color: '#14b8a6' }
   ];
 
   fill(account: DemoAccount) {
