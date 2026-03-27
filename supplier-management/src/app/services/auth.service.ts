@@ -188,7 +188,7 @@ const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
     { name: 'habits',           type: 'textarea', label: 'Hábitos',                  required: false, showInList: false, showInDetail: true, section: 'history', placeholder: 'Tabaco, alcohol, actividad física...', isStable: true },
 
     // ── Medications / Diagnosis (mutable) ────────────────────────────────
-    { name: 'currentMedications', type: 'textarea', label: 'Medicamentos Actuales',  required: false, showInList: false, showInDetail: true, section: 'medications', placeholder: 'Nombre · dosis · frecuencia' },
+    { name: 'currentMedications', type: 'textarea', label: 'Medicamentos Actuales',  required: false, showInList: false, showInDetail: true, section: 'medications', placeholder: 'Nombre · dosis · frecuencia', isPrescription: true },
     { name: 'chronicConditions',  type: 'tags',     label: 'Condiciones Crónicas',   required: false, showInList: false, showInDetail: true, section: 'medications', isStable: true },
     { name: 'diagnosisCode',   type: 'text',     label: 'Código CIE-10',       required: false,                   showInList: false, showInDetail: true, section: 'diagnosis', placeholder: 'J06.9', isStable: true },
     { name: 'diagnosisLabel',  type: 'text',     label: 'Diagnóstico',         required: false,                   showInList: false, showInDetail: true, section: 'diagnosis', isStable: true },
@@ -313,7 +313,7 @@ const SCHEMA_PSYCH_RECORDS: EntitySchema = {
     { name: 'habits',           type: 'textarea', label: 'Instrumentos Aplicados',       required: false, showInList: false, showInDetail: true, section: 'history', placeholder: 'PHQ-9, GAD-7, Beck, MMSE...' },
 
     // ── Treatment ────────────────────────────────────────────────────────
-    { name: 'currentMedications', type: 'textarea', label: 'Plan Terapéutico',      required: false, showInList: false, showInDetail: true, section: 'medications', placeholder: 'Enfoque, frecuencia, objetivos' },
+    { name: 'currentMedications', type: 'textarea', label: 'Plan Terapéutico',      required: false, showInList: false, showInDetail: true, section: 'medications', placeholder: 'Enfoque, frecuencia, objetivos', isPrescription: true },
     { name: 'chronicConditions',  type: 'tags',     label: 'Diagnósticos Activos',  required: false, showInList: false, showInDetail: true, section: 'medications' },
 
     // ── Diagnosis (DSM-5) ────────────────────────────────────────────────
@@ -437,7 +437,7 @@ const SCHEMA_DENTAL_RECORDS: EntitySchema = {
     { name: 'habits',          type: 'textarea', label: 'Hábitos Parafuncionales',         required: false, showInList: false, showInDetail: true, section: 'history', placeholder: 'Bruxismo, onicofagia, succión digital...', isStable: true },
 
     // ── Current treatment ─────────────────────────────────────────────────
-    { name: 'currentMedications', type: 'textarea', label: 'Medicación Actual',       required: false, showInList: false, showInDetail: true, section: 'medications', placeholder: 'Analgésicos, antibióticos, antisépticos...' },
+    { name: 'currentMedications', type: 'textarea', label: 'Medicación Actual',       required: false, showInList: false, showInDetail: true, section: 'medications', placeholder: 'Analgésicos, antibióticos, antisépticos...', isPrescription: true },
     { name: 'chronicConditions',  type: 'tags',     label: 'Condiciones Crónicas',    required: false, showInList: false, showInDetail: true, section: 'medications', isStable: true },
 
     // ── Diagnosis ─────────────────────────────────────────────────────────

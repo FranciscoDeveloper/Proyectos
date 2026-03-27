@@ -216,4 +216,26 @@ export class ClinicalDetailComponent {
   isArray(val: any): val is any[] {
     return Array.isArray(val);
   }
+
+  // ── Prescription print ────────────────────────────────────────────────────
+
+  readonly today = new Date();
+  showPrescription = signal(false);
+
+  /**
+   * Schema-driven: finds the first field with isPrescription === true.
+   * Returns its label and value so the modal renders whatever the backend defined.
+   */
+  readonly prescriptionField = computed(() => {
+    const r = this.record();
+    if (!r || !this.schema) return null;
+    const f = this.schema.fields.find(fd => fd.isPrescription);
+    if (!f) return null;
+    const val = String(r[f.name] ?? '').trim();
+    return val ? { label: f.label, value: val } : null;
+  });
+
+  printPrescription(): void {
+    window.print();
+  }
 }

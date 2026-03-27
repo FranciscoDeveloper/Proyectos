@@ -225,6 +225,14 @@
             <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7z"/>
           </svg>
           <span>Medicación Actual</span>
+          <button class="btn-prescription" *ngIf="prescriptionField()" (click)="showPrescription.set(true)" title="Imprimir receta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 6 2 18 2 18 9"/>
+              <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
+              <rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Imprimir Receta
+          </button>
         </div>
         <div class="field-list">
           <div *ngFor="let f of medicationFields()" class="field-item">
@@ -332,6 +340,65 @@
 
   </div>
 
+</div>
+
+<!-- ════ PRESCRIPTION MODAL ════ -->
+<div class="rx-overlay" *ngIf="showPrescription()" (click)="showPrescription.set(false)">
+  <div class="rx-modal" (click)="$event.stopPropagation()">
+
+    <!-- Modal header -->
+    <div class="rx-modal-header">
+      <h2>Vista Previa — Receta Médica</h2>
+      <button class="rx-close" (click)="showPrescription.set(false)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Prescription document (also targeted by @media print) -->
+    <div class="rx-document" id="rx-print-area">
+      <div class="rx-letterhead">
+        <div class="rx-clinic-name">Clínica — Sistema Médico</div>
+        <div class="rx-clinic-sub">{{ patient()!.doctor }}</div>
+      </div>
+      <hr class="rx-divider"/>
+
+      <div class="rx-section-label">DATOS DEL PACIENTE</div>
+      <div class="rx-patient-grid">
+        <div class="rx-patient-row"><span class="rx-field-label">Nombre:</span><span>{{ patient()!.fullName }}</span></div>
+        <div class="rx-patient-row"><span class="rx-field-label">RUT:</span><span>{{ patient()!.rut }}</span></div>
+        <div class="rx-patient-row"><span class="rx-field-label">Edad:</span><span>{{ patient()!.age }} años</span></div>
+        <div class="rx-patient-row"><span class="rx-field-label">Previsión:</span><span>{{ patient()!.insurance }}</span></div>
+        <div class="rx-patient-row"><span class="rx-field-label">Fecha:</span><span>{{ today | date:'d MMMM yyyy' }}</span></div>
+      </div>
+      <hr class="rx-divider"/>
+
+      <div class="rx-section-label">{{ prescriptionField()!.label }}</div>
+      <pre class="rx-body">{{ prescriptionField()!.value }}</pre>
+
+      <div class="rx-footer">
+        <div class="rx-signature-box">
+          <div class="rx-signature-line"></div>
+          <div class="rx-signature-name">{{ patient()!.doctor }}</div>
+          <div class="rx-signature-sub">Firma y Timbre</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="rx-modal-actions">
+      <button class="btn btn-outline btn-sm" (click)="showPrescription.set(false)">Cerrar</button>
+      <button class="btn btn-primary btn-sm" (click)="printPrescription()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 6 2 18 2 18 9"/>
+          <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
+          <rect x="6" y="14" width="12" height="8"/>
+        </svg>
+        Imprimir
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- Loading / Not found -->

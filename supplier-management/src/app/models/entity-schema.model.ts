@@ -58,6 +58,11 @@ export interface FieldDefinition {
    * In encounter mode the generic-form renders it read-only.
    */
   isStable?: boolean;
+  /**
+   * When true, the clinical-detail shows a "Imprimir Receta" button
+   * next to this field's section, generating a printable prescription.
+   */
+  isPrescription?: boolean;
 }
 
 export interface EntityMeta {
