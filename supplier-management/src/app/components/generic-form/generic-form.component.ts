@@ -23,22 +23,35 @@ export class GenericFormComponent implements OnInit {
   schema = signal<EntitySchema | null>(null);
   entityKey = signal('');
   isEdit = signal(false);
+  /** True when navigated via /encounter route — adds a new encounter instead of full update */
+  isEncounterMode = signal(false);
   recordId = signal<number | null>(null);
   saving = signal(false);
   saved = signal(false);
   form!: FormGroup;
 
-  editableFields = computed(() =>
-    this.schema()?.fields.filter(f => f.type !== 'tags' || true) ?? []
-  );
+  /** In encounter mode, stable fields are shown read-only; mutable fields are editable */
+  editableFields = computed(() => {
+    const fields = this.schema()?.fields ?? [];
+    if (!this.isEncounterMode()) return fields.filter(f => f.type !== 'object-list');
+    // Encounter mode: exclude stable fields and fields not relevant to a single visit
+    return fields.filter(f => !f.isStable && f.type !== 'object-list');
+  });
+
+  stableFields = computed(() => {
+    if (!this.isEncounterMode()) return [];
+    return this.schema()?.fields.filter(f => f.isStable) ?? [];
+  });
 
   ngOnInit() {
     const key = this.route.snapshot.paramMap.get('entityKey') ?? '';
     const idParam = this.route.snapshot.paramMap.get('id');
+    const encounterMode = !!this.route.snapshot.data['encounterMode'];
 
     this.entityKey.set(key);
     this.schema.set(this.schemaService.getSchema(key));
     this.crudService.initStore(key);
+    this.isEncounterMode.set(encounterMode);
 
     if (idParam) {
       this.isEdit.set(true);
@@ -47,11 +60,14 @@ export class GenericFormComponent implements OnInit {
 
     this.buildForm();
 
-    if (this.isEdit() && this.recordId() !== null) {
+    if (this.recordId() !== null) {
       const record = this.crudService.getById(key, this.recordId()!);
       if (record) {
         const patchValue: Record<string, any> = {};
-        this.schema()!.fields.forEach(f => {
+        const fieldsToPatch = encounterMode
+          ? (this.schema()!.fields.filter(f => f.isStable))
+          : this.schema()!.fields;
+        fieldsToPatch.forEach(f => {
           if (f.type === 'tags' && Array.isArray(record[f.name])) {
             patchValue[f.name] = record[f.name].join(', ');
           } else {
@@ -59,17 +75,23 @@ export class GenericFormComponent implements OnInit {
           }
         });
         this.form.patchValue(patchValue);
+        if (encounterMode) {
+          // Pre-fill today's date for encounterDate if the schema has it
+          this.form.patchValue({ encounterDate: new Date().toISOString().slice(0, 10) });
+        }
       }
     }
   }
 
   private buildForm() {
     const group: Record<string, any> = {};
-    const fields = this.schema()?.fields ?? [];
+    const schema = this.schema();
+    const fields = schema?.fields.filter(f => f.type !== 'object-list') ?? [];
 
     fields.forEach(f => {
       const validators = [];
-      if (f.required) validators.push(Validators.required);
+      // In encounter mode, stable fields are read-only — skip required validation on them
+      if (f.required && !this.isEncounterMode()) validators.push(Validators.required);
       if (f.type === 'email') validators.push(Validators.email);
       if (f.pattern) validators.push(Validators.pattern(f.pattern));
       if (f.minLength) validators.push(Validators.minLength(f.minLength));
@@ -83,8 +105,13 @@ export class GenericFormComponent implements OnInit {
       if (f.type === 'boolean') defaultVal = false;
       if (f.options && f.options.length > 0) defaultVal = f.options[0].value;
 
-      group[f.name] = [defaultVal, validators];
+      group[f.name] = [{ value: defaultVal, disabled: this.isEncounterMode() && !!f.isStable }, validators];
     });
+
+    // Encounter mode: add the date field for the new encounter entry
+    if (this.isEncounterMode()) {
+      group['encounterDate'] = [new Date().toISOString().slice(0, 10), [Validators.required]];
+    }
 
     this.form = this.fb.group(group);
   }
@@ -117,35 +144,57 @@ export class GenericFormComponent implements OnInit {
 
     this.saving.set(true);
     const raw = this.form.getRawValue();
-    const processed: Record<string, any> = {};
 
-    this.schema()!.fields.forEach(f => {
-      if (f.type === 'tags') {
-        const val = raw[f.name] ?? '';
-        processed[f.name] = val
-          ? String(val).split(',').map((t: string) => t.trim()).filter(Boolean)
-          : [];
-      } else if (f.type === 'number' || f.type === 'range') {
-        processed[f.name] = Number(raw[f.name]);
-      } else {
-        processed[f.name] = raw[f.name];
-      }
-    });
+    const processFields = (): Record<string, any> => {
+      const out: Record<string, any> = {};
+      (this.schema()!.fields.filter(f => f.type !== 'object-list')).forEach(f => {
+        const v = raw[f.name];
+        if (v === undefined) return;
+        if (f.type === 'tags') {
+          out[f.name] = v ? String(v).split(',').map((t: string) => t.trim()).filter(Boolean) : [];
+        } else if (f.type === 'number' || f.type === 'range') {
+          out[f.name] = Number(v);
+        } else {
+          out[f.name] = v;
+        }
+      });
+      return out;
+    };
 
     setTimeout(() => {
-      if (this.isEdit() && this.recordId() !== null) {
-        this.crudService.update(this.entityKey(), this.recordId()!, processed);
+      if (this.isEncounterMode() && this.recordId() !== null) {
+        // Build a new encounter object from only the mutable fields + encounter date
+        const encounter: Record<string, any> = { encounterDate: raw['encounterDate'] };
+        (this.schema()!.fields.filter(f => !f.isStable && f.type !== 'object-list')).forEach(f => {
+          const v = raw[f.name];
+          if (v !== undefined && v !== '' && v !== null) {
+            encounter[f.name] = (f.type === 'number' || f.type === 'range') ? Number(v) : v;
+          }
+        });
+        this.crudService.appendEncounter(this.entityKey(), this.recordId()!, encounter);
+        this.saving.set(false);
+        this.saved.set(true);
+        setTimeout(() => this.router.navigate(['/clinical', this.entityKey(), this.recordId()]), 800);
       } else {
-        this.crudService.create(this.entityKey(), processed);
+        const processed = processFields();
+        if (this.isEdit() && this.recordId() !== null) {
+          this.crudService.update(this.entityKey(), this.recordId()!, processed);
+        } else {
+          this.crudService.create(this.entityKey(), processed);
+        }
+        this.saving.set(false);
+        this.saved.set(true);
+        setTimeout(() => this.router.navigate(['/entity', this.entityKey()]), 800);
       }
-      this.saving.set(false);
-      this.saved.set(true);
-      setTimeout(() => this.router.navigate(['/entity', this.entityKey()]), 800);
     }, 400);
   }
 
   cancel() {
-    this.router.navigate(['/entity', this.entityKey()]);
+    if (this.isEncounterMode() && this.recordId() !== null) {
+      this.router.navigate(['/clinical', this.entityKey(), this.recordId()]);
+    } else {
+      this.router.navigate(['/entity', this.entityKey()]);
+    }
   }
 
   getInputType(field: FieldDefinition): string {

@@ -518,6 +518,109 @@ export class SchemaService {
           soapPlan: '1. Informe histológico: sin displasia. Repetir colonoscopía en 5 años\n2. Dieta alta en fibra 25-30g/día\n3. Actividad física ≥150 min/semana\n4. Cesación tabáquica: referir a programa\n5. Screening familiar (hijo >40 años)\n6. Control anual médico general'
         }
       ]
+    },
+
+    // ─────────────────────────── SESIONES PSICOLÓGICAS ───────────────────
+    'psych-sessions': {
+      schema: {
+        entity: { key: 'psych-sessions', singular: 'Sesión', plural: 'Sesiones', icon: 'calendar', moduleType: 'calendar', description: 'Agenda de sesiones terapéuticas' },
+        fields: []
+      },
+      data: [
+        { id: 1, title: 'Sesión individual — ansiedad', patientName: 'Valentina Rojas', startDate: '2026-03-24T10:00', endDate: '2026-03-24T10:50', sessionType: 'individual', status: 'completed', room: 'Box 1', notes: 'Avance en reestructuración cognitiva.', createdAt: '2026-03-17', updatedAt: '2026-03-24' },
+        { id: 2, title: 'Evaluación psicodiagnóstica',  patientName: 'Tomás Herrera',    startDate: '2026-03-26T11:00', endDate: '2026-03-26T11:50', sessionType: 'evaluation', status: 'scheduled', room: 'Box 1', notes: 'Aplicar PHQ-9 y GAD-7.', createdAt: '2026-03-20', updatedAt: '2026-03-20' },
+        { id: 3, title: 'Terapia de pareja',            patientName: 'Valentina Rojas',  startDate: '2026-03-27T15:00', endDate: '2026-03-27T15:50', sessionType: 'couple',     status: 'scheduled', room: 'Box 2', notes: 'Primera sesión conjunta.', createdAt: '2026-03-22', updatedAt: '2026-03-22' }
+      ]
+    },
+
+    // ─────────────────────────── FICHAS PSICOLÓGICAS ─────────────────────
+    'psych-records': {
+      schema: {
+        entity: { key: 'psych-records', singular: 'Ficha Psicológica', plural: 'Fichas Psicológicas', icon: 'brain', moduleType: 'clinical-record', description: 'Fichas psicológicas y registros terapéuticos' },
+        fields: []
+      },
+      data: [
+        {
+          id: 1, fullName: 'Valentina Rojas', patientId: 'PSI-00001', rut: '18.765.432-1',
+          birthDate: '1995-06-12', age: 30, gender: 'female', occupation: 'Diseñadora gráfica', education: 'university', maritalStatus: 'single',
+          insurance: 'isapre', phone: '+56 9 8877 6655', email: 'valentina.r@email.com', address: 'Av. Italia 2200, Ñuñoa', emergencyContact: 'Madre +56 9 1122 3344',
+          doctor: 'Ps. Carolina Vega', lastVisit: '2026-03-24', status: 'active',
+          allergies: ['Ideación pasiva previa (2023)'], contraindications: 'Sin riesgo actual. Última evaluación: sin ideación suicida.', alertNotes: '',
+          bp: 'Aseada, vestimenta casual', heartRate: 'Eutímico', temperature: 'Reactivo, congruente', o2Saturation: 'Lógico, sin alteraciones', weight: 'Sin alteraciones', height: 'Orientada x3', bmi: 'Parcial', respiratoryRate: 'Adecuado',
+          personalHistory: 'Episodio depresivo mayor en 2023 tratado con sertralina por 8 meses. Actualmente sin fármacos.', familyHistory: 'Madre con trastorno de ansiedad generalizada. Padre alcohólico en recuperación.', surgicalHistory: 'Ninguna.', habits: 'PHQ-9: 8 (leve). GAD-7: 12 (moderado). Beck-II: 14.',
+          currentMedications: 'TCC enfocada en ansiedad, frecuencia semanal. Objetivo: reducir evitación social.', chronicConditions: ['Trastorno ansiedad generalizada'],
+          diagnosisCode: 'F41.1', diagnosisLabel: 'Trastorno de ansiedad generalizada', differentialDx: 'Fobia social descartada. Rasgos evitativos leves sin criterio diagnóstico.',
+          soapSubjective: 'Reporta menor frecuencia de crisis ansiosas. Completó registro de pensamientos automáticos.', soapObjective: 'Aspecto cuidado. Contacto visual adecuado. Ánimo eutímico. Ansiedad leve al hablar de situaciones sociales.', soapAssessment: 'Progreso en reestructuración cognitiva. Evitación social persiste pero con menor intensidad.', soapPlan: 'Exposición graduada a situaciones sociales. Tarea: asistir a evento social breve. Control en 1 semana.',
+          encounters: [
+            { encounterDate: '2026-03-17', terapeuta: 'Ps. Carolina Vega', motivo: 'Control semanal', observacion: 'Ansiedad moderada ante evaluación laboral. Aplicación de técnicas de respiración.', plan: 'Registro de pensamientos automáticos diario.' },
+            { encounterDate: '2026-03-10', terapeuta: 'Ps. Carolina Vega', motivo: 'Sesión regular', observacion: 'Reporta 2 crisis de ansiedad en la semana. Identificados gatillantes laborales.', plan: 'Reestructuración cognitiva sobre creencias de rendimiento.' }
+          ]
+        },
+        {
+          id: 2, fullName: 'Tomás Herrera', patientId: 'PSI-00002', rut: '17.654.321-0',
+          birthDate: '1998-02-28', age: 28, gender: 'male', occupation: 'Estudiante postgrado', education: 'postgrad', maritalStatus: 'cohabiting',
+          insurance: 'fonasa_b', phone: '+56 9 4455 6677', email: 'tomas.h@email.com', address: 'Macul 3300, Macul', emergencyContact: 'Pareja +56 9 9988 7766',
+          doctor: 'Ps. Carolina Vega', lastVisit: '2026-03-20', status: 'scheduled',
+          allergies: [], contraindications: '', alertNotes: 'Derivado por médico general por insomnio crónico.',
+          bp: 'Ojeras marcadas, postura encorvada', heartRate: 'Irritable', temperature: 'Aplanado', o2Saturation: 'Rumiativo', weight: 'Sin alteraciones', height: 'Orientado x3', bmi: 'Presente', respiratoryRate: 'Conservado',
+          personalHistory: 'Sin antecedentes psiquiátricos previos. Insomnio progresivo desde hace 6 meses.', familyHistory: 'Abuelo paterno: depresión mayor.', surgicalHistory: 'Ninguna.', habits: 'Pendiente: PHQ-9, GAD-7, ISI (Insomnia Severity Index).',
+          currentMedications: 'Evaluación psicodiagnóstica en curso. Pendiente definir enfoque.', chronicConditions: ['Insomnio'],
+          diagnosisCode: '', diagnosisLabel: 'En evaluación', differentialDx: 'Hipótesis: Trastorno de insomnio vs. Ansiedad con insomnio secundario.',
+          soapSubjective: 'Refiere dormir 3-4 horas diarias. Dificultad para concentrarse en tesis.', soapObjective: 'Aspecto fatigado. Ánimo irritable. Pensamiento coherente pero con contenido rumiativo nocturno.', soapAssessment: 'Insomnio crónico con impacto funcional significativo. Requiere evaluación completa.', soapPlan: 'Aplicar batería: PHQ-9, GAD-7, ISI. Psicoeducación en higiene del sueño. Control post-evaluación.',
+          encounters: []
+        }
+      ]
+    },
+
+    // ─────────────────────────── CITAS DENTALES ─────────────────────────
+    'dental-sessions': {
+      schema: {
+        entity: { key: 'dental-sessions', singular: 'Cita Dental', plural: 'Citas Dentales', icon: 'tooth', moduleType: 'calendar', description: 'Agenda de citas odontológicas' },
+        fields: []
+      },
+      data: [
+        { id: 1, title: 'Limpieza semestral',       patientName: 'Andrea Muñoz',   startDate: '2026-03-24T09:00', endDate: '2026-03-24T09:40', treatmentType: 'cleaning',   status: 'completed', chair: 'Sillón 1', notes: 'Destartraje + pulido.', createdAt: '2026-03-17', updatedAt: '2026-03-24' },
+        { id: 2, title: 'Obturación pieza 36',      patientName: 'Felipe Contreras', startDate: '2026-03-26T10:00', endDate: '2026-03-26T10:45', treatmentType: 'filling',  status: 'scheduled', chair: 'Sillón 2', notes: 'Caries mesial clase II.', createdAt: '2026-03-20', updatedAt: '2026-03-20' },
+        { id: 3, title: 'Control ortodoncia mensual', patientName: 'Andrea Muñoz',  startDate: '2026-03-27T11:00', endDate: '2026-03-27T11:30', treatmentType: 'orthodontics', status: 'scheduled', chair: 'Sillón 1', notes: 'Activación arco superior.', createdAt: '2026-03-22', updatedAt: '2026-03-22' }
+      ]
+    },
+
+    // ─────────────────────────── FICHAS DENTALES ────────────────────────
+    'dental-records': {
+      schema: {
+        entity: { key: 'dental-records', singular: 'Ficha Dental', plural: 'Fichas Dentales', icon: 'tooth', moduleType: 'clinical-record', description: 'Fichas odontológicas y registros de tratamientos' },
+        fields: []
+      },
+      data: [
+        {
+          id: 1, fullName: 'Andrea Muñoz', patientId: 'DEN-00001', rut: '19.876.543-2',
+          birthDate: '2000-11-05', age: 25, gender: 'female',
+          insurance: 'fonasa_c', phone: '+56 9 3344 5566', email: 'andrea.m@email.com',
+          doctor: 'Dr. Ramírez', lastVisit: '2026-03-24', status: 'orthodontic',
+          allergies: ['Látex'], contraindications: 'Usar guantes nitrilo. Alergia a látex confirmada.', alertNotes: '',
+          bp: '2', heartRate: 'Buena', temperature: 'No', o2Saturation: 'Grado 0', weight: '12%', height: 'Clase I', bmi: 'Normal', respiratoryRate: 'No',
+          personalHistory: 'Sana. Sin enfermedades sistémicas.', familyHistory: 'Madre con periodontitis crónica.', surgicalHistory: 'Extracción 3ros molares (2024).', habits: 'Sin bruxismo. Sin succión digital.',
+          currentMedications: 'Ninguna.', chronicConditions: ['Ortodoncia activa'],
+          diagnosisCode: 'K07.3', diagnosisLabel: 'Apiñamiento dentario moderado', differentialDx: 'Tratamiento ortodóncico con brackets metálicos. Duración estimada: 18 meses. Inicio: sept 2025.',
+          soapSubjective: 'Control mensual ortodoncia. Sin dolor. Refiere bracket suelto pieza 23 hace 2 días.', soapObjective: 'Bracket pieza 23 descementado. Resto de aparatología en buen estado. Higiene buena.', soapAssessment: 'Evolución ortodóncica favorable. Incidente menor con bracket.', soapPlan: 'Recementado bracket pieza 23. Activación arco superior NiTi 0.016. Control en 4 semanas.',
+          encounters: [
+            { encounterDate: '2026-02-24', odontologo: 'Dr. Ramírez', motivo: 'Control ortodoncia', procedimiento: 'Cambio ligaduras. Sin novedades.', indicaciones: 'Mantener higiene. Evitar alimentos duros.' }
+          ]
+        },
+        {
+          id: 2, fullName: 'Felipe Contreras', patientId: 'DEN-00002', rut: '16.543.210-9',
+          birthDate: '1988-04-18', age: 37, gender: 'male',
+          insurance: 'particular', phone: '+56 9 7788 9900', email: 'felipe.c@email.com',
+          doctor: 'Dr. Ramírez', lastVisit: '2026-03-10', status: 'active',
+          allergies: [], contraindications: '', alertNotes: '',
+          bp: '4', heartRate: 'Regular', temperature: 'Sí (localizado)', o2Saturation: 'Grado 0', weight: '28%', height: 'Clase I', bmi: 'Normal', respiratoryRate: 'Térmica pieza 36',
+          personalHistory: 'Hipertensión controlada con losartán 50mg.', familyHistory: 'Sin antecedentes relevantes.', surgicalHistory: 'Ninguna odontológica previa.', habits: 'Bruxismo nocturno leve. Fumador social.',
+          currentMedications: 'Losartán 50mg/día (HTA).', chronicConditions: ['Bruxismo', 'HTA'],
+          diagnosisCode: 'K02.1', diagnosisLabel: 'Caries dentina pieza 36', differentialDx: 'Pulpitis reversible descartada (test vitalidad normal). Indicación: obturación directa.',
+          soapSubjective: 'Dolor leve al masticar lado izquierdo, 2 semanas de evolución. Sensibilidad al frío pieza 36.', soapObjective: 'Caries mesial pieza 36 visible. Test vitalidad positivo normal. Percusión negativa. Rx: lesión radiolúcida en dentina sin compromiso pulpar.', soapAssessment: 'Caries clase II mesial pieza 36 en dentina. Vitalidad conservada. Sin compromiso pulpar.', soapPlan: 'Obturación directa resina compuesta. Cita programada 26/03. Plano relajación por bruxismo.',
+          encounters: []
+        }
+      ]
     }
   };
 

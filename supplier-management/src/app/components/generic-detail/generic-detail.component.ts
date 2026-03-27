@@ -22,6 +22,9 @@ export class GenericDetailComponent implements OnInit {
   entityKey = signal('');
   record = signal<Record<string, any> | null>(null);
   deleteModal = signal(false);
+  /** ID of the linked clinical record (resolved from encounterEntity config) */
+  linkedClinicalRecordId = signal<number | null>(null);
+  linkedClinicalEntityKey = signal<string>('');
 
   titleField = computed(() => this.schema()?.fields.find(f => f.isTitle));
   subtitleField = computed(() => this.schema()?.fields.find(f => f.isSubtitle));
@@ -31,9 +34,27 @@ export class GenericDetailComponent implements OnInit {
     const key = this.route.snapshot.paramMap.get('entityKey') ?? '';
     const id = +(this.route.snapshot.paramMap.get('id') ?? '0');
     this.entityKey.set(key);
-    this.schema.set(this.schemaService.getSchema(key));
+    const schema = this.schemaService.getSchema(key);
+    this.schema.set(schema);
     this.crudService.initStore(key);
-    this.record.set(this.crudService.getById(key, id) ?? null);
+    const rec = this.crudService.getById(key, id) ?? null;
+    this.record.set(rec);
+
+    // Resolve linked clinical record if schema declares an encounterEntity
+    const encounterEntity = schema?.entity.encounterEntity;
+    const matchField = schema?.entity.encounterMatchField;
+    if (encounterEntity && matchField && rec) {
+      const patientName = String(rec[matchField] ?? '').toLowerCase();
+      this.crudService.initStore(encounterEntity);
+      const clinicalSchema = this.schemaService.getSchema(encounterEntity);
+      const titleFieldName = clinicalSchema?.fields.find(f => f.isTitle)?.name ?? 'fullName';
+      const allRecords = this.crudService.getAll(encounterEntity)();
+      const match = allRecords.find(r => String(r[titleFieldName] ?? '').toLowerCase() === patientName);
+      if (match) {
+        this.linkedClinicalRecordId.set(match['id']);
+        this.linkedClinicalEntityKey.set(encounterEntity);
+      }
+    }
   }
 
   navigateEdit() {

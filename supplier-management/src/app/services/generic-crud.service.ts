@@ -54,6 +54,26 @@ export class GenericCrudService {
     return updated;
   }
 
+  /**
+   * Appends a new encounter object to the record's encounters array and
+   * updates lastVisit. Used by encounter mode in GenericFormComponent.
+   */
+  appendEncounter(key: string, id: number, encounter: Record<string, any>): void {
+    this.initStore(key);
+    this.stores.get(key)!.update(list =>
+      list.map(item => {
+        if (item['id'] !== id) return item;
+        const existing = Array.isArray(item['encounters']) ? item['encounters'] : [];
+        return {
+          ...item,
+          encounters: [encounter, ...existing],
+          lastVisit: encounter['encounterDate'] ?? new Date().toISOString().slice(0, 10),
+          updatedAt: new Date().toISOString()
+        };
+      })
+    );
+  }
+
   delete(key: string, id: number): void {
     this.initStore(key);
     this.stores.get(key)!.update(list => list.filter(item => item['id'] !== id));

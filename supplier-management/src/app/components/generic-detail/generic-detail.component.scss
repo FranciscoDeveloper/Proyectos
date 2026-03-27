@@ -41,6 +41,22 @@
 }
 
 /* ── Buttons ── */
+.btn-encounter {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  background: #10b981;
+  border: 1px solid #10b981;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  text-decoration: none;
+  svg { width: 14px; height: 14px; }
+  &:hover { background: #059669; border-color: #059669; }
+}
+
 .btn-ghost {
   display: flex;
   align-items: center;

@@ -31,11 +31,8 @@ export interface FieldDefinition {
   required?: boolean;
   showInList?: boolean;
   showInDetail?: boolean;
-  /** Field used as primary display name (e.g. "name") */
   isTitle?: boolean;
-  /** Field used as secondary identifier (e.g. "code", "id") */
   isSubtitle?: boolean;
-  /** Render value as colored pill badge */
   isBadge?: boolean;
   options?: SelectOption[];
   min?: number;
@@ -50,34 +47,37 @@ export interface FieldDefinition {
   filterable?: boolean;
   filterType?: FilterType;
   format?: FieldFormat;
-  /** Maps option value -> hex color for badges */
   badgeColors?: Record<string, string>;
-  /** Calendar: marks this field as the event start date/time */
   isCalendarStart?: boolean;
-  /** Calendar: marks this field as the event end date/time */
   isCalendarEnd?: boolean;
-  /** Clinical record: logical section grouping (e.g. 'vitals', 'allergies', 'soap') */
   section?: string;
-  /** Clinical record: render as vital sign metric box */
   isVitalSign?: boolean;
-  /** Clinical record: render as high-visibility alert (allergies, contraindications) */
   isAlert?: boolean;
+  /**
+   * When true, this field does not change between patient encounters.
+   * In encounter mode the generic-form renders it read-only.
+   */
+  isStable?: boolean;
 }
 
 export interface EntityMeta {
-  /** Unique key used in routes and service stores, e.g. "suppliers" */
   key: string;
   singular: string;
   plural: string;
-  /** Icon identifier: 'users' | 'package' | 'heart' | 'grid' | 'list' | 'calendar' */
   icon: string;
   description?: string;
-  /**
-   * Controls which view component renders this entity's overview.
-   * 'crud' (default) → generic list/table. 'calendar' → month calendar.
-   * The backend sets this; the frontend has no hardcoded knowledge of entity types.
-   */
   moduleType?: ModuleType;
+  /**
+   * Key of the clinical-record entity that this entity can link to for adding encounters.
+   * When set, the generic-detail shows an "Agregar Antecedente" button.
+   * e.g. appointments → 'clinical-records'
+   */
+  encounterEntity?: string;
+  /**
+   * Field in THIS entity that holds the patient name used to find the target record.
+   * e.g. in appointments: 'patientName'
+   */
+  encounterMatchField?: string;
 }
 
 export interface EntitySchema {

@@ -2,13 +2,23 @@
 
   <!-- ── Header ── -->
   <div class="page-header">
-    <a [routerLink]="['/entity', entityKey()]" class="back-link">
+    <a [routerLink]="isEncounterMode() ? ['/clinical', entityKey(), recordId()] : ['/entity', entityKey()]" class="back-link">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-      {{ schema()!.entity.plural }}
+      {{ isEncounterMode() ? schema()!.entity.singular : schema()!.entity.plural }}
     </a>
     <h1 class="page-title">
-      {{ isEdit() ? 'Editar' : 'Nuevo' }} {{ schema()!.entity.singular }}
+      <ng-container *ngIf="isEncounterMode()">Nueva Atención — {{ schema()!.entity.singular }}</ng-container>
+      <ng-container *ngIf="!isEncounterMode()">{{ isEdit() ? 'Editar' : 'Nuevo' }} {{ schema()!.entity.singular }}</ng-container>
     </h1>
+  </div>
+
+  <!-- ── Encounter mode banner ── -->
+  <div class="encounter-banner" *ngIf="isEncounterMode()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+    </svg>
+    Registrando nueva atención. Los datos del paciente están bloqueados. Solo se editan los campos clínicos de esta visita.
   </div>
 
   <!-- ── Success banner ── -->
@@ -16,81 +26,101 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
     </svg>
-    {{ isEdit() ? 'Cambios guardados.' : schema()!.entity.singular + ' creado.' }} Redirigiendo...
+    <ng-container *ngIf="isEncounterMode()">Atención registrada. Redirigiendo a la ficha...</ng-container>
+    <ng-container *ngIf="!isEncounterMode()">{{ isEdit() ? 'Cambios guardados.' : schema()!.entity.singular + ' creado.' }} Redirigiendo...</ng-container>
   </div>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="entity-form" *ngIf="!saved()">
+
+    <!-- ── Encounter date (only in encounter mode) ── -->
+    <div class="form-grid" *ngIf="isEncounterMode()">
+      <div class="field-group encounter-date-field">
+        <label for="encounterDate" class="field-label">
+          Fecha de la Atención <span class="required">*</span>
+        </label>
+        <input id="encounterDate" type="date" formControlName="encounterDate"
+          class="field-input" [class.invalid]="isInvalid('encounterDate')" />
+      </div>
+    </div>
+
+    <!-- ── Stable fields (read-only summary in encounter mode) ── -->
+    <div class="stable-summary" *ngIf="isEncounterMode() && stableFields().length > 0">
+      <div class="stable-summary-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Datos permanentes del paciente (no modificables en esta atención)
+      </div>
+      <div class="stable-grid">
+        <div class="stable-item" *ngFor="let f of stableFields()">
+          <span class="stable-label">{{ f.label }}</span>
+          <span class="stable-value">{{ ctrl(f.name).value || '—' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Editable fields ── -->
+    <div class="form-section-title" *ngIf="isEncounterMode()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+      Campos clínicos de esta atención
+    </div>
+
     <div class="form-grid">
-      <ng-container *ngFor="let field of schema()!.fields">
+      <ng-container *ngFor="let field of editableFields()">
 
         <!-- ── Textarea ── -->
         <div class="field-group full-width" *ngIf="field.type === 'textarea'">
           <label [for]="field.name" class="field-label">
             {{ field.label }}
-            <span class="required" *ngIf="field.required">*</span>
+            <span class="required" *ngIf="field.required && !isEncounterMode()">*</span>
           </label>
-          <textarea
-            [id]="field.name"
-            [formControlName]="field.name"
-            [placeholder]="field.placeholder ?? ''"
-            rows="3"
-            class="field-input textarea"
-            [class.invalid]="isInvalid(field.name)">
+          <textarea [id]="field.name" [formControlName]="field.name"
+            [placeholder]="field.placeholder ?? ''" rows="3"
+            class="field-input textarea" [class.invalid]="isInvalid(field.name)">
           </textarea>
           <span class="field-error" *ngIf="isInvalid(field.name)">{{ getError(field.name, field) }}</span>
         </div>
 
-        <!-- ── Tags (comma-separated) ── -->
+        <!-- ── Tags ── -->
         <div class="field-group full-width" *ngIf="field.type === 'tags'">
           <label [for]="field.name" class="field-label">{{ field.label }}</label>
-          <input
-            [id]="field.name"
-            type="text"
-            [formControlName]="field.name"
-            placeholder="etiqueta1, etiqueta2, etiqueta3"
-            class="field-input" />
+          <input [id]="field.name" type="text" [formControlName]="field.name"
+            placeholder="etiqueta1, etiqueta2" class="field-input" />
           <span class="field-hint">Separadas por comas</span>
         </div>
 
-        <!-- ── Range slider ── -->
+        <!-- ── Range ── -->
         <div class="field-group" *ngIf="field.type === 'range'">
           <label [for]="field.name" class="field-label">
             {{ field.label }}
-            <span class="required" *ngIf="field.required">*</span>
+            <span class="required" *ngIf="field.required && !isEncounterMode()">*</span>
             <span class="range-value">{{ ctrl(field.name).value }}</span>
           </label>
-          <input
-            [id]="field.name"
-            type="range"
-            [formControlName]="field.name"
-            [min]="field.min ?? 0"
-            [max]="field.max ?? 10"
-            [step]="field.step ?? 1"
+          <input [id]="field.name" type="range" [formControlName]="field.name"
+            [min]="field.min ?? 0" [max]="field.max ?? 10" [step]="field.step ?? 1"
             class="range-input" />
-          <div class="range-labels">
-            <span>{{ field.min ?? 0 }}</span>
-            <span>{{ field.max ?? 10 }}</span>
-          </div>
+          <div class="range-labels"><span>{{ field.min ?? 0 }}</span><span>{{ field.max ?? 10 }}</span></div>
         </div>
 
         <!-- ── Select ── -->
         <div class="field-group" *ngIf="field.type === 'select'">
           <label [for]="field.name" class="field-label">
             {{ field.label }}
-            <span class="required" *ngIf="field.required">*</span>
+            <span class="required" *ngIf="field.required && !isEncounterMode()">*</span>
           </label>
-          <select
-            [id]="field.name"
-            [formControlName]="field.name"
-            class="field-input field-select"
-            [class.invalid]="isInvalid(field.name)">
+          <select [id]="field.name" [formControlName]="field.name"
+            class="field-input field-select" [class.invalid]="isInvalid(field.name)">
             <option value="">Seleccionar...</option>
             <option *ngFor="let opt of field.options" [value]="opt.value">{{ opt.label }}</option>
           </select>
           <span class="field-error" *ngIf="isInvalid(field.name)">{{ getError(field.name, field) }}</span>
         </div>
 
-        <!-- ── Boolean checkbox ── -->
+        <!-- ── Boolean ── -->
         <div class="field-group checkbox-group" *ngIf="field.type === 'boolean'">
           <label class="checkbox-label">
             <input type="checkbox" [formControlName]="field.name" class="checkbox-input" />
@@ -103,15 +133,11 @@
           *ngIf="field.type !== 'textarea' && field.type !== 'tags' && field.type !== 'range' && field.type !== 'select' && field.type !== 'boolean'">
           <label [for]="field.name" class="field-label">
             {{ field.label }}
-            <span class="required" *ngIf="field.required">*</span>
+            <span class="required" *ngIf="field.required && !isEncounterMode()">*</span>
           </label>
-          <input
-            [id]="field.name"
-            [type]="getInputType(field)"
-            [formControlName]="field.name"
+          <input [id]="field.name" [type]="getInputType(field)" [formControlName]="field.name"
             [placeholder]="field.placeholder ?? field.patternMessage ?? ''"
-            class="field-input"
-            [class.invalid]="isInvalid(field.name)" />
+            class="field-input" [class.invalid]="isInvalid(field.name)" />
           <span class="field-error" *ngIf="isInvalid(field.name)">{{ getError(field.name, field) }}</span>
         </div>
 
@@ -129,7 +155,7 @@
           <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
           <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
         </svg>
-        {{ saving() ? 'Guardando...' : (isEdit() ? 'Guardar cambios' : 'Crear ' + schema()!.entity.singular) }}
+        {{ saving() ? 'Guardando...' : isEncounterMode() ? 'Registrar Atención' : (isEdit() ? 'Guardar cambios' : 'Crear ' + schema()!.entity.singular) }}
       </button>
     </div>
   </form>
