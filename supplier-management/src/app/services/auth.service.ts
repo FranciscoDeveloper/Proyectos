@@ -92,6 +92,7 @@ const SCHEMA_APPOINTMENTS: EntitySchema = {
       ],
       badgeColors: { scheduled: '#3b82f6', completed: '#10b981', cancelled: '#ef4444', no_show: '#f59e0b' }
     },
+    { name: 'patientEmail', type: 'email',    label: 'Email del paciente', required: false,                       showInList: false, showInDetail: true },
     { name: 'room',        type: 'text',     label: 'Consultorio',        required: false,                       showInList: true,  showInDetail: true },
     { name: 'notes',       type: 'textarea', label: 'Notas',              required: false,                       showInList: false, showInDetail: true }
   ]
@@ -238,6 +239,7 @@ const SCHEMA_PSYCH_SESSIONS: EntitySchema = {
       ],
       badgeColors: { scheduled: '#3b82f6', completed: '#10b981', cancelled: '#ef4444', no_show: '#f59e0b' }
     },
+    { name: 'patientEmail', type: 'email', label: 'Email del paciente', required: false, showInList: false, showInDetail: true },
     { name: 'room',  type: 'text',     label: 'Consulta',  required: false, showInList: true,  showInDetail: true },
     { name: 'notes', type: 'textarea', label: 'Notas',     required: false, showInList: false, showInDetail: true }
   ]
@@ -370,6 +372,7 @@ const SCHEMA_DENTAL_SESSIONS: EntitySchema = {
       ],
       badgeColors: { scheduled: '#3b82f6', completed: '#10b981', cancelled: '#ef4444', no_show: '#f59e0b' }
     },
+    { name: 'patientEmail', type: 'email', label: 'Email del paciente', required: false, showInList: false, showInDetail: true },
     { name: 'chair',  type: 'text',     label: 'Sillón',    required: false, showInList: true,  showInDetail: true },
     { name: 'notes',  type: 'textarea', label: 'Notas',     required: false, showInList: false, showInDetail: true }
   ]
