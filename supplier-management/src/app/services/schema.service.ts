@@ -618,6 +618,68 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
           encounters: []
         }
       ]
+    },
+
+    // ─────────────────────────── COBROS / INGRESOS ───────────────────────────
+    payments: {
+      schema: {
+        entity: {
+          key: 'payments',
+          singular: 'Cobro',
+          plural: 'Cobros',
+          icon: 'dollar-sign',
+          description: 'Registro de cobros e ingresos del centro médico'
+        },
+        fields: []   // schema driven from auth response
+      },
+      data: [
+        { id: 1,  patientName: 'María González López',    invoiceNumber: 'BOL-0001', date: '2026-03-03', concept: 'consulta',      amount: 35000,  paymentMethod: 'fonasa',        status: 'pagado',   notes: 'Control HTA. Copago FONASA bonificado.' },
+        { id: 2,  patientName: 'Carlos Fernández Torres', invoiceNumber: 'BOL-0002', date: '2026-03-03', concept: 'consulta',      amount: 55000,  paymentMethod: 'isapre',        status: 'pagado',   notes: 'Revisión post-operatoria. Isapre Banmédica.' },
+        { id: 3,  patientName: 'Ana Martínez Soto',       invoiceNumber: 'BOL-0003', date: '2026-03-05', concept: 'examenes',      amount: 28000,  paymentMethod: 'debito',        status: 'pagado',   notes: 'ECG + hemograma completo.' },
+        { id: 4,  patientName: 'Sofia Ruiz Castillo',     invoiceNumber: 'BOL-0004', date: '2026-03-10', concept: 'consulta',      amount: 35000,  paymentMethod: 'fonasa',        status: 'pagado',   notes: 'Seguimiento diabetes.' },
+        { id: 5,  patientName: 'Isabel Díaz Vega',        invoiceNumber: 'BOL-0005', date: '2026-03-10', concept: 'consulta',      amount: 40000,  paymentMethod: 'efectivo',      status: 'pagado',   notes: 'Control respiratorio.' },
+        { id: 6,  patientName: 'Valentina Rojas',         invoiceNumber: 'BOL-0006', date: '2026-03-11', concept: 'psicologia',    amount: 60000,  paymentMethod: 'transferencia', status: 'pagado',   notes: 'Sesión terapia individual.' },
+        { id: 7,  patientName: 'Tomás Herrera',           invoiceNumber: 'BOL-0007', date: '2026-03-11', concept: 'psicologia',    amount: 60000,  paymentMethod: 'debito',        status: 'pagado',   notes: 'Sesión terapia individual.' },
+        { id: 8,  patientName: 'Andrea Muñoz',            invoiceNumber: 'BOL-0008', date: '2026-03-12', concept: 'odontologia',   amount: 85000,  paymentMethod: 'credito',       status: 'pagado',   notes: 'Control ortodoncia brackets.' },
+        { id: 9,  patientName: 'María González López',    invoiceNumber: 'BOL-0009', date: '2026-03-24', concept: 'consulta',      amount: 35000,  paymentMethod: 'fonasa',        status: 'pagado',   notes: 'Control mensual HTA.' },
+        { id: 10, patientName: 'Luis Hernández Pérez',    invoiceNumber: 'BOL-0010', date: '2026-03-24', concept: 'examenes',      amount: 45000,  paymentMethod: 'isapre',        status: 'pagado',   notes: 'Revisión de exámenes post-quirúrgicos.' },
+        { id: 11, patientName: 'Carlos Fernández Torres', invoiceNumber: 'BOL-0011', date: '2026-03-25', concept: 'procedimiento', amount: 120000, paymentMethod: 'isapre',        status: 'pagado',   notes: 'Electrocardiograma + ecocardiograma.' },
+        { id: 12, patientName: 'Valentina Rojas',         invoiceNumber: 'BOL-0012', date: '2026-03-18', concept: 'psicologia',    amount: 60000,  paymentMethod: 'transferencia', status: 'pagado',   notes: 'Sesión terapia individual.' },
+        { id: 13, patientName: 'Luis Hernández Pérez',    invoiceNumber: 'BOL-0013', date: '2026-03-26', concept: 'consulta',      amount: 35000,  paymentMethod: 'fonasa',        status: 'pendiente', notes: 'Pendiente validación bono FONASA.' },
+        { id: 14, patientName: 'Sofia Ruiz Castillo',     invoiceNumber: 'BOL-0014', date: '2026-03-26', concept: 'consulta',      amount: 35000,  paymentMethod: 'fonasa',        status: 'pendiente', notes: 'Control mensual diabetes.' },
+        { id: 15, patientName: 'Ana Martínez Soto',       invoiceNumber: 'BOL-0015', date: '2026-03-15', concept: 'odontologia',   amount: 95000,  paymentMethod: 'credito',       status: 'pagado',   notes: 'Obturación pieza 36 resina compuesta.' }
+      ]
+    },
+
+    // ─────────────────────────── GASTOS OPERACIONALES ───────────────────────
+    expenses: {
+      schema: {
+        entity: {
+          key: 'expenses',
+          singular: 'Gasto',
+          plural: 'Gastos',
+          icon: 'trending-down',
+          description: 'Control de gastos y egresos operacionales'
+        },
+        fields: []   // schema driven from auth response
+      },
+      data: [
+        { id: 1,  description: 'Arriendo consultorio piso 3',          supplier: 'Inmobiliaria Del Centro', date: '2026-03-01', category: 'arriendo',       amount: 950000,  paymentMethod: 'transferencia', status: 'pagado',   receiptNumber: 'FAC-2230', notes: 'Arriendo mensual marzo 2026.' },
+        { id: 2,  description: 'Remuneración Dra. Morales',            supplier: 'Nómina interna',          date: '2026-03-01', category: 'remuneraciones', amount: 2800000, paymentMethod: 'transferencia', status: 'pagado',   receiptNumber: 'NOM-0301', notes: 'Honorarios médico mes de marzo.' },
+        { id: 3,  description: 'Remuneración Ps. Carolina Vega',       supplier: 'Nómina interna',          date: '2026-03-01', category: 'remuneraciones', amount: 2200000, paymentMethod: 'transferencia', status: 'pagado',   receiptNumber: 'NOM-0302', notes: 'Honorarios psicóloga mes de marzo.' },
+        { id: 4,  description: 'Remuneración Dr. Ramírez',             supplier: 'Nómina interna',          date: '2026-03-01', category: 'remuneraciones', amount: 2500000, paymentMethod: 'transferencia', status: 'pagado',   receiptNumber: 'NOM-0303', notes: 'Honorarios odontólogo mes de marzo.' },
+        { id: 5,  description: 'Insumos médicos generales',            supplier: 'HealthPlus Supplies',     date: '2026-03-05', category: 'insumos',        amount: 185000,  paymentMethod: 'transferencia', status: 'pagado',   receiptNumber: 'FAC-HP015', notes: 'Guantes, mascarillas, jeringas, alcohol.' },
+        { id: 6,  description: 'Materiales odontológicos',             supplier: 'DentalPro Ltda.',         date: '2026-03-05', category: 'insumos',        amount: 230000,  paymentMethod: 'transferencia', status: 'pagado',   receiptNumber: 'FAC-DP088', notes: 'Resinas, brackets, cemento dental.' },
+        { id: 7,  description: 'Cuenta eléctrica',                     supplier: 'Enel Chile',              date: '2026-03-08', category: 'servicios',      amount: 112000,  paymentMethod: 'transferencia', status: 'pagado',   receiptNumber: 'BOL-EN331', notes: 'Consumo febrero 2026.' },
+        { id: 8,  description: 'Internet + telefonía',                 supplier: 'Claro Empresas',          date: '2026-03-08', category: 'servicios',      amount: 45000,   paymentMethod: 'transferencia', status: 'pagado',   receiptNumber: 'BOL-CL220', notes: 'Plan 500 Mbps + líneas móviles.' },
+        { id: 9,  description: 'Software agenda y gestión clínica',    supplier: 'SaaS Interno',            date: '2026-03-10', category: 'servicios',      amount: 80000,   paymentMethod: 'tarjeta',       status: 'pagado',   receiptNumber: 'SUS-0310',  notes: 'Suscripción mensual plataforma.' },
+        { id: 10, description: 'Capacitación primeros auxilios',       supplier: 'Cruz Roja Chile',         date: '2026-03-15', category: 'capacitacion',   amount: 95000,   paymentMethod: 'transferencia', status: 'pagado',   receiptNumber: 'FAC-CR041', notes: 'Curso RCP y emergencias para el equipo.' },
+        { id: 11, description: 'Insumos de aseo y limpieza',           supplier: 'Distribuidora Limpro',    date: '2026-03-15', category: 'insumos',        amount: 38000,   paymentMethod: 'efectivo',      status: 'pagado',   receiptNumber: 'BOL-LM019', notes: 'Desinfectantes, papel, jabón clínico.' },
+        { id: 12, description: 'Publicidad Google Ads — marzo',        supplier: 'Google Ads',              date: '2026-03-17', category: 'marketing',      amount: 65000,   paymentMethod: 'tarjeta',       status: 'pagado',   receiptNumber: 'GA-20260317', notes: 'Campaña búsqueda "centro médico Santiago".' },
+        { id: 13, description: 'Mantención equipo electrocardiograma', supplier: 'MedEquip Servicios',      date: '2026-03-20', category: 'equipamiento',   amount: 145000,  paymentMethod: 'transferencia', status: 'pendiente', receiptNumber: 'FAC-ME092', notes: 'Mantención preventiva anual ECG.' },
+        { id: 14, description: 'Insumos psicología (tests y materiales)', supplier: 'Editorial Psic-Chile', date: '2026-03-22', category: 'insumos',        amount: 72000,   paymentMethod: 'transferencia', status: 'pagado',   receiptNumber: 'FAC-PC017', notes: 'Test MMPI-2 y material de evaluación.' },
+        { id: 15, description: 'Agua purificada bidones',               supplier: 'AguaPura S.A.',          date: '2026-03-25', category: 'servicios',      amount: 18500,   paymentMethod: 'efectivo',      status: 'pagado',   receiptNumber: 'BOL-AP044', notes: '5 bidones de 20L.' }
+      ]
     }
 };
 
