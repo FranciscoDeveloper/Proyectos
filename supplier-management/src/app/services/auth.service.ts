@@ -1,6 +1,8 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, of, throwError } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { LoginCredentials, AuthResponse, AuthState, AuthUser } from '../models/auth.model';
 import { EntitySchema } from '../models/entity-schema.model';
 
@@ -458,13 +460,13 @@ const SCHEMA_DENTAL_RECORDS: EntitySchema = {
 
 // ─── Mock users + their authorized schemas ────────────────────────────────────
 
-interface MockUser {
+export interface MockUser {
   user: AuthUser;
   password: string;
   schemas: EntitySchema[];
 }
 
-const MOCK_USERS: MockUser[] = [
+export const MOCK_USERS: MockUser[] = [
   {
     password: 'admin123',
     user: { id: 1, name: 'Admin General', email: 'admin@empresa.com', role: 'admin', avatar: 'AG' },
@@ -509,6 +511,7 @@ const SESSION_VERSION = 7;
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private _state = signal<AuthState>(this.loadFromStorage());
+  private http   = inject(HttpClient);
 
   readonly user    = computed(() => this._state().user);
   readonly token   = computed(() => this._state().token);
@@ -518,28 +521,15 @@ export class AuthService {
   constructor(private router: Router) {}
 
   /**
-   * Simulates a POST /api/auth/login call.
-   * Returns Observable<AuthResponse> — swap the body for HttpClient in production.
+   * POST /api/auth/login — intercepted by MockApiInterceptor during development.
+   * In production, replace the interceptor with a real backend and keep this call as-is.
    */
   login(credentials: LoginCredentials): Observable<AuthResponse> {
-    const found = MOCK_USERS.find(
-      u => u.user.email === credentials.email && u.password === credentials.password
+    return this.http.post<AuthResponse>('/api/auth/login', credentials).pipe(
+      catchError(err => throwError(() =>
+        new Error(err.error?.message ?? 'Credenciales inválidas. Verifique su email y contraseña.')
+      ))
     );
-
-    if (!found) {
-      return throwError(() => new Error('Credenciales inválidas. Verifique su email y contraseña.'));
-    }
-
-    const response: AuthResponse = {
-      token: this.generateToken(found.user),
-      expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
-      user: found.user,
-      schemas: found.schemas
-    };
-
-    // Synchronous mock response — no async scheduler, no Zone.js dependency.
-    // In production replace of(response) with HttpClient.post<AuthResponse>('/api/auth/login', credentials)
-    return of(response);
   }
 
   /**
@@ -590,8 +580,4 @@ export class AuthService {
     return { authenticated: false, token: null, user: null, schemas: [] };
   }
 
-  private generateToken(user: AuthUser): string {
-    const payload = btoa(JSON.stringify({ sub: user.id, email: user.email, role: user.role, iat: Date.now() }));
-    return `mock.${payload}.signature`;
-  }
 }

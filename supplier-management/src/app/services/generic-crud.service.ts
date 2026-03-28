@@ -1,90 +1,95 @@
-import { Injectable, signal, WritableSignal, Signal } from '@angular/core';
+import { Injectable, inject, signal, WritableSignal, Signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { SchemaService } from './schema.service';
 
 /**
- * Generic in-memory CRUD store.
- * Each entity key gets its own isolated WritableSignal<Record<string, any>[]>.
- * In a real app, each method would call HttpClient against a REST API.
+ * Generic CRUD service backed by the mock REST API (/api/entities/:key).
+ *
+ * Each entity key gets its own reactive Signal<Record<string,any>[]>.
+ * HTTP calls go to the MockApiInterceptor during development; swap
+ * the interceptor for a real backend in production without touching this service.
+ *
+ * Endpoints used
+ * ──────────────
+ *  GET    /api/entities/:key
+ *  POST   /api/entities/:key
+ *  PUT    /api/entities/:key/:id
+ *  DELETE /api/entities/:key/:id
+ *  POST   /api/entities/:key/:id/encounters
  */
 @Injectable({ providedIn: 'root' })
 export class GenericCrudService {
-  private stores = new Map<string, WritableSignal<Record<string, any>[]>>();
+  private http         = inject(HttpClient);
+  private schemaService = inject(SchemaService);
 
-  constructor(private schemaService: SchemaService) {}
+  private stores  = new Map<string, WritableSignal<Record<string, any>[]>>();
+  private loading = new Set<string>();
 
-  /** Initializes (or resets) the store for a given entity from the backend payload */
+  // ── Initialise / refresh store from the server ─────────────────────────────
+
   initStore(key: string): void {
-    if (!this.stores.has(key)) {
-      const payload = this.schemaService.getEntityPayload(key);
-      const initial = payload ? [...payload.data] : [];
-      this.stores.set(key, signal(initial));
-    }
+    if (this.stores.has(key)) return;         // already initialised
+    if (this.loading.has(key)) return;        // in-flight request
+    this.loading.add(key);
+    this.stores.set(key, signal([]));
+
+    this.http.get<Record<string, any>[]>(`/api/entities/${key}`).subscribe({
+      next: data  => { this.stores.get(key)!.set(data); this.loading.delete(key); },
+      error: _err => {
+        // Fallback: seed from SchemaService so the app still works offline
+        const payload = this.schemaService.getEntityPayload(key);
+        this.stores.get(key)!.set(payload ? [...payload.data] : []);
+        this.loading.delete(key);
+      }
+    });
   }
 
-  /** Returns the reactive signal for a given entity store */
+  /** Reactive signal for all records of an entity */
   getAll(key: string): Signal<Record<string, any>[]> {
     this.initStore(key);
     return this.stores.get(key)!.asReadonly();
   }
 
   getById(key: string, id: number): Record<string, any> | undefined {
-    this.initStore(key);
-    return this.stores.get(key)!().find(item => item['id'] === id);
+    return this.stores.get(key)?.()?.find(item => item['id'] === id);
   }
 
-  create(key: string, data: Record<string, any>): Record<string, any> {
-    this.initStore(key);
-    const newItem = { ...data, id: Date.now(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-    this.stores.get(key)!.update(list => [...list, newItem]);
-    return newItem;
+  // ── Mutations ─────────────────────────────────────────────────────────────
+
+  create(key: string, data: Record<string, any>): void {
+    this.http.post<Record<string, any>>(`/api/entities/${key}`, data).subscribe({
+      next: created => this.stores.get(key)?.update(list => [...list, created])
+    });
   }
 
-  update(key: string, id: number, data: Record<string, any>): Record<string, any> | null {
-    this.initStore(key);
-    let updated: Record<string, any> | null = null;
-    this.stores.get(key)!.update(list =>
-      list.map(item => {
-        if (item['id'] === id) {
-          updated = { ...item, ...data, id, updatedAt: new Date().toISOString() };
-          return updated;
-        }
-        return item;
-      })
-    );
-    return updated;
+  update(key: string, id: number, data: Record<string, any>): void {
+    this.http.put<Record<string, any>>(`/api/entities/${key}/${id}`, data).subscribe({
+      next: updated => this.stores.get(key)?.update(
+        list => list.map(item => item['id'] === id ? updated : item)
+      )
+    });
   }
 
-  /**
-   * Appends a new encounter object to the record's encounters array and
-   * updates lastVisit. Used by encounter mode in GenericFormComponent.
-   */
   appendEncounter(key: string, id: number, encounter: Record<string, any>): void {
-    this.initStore(key);
-    this.stores.get(key)!.update(list =>
-      list.map(item => {
-        if (item['id'] !== id) return item;
-        const existing = Array.isArray(item['encounters']) ? item['encounters'] : [];
-        return {
-          ...item,
-          encounters: [encounter, ...existing],
-          lastVisit: encounter['encounterDate'] ?? new Date().toISOString().slice(0, 10),
-          updatedAt: new Date().toISOString()
-        };
-      })
-    );
+    this.http.post<Record<string, any>>(`/api/entities/${key}/${id}/encounters`, encounter).subscribe({
+      next: updated => this.stores.get(key)?.update(
+        list => list.map(item => item['id'] === id ? updated : item)
+      )
+    });
   }
 
   delete(key: string, id: number): void {
-    this.initStore(key);
-    this.stores.get(key)!.update(list => list.filter(item => item['id'] !== id));
+    this.http.delete(`/api/entities/${key}/${id}`).subscribe({
+      next: () => this.stores.get(key)?.update(list => list.filter(item => item['id'] !== id))
+    });
   }
 
-  /** Returns items filtered by a simple text search across all string fields */
+  /** Text search across all string fields (client-side, no extra HTTP call) */
   search(key: string, query: string): Record<string, any>[] {
-    this.initStore(key);
-    if (!query.trim()) return this.stores.get(key)!();
+    const all = this.stores.get(key)?.() ?? [];
+    if (!query.trim()) return all;
     const q = query.toLowerCase();
-    return this.stores.get(key)!().filter(item =>
+    return all.filter(item =>
       Object.values(item).some(v => v != null && String(v).toLowerCase().includes(q))
     );
   }

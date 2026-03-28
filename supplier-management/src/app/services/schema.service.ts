@@ -12,11 +12,7 @@ import { AuthService } from './auth.service';
  * The static `catalog` still holds the seed data (mock rows), but the available
  * schemas and navigation are controlled by the auth response.
  */
-@Injectable({ providedIn: 'root' })
-export class SchemaService {
-  private auth = inject(AuthService);
-
-  private readonly catalog: Record<string, EntityPayload> = {
+export const ENTITY_CATALOG: Record<string, EntityPayload> = {
 
     // ─────────────────────────── CITAS ───────────────────────────
     appointments: {
@@ -623,7 +619,13 @@ export class SchemaService {
         }
       ]
     }
-  };
+};
+
+@Injectable({ providedIn: 'root' })
+export class SchemaService {
+  private auth = inject(AuthService);
+
+  private readonly catalog = ENTITY_CATALOG;
 
   /**
    * Returns entity metadata for sidebar navigation.
