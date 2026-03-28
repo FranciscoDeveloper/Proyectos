@@ -466,7 +466,9 @@ const SCHEMA_PAYMENTS: EntitySchema = {
     singular: 'Cobro',
     plural: 'Cobros',
     icon: 'dollar-sign',
-    description: 'Registro de cobros e ingresos del centro médico'
+    description: 'Registro de cobros e ingresos del centro médico',
+    disableEdit: true,
+    disableDelete: true
   },
   fields: [
     { name: 'patientName',   type: 'text',   label: 'Paciente',          required: true,  isTitle: true,    showInList: true,  showInDetail: true,  filterable: true,  filterType: 'search', sortable: true },

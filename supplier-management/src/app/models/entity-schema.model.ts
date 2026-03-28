@@ -83,6 +83,10 @@ export interface EntityMeta {
    * e.g. in appointments: 'patientName'
    */
   encounterMatchField?: string;
+  /** When true, the edit action is hidden in list and detail views */
+  disableEdit?: boolean;
+  /** When true, the delete action is hidden in list and detail views */
+  disableDelete?: boolean;
 }
 
 export interface EntitySchema {

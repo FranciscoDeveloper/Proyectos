@@ -628,7 +628,9 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
           singular: 'Cobro',
           plural: 'Cobros',
           icon: 'dollar-sign',
-          description: 'Registro de cobros e ingresos del centro médico'
+          description: 'Registro de cobros e ingresos del centro médico',
+          disableEdit: true,
+          disableDelete: true
         },
         fields: []   // schema driven from auth response
       },
