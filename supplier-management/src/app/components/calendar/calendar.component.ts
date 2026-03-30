@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { CommonModule, DecimalPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 
@@ -17,6 +17,7 @@ interface CalEvent {
   heightPx: number;
   timeLabel: string;
   endTimeLabel: string;
+  initials: string;
 }
 
 interface WeekDay {
@@ -31,6 +32,7 @@ interface CalDay {
   dayNum: number;
   isCurrentMonth: boolean;
   isToday: boolean;
+  isSelected: boolean;
   events: CalEvent[];
 }
 
@@ -40,14 +42,14 @@ interface StatusStat {
   count: number;
 }
 
-const HOUR_HEIGHT = 64;  // px per hour in the time grid
-const GRID_START  = 8;   // 08:00
-const GRID_END    = 19;  // 19:00 (exclusive — 18:xx is the last slot shown)
+const HOUR_HEIGHT = 72;   // px per hour
+const GRID_START  = 7;    // 07:00
+const GRID_END    = 20;   // 20:00 (exclusive)
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, RouterLink, DecimalPipe],
+  imports: [CommonModule, RouterLink],
   templateUrl: './calendar.component.html',
   styleUrl: './calendar.component.scss'
 })
@@ -59,11 +61,12 @@ export class CalendarComponent {
   readonly entityKey = this.route.snapshot.paramMap.get('entityKey')!;
   readonly schema    = this.schemaSvc.getSchema(this.entityKey);
 
-  // Anchor date drives both week and month navigation
-  viewDate = signal(new Date());
-  viewMode = signal<'week' | 'month'>('week');
+  viewDate          = signal(new Date());
+  viewMode          = signal<'day' | 'week' | 'month'>('week');
+  miniCalMonth      = signal(new Date());
+  searchTerm        = signal('');
+  activeStatusFilter = signal('');
 
-  // Schema-driven field roles — zero hardcoded entity knowledge
   private readonly titleField    = this.schema?.fields.find(f => f.isTitle)         ?? null;
   private readonly subtitleField = this.schema?.fields.find(f => f.isSubtitle)      ?? null;
   private readonly startField    = this.schema?.fields.find(f => f.isCalendarStart) ?? null;
@@ -71,13 +74,13 @@ export class CalendarComponent {
   private readonly statusField   = this.schema?.fields
     .find(f => f.isBadge && f.name === 'status') ?? null;
 
-  readonly WEEK_DAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-  readonly MONTHS    = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-                        'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  readonly HOURS     = Array.from({ length: GRID_END - GRID_START }, (_, i) => GRID_START + i);
-  readonly GRID_H    = (GRID_END - GRID_START) * HOUR_HEIGHT; // total px height
+  readonly WEEK_DAYS  = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  readonly WEEK_FULL  = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+  readonly MONTHS     = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                         'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  readonly HOURS      = Array.from({ length: GRID_END - GRID_START }, (_, i) => GRID_START + i);
+  readonly GRID_H     = (GRID_END - GRID_START) * HOUR_HEIGHT;
 
-  // Current-time line (computed once on load; accurate within a session)
   readonly nowLinePx = (() => {
     const now  = new Date();
     const mins = now.getHours() * 60 + now.getMinutes();
@@ -104,9 +107,20 @@ export class CalendarComponent {
     return c;
   }
 
-  // ── All events (schema-driven, with grid positioning) ─────────────────────
+  private getInitials(name: string): string {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  }
 
-  readonly allEvents = computed<CalEvent[]>(() => {
+  fmtShortDate(d: Date): string {
+    const dows = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    return `${dows[d.getDay()]} ${d.getDate()} ${this.MONTHS[d.getMonth()].slice(0, 3)}`;
+  }
+
+  // ── Raw events (all items mapped to CalEvent) ─────────────────────────────
+
+  readonly rawEvents = computed<CalEvent[]>(() => {
     if (!this.startField) return [];
     const data = this.crudSvc.getAll(this.entityKey)();
 
@@ -115,19 +129,21 @@ export class CalendarComponent {
       const rawEnd    = this.endField ? item[this.endField.name] : null;
       const endDate   = rawEnd
         ? this.parseDate(String(rawEnd))
-        : new Date(startDate.getTime() + 60 * 60 * 1000); // fallback +1h
+        : new Date(startDate.getTime() + 60 * 60 * 1000);
 
       const startMins = startDate.getHours() * 60 + startDate.getMinutes();
       const endMins   = endDate.getHours()   * 60 + endDate.getMinutes();
       const topPx     = Math.max(0, (startMins - GRID_START * 60) * HOUR_HEIGHT / 60);
-      const heightPx  = Math.max(28, (endMins - startMins)        * HOUR_HEIGHT / 60);
+      const heightPx  = Math.max(32, (endMins - startMins) * HOUR_HEIGHT / 60);
 
       const statusVal = this.statusField ? item[this.statusField.name] : null;
+      const titleVal  = this.titleField ? String(item[this.titleField.name] ?? '') : `#${item['id']}`;
+      const subVal    = this.subtitleField ? String(item[this.subtitleField.name] ?? '') : '';
 
       return {
         id:           item['id'],
-        title:        this.titleField    ? String(item[this.titleField.name]    ?? '') : `#${item['id']}`,
-        subtitle:     this.subtitleField ? String(item[this.subtitleField.name] ?? '') : '',
+        title:        titleVal,
+        subtitle:     subVal,
         startDate,
         endDate,
         statusLabel:  this.statusField?.options?.find(o => o.value === statusVal)?.label ?? '',
@@ -136,9 +152,35 @@ export class CalendarComponent {
         topPx,
         heightPx,
         timeLabel:    this.fmtTime(startDate),
-        endTimeLabel: this.fmtTime(endDate)
+        endTimeLabel: this.fmtTime(endDate),
+        initials:     this.getInitials(subVal || titleVal)
       };
     });
+  });
+
+  // ── Filtered events (search + status filter applied) ─────────────────────
+
+  readonly allEvents = computed<CalEvent[]>(() => {
+    const evs    = this.rawEvents();
+    const search = this.searchTerm().toLowerCase().trim();
+    const status = this.activeStatusFilter();
+    return evs.filter(ev => {
+      const matchSearch = !search ||
+        ev.title.toLowerCase().includes(search) ||
+        ev.subtitle.toLowerCase().includes(search);
+      const matchStatus = !status || ev.statusLabel === status;
+      return matchSearch && matchStatus;
+    });
+  });
+
+  // ── Status options for filter chips ──────────────────────────────────────
+
+  readonly statusOptions = computed(() => {
+    const map = new Map<string, string>();
+    for (const ev of this.rawEvents()) {
+      if (ev.statusLabel) map.set(ev.statusLabel, ev.statusColor);
+    }
+    return [...map.entries()].map(([label, color]) => ({ label, color }));
   });
 
   // ── Week view ─────────────────────────────────────────────────────────────
@@ -170,17 +212,43 @@ export class CalendarComponent {
       return `${first.getDate()} – ${last.getDate()} ${this.MONTHS[first.getMonth()]} ${first.getFullYear()}`;
     }
     return `${first.getDate()} ${this.MONTHS[first.getMonth()].slice(0,3)} – ` +
-           `${last.getDate()}  ${this.MONTHS[last.getMonth()].slice(0,3)} ${last.getFullYear()}`;
+           `${last.getDate()} ${this.MONTHS[last.getMonth()].slice(0,3)} ${last.getFullYear()}`;
   });
+
+  // ── Day view ──────────────────────────────────────────────────────────────
+
+  readonly dayEvents = computed(() => {
+    const d   = this.viewDate();
+    const evs = this.allEvents();
+    return evs
+      .filter(e =>
+        e.startDate.getFullYear() === d.getFullYear() &&
+        e.startDate.getMonth()    === d.getMonth()    &&
+        e.startDate.getDate()     === d.getDate()
+      )
+      .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+  });
+
+  readonly dayLabel = computed(() => {
+    const d      = this.viewDate();
+    const idx    = d.getDay() === 0 ? 6 : d.getDay() - 1;
+    return {
+      dow:    this.WEEK_FULL[idx],
+      date:   d.getDate(),
+      month:  this.MONTHS[d.getMonth()],
+      year:   d.getFullYear(),
+      isToday: d.toDateString() === new Date().toDateString()
+    };
+  });
+
+  readonly isDayToday = computed(() =>
+    this.viewDate().toDateString() === new Date().toDateString()
+  );
 
   // ── Month view ────────────────────────────────────────────────────────────
 
-  readonly calDays = computed<CalDay[]>(() => {
-    const year  = this.viewDate().getFullYear();
-    const month = this.viewDate().getMonth();
-    const today = new Date();
-    const evs   = this.allEvents();
-
+  private buildMonthGrid(year: number, month: number, evs: CalEvent[], vDate: Date): CalDay[] {
+    const today    = new Date();
     const firstDay = new Date(year, month, 1);
     const lastDay  = new Date(year, month + 1, 0);
     let   startDow = firstDay.getDay();
@@ -189,37 +257,77 @@ export class CalendarComponent {
     const days: CalDay[] = [];
     for (let i = startDow - 1; i >= 0; i--) {
       const d = new Date(year, month, -i);
-      days.push({ date: d, dayNum: d.getDate(), isCurrentMonth: false, isToday: false, events: [] });
+      days.push({ date: d, dayNum: d.getDate(), isCurrentMonth: false, isToday: false, isSelected: false, events: [] });
     }
     for (let d = 1; d <= lastDay.getDate(); d++) {
-      const date   = new Date(year, month, d);
-      const isToday = date.toDateString() === today.toDateString();
-      const events = evs
+      const date     = new Date(year, month, d);
+      const isToday  = date.toDateString() === today.toDateString();
+      const isSelected = date.toDateString() === vDate.toDateString();
+      const events   = evs
         .filter(e => e.startDate.getFullYear() === year &&
                      e.startDate.getMonth()    === month &&
                      e.startDate.getDate()     === d)
         .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
-      days.push({ date, dayNum: d, isCurrentMonth: true, isToday, events });
+      days.push({ date, dayNum: d, isCurrentMonth: true, isToday, isSelected, events });
     }
     const tail = 7 - (days.length % 7);
     if (tail < 7) {
       for (let i = 1; i <= tail; i++) {
         const d = new Date(year, month + 1, i);
-        days.push({ date: d, dayNum: d.getDate(), isCurrentMonth: false, isToday: false, events: [] });
+        days.push({ date: d, dayNum: d.getDate(), isCurrentMonth: false, isToday: false, isSelected: false, events: [] });
       }
     }
     return days;
-  });
+  }
+
+  readonly calDays = computed<CalDay[]>(() =>
+    this.buildMonthGrid(
+      this.viewDate().getFullYear(),
+      this.viewDate().getMonth(),
+      this.allEvents(),
+      this.viewDate()
+    )
+  );
 
   readonly monthLabel = computed(() =>
     `${this.MONTHS[this.viewDate().getMonth()]} ${this.viewDate().getFullYear()}`
   );
 
+  // ── Mini calendar ─────────────────────────────────────────────────────────
+
+  readonly miniCalDays = computed<CalDay[]>(() =>
+    this.buildMonthGrid(
+      this.miniCalMonth().getFullYear(),
+      this.miniCalMonth().getMonth(),
+      this.rawEvents(),
+      this.viewDate()
+    )
+  );
+
+  readonly miniCalLabel = computed(() =>
+    `${this.MONTHS[this.miniCalMonth().getMonth()]} ${this.miniCalMonth().getFullYear()}`
+  );
+
+  miniCalPrev() {
+    const d = new Date(this.miniCalMonth()); d.setMonth(d.getMonth() - 1); this.miniCalMonth.set(d);
+  }
+  miniCalNext() {
+    const d = new Date(this.miniCalMonth()); d.setMonth(d.getMonth() + 1); this.miniCalMonth.set(d);
+  }
+
+  jumpToDate(date: Date) {
+    this.viewDate.set(new Date(date));
+    this.miniCalMonth.set(new Date(date));
+    if (this.viewMode() !== 'month') this.viewMode.set('day');
+  }
+
   // ── Stats & upcoming ──────────────────────────────────────────────────────
 
   readonly statsPeriod = computed(() => {
     let periodEvs: CalEvent[];
-    if (this.viewMode() === 'week') {
+    if (this.viewMode() === 'day') {
+      periodEvs = this.dayEvents();
+    } else if (this.viewMode() === 'week') {
       const days  = this.weekDays();
       const start = days[0].date;
       const end   = new Date(days[6].date); end.setHours(23, 59, 59);
@@ -239,30 +347,42 @@ export class CalendarComponent {
     return { total: periodEvs.length, statusStats: [...map.values()] };
   });
 
-  readonly upcomingEvents = computed(() => {
-    const now = new Date();
-    return this.allEvents()
-      .filter(e => e.startDate >= now)
+  readonly upcomingEvents = computed(() =>
+    this.rawEvents()
+      .filter(e => e.startDate >= new Date())
       .sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
-      .slice(0, 6);
-  });
+      .slice(0, 5)
+  );
 
   // ── Navigation ────────────────────────────────────────────────────────────
 
   prev() {
     const d = new Date(this.viewDate());
-    if (this.viewMode() === 'week') d.setDate(d.getDate() - 7);
-    else d.setMonth(d.getMonth() - 1);
+    if (this.viewMode() === 'day')        d.setDate(d.getDate() - 1);
+    else if (this.viewMode() === 'week')  d.setDate(d.getDate() - 7);
+    else                                  d.setMonth(d.getMonth() - 1);
     this.viewDate.set(d);
+    this.miniCalMonth.set(new Date(d));
   }
 
   next() {
     const d = new Date(this.viewDate());
-    if (this.viewMode() === 'week') d.setDate(d.getDate() + 7);
-    else d.setMonth(d.getMonth() + 1);
+    if (this.viewMode() === 'day')        d.setDate(d.getDate() + 1);
+    else if (this.viewMode() === 'week')  d.setDate(d.getDate() + 7);
+    else                                  d.setMonth(d.getMonth() + 1);
     this.viewDate.set(d);
+    this.miniCalMonth.set(new Date(d));
   }
 
-  goToToday() { this.viewDate.set(new Date()); }
-  setViewMode(m: 'week' | 'month') { this.viewMode.set(m); }
+  goToToday() {
+    const today = new Date();
+    this.viewDate.set(today);
+    this.miniCalMonth.set(new Date(today));
+  }
+
+  setViewMode(m: 'day' | 'week' | 'month') { this.viewMode.set(m); }
+
+  setStatusFilter(label: string) {
+    this.activeStatusFilter.set(this.activeStatusFilter() === label ? '' : label);
+  }
 }
