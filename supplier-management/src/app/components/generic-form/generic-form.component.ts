@@ -5,6 +5,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractContro
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { EntitySchema, FieldDefinition } from '../../models/entity-schema.model';
+import { GoogleCalendarService } from '../../services/google-calendar.service';
 
 @Component({
   selector: 'app-generic-form',
@@ -19,6 +20,7 @@ export class GenericFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private schemaService = inject(SchemaService);
   private crudService = inject(GenericCrudService);
+  readonly gcalSvc = inject(GoogleCalendarService);
 
   schema = signal<EntitySchema | null>(null);
   entityKey = signal('');
@@ -28,6 +30,7 @@ export class GenericFormComponent implements OnInit {
   recordId = signal<number | null>(null);
   saving = signal(false);
   saved = signal(false);
+  gcalStatus = signal<'idle' | 'syncing' | 'synced' | 'not_connected' | 'error'>('idle');
   form!: FormGroup;
 
   /** In encounter mode, stable fields are shown read-only; mutable fields are editable */
@@ -181,6 +184,7 @@ export class GenericFormComponent implements OnInit {
           this.crudService.update(this.entityKey(), this.recordId()!, processed);
         } else {
           this.crudService.create(this.entityKey(), processed);
+          this.syncToGoogleCalendar(processed);
         }
         this.saving.set(false);
         this.saved.set(true);
@@ -201,5 +205,34 @@ export class GenericFormComponent implements OnInit {
     if (field.type === 'tags') return 'text';
     if (field.type === 'datetime') return 'datetime-local';
     return field.type as string;
+  }
+
+  private syncToGoogleCalendar(data: Record<string, any>): void {
+    const schema = this.schema();
+    if (!schema || schema.entity.moduleType !== 'calendar') return;
+
+    const startF = schema.fields.find(f => f.isCalendarStart);
+    if (!startF) return;
+
+    if (!this.gcalSvc.isConnected()) {
+      this.gcalStatus.set('not_connected');
+      return;
+    }
+
+    const endF   = schema.fields.find(f => f.isCalendarEnd);
+    const titleF = schema.fields.find(f => f.isTitle);
+    const subF   = schema.fields.find(f => f.isSubtitle);
+    const emailF = schema.fields.find(f => f.type === 'email');
+
+    this.gcalStatus.set('syncing');
+    this.gcalSvc.createEvent({
+      summary:        String(data[titleF?.name ?? ''] || schema.entity.singular),
+      description:    subF ? String(data[subF.name] || '') : '',
+      startIso:       String(data[startF.name] || ''),
+      endIso:         endF ? String(data[endF.name] || '') : undefined,
+      attendeeEmail:  emailF ? String(data[emailF.name] || '') : undefined
+    }).then(result => {
+      this.gcalStatus.set(result.success ? 'synced' : 'error');
+    });
   }
 }

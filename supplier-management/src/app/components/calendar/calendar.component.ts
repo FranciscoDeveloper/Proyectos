@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
+import { GoogleCalendarService } from '../../services/google-calendar.service';
 
 interface CalEvent {
   id: number;
@@ -57,6 +58,15 @@ export class CalendarComponent {
   private route     = inject(ActivatedRoute);
   private schemaSvc = inject(SchemaService);
   private crudSvc   = inject(GenericCrudService);
+  readonly gcalSvc  = inject(GoogleCalendarService);
+  gcalConnecting    = signal(false);
+
+  connectGcal(): void {
+    this.gcalConnecting.set(true);
+    this.gcalSvc.connect()
+      .catch(err => console.error('[GCal] connect error:', err))
+      .finally(() => this.gcalConnecting.set(false));
+  }
 
   readonly entityKey = this.route.snapshot.paramMap.get('entityKey')!;
   readonly schema    = this.schemaSvc.getSchema(this.entityKey);
