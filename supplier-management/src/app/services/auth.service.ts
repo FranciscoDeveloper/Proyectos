@@ -186,8 +186,11 @@ const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
     // ── Medical history (STABLE) ──────────────────────────────────────────
     { name: 'personalHistory',  type: 'textarea', label: 'Antecedentes Personales',  required: false, showInList: false, showInDetail: true, section: 'history', isStable: true },
     { name: 'familyHistory',    type: 'textarea', label: 'Antecedentes Familiares',  required: false, showInList: false, showInDetail: true, section: 'history', isStable: true },
-    { name: 'surgicalHistory',  type: 'textarea', label: 'Antecedentes Quirúrgicos', required: false, showInList: false, showInDetail: true, section: 'history', isStable: true },
     { name: 'habits',           type: 'textarea', label: 'Hábitos',                  required: false, showInList: false, showInDetail: true, section: 'history', placeholder: 'Tabaco, alcohol, actividad física...', isStable: true },
+
+    // ── Surgical (STABLE) ────────────────────────────────────────────────
+    { name: 'surgicalHistory',       type: 'textarea', label: 'Cirugías Previas',              required: false, showInList: false, showInDetail: true, section: 'surgical', isSurgical: true, isStable: true },
+    { name: 'plannedInterventions',  type: 'textarea', label: 'Intervenciones Programadas',    required: false, showInList: false, showInDetail: true, section: 'surgical', isSurgical: true, isStable: true, placeholder: 'Procedimientos quirúrgicos planificados o pendientes...' },
 
     // ── Medications / Diagnosis (mutable) ────────────────────────────────
     { name: 'currentMedications', type: 'textarea', label: 'Medicamentos Actuales',  required: false, showInList: false, showInDetail: true, section: 'medications', placeholder: 'Nombre · dosis · frecuencia', isPrescription: true },
@@ -311,8 +314,11 @@ const SCHEMA_PSYCH_RECORDS: EntitySchema = {
     // ── Psychological assessments (history section) ──────────────────────
     { name: 'personalHistory',  type: 'textarea', label: 'Historia Personal y Familiar', required: false, showInList: false, showInDetail: true, section: 'history' },
     { name: 'familyHistory',    type: 'textarea', label: 'Dinámica Familiar',            required: false, showInList: false, showInDetail: true, section: 'history' },
-    { name: 'surgicalHistory',  type: 'textarea', label: 'Terapias Previas',             required: false, showInList: false, showInDetail: true, section: 'history' },
     { name: 'habits',           type: 'textarea', label: 'Instrumentos Aplicados',       required: false, showInList: false, showInDetail: true, section: 'history', placeholder: 'PHQ-9, GAD-7, Beck, MMSE...' },
+
+    // ── Surgical ─────────────────────────────────────────────────────────
+    { name: 'surgicalHistory',      type: 'textarea', label: 'Terapias Previas',                 required: false, showInList: false, showInDetail: true, section: 'surgical', isSurgical: true },
+    { name: 'plannedInterventions', type: 'textarea', label: 'Intervenciones / Procesos Activos',required: false, showInList: false, showInDetail: true, section: 'surgical', isSurgical: true, placeholder: 'Procedimientos o intervenciones planificadas...' },
 
     // ── Treatment ────────────────────────────────────────────────────────
     { name: 'currentMedications', type: 'textarea', label: 'Plan Terapéutico',      required: false, showInList: false, showInDetail: true, section: 'medications', placeholder: 'Enfoque, frecuencia, objetivos', isPrescription: true },
@@ -435,8 +441,11 @@ const SCHEMA_DENTAL_RECORDS: EntitySchema = {
     // ── Dental anamnesis (STABLE) ─────────────────────────────────────────
     { name: 'personalHistory', type: 'textarea', label: 'Antecedentes Médicos Relevantes', required: false, showInList: false, showInDetail: true, section: 'history', isStable: true },
     { name: 'familyHistory',   type: 'textarea', label: 'Antecedentes Familiares',         required: false, showInList: false, showInDetail: true, section: 'history', isStable: true },
-    { name: 'surgicalHistory', type: 'textarea', label: 'Tratamientos Previos',            required: false, showInList: false, showInDetail: true, section: 'history', isStable: true },
     { name: 'habits',          type: 'textarea', label: 'Hábitos Parafuncionales',         required: false, showInList: false, showInDetail: true, section: 'history', placeholder: 'Bruxismo, onicofagia, succión digital...', isStable: true },
+
+    // ── Surgical / dental procedures ──────────────────────────────────────
+    { name: 'surgicalHistory',      type: 'textarea', label: 'Tratamientos Previos',          required: false, showInList: false, showInDetail: true, section: 'surgical', isSurgical: true, isStable: true },
+    { name: 'plannedInterventions', type: 'textarea', label: 'Procedimientos Planificados',    required: false, showInList: false, showInDetail: true, section: 'surgical', isSurgical: true, isStable: true, placeholder: 'Cirugías, implantes, ortodoncia planificados...' },
 
     // ── Current treatment ─────────────────────────────────────────────────
     { name: 'currentMedications', type: 'textarea', label: 'Medicación Actual',       required: false, showInList: false, showInDetail: true, section: 'medications', placeholder: 'Analgésicos, antibióticos, antisépticos...', isPrescription: true },

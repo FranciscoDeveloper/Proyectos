@@ -169,9 +169,95 @@ export class ClinicalDetailComponent {
       .filter(sf => sf.value != null && sf.value !== '');
   }
 
+  // ── Surgical interventions ────────────────────────────────────────────────
+
+  readonly surgicalFields = computed(() => {
+    const r = this.record();
+    if (!r || !this.schema) return { history: '', planned: '' };
+    return {
+      history: String(r['surgicalHistory'] ?? ''),
+      planned: String(r['plannedInterventions'] ?? '')
+    };
+  });
+
+  readonly hasSurgical = computed(() => {
+    const s = this.surgicalFields();
+    return !!(s.history || s.planned);
+  });
+
+  // ── Documents tab ─────────────────────────────────────────────────────────
+
+  readonly DOC_CATEGORIES = [
+    { value: 'lab',       label: 'Laboratorio',      color: '#6366f1' },
+    { value: 'imaging',   label: 'Imágenes',         color: '#3b82f6' },
+    { value: 'referral',  label: 'Interconsulta',    color: '#f59e0b' },
+    { value: 'report',    label: 'Informe',          color: '#10b981' },
+    { value: 'consent',   label: 'Consentimiento',   color: '#8b5cf6' },
+    { value: 'other',     label: 'Otro',             color: '#6b7280' }
+  ] as const;
+
+  readonly documents = signal<Array<{
+    id: number;
+    name: string;
+    category: string;
+    date: string;
+    size: string;
+    uploadedBy: string;
+    notes: string;
+  }>>([
+    { id: 1, name: 'Hemograma completo 2026-03-24.pdf', category: 'lab',      date: '2026-03-24', size: '245 KB', uploadedBy: 'Dra. Morales', notes: 'Resultados control mensual' },
+    { id: 2, name: 'Eco cardíaco Doppler 2026-03.pdf',  category: 'imaging',  date: '2026-03-10', size: '1.2 MB', uploadedBy: 'Dra. Morales', notes: 'Solicitud urgente por deterioro funcional' },
+    { id: 3, name: 'Interconsulta Cardiología.pdf',     category: 'referral', date: '2026-02-28', size: '120 KB', uploadedBy: 'Dra. Morales', notes: '' },
+    { id: 4, name: 'Consentimiento Informado Cx.pdf',   category: 'consent',  date: '2026-01-15', size: '88 KB',  uploadedBy: 'Dra. Morales', notes: 'Firmado por paciente y familiar' }
+  ]);
+
+  showUploadForm = signal(false);
+  newDocName     = signal('');
+  newDocCategory = signal('lab');
+  newDocNotes    = signal('');
+  private nextDocId = 5;
+
+  docFilter = signal('');
+
+  readonly filteredDocuments = computed(() => {
+    const docs = this.documents();
+    const f = this.docFilter();
+    if (!f) return docs;
+    return docs.filter(d =>
+      d.category === f
+    );
+  });
+
+  addDocument(): void {
+    const name = this.newDocName().trim();
+    if (!name) return;
+    this.documents.update(docs => [...docs, {
+      id: this.nextDocId++,
+      name,
+      category: this.newDocCategory(),
+      date: new Date().toISOString().slice(0, 10),
+      size: '—',
+      uploadedBy: this.patient()?.doctor ?? 'Sistema',
+      notes: this.newDocNotes().trim()
+    }]);
+    this.newDocName.set('');
+    this.newDocNotes.set('');
+    this.newDocCategory.set('lab');
+    this.showUploadForm.set(false);
+  }
+
+  removeDocument(id: number): void {
+    this.documents.update(docs => docs.filter(d => d.id !== id));
+  }
+
+  getCategoryMeta(value: string) {
+    return this.DOC_CATEGORIES.find(c => c.value === value)
+      ?? { value: 'other', label: 'Otro', color: '#6b7280' };
+  }
+
   // ── Encounter history tab ─────────────────────────────────────────────────
 
-  activeTab = signal<'record' | 'history'>('record');
+  activeTab = signal<'record' | 'history' | 'documents'>('record');
 
   /**
    * Schema-driven: collects all fields with section === 'encounters'.

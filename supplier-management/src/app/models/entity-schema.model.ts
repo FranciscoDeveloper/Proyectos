@@ -63,6 +63,8 @@ export interface FieldDefinition {
    * next to this field's section, generating a printable prescription.
    */
   isPrescription?: boolean;
+  /** When true, the field belongs to the surgical interventions section */
+  isSurgical?: boolean;
 }
 
 export interface EntityMeta {
