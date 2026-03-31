@@ -222,11 +222,10 @@ export class ClinicalDetailComponent {
   // ── Prescription print ────────────────────────────────────────────────────
 
   readonly today = new Date();
-  showPrescription = signal(false);
 
   /**
    * Schema-driven: finds the first field with isPrescription === true.
-   * Returns its label and value so the modal renders whatever the backend defined.
+   * Returns its label and value so the print tab renders whatever the backend defined.
    */
   readonly prescriptionField = computed(() => {
     const r = this.record();
@@ -237,8 +236,69 @@ export class ClinicalDetailComponent {
     return val ? { label: f.label, value: val } : null;
   });
 
-  printPrescription(): void {
-    window.print();
+  openPrescriptionTab(): void {
+    const p  = this.patient();
+    const rx = this.prescriptionField();
+    if (!p || !rx) return;
+
+    const dateStr = new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Receta Médica — ${p.fullName}</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#1a1a1a;background:#fff;padding:40px;max-width:760px;margin:0 auto}
+    .hint{font-family:-apple-system,sans-serif;font-size:12px;color:#6b7280;text-align:center;margin-bottom:28px;padding:10px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb}
+    .letterhead{text-align:center;padding-bottom:14px}
+    .clinic-name{font-size:20px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+    .clinic-sub{font-size:13px;color:#555;margin-top:4px}
+    hr{border:none;border-top:1px solid #aaa;margin:14px 0}
+    .section-label{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#6b7280;margin-bottom:10px}
+    .patient-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 24px;margin-bottom:6px}
+    .patient-row{display:flex;gap:8px;font-size:13px}
+    .field-label{font-weight:700;min-width:72px;color:#444;flex-shrink:0}
+    .rx-body{font-family:Georgia,serif;font-size:15px;line-height:1.85;white-space:pre-wrap;padding:10px 0 24px}
+    .footer{margin-top:56px;display:flex;justify-content:flex-end}
+    .sig-box{text-align:center;min-width:200px}
+    .sig-line{border-top:1px solid #333;margin-bottom:8px;height:48px}
+    .sig-name{font-size:13px;font-weight:700}
+    .sig-sub{font-size:11px;color:#666;margin-top:2px}
+    @media print{.hint{display:none}body{padding:20mm}}
+  </style>
+</head>
+<body>
+  <p class="hint">Usa Ctrl+P / Cmd+P para imprimir o guardar como PDF</p>
+  <div class="letterhead">
+    <div class="clinic-name">Clínica — Sistema Médico</div>
+    <div class="clinic-sub">${p.doctor}</div>
+  </div>
+  <hr/>
+  <div class="section-label">Datos del Paciente</div>
+  <div class="patient-grid">
+    <div class="patient-row"><span class="field-label">Nombre:</span><span>${p.fullName}</span></div>
+    <div class="patient-row"><span class="field-label">RUT:</span><span>${p.rut}</span></div>
+    <div class="patient-row"><span class="field-label">Edad:</span><span>${p.age} años</span></div>
+    <div class="patient-row"><span class="field-label">Previsión:</span><span>${p.insurance}</span></div>
+    <div class="patient-row"><span class="field-label">Fecha:</span><span>${dateStr}</span></div>
+  </div>
+  <hr/>
+  <div class="section-label">${rx.label}</div>
+  <pre class="rx-body">${rx.value}</pre>
+  <div class="footer">
+    <div class="sig-box">
+      <div class="sig-line"></div>
+      <div class="sig-name">${p.doctor}</div>
+      <div class="sig-sub">Firma y Timbre</div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    const tab = window.open('', '_blank');
+    if (tab) { tab.document.write(html); tab.document.close(); }
   }
 
   // ── Share record ──────────────────────────────────────────────────────────
