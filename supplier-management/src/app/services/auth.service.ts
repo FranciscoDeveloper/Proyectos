@@ -630,11 +630,10 @@ export class AuthService {
   constructor(private router: Router) {}
 
   /**
-   * POST /api/auth/login — intercepted by MockApiInterceptor during development.
-   * In production, replace the interceptor with a real backend and keep this call as-is.
+   * POST /api/auth/login — real backend (API Gateway → Lambda → RDS PostgreSQL)
    */
   login(credentials: LoginCredentials): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>('/api/auth/login', credentials).pipe(
+    return this.http.post<AuthResponse>('https://cwhwahvqr0.execute-api.us-east-1.amazonaws.com/api/auth/login', credentials).pipe(
       catchError(err => throwError(() =>
         new Error(err.error?.message ?? 'Credenciales inválidas. Verifique su email y contraseña.')
       ))
