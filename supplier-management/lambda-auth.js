@@ -1,12 +1,9 @@
-import pg       from "pg";
-import bcrypt   from "bcryptjs";
-import jwt      from "jsonwebtoken";
+import pg     from "pg";
+import crypto from "crypto";   // módulo nativo Node.js — no requiere instalación
 
 const { Pool } = pg;
 
 // ── Conexión al RDS PostgreSQL ────────────────────────────────────────────────
-// La pool se inicializa fuera del handler para reutilizar conexiones
-// entre invocaciones en el mismo contenedor Lambda (warm start).
 const pool = new Pool({
   host:     process.env.DB_HOST,
   port:     parseInt(process.env.DB_PORT || "5432"),
@@ -15,12 +12,44 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   ssl:      { rejectUnauthorized: false },
   max:      5,
-  idleTimeoutMillis:     30000,
+  idleTimeoutMillis:       30000,
   connectionTimeoutMillis: 5000
 });
 
 const JWT_SECRET     = process.env.JWT_SECRET     || "changeme-use-secrets-manager";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "8h";
+
+// ── JWT HS256 con crypto nativo (reemplaza jsonwebtoken) ──────────────────────
+function signJWT(payload, secret, expiresIn) {
+  const expiresInSeconds = expiresIn.endsWith("h")
+    ? parseInt(expiresIn) * 3600
+    : parseInt(expiresIn) * 60;
+
+  const header  = b64url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+  const body    = b64url(JSON.stringify({ ...payload, exp: Math.floor(Date.now() / 1000) + expiresInSeconds, iat: Math.floor(Date.now() / 1000) }));
+  const sig     = crypto.createHmac("sha256", secret).update(`${header}.${body}`).digest("base64url");
+  return `${header}.${body}.${sig}`;
+}
+
+function b64url(str) {
+  return Buffer.from(str).toString("base64url");
+}
+
+// ── Verificación de contraseña ────────────────────────────────────────────────
+// Si las contraseñas están almacenadas como BCrypt hash usa este helper.
+// Si están en texto plano (DataLoader sin BcryptUtil) compara directamente.
+function verifyPassword(plain, stored) {
+  // Detecta BCrypt hash por su prefijo $2a$ / $2b$
+  if (stored.startsWith("$2")) {
+    // BCrypt necesita bcryptjs — instala el paquete si usas hashes
+    throw new Error("BCrypt hash detectado: incluye bcryptjs en node_modules del Lambda");
+  }
+  // Texto plano: comparación en tiempo constante para evitar timing attacks
+  const a = Buffer.from(plain);
+  const b = Buffer.from(stored);
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
 
 // ── Handler principal ─────────────────────────────────────────────────────────
 export const handler = async (event) => {
@@ -68,8 +97,8 @@ export const handler = async (event) => {
 
     const user = userResult.rows[0];
 
-    // 2. Verificar contraseña con BCrypt
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    // 2. Verificar contraseña
+    const passwordMatch = verifyPassword(password, user.password);
     if (!passwordMatch) {
       return response(401, { message: "Credenciales inválidas. Verifique su email y contraseña." });
     }
@@ -103,10 +132,10 @@ export const handler = async (event) => {
     // 5. Generar JWT
     const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString();
 
-    const token = jwt.sign(
+    const token = signJWT(
       { sub: user.id, email: user.email, role: user.role },
       JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
+      JWT_EXPIRES_IN
     );
 
     // 6. Respuesta AuthResponse
