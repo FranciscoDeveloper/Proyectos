@@ -1,31 +1,33 @@
-const { Pool } = require("pg");
-const bcrypt    = require("bcryptjs");
-const jwt       = require("jsonwebtoken");
+import pg       from "pg";
+import bcrypt   from "bcryptjs";
+import jwt      from "jsonwebtoken";
+
+const { Pool } = pg;
 
 // ── Conexión al RDS PostgreSQL ────────────────────────────────────────────────
 // La pool se inicializa fuera del handler para reutilizar conexiones
 // entre invocaciones en el mismo contenedor Lambda (warm start).
 const pool = new Pool({
-  host:     process.env.DB_HOST,       // RDS endpoint, ej: mydb.abc123.us-east-1.rds.amazonaws.com
+  host:     process.env.DB_HOST,
   port:     parseInt(process.env.DB_PORT || "5432"),
-  database: process.env.DB_NAME,       // nombre de la base de datos
-  user:     process.env.DB_USER,       // usuario RDS
-  password: process.env.DB_PASSWORD,   // contraseña RDS
-  ssl:      { rejectUnauthorized: false }, // requerido por RDS
-  max:      5,                         // máximo de conexiones en pool
-  idleTimeoutMillis: 30000,
+  database: process.env.DB_NAME,
+  user:     process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  ssl:      { rejectUnauthorized: false },
+  max:      5,
+  idleTimeoutMillis:     30000,
   connectionTimeoutMillis: 5000
 });
 
-const JWT_SECRET      = process.env.JWT_SECRET || "changeme-use-secrets-manager";
-const JWT_EXPIRES_IN  = process.env.JWT_EXPIRES_IN || "8h";
+const JWT_SECRET     = process.env.JWT_SECRET     || "changeme-use-secrets-manager";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "8h";
 
 // ── Handler principal ─────────────────────────────────────────────────────────
-exports.handler = async (event) => {
+export const handler = async (event) => {
   // Soporta tanto API Gateway HTTP API (v2) como REST API (v1)
   const method =
-    event.requestContext?.http?.method ||   // HTTP API v2
-    event.httpMethod ||                      // REST API v1
+    event.requestContext?.http?.method ||
+    event.httpMethod ||
     "UNKNOWN";
 
   if (method !== "POST") {
@@ -95,24 +97,19 @@ exports.handler = async (event) => {
         icon:       s.icon,
         moduleType: s.moduleType
       },
-      fields: []  // El frontend carga los fields desde su propia definición;
-                  // el backend solo autoriza qué entidades son accesibles.
+      fields: []
     }));
 
     // 5. Generar JWT
     const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString();
 
     const token = jwt.sign(
-      {
-        sub:    user.id,
-        email:  user.email,
-        role:   user.role
-      },
+      { sub: user.id, email: user.email, role: user.role },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
 
-    // 6. Respuesta AuthResponse — misma estructura que el mock del frontend
+    // 6. Respuesta AuthResponse
     return response(200, {
       token,
       expiresAt,
@@ -142,10 +139,11 @@ function response(statusCode, body) {
   return {
     statusCode,
     headers: {
-      "Content-Type":                "application/json",
-      "Access-Control-Allow-Origin": "*",             // ajustar al dominio en producción
+      "Content-Type":                 "application/json",
+      "Access-Control-Allow-Origin":  "*",
       "Access-Control-Allow-Headers": "Content-Type"
     },
     body: JSON.stringify(body)
   };
 }
+
