@@ -1,9 +1,11 @@
-import pg     from "pg";
-import crypto from "crypto";   // módulo nativo Node.js — no requiere instalación
+import pg         from "pg";
+import bcrypt     from "bcryptjs";
+import jwt        from "jsonwebtoken";
 
 const { Pool } = pg;
 
 // ── Conexión al RDS PostgreSQL ────────────────────────────────────────────────
+// Pool fuera del handler → se reutiliza entre invocaciones (warm start)
 const pool = new Pool({
   host:     process.env.DB_HOST,
   port:     parseInt(process.env.DB_PORT || "5432"),
@@ -19,41 +21,9 @@ const pool = new Pool({
 const JWT_SECRET     = process.env.JWT_SECRET     || "changeme-use-secrets-manager";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "8h";
 
-// ── JWT HS256 con crypto nativo (reemplaza jsonwebtoken) ──────────────────────
-function signJWT(payload, secret, expiresIn) {
-  const expiresInSeconds = expiresIn.endsWith("h")
-    ? parseInt(expiresIn) * 3600
-    : parseInt(expiresIn) * 60;
-
-  const header  = b64url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-  const body    = b64url(JSON.stringify({ ...payload, exp: Math.floor(Date.now() / 1000) + expiresInSeconds, iat: Math.floor(Date.now() / 1000) }));
-  const sig     = crypto.createHmac("sha256", secret).update(`${header}.${body}`).digest("base64url");
-  return `${header}.${body}.${sig}`;
-}
-
-function b64url(str) {
-  return Buffer.from(str).toString("base64url");
-}
-
-// ── Verificación de contraseña ────────────────────────────────────────────────
-// Si las contraseñas están almacenadas como BCrypt hash usa este helper.
-// Si están en texto plano (DataLoader sin BcryptUtil) compara directamente.
-function verifyPassword(plain, stored) {
-  // Detecta BCrypt hash por su prefijo $2a$ / $2b$
-  if (stored.startsWith("$2")) {
-    // BCrypt necesita bcryptjs — instala el paquete si usas hashes
-    throw new Error("BCrypt hash detectado: incluye bcryptjs en node_modules del Lambda");
-  }
-  // Texto plano: comparación en tiempo constante para evitar timing attacks
-  const a = Buffer.from(plain);
-  const b = Buffer.from(stored);
-  if (a.length !== b.length) return false;
-  return crypto.timingSafeEqual(a, b);
-}
-
 // ── Handler principal ─────────────────────────────────────────────────────────
 export const handler = async (event) => {
-  // Soporta tanto API Gateway HTTP API (v2) como REST API (v1)
+  // Soporta API Gateway HTTP API v2 y REST API v1
   const method =
     event.requestContext?.http?.method ||
     event.httpMethod ||
@@ -82,7 +52,7 @@ export const handler = async (event) => {
   try {
     client = await pool.connect();
 
-    // 1. Obtener usuario por email
+    // 1. Buscar usuario por email
     const userResult = await client.query(
       `SELECT id, name, email, password, role, avatar
        FROM app_user
@@ -97,13 +67,13 @@ export const handler = async (event) => {
 
     const user = userResult.rows[0];
 
-    // 2. Verificar contraseña
-    const passwordMatch = verifyPassword(password, user.password);
+    // 2. Verificar contraseña con BCrypt
+    const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       return response(401, { message: "Credenciales inválidas. Verifique su email y contraseña." });
     }
 
-    // 3. Obtener schemas autorizados para este usuario
+    // 3. Cargar schemas autorizados del usuario
     const schemasResult = await client.query(
       `SELECT s.schema_key  AS "schemaKey",
               s.singular,
@@ -117,7 +87,7 @@ export const handler = async (event) => {
       [user.id]
     );
 
-    // 4. Construir la estructura EntitySchema que espera el frontend
+    // 4. Armar estructura EntitySchema que consume el frontend Angular
     const schemas = schemasResult.rows.map((s) => ({
       entity: {
         key:        s.schemaKey,
@@ -126,19 +96,19 @@ export const handler = async (event) => {
         icon:       s.icon,
         moduleType: s.moduleType
       },
-      fields: []
+      fields: []  // el frontend resuelve los fields desde su propio schema
     }));
 
     // 5. Generar JWT
     const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString();
 
-    const token = signJWT(
+    const token = jwt.sign(
       { sub: user.id, email: user.email, role: user.role },
       JWT_SECRET,
-      JWT_EXPIRES_IN
+      { expiresIn: JWT_EXPIRES_IN }
     );
 
-    // 6. Respuesta AuthResponse
+    // 6. Devolver AuthResponse (misma estructura que el mock del frontend)
     return response(200, {
       token,
       expiresAt,
@@ -175,4 +145,3 @@ function response(statusCode, body) {
     body: JSON.stringify(body)
   };
 }
-
