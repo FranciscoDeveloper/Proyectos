@@ -469,7 +469,7 @@ export const SCHEMA_DENTAL_RECORDS: EntitySchema = {
 
 // ─── Financial schemas ────────────────────────────────────────────────────────
 
-const SCHEMA_PAYMENTS: EntitySchema = {
+export const SCHEMA_PAYMENTS: EntitySchema = {
   entity: {
     key: 'payments',
     singular: 'Cobro',
@@ -519,7 +519,7 @@ const SCHEMA_PAYMENTS: EntitySchema = {
   ]
 };
 
-const SCHEMA_EXPENSES: EntitySchema = {
+export const SCHEMA_EXPENSES: EntitySchema = {
   entity: {
     key: 'expenses',
     singular: 'Gasto',

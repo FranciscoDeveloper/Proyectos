@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { EntityMeta, EntityPayload, EntitySchema } from '../models/entity-schema.model';
-import { AuthService, SCHEMA_CLINICAL_RECORDS, SCHEMA_PSYCH_RECORDS, SCHEMA_DENTAL_RECORDS } from './auth.service';
+import { AuthService, SCHEMA_CLINICAL_RECORDS, SCHEMA_PSYCH_RECORDS, SCHEMA_DENTAL_RECORDS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES } from './auth.service';
 
 /**
  * Provides entity schemas to the rest of the app.
@@ -612,18 +612,7 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
 
     // ─────────────────────────── COBROS / INGRESOS ───────────────────────────
     payments: {
-      schema: {
-        entity: {
-          key: 'payments',
-          singular: 'Cobro',
-          plural: 'Cobros',
-          icon: 'dollar-sign',
-          description: 'Registro de cobros e ingresos del centro médico',
-          disableEdit: true,
-          disableDelete: true
-        },
-        fields: []   // schema driven from auth response
-      },
+      schema: SCHEMA_PAYMENTS,
       data: [
         { id: 1,  patientName: 'María González López',    invoiceNumber: 'BOL-0001', date: '2026-03-03', concept: 'consulta',      amount: 35000,  paymentMethod: 'fonasa',        status: 'pagado',   notes: 'Control HTA. Copago FONASA bonificado.' },
         { id: 2,  patientName: 'Carlos Fernández Torres', invoiceNumber: 'BOL-0002', date: '2026-03-03', concept: 'consulta',      amount: 55000,  paymentMethod: 'isapre',        status: 'pagado',   notes: 'Revisión post-operatoria. Isapre Banmédica.' },
@@ -645,16 +634,7 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
 
     // ─────────────────────────── GASTOS OPERACIONALES ───────────────────────
     expenses: {
-      schema: {
-        entity: {
-          key: 'expenses',
-          singular: 'Gasto',
-          plural: 'Gastos',
-          icon: 'trending-down',
-          description: 'Control de gastos y egresos operacionales'
-        },
-        fields: []   // schema driven from auth response
-      },
+      schema: SCHEMA_EXPENSES,
       data: [
         { id: 1,  description: 'Arriendo consultorio piso 3',          supplier: 'Inmobiliaria Del Centro', date: '2026-03-01', category: 'arriendo',       amount: 950000,  paymentMethod: 'transferencia', status: 'pagado',   receiptNumber: 'FAC-2230', notes: 'Arriendo mensual marzo 2026.' },
         { id: 2,  description: 'Remuneración Dra. Morales',            supplier: 'Nómina interna',          date: '2026-03-01', category: 'remuneraciones', amount: 2800000, paymentMethod: 'transferencia', status: 'pagado',   receiptNumber: 'NOM-0301', notes: 'Honorarios médico mes de marzo.' },
