@@ -613,7 +613,7 @@ const SESSION_KEY = 'auth_session';
  * Increment this whenever the schema structure changes so that any cached
  * session in sessionStorage is invalidated and the user must re-login.
  */
-const SESSION_VERSION = 7;
+const SESSION_VERSION = 8;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
