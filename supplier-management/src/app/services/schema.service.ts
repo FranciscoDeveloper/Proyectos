@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { EntityMeta, EntityPayload, EntitySchema } from '../models/entity-schema.model';
-import { AuthService } from './auth.service';
+import { AuthService, SCHEMA_CLINICAL_RECORDS, SCHEMA_PSYCH_RECORDS, SCHEMA_DENTAL_RECORDS } from './auth.service';
 
 /**
  * Provides entity schemas to the rest of the app.
@@ -256,17 +256,7 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
 
     // ─────────────────────────── FICHAS CLÍNICAS ───────────────────────────
     'clinical-records': {
-      schema: {
-        entity: {
-          key: 'clinical-records',
-          singular: 'Ficha Clínica',
-          plural: 'Fichas Clínicas',
-          icon: 'clipboard',
-          moduleType: 'clinical-record',
-          description: 'Fichas clínicas y registros médicos de pacientes'
-        },
-        fields: []   // schema comes from auth response
-      },
+      schema: SCHEMA_CLINICAL_RECORDS,
       data: [
         {
           id: 1, fullName: 'María González López', patientId: 'PAC-00001', rut: '12.345.678-9',
@@ -538,10 +528,7 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
 
     // ─────────────────────────── FICHAS PSICOLÓGICAS ─────────────────────
     'psych-records': {
-      schema: {
-        entity: { key: 'psych-records', singular: 'Ficha Psicológica', plural: 'Fichas Psicológicas', icon: 'brain', moduleType: 'clinical-record', description: 'Fichas psicológicas y registros terapéuticos' },
-        fields: []
-      },
+      schema: SCHEMA_PSYCH_RECORDS,
       data: [
         {
           id: 1, fullName: 'Valentina Rojas', patientId: 'PSI-00001', rut: '18.765.432-1',
@@ -590,10 +577,7 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
 
     // ─────────────────────────── FICHAS DENTALES ────────────────────────
     'dental-records': {
-      schema: {
-        entity: { key: 'dental-records', singular: 'Ficha Dental', plural: 'Fichas Dentales', icon: 'tooth', moduleType: 'clinical-record', description: 'Fichas odontológicas y registros de tratamientos' },
-        fields: []
-      },
+      schema: SCHEMA_DENTAL_RECORDS,
       data: [
         {
           id: 1, fullName: 'Andrea Muñoz', patientId: 'DEN-00001', rut: '19.876.543-2',

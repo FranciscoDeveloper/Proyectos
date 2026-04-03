@@ -126,7 +126,7 @@ const SCHEMA_PATIENTS: EntitySchema = {
   ]
 };
 
-const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
+export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
   entity: {
     key: 'clinical-records',
     singular: 'Ficha Clínica',
@@ -251,7 +251,7 @@ const SCHEMA_PSYCH_SESSIONS: EntitySchema = {
 };
 
 // ─────────────────────────── PSYCH RECORDS (clinical-record) ─────────────────
-const SCHEMA_PSYCH_RECORDS: EntitySchema = {
+export const SCHEMA_PSYCH_RECORDS: EntitySchema = {
   entity: {
     key: 'psych-records',
     singular: 'Ficha Psicológica',
@@ -387,7 +387,7 @@ const SCHEMA_DENTAL_SESSIONS: EntitySchema = {
 };
 
 // ─────────────────────────── DENTAL RECORDS (clinical-record) ────────────────
-const SCHEMA_DENTAL_RECORDS: EntitySchema = {
+export const SCHEMA_DENTAL_RECORDS: EntitySchema = {
   entity: {
     key: 'dental-records',
     singular: 'Ficha Dental',
