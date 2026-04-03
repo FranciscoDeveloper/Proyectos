@@ -720,18 +720,35 @@ export class SchemaService {
     if (!this.catalog[key]) return null;
     const authorizedSchema = this.auth.getAuthorizedSchemas().find(s => s.entity.key === key);
     return {
-      schema: authorizedSchema ?? this.catalog[key].schema,
+      schema: this.mergeSchema(authorizedSchema, this.catalog[key].schema)!,
       data: this.catalog[key].data
     };
   }
 
   /**
    * Returns only the schema for a given entity key.
-   * Prefers the schema from the auth response (backend-driven).
+   * Merges backend entity metadata with local field definitions.
+   * The backend controls which entities the user can access;
+   * the frontend owns the field definitions (types, labels, display options).
    */
   getSchema(key: string): EntitySchema | null {
     const authorizedSchema = this.auth.getAuthorizedSchemas().find(s => s.entity.key === key);
-    if (authorizedSchema) return authorizedSchema;
-    return this.catalog[key]?.schema ?? null;
+    const catalogSchema    = this.catalog[key]?.schema ?? null;
+    return this.mergeSchema(authorizedSchema, catalogSchema);
+  }
+
+  /**
+   * Merges an authorized schema (from backend, may have fields:[]) with a
+   * catalog schema (local, has full field definitions).
+   * Entity metadata from backend takes precedence; fields from local catalog
+   * are used when the backend returns an empty fields array.
+   */
+  private mergeSchema(
+    authorized: EntitySchema | undefined,
+    catalog: EntitySchema | null
+  ): EntitySchema | null {
+    if (!authorized) return catalog;
+    const fields = authorized.fields.length > 0 ? authorized.fields : (catalog?.fields ?? []);
+    return { ...authorized, fields };
   }
 }
