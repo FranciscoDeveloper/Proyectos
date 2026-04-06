@@ -3,7 +3,24 @@ import jwt from "jsonwebtoken";
 
 const { Pool } = pg;
 
+// ── Trace logger ──────────────────────────────────────────────────────────────
+let _traceId = "boot";
+const log = (level, msg, data) => {
+  const entry = { ts: new Date().toISOString(), traceId: _traceId, level, msg };
+  if (data !== undefined) entry.data = data;
+  console[level === "ERROR" ? "error" : "log"](JSON.stringify(entry));
+};
+
 // ── DB pool ───────────────────────────────────────────────────────────────────
+log("INFO", "Lambda cold start — initialising DB pool", {
+  DB_HOST:     process.env.DB_HOST     || "(not set)",
+  DB_PORT:     process.env.DB_PORT     || "5432 (default)",
+  DB_NAME:     process.env.DB_NAME     || "(not set)",
+  DB_USER:     process.env.DB_USER     || "(not set)",
+  DB_PASSWORD: process.env.DB_PASSWORD ? "***set***" : "(not set)",
+  JWT_SECRET:  process.env.JWT_SECRET  ? "***set***" : "(using default — insecure!)"
+});
+
 const pool = new Pool({
   host:     process.env.DB_HOST,
   port:     parseInt(process.env.DB_PORT || "5432"),
@@ -15,6 +32,8 @@ const pool = new Pool({
   idleTimeoutMillis:       30000,
   connectionTimeoutMillis: 5000
 });
+
+pool.on("error", (err) => log("ERROR", "DB pool idle client error", { message: err.message, stack: err.stack }));
 
 const JWT_SECRET = process.env.JWT_SECRET || "changeme-use-secrets-manager";
 
@@ -145,14 +164,27 @@ const ENTITY_CONFIG = {
 };
 
 // ── Handler ───────────────────────────────────────────────────────────────────
-export const handler = async (event) => {
+export const handler = async (event, context) => {
+  // Assign a unique trace ID per invocation (Lambda request ID when available)
+  _traceId = context?.awsRequestId || `local-${Date.now()}`;
+
   const method =
     event.requestContext?.http?.method ||
     event.httpMethod ||
     "UNKNOWN";
 
+  log("INFO", "Request received", {
+    method,
+    path:       event.rawPath || event.path || "",
+    sourceIp:   event.requestContext?.http?.sourceIp || event.requestContext?.identity?.sourceIp || "unknown",
+    userAgent:  event.requestContext?.http?.userAgent || "unknown",
+    hasBody:    !!event.body,
+    bodyLength: event.body?.length ?? 0
+  });
+
   // Handle CORS preflight
   if (method === "OPTIONS") {
+    log("INFO", "CORS preflight — returning 204");
     return response(204, null);
   }
 
@@ -163,13 +195,16 @@ export const handler = async (event) => {
     "";
 
   if (!authHeader.startsWith("Bearer ")) {
+    log("WARN", "Missing or malformed Authorization header");
     return response(401, { message: "Token de autenticación requerido" });
   }
 
   let tokenPayload;
   try {
     tokenPayload = jwt.verify(authHeader.slice(7), JWT_SECRET);
-  } catch {
+    log("INFO", "JWT verified", { sub: tokenPayload.sub, role: tokenPayload.role });
+  } catch (err) {
+    log("WARN", "JWT verification failed", { error: err.message });
     return response(401, { message: "Token inválido o expirado" });
   }
 
@@ -181,6 +216,7 @@ export const handler = async (event) => {
   const match   = rawPath.match(/\/api\/entities\/([^/]+)(?:\/([^/]+))?/);
 
   if (!match) {
+    log("WARN", "Path did not match expected pattern", { rawPath });
     return response(404, { message: "Ruta no encontrada" });
   }
 
@@ -188,7 +224,10 @@ export const handler = async (event) => {
   const id        = match[2] ?? null;
   const config    = ENTITY_CONFIG[entityKey];
 
+  log("INFO", "Path parsed", { entityKey, id });
+
   if (!config) {
+    log("WARN", "Unknown entity key", { entityKey, available: Object.keys(ENTITY_CONFIG) });
     return response(404, { message: `Entidad '${entityKey}' no existe` });
   }
 
@@ -197,7 +236,9 @@ export const handler = async (event) => {
   if (event.body) {
     try {
       body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
-    } catch {
+      log("INFO", "Body parsed", { fields: Object.keys(body) });
+    } catch (err) {
+      log("ERROR", "Body parse failed", { error: err.message, raw: event.body?.slice(0, 200) });
       return response(400, { message: "Body inválido: se esperaba JSON" });
     }
   }
@@ -205,80 +246,100 @@ export const handler = async (event) => {
   // ── Dispatch ──────────────────────────────────────────────────────────────
   let client;
   try {
+    log("INFO", "Acquiring DB connection from pool");
     client = await pool.connect();
+    log("INFO", "DB connection acquired");
 
-    if (method === "GET" && !id)        return await listEntities(client, config);
-    if (method === "GET" && id)         return await getEntity(client, config, id);
-    if (method === "POST" && !id)       return await createEntity(client, config, body);
-    if (method === "PUT" && id)         return await updateEntity(client, config, id, body);
-    if (method === "DELETE" && id)      return await deleteEntity(client, config, id);
+    if (method === "GET" && !id)        return await listEntities(client, config, entityKey);
+    if (method === "GET" && id)         return await getEntity(client, config, id, entityKey);
+    if (method === "POST" && !id)       return await createEntity(client, config, body, entityKey);
+    if (method === "PUT" && id)         return await updateEntity(client, config, id, body, entityKey);
+    if (method === "DELETE" && id)      return await deleteEntity(client, config, id, entityKey);
 
+    log("WARN", "Method not allowed", { method });
     return response(405, { message: "Método no permitido" });
 
   } catch (error) {
-    console.error(`Error en ${method} /api/entities/${entityKey}/${id ?? ""}:`, error);
+    log("ERROR", `Unhandled error in ${method} /api/entities/${entityKey}/${id ?? ""}`, {
+      message: error.message,
+      code:    error.code,
+      stack:   error.stack
+    });
     return response(500, { message: "Error interno del servidor", error: error.message });
   } finally {
-    if (client) client.release();
+    if (client) {
+      client.release();
+      log("INFO", "DB connection released");
+    }
   }
 };
 
 // ── CRUD operations ───────────────────────────────────────────────────────────
 
-async function listEntities(client, config) {
-  const result = await client.query(
-    `SELECT * FROM ${config.table} ORDER BY id DESC`
-  );
+async function listEntities(client, config, entityKey) {
+  log("INFO", "listEntities — querying", { table: config.table });
+  const result = await client.query(`SELECT * FROM ${config.table} ORDER BY id DESC`);
+  log("INFO", "listEntities — done", { table: config.table, rowCount: result.rowCount });
   return response(200, result.rows.map(config.fromDb));
 }
 
-async function getEntity(client, config, id) {
+async function getEntity(client, config, id, entityKey) {
+  log("INFO", "getEntity — querying", { table: config.table, id });
   const result = await client.query(
     `SELECT * FROM ${config.table} WHERE id = $1 LIMIT 1`,
     [id]
   );
   if (result.rowCount === 0) {
+    log("WARN", "getEntity — not found", { table: config.table, id });
     return response(404, { message: "Registro no encontrado" });
   }
+  log("INFO", "getEntity — found", { table: config.table, id });
   return response(200, config.fromDb(result.rows[0]));
 }
 
-async function createEntity(client, config, data) {
+async function createEntity(client, config, data, entityKey) {
   if (!data || typeof data !== "object") {
+    log("WARN", "createEntity — missing body", { entityKey });
     return response(400, { message: "Body requerido para crear un registro" });
   }
 
   const cols = config.toDb(data);
   const keys = Object.keys(cols);
   if (keys.length === 0) {
+    log("WARN", "createEntity — no valid fields", { entityKey, receivedKeys: Object.keys(data) });
     return response(400, { message: "Ningún campo válido proporcionado" });
   }
 
-  const colNames   = keys.join(", ");
-  const colParams  = keys.map((_, i) => `$${i + 1}`).join(", ");
-  const values     = keys.map(k => cols[k]);
+  const colNames  = keys.join(", ");
+  const colParams = keys.map((_, i) => `$${i + 1}`).join(", ");
+  const values    = keys.map(k => cols[k]);
 
+  log("INFO", "createEntity — inserting", { table: config.table, columns: keys });
   const result = await client.query(
     `INSERT INTO ${config.table} (${colNames}) VALUES (${colParams}) RETURNING *`,
     values
   );
+  log("INFO", "createEntity — success", { table: config.table, newId: result.rows[0]?.id });
   return response(201, config.fromDb(result.rows[0]));
 }
 
-async function updateEntity(client, config, id, data) {
+async function updateEntity(client, config, id, data, entityKey) {
   if (!data || typeof data !== "object") {
+    log("WARN", "updateEntity — missing body", { entityKey, id });
     return response(400, { message: "Body requerido para actualizar" });
   }
 
   const cols = config.toDb(data);
   const keys = Object.keys(cols);
   if (keys.length === 0) {
+    log("WARN", "updateEntity — no valid fields", { entityKey, id, receivedKeys: Object.keys(data) });
     return response(400, { message: "Ningún campo válido proporcionado" });
   }
 
   const setClauses = keys.map((k, i) => `${k} = $${i + 1}`).join(", ");
   const values     = [...keys.map(k => cols[k]), id];
 
+  log("INFO", "updateEntity — updating", { table: config.table, id, columns: keys });
   const result = await client.query(
     `UPDATE ${config.table}
      SET ${setClauses}, updated_at = NOW()
@@ -288,19 +349,24 @@ async function updateEntity(client, config, id, data) {
   );
 
   if (result.rowCount === 0) {
+    log("WARN", "updateEntity — not found", { table: config.table, id });
     return response(404, { message: "Registro no encontrado" });
   }
+  log("INFO", "updateEntity — success", { table: config.table, id });
   return response(200, config.fromDb(result.rows[0]));
 }
 
-async function deleteEntity(client, config, id) {
+async function deleteEntity(client, config, id, entityKey) {
+  log("INFO", "deleteEntity — deleting", { table: config.table, id });
   const result = await client.query(
     `DELETE FROM ${config.table} WHERE id = $1 RETURNING id`,
     [id]
   );
   if (result.rowCount === 0) {
+    log("WARN", "deleteEntity — not found", { table: config.table, id });
     return response(404, { message: "Registro no encontrado" });
   }
+  log("INFO", "deleteEntity — success", { table: config.table, id });
   return response(200, { message: "Registro eliminado", id: parseInt(id) });
 }
 
