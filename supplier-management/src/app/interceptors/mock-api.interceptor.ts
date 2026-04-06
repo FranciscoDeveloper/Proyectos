@@ -11,11 +11,12 @@
  *   POST   /api/auth/login
  *
  * Entities (generic CRUD)
- *   GET    /api/entities/:key
- *   POST   /api/entities/:key
- *   PUT    /api/entities/:key/:id
- *   DELETE /api/entities/:key/:id
- *   POST   /api/entities/:key/:id/encounters
+ *   GET    /api/entities/:entity
+ *   GET    /api/entities/:entity/:id
+ *   POST   /api/entities/:entity
+ *   PUT    /api/entities/:entity/:id
+ *   DELETE /api/entities/:entity/:id
+ *   POST   /api/entities/:entity/:id/encounters
  *
  * Suppliers (typed module)
  *   GET    /api/suppliers
@@ -138,12 +139,12 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
   const entityItemMatch   = url.match(/^\/api\/entities\/([^/]+)\/(\d+)$/);
   const entityEncMatch    = url.match(/^\/api\/entities\/([^/]+)\/(\d+)\/encounters$/);
 
-  // POST /api/entities/:key/:id/encounters
+  // POST /api/entities/:entity/:id/encounters
   if (method === 'POST' && entityEncMatch) {
-    const [, key, idStr] = entityEncMatch;
+    const [, entity, idStr] = entityEncMatch;
     const id = Number(idStr);
     const encounter = req.body as Record<string, any>;
-    const store = entityStore(key);
+    const store = entityStore(entity);
     const idx = store.findIndex(r => r['id'] === id);
     if (idx < 0) return err(404, `Registro ${id} no encontrado`);
     const existing = Array.isArray(store[idx]['encounters']) ? store[idx]['encounters'] : [];
@@ -156,40 +157,49 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
     return ok(store[idx]);
   }
 
-  // GET /api/entities/:key
+  // GET /api/entities/:entity
   if (method === 'GET' && entityListMatch) {
-    const [, key] = entityListMatch;
-    return ok([...entityStore(key)]);
+    const [, entity] = entityListMatch;
+    return ok([...entityStore(entity)]);
   }
 
-  // POST /api/entities/:key
+  // GET /api/entities/:entity/:id
+  if (method === 'GET' && entityItemMatch) {
+    const [, entity, idStr] = entityItemMatch;
+    const id   = Number(idStr);
+    const item = entityStore(entity).find(r => r['id'] === id);
+    if (!item) return err(404, `Registro ${id} no encontrado`);
+    return ok({ ...item });
+  }
+
+  // POST /api/entities/:entity
   if (method === 'POST' && entityListMatch) {
-    const [, key] = entityListMatch;
+    const [, entity] = entityListMatch;
     const data = req.body as Record<string, any>;
-    const id = _entityNextId[key] ?? (entityStore(key), _entityNextId[key]);
-    _entityNextId[key] = id + 1;
+    const id = _entityNextId[entity] ?? (entityStore(entity), _entityNextId[entity]);
+    _entityNextId[entity] = id + 1;
     const item = { ...data, id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-    entityStore(key).push(item);
+    entityStore(entity).push(item);
     return ok(item);
   }
 
-  // PUT /api/entities/:key/:id
+  // PUT /api/entities/:entity/:id
   if (method === 'PUT' && entityItemMatch) {
-    const [, key, idStr] = entityItemMatch;
+    const [, entity, idStr] = entityItemMatch;
     const id = Number(idStr);
     const data = req.body as Record<string, any>;
-    const store = entityStore(key);
+    const store = entityStore(entity);
     const idx = store.findIndex(r => r['id'] === id);
     if (idx < 0) return err(404, `Registro ${id} no encontrado`);
     store[idx] = { ...store[idx], ...data, id, updatedAt: new Date().toISOString() };
     return ok(store[idx]);
   }
 
-  // DELETE /api/entities/:key/:id
+  // DELETE /api/entities/:entity/:id
   if (method === 'DELETE' && entityItemMatch) {
-    const [, key, idStr] = entityItemMatch;
+    const [, entity, idStr] = entityItemMatch;
     const id = Number(idStr);
-    const store = entityStore(key);
+    const store = entityStore(entity);
     const idx = store.findIndex(r => r['id'] === id);
     if (idx < 0) return err(404, `Registro ${id} no encontrado`);
     store.splice(idx, 1);
