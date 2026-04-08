@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { EntityMeta, EntityPayload, EntitySchema, ModuleType } from '../models/entity-schema.model';
+import { EntityMeta, EntityPayload, EntitySchema } from '../models/entity-schema.model';
 import { AuthService, SCHEMA_CLINICAL_RECORDS, SCHEMA_PSYCH_RECORDS, SCHEMA_DENTAL_RECORDS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES } from './auth.service';
 
 /**
@@ -723,30 +723,15 @@ export class SchemaService {
    * catalog schema (local, has full field definitions).
    *
    * Rules:
-   *  - fields:     backend wins if non-empty, otherwise falls back to local catalog
-   *  - moduleType: backend wins only when it sends a specific value ('calendar',
-   *                'clinical-record'); generic 'list' or missing defers to local
-   *                catalog so calendar and clinical-record modules keep working
-   *  - everything else (singular, plural, icon, etc.): backend wins
+   *  - entity metadata (moduleType, singular, plural, icon…): backend wins
+   *  - fields: backend wins if non-empty, otherwise falls back to local catalog
    */
   private mergeSchema(
     authorized: EntitySchema | undefined,
     catalog: EntitySchema | null
   ): EntitySchema | null {
     if (!authorized) return catalog;
-
     const fields = authorized.fields.length > 0 ? authorized.fields : (catalog?.fields ?? []);
-
-    const backendModuleType = authorized.entity.moduleType as string | undefined;
-    const specificTypes: string[] = ['calendar', 'clinical-record'];
-    const moduleType: ModuleType | undefined =
-      backendModuleType && specificTypes.includes(backendModuleType)
-        ? (backendModuleType as ModuleType)
-        : (catalog?.entity.moduleType ?? authorized.entity.moduleType);
-
-    return {
-      entity: { ...authorized.entity, moduleType },
-      fields
-    };
+    return { ...authorized, fields };
   }
 }
