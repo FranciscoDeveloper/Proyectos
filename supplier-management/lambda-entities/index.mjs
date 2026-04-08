@@ -160,6 +160,60 @@ const ENTITY_CONFIG = {
         updatedAt:     r.updated_at
       };
     }
+  },
+
+  // ── appointments ─────────────────────────────────────────────────────────────
+  // Resolves patient name and professional name via LEFT JOINs so the frontend
+  // receives patientName / professionalName instead of raw foreign key IDs.
+  appointments: {
+    table: "cita",
+
+    // JOIN query used by listEntities and getEntity instead of plain SELECT *
+    joinSelect: `
+      SELECT
+        c.id,
+        c.status,
+        c.service,
+        c.date_time          AS "dateTime",
+        c.duration_minutes   AS "durationMinutes",
+        c.notes,
+        c.google_event_id    AS "googleEventId",
+        c.created_at         AS "createdAt",
+        c.updated_at         AS "updatedAt",
+        p.nombre             AS "patientName",
+        pr.nombre            AS "professionalName"
+      FROM cita c
+      LEFT JOIN paciente    p  ON p.id::text  = c.patient_id
+      LEFT JOIN profesional pr ON pr.id::text = c.professional_id
+    `,
+
+    toDb(d) {
+      const cols = {};
+      if (d.status            !== undefined) cols.status              = d.status;
+      if (d.service           !== undefined) cols.service             = d.service;
+      if (d.dateTime          !== undefined) cols.date_time           = d.dateTime;
+      if (d.durationMinutes   !== undefined) cols.duration_minutes    = d.durationMinutes;
+      if (d.notes             !== undefined) cols.notes               = d.notes;
+      if (d.patientId         !== undefined) cols.patient_id          = d.patientId;
+      if (d.professionalId    !== undefined) cols.professional_id     = d.professionalId;
+      return cols;
+    },
+
+    fromDb(r) {
+      return {
+        id:               r.id,
+        status:           r.status,
+        service:          r.service,
+        dateTime:         r.dateTime   ?? r.date_time,
+        durationMinutes:  r.durationMinutes !== null ? parseInt(r.durationMinutes ?? r.duration_minutes) : null,
+        notes:            r.notes,
+        googleEventId:    r.googleEventId ?? r.google_event_id,
+        patientName:      r.patientName  ?? r.patient_name  ?? null,
+        professionalName: r.professionalName ?? r.professional_name ?? null,
+        createdAt:        r.createdAt   ?? r.created_at,
+        updatedAt:        r.updatedAt   ?? r.updated_at
+      };
+    }
   }
 };
 
@@ -277,18 +331,25 @@ export const handler = async (event, context) => {
 // ── CRUD operations ───────────────────────────────────────────────────────────
 
 async function listEntities(client, config, entityKey) {
-  log("INFO", "listEntities — querying", { table: config.table });
-  const result = await client.query(`SELECT * FROM ${config.table} ORDER BY id DESC`);
+  log("INFO", "listEntities — querying", { table: config.table, hasJoin: !!config.joinSelect });
+  let result;
+  if (config.joinSelect) {
+    result = await client.query(`${config.joinSelect} ORDER BY c.created_at DESC`);
+  } else {
+    result = await client.query(`SELECT * FROM ${config.table} ORDER BY id DESC`);
+  }
   log("INFO", "listEntities — done", { table: config.table, rowCount: result.rowCount });
   return response(200, result.rows.map(config.fromDb));
 }
 
 async function getEntity(client, config, id, entityKey) {
-  log("INFO", "getEntity — querying", { table: config.table, id });
-  const result = await client.query(
-    `SELECT * FROM ${config.table} WHERE id = $1 LIMIT 1`,
-    [id]
-  );
+  log("INFO", "getEntity — querying", { table: config.table, id, hasJoin: !!config.joinSelect });
+  let result;
+  if (config.joinSelect) {
+    result = await client.query(`${config.joinSelect} WHERE c.id = $1 LIMIT 1`, [id]);
+  } else {
+    result = await client.query(`SELECT * FROM ${config.table} WHERE id = $1 LIMIT 1`, [id]);
+  }
   if (result.rowCount === 0) {
     log("WARN", "getEntity — not found", { table: config.table, id });
     return response(404, { message: "Registro no encontrado" });

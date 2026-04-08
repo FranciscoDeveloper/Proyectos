@@ -27,7 +27,7 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
         },
         fields: [
           { name: 'service',          type: 'text',     label: 'Servicio',        required: true,  isTitle: true,         showInList: true,  showInDetail: true,  filterable: true,  filterType: 'search' },
-          { name: 'patientId',        type: 'text',     label: 'Paciente ID',     required: false, isSubtitle: true,      showInList: true,  showInDetail: true  },
+          { name: 'patientName',      type: 'text',     label: 'Paciente',        required: false, isSubtitle: true,      showInList: true,  showInDetail: true,  filterable: true,  filterType: 'search' },
           { name: 'dateTime',         type: 'datetime', label: 'Fecha y hora',    required: true,  isCalendarStart: true, showInList: true,  showInDetail: true,  sortable: true },
           { name: 'durationMinutes',  type: 'number',   label: 'Duración (min)',  required: false,                        showInList: false, showInDetail: true,  min: 0 },
           { name: 'status',           type: 'select',   label: 'Estado',          required: true,  isBadge: true,         showInList: true,  showInDetail: true,  filterable: true,  filterType: 'select',
@@ -39,7 +39,7 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
             ],
             badgeColors: { AGENDADA: '#3b82f6', COMPLETADA: '#10b981', CANCELADA: '#ef4444', NO_ASISTIO: '#f59e0b' }
           },
-          { name: 'professionalId',   type: 'text',     label: 'Profesional ID',  required: false,                        showInList: false, showInDetail: true  },
+          { name: 'professionalName', type: 'text',     label: 'Profesional',     required: false,                        showInList: true,  showInDetail: true  },
           { name: 'notes',            type: 'textarea', label: 'Notas',           required: false,                        showInList: false, showInDetail: true  }
         ]
       },
