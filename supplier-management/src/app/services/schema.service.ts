@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { EntityMeta, EntityPayload, EntitySchema } from '../models/entity-schema.model';
+import { EntityMeta, EntityPayload, EntitySchema, ModuleType } from '../models/entity-schema.model';
 import { AuthService, SCHEMA_CLINICAL_RECORDS, SCHEMA_PSYCH_RECORDS, SCHEMA_DENTAL_RECORDS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES } from './auth.service';
 
 /**
@@ -655,11 +655,21 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
     }
 };
 
+/** Maps backend entity keys that differ from local catalog keys */
+const KEY_ALIASES: Record<string, string> = {
+  paciente: 'patients'
+};
+
 @Injectable({ providedIn: 'root' })
 export class SchemaService {
   private auth = inject(AuthService);
 
   private readonly catalog = ENTITY_CATALOG;
+
+  /** Resolves a backend key to the local catalog key via alias table */
+  private catalogKey(key: string): string {
+    return KEY_ALIASES[key] ?? key;
+  }
 
   /**
    * Returns entity metadata for sidebar navigation.
@@ -669,7 +679,12 @@ export class SchemaService {
   getAvailableEntities(): EntityMeta[] {
     const authorized = this.auth.getAuthorizedSchemas();
     if (authorized.length > 0) {
-      return authorized.map(s => s.entity);
+      // Apply mergeSchema so moduleType is resolved correctly for each entity
+      return authorized.map(s => {
+        const cKey   = this.catalogKey(s.entity.key);
+        const merged = this.mergeSchema(s, this.catalog[cKey]?.schema ?? null);
+        return merged!.entity;
+      });
     }
     // Fallback to full catalog (used in tests / before login)
     return Object.values(this.catalog).map(p => p.schema.entity);
@@ -681,11 +696,12 @@ export class SchemaService {
    * data rows come from the local catalog (mock store).
    */
   getEntityPayload(key: string): EntityPayload | null {
-    if (!this.catalog[key]) return null;
+    const cKey = this.catalogKey(key);
+    if (!this.catalog[cKey]) return null;
     const authorizedSchema = this.auth.getAuthorizedSchemas().find(s => s.entity.key === key);
     return {
-      schema: this.mergeSchema(authorizedSchema, this.catalog[key].schema)!,
-      data: this.catalog[key].data
+      schema: this.mergeSchema(authorizedSchema, this.catalog[cKey].schema)!,
+      data: this.catalog[cKey].data
     };
   }
 
@@ -696,23 +712,41 @@ export class SchemaService {
    * the frontend owns the field definitions (types, labels, display options).
    */
   getSchema(key: string): EntitySchema | null {
+    const cKey = this.catalogKey(key);
     const authorizedSchema = this.auth.getAuthorizedSchemas().find(s => s.entity.key === key);
-    const catalogSchema    = this.catalog[key]?.schema ?? null;
+    const catalogSchema    = this.catalog[cKey]?.schema ?? null;
     return this.mergeSchema(authorizedSchema, catalogSchema);
   }
 
   /**
    * Merges an authorized schema (from backend, may have fields:[]) with a
    * catalog schema (local, has full field definitions).
-   * Entity metadata from backend takes precedence; fields from local catalog
-   * are used when the backend returns an empty fields array.
+   *
+   * Rules:
+   *  - fields:     backend wins if non-empty, otherwise falls back to local catalog
+   *  - moduleType: backend wins only when it sends a specific value ('calendar',
+   *                'clinical-record'); generic 'list' or missing defers to local
+   *                catalog so calendar and clinical-record modules keep working
+   *  - everything else (singular, plural, icon, etc.): backend wins
    */
   private mergeSchema(
     authorized: EntitySchema | undefined,
     catalog: EntitySchema | null
   ): EntitySchema | null {
     if (!authorized) return catalog;
+
     const fields = authorized.fields.length > 0 ? authorized.fields : (catalog?.fields ?? []);
-    return { ...authorized, fields };
+
+    const backendModuleType = authorized.entity.moduleType as string | undefined;
+    const specificTypes: string[] = ['calendar', 'clinical-record'];
+    const moduleType: ModuleType | undefined =
+      backendModuleType && specificTypes.includes(backendModuleType)
+        ? (backendModuleType as ModuleType)
+        : (catalog?.entity.moduleType ?? authorized.entity.moduleType);
+
+    return {
+      entity: { ...authorized.entity, moduleType },
+      fields
+    };
   }
 }
