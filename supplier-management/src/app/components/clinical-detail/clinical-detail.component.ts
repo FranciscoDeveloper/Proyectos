@@ -58,6 +58,7 @@ export class ClinicalDetailComponent {
       fullName:     String(get('fullName') ?? ''),
       patientId:    String(get('patientId') ?? ''),
       rut:          String(get('rut') ?? ''),
+      birthDate:    String(get('birthDate') ?? ''),
       age:          Number(get('age') ?? 0),
       gender:       this.schema.fields.find(f=>f.name==='gender')?.options?.find(o=>o.value===get('gender'))?.label ?? '',
       statusLabel:  statusField?.options?.find(o => o.value === statusVal)?.label ?? '',

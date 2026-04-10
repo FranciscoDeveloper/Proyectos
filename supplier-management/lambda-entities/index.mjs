@@ -160,6 +160,184 @@ const ENTITY_CONFIG = {
         updatedAt:     r.updated_at
       };
     }
+  },
+
+  // ── patients ─────────────────────────────────────────────────────────────────
+  patients: {
+    table: "paciente",
+    toDb(d) {
+      const cols = {};
+      if (d.nombre     !== undefined) cols.nombre     = d.nombre;
+      if (d.email      !== undefined) cols.email      = d.email;
+      if (d.telefono   !== undefined) cols.telefono   = d.telefono;
+      if (d.diagnostic !== undefined) cols.diagnostic = d.diagnostic;
+      if (d.allergies  !== undefined) cols.allergies  = JSON.stringify(d.allergies);
+      return cols;
+    },
+    fromDb(r) {
+      return {
+        id:         r.id,
+        nombre:     r.nombre,
+        email:      r.email,
+        telefono:   r.telefono,
+        diagnostic: r.diagnostic ?? null,
+        allergies:  r.allergies  ?? [],
+        createdAt:  r.created_at,
+        updatedAt:  r.updated_at
+      };
+    }
+  },
+
+  // ── appointments ─────────────────────────────────────────────────────────────
+  appointments: {
+    table: "cita",
+
+    // Optional JOIN query — used instead of plain SELECT * when present
+    joinSelect: `
+      SELECT
+        c.id,
+        c.status,
+        c.service,
+        c.date_time          AS "dateTime",
+        c.duration_minutes   AS "durationMinutes",
+        c.notes,
+        c.google_event_id    AS "googleEventId",
+        c.created_at         AS "createdAt",
+        c.updated_at         AS "updatedAt",
+        p.nombre             AS "patientName",
+        pr.nombre            AS "professionalName"
+      FROM cita c
+      LEFT JOIN paciente    p  ON p.id::text  = c.patient_id
+      LEFT JOIN profesional pr ON pr.id::text = c.professional_id
+    `,
+
+    toDb(d) {
+      const cols = {};
+      if (d.status            !== undefined) cols.status              = d.status;
+      if (d.service           !== undefined) cols.service             = d.service;
+      if (d.dateTime          !== undefined) cols.date_time           = d.dateTime;
+      if (d.durationMinutes   !== undefined) cols.duration_minutes    = d.durationMinutes;
+      if (d.notes             !== undefined) cols.notes               = d.notes;
+      if (d.patientId         !== undefined) cols.patient_id          = d.patientId;
+      if (d.professionalId    !== undefined) cols.professional_id     = d.professionalId;
+      return cols;
+    },
+
+    fromDb(r) {
+      return {
+        id:               r.id,
+        status:           r.status,
+        service:          r.service,
+        dateTime:         r.dateTime   ?? r.date_time,
+        durationMinutes:  r.durationMinutes !== null ? parseInt(r.durationMinutes ?? r.duration_minutes) : null,
+        notes:            r.notes,
+        googleEventId:    r.googleEventId ?? r.google_event_id,
+        patientName:      r.patientName  ?? r.patient_name  ?? null,
+        professionalName: r.professionalName ?? r.professional_name ?? null,
+        createdAt:        r.createdAt   ?? r.created_at,
+        updatedAt:        r.updatedAt   ?? r.updated_at
+      };
+    }
+  },
+
+  // ── clinical-records ─────────────────────────────────────────────────────────
+  'clinical-records': {
+    table: "ficha_clinica",
+
+    toDb(d) {
+      const cols = {};
+      if (d.fullName             !== undefined) cols.full_name              = d.fullName;
+      if (d.patientId            !== undefined) cols.patient_code           = d.patientId;
+      if (d.rut                  !== undefined) cols.rut                    = d.rut;
+      if (d.birthDate            !== undefined) cols.birth_date             = d.birthDate;
+      if (d.age                  !== undefined) cols.age                    = d.age;
+      if (d.gender               !== undefined) cols.gender                 = d.gender;
+      if (d.bloodType            !== undefined) cols.blood_type             = d.bloodType;
+      if (d.insurance            !== undefined) cols.insurance              = d.insurance;
+      if (d.phone                !== undefined) cols.phone                  = d.phone;
+      if (d.email                !== undefined) cols.email                  = d.email;
+      if (d.address              !== undefined) cols.address                = d.address;
+      if (d.emergencyContact     !== undefined) cols.emergency_contact      = d.emergencyContact;
+      if (d.doctor               !== undefined) cols.doctor                 = d.doctor;
+      if (d.lastVisit            !== undefined) cols.last_visit             = d.lastVisit;
+      if (d.status               !== undefined) cols.status                 = d.status;
+      if (d.allergies            !== undefined) cols.allergies              = JSON.stringify(d.allergies);
+      if (d.contraindications    !== undefined) cols.contraindications      = d.contraindications;
+      if (d.alertNotes           !== undefined) cols.alert_notes            = d.alertNotes;
+      if (d.bp                   !== undefined) cols.bp                     = d.bp;
+      if (d.heartRate            !== undefined) cols.heart_rate             = d.heartRate;
+      if (d.temperature          !== undefined) cols.temperature            = d.temperature;
+      if (d.o2Saturation         !== undefined) cols.o2_saturation          = d.o2Saturation;
+      if (d.weight               !== undefined) cols.weight                 = d.weight;
+      if (d.height               !== undefined) cols.height                 = d.height;
+      if (d.bmi                  !== undefined) cols.bmi                    = d.bmi;
+      if (d.respiratoryRate      !== undefined) cols.respiratory_rate       = d.respiratoryRate;
+      if (d.personalHistory      !== undefined) cols.personal_history       = d.personalHistory;
+      if (d.familyHistory        !== undefined) cols.family_history         = d.familyHistory;
+      if (d.habits               !== undefined) cols.habits                 = d.habits;
+      if (d.surgicalHistory      !== undefined) cols.surgical_history       = d.surgicalHistory;
+      if (d.plannedInterventions !== undefined) cols.planned_interventions  = d.plannedInterventions;
+      if (d.currentMedications   !== undefined) cols.current_medications    = d.currentMedications;
+      if (d.chronicConditions    !== undefined) cols.chronic_conditions     = JSON.stringify(d.chronicConditions);
+      if (d.diagnosisCode        !== undefined) cols.diagnosis_code         = d.diagnosisCode;
+      if (d.diagnosisLabel       !== undefined) cols.diagnosis_label        = d.diagnosisLabel;
+      if (d.differentialDx       !== undefined) cols.differential_dx        = d.differentialDx;
+      if (d.soapSubjective       !== undefined) cols.soap_subjective        = d.soapSubjective;
+      if (d.soapObjective        !== undefined) cols.soap_objective         = d.soapObjective;
+      if (d.soapAssessment       !== undefined) cols.soap_assessment        = d.soapAssessment;
+      if (d.soapPlan             !== undefined) cols.soap_plan              = d.soapPlan;
+      if (d.encounters           !== undefined) cols.encounters             = JSON.stringify(d.encounters);
+      return cols;
+    },
+
+    fromDb(r) {
+      return {
+        id:                   r.id,
+        fullName:             r.full_name,
+        patientId:            r.patient_code,
+        rut:                  r.rut,
+        birthDate:            r.birth_date,
+        age:                  r.age    !== null ? parseInt(r.age)     : null,
+        gender:               r.gender,
+        bloodType:            r.blood_type,
+        insurance:            r.insurance,
+        phone:                r.phone,
+        email:                r.email,
+        address:              r.address,
+        emergencyContact:     r.emergency_contact,
+        doctor:               r.doctor,
+        lastVisit:            r.last_visit,
+        status:               r.status,
+        allergies:            r.allergies         ?? [],
+        contraindications:    r.contraindications ?? '',
+        alertNotes:           r.alert_notes       ?? '',
+        bp:                   r.bp,
+        heartRate:            r.heart_rate        !== null ? parseFloat(r.heart_rate)        : null,
+        temperature:          r.temperature       !== null ? parseFloat(r.temperature)       : null,
+        o2Saturation:         r.o2_saturation     !== null ? parseFloat(r.o2_saturation)     : null,
+        weight:               r.weight            !== null ? parseFloat(r.weight)            : null,
+        height:               r.height            !== null ? parseFloat(r.height)            : null,
+        bmi:                  r.bmi               !== null ? parseFloat(r.bmi)               : null,
+        respiratoryRate:      r.respiratory_rate  !== null ? parseFloat(r.respiratory_rate)  : null,
+        personalHistory:      r.personal_history      ?? '',
+        familyHistory:        r.family_history        ?? '',
+        habits:               r.habits                ?? '',
+        surgicalHistory:      r.surgical_history      ?? '',
+        plannedInterventions: r.planned_interventions ?? '',
+        currentMedications:   r.current_medications   ?? '',
+        chronicConditions:    r.chronic_conditions    ?? [],
+        diagnosisCode:        r.diagnosis_code        ?? '',
+        diagnosisLabel:       r.diagnosis_label       ?? '',
+        differentialDx:       r.differential_dx       ?? '',
+        soapSubjective:       r.soap_subjective       ?? '',
+        soapObjective:        r.soap_objective        ?? '',
+        soapAssessment:       r.soap_assessment       ?? '',
+        soapPlan:             r.soap_plan             ?? '',
+        encounters:           r.encounters            ?? [],
+        createdAt:            r.created_at,
+        updatedAt:            r.updated_at
+      };
+    }
   }
 };
 
@@ -277,18 +455,25 @@ export const handler = async (event, context) => {
 // ── CRUD operations ───────────────────────────────────────────────────────────
 
 async function listEntities(client, config, entityKey) {
-  log("INFO", "listEntities — querying", { table: config.table });
-  const result = await client.query(`SELECT * FROM ${config.table} ORDER BY id DESC`);
+  log("INFO", "listEntities — querying", { table: config.table, hasJoin: !!config.joinSelect });
+  let result;
+  if (config.joinSelect) {
+    result = await client.query(`${config.joinSelect} ORDER BY c.created_at DESC`);
+  } else {
+    result = await client.query(`SELECT * FROM ${config.table} ORDER BY id DESC`);
+  }
   log("INFO", "listEntities — done", { table: config.table, rowCount: result.rowCount });
   return response(200, result.rows.map(config.fromDb));
 }
 
 async function getEntity(client, config, id, entityKey) {
-  log("INFO", "getEntity — querying", { table: config.table, id });
-  const result = await client.query(
-    `SELECT * FROM ${config.table} WHERE id = $1 LIMIT 1`,
-    [id]
-  );
+  log("INFO", "getEntity — querying", { table: config.table, id, hasJoin: !!config.joinSelect });
+  let result;
+  if (config.joinSelect) {
+    result = await client.query(`${config.joinSelect} WHERE c.id = $1 LIMIT 1`, [id]);
+  } else {
+    result = await client.query(`SELECT * FROM ${config.table} WHERE id = $1 LIMIT 1`, [id]);
+  }
   if (result.rowCount === 0) {
     log("WARN", "getEntity — not found", { table: config.table, id });
     return response(404, { message: "Registro no encontrado" });

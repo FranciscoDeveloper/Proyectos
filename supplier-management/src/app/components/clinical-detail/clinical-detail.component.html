@@ -2,7 +2,7 @@
 
   <!-- ── Breadcrumb ── -->
   <nav class="breadcrumb">
-    <a [routerLink]="['/module', entityKey]" class="bc-link">
+    <a [routerLink]="['/clinical', entityKey]" class="bc-link">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
         <rect x="9" y="3" width="6" height="4" rx="1" ry="1"/>
@@ -311,6 +311,10 @@
           <span>Datos del Paciente</span>
         </div>
         <div class="contact-list">
+          <div class="contact-row" *ngIf="patient()!.birthDate">
+            <span class="contact-label">Fecha Nac.</span>
+            <span class="contact-value">{{ patient()!.birthDate | date:'d MMM yyyy' }}</span>
+          </div>
           <div class="contact-row" *ngIf="patient()!.address">
             <span class="contact-label">Dirección</span>
             <span class="contact-value">{{ patient()!.address }}</span>
