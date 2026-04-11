@@ -192,6 +192,33 @@
     border-radius: 99px; padding: .4rem 1rem; font-size: .82rem;
   }
 
+  /* DTE / FACTURACIÓN ELECTRÓNICA */
+  .dte-section {
+    margin: 0 auto;
+    background: linear-gradient(135deg, rgba(16,185,129,.10), rgba(99,102,241,.07));
+    border: 1px solid rgba(16,185,129,.3); border-radius: 20px;
+    padding: 4rem 2rem; text-align: center; max-width: 1100px;
+  }
+  .dte-badge {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.3);
+    color: var(--green); padding: .35rem 1rem; border-radius: 99px;
+    font-size: .8rem; font-weight: 700; margin-bottom: 1.25rem; letter-spacing: .5px;
+  }
+  .dte-section h2 { font-size: clamp(1.6rem, 3.5vw, 2.4rem); font-weight: 800; letter-spacing: -1px; margin-bottom: 1rem; }
+  .dte-section > p { color: var(--muted); max-width: 580px; margin: 0 auto 2rem; }
+  .dte-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem; margin-top: 2.5rem; text-align: left;
+  }
+  .dte-card {
+    background: rgba(255,255,255,.04); border: 1px solid rgba(16,185,129,.2);
+    border-radius: var(--radius); padding: 1.25rem;
+  }
+  .dte-card-icon { font-size: 1.5rem; margin-bottom: .6rem; }
+  .dte-card h4 { font-size: .9rem; font-weight: 700; margin-bottom: .35rem; }
+  .dte-card p { font-size: .8rem; color: var(--muted); }
+
   /* PRICING / CTA */
   .cta-section {
     text-align: center; padding: 6rem 1.5rem;
@@ -242,6 +269,7 @@
   <div class="nav-links">
     <a href="#features">Funcionalidades</a>
     <a href="#ai">IA WhatsApp</a>
+    <a href="#dte">Facturación</a>
     <a href="#cta">Precios</a>
     <a href="#contacto">Contacto</a>
   </div>
@@ -276,6 +304,7 @@
         <div class="mock-nav-item"><span class="icon">💊</span> Productos</div>
         <div class="mock-nav-item"><span class="icon">🤝</span> Proveedores</div>
         <div class="mock-nav-item"><span class="icon">💳</span> Pagos</div>
+        <div class="mock-nav-item"><span class="icon">🧾</span> Facturación</div>
         <div class="mock-nav-item"><span class="icon">💬</span> Chat</div>
         <div class="mock-nav-item"><span class="icon">⚙️</span> Configuración</div>
       </div>
@@ -379,6 +408,11 @@
       <h3>Infraestructura AWS</h3>
       <p>Backend serverless en AWS (API Gateway + Lambda + RDS PostgreSQL). Alta disponibilidad, backups automáticos y cifrado de datos en reposo y en tránsito.</p>
     </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧾</div>
+      <h3>Facturación Electrónica DTE</h3>
+      <p>Emite boletas, facturas y honorarios electrónicos timbrados por el SII sin salir de la plataforma. Cumplimiento tributario chileno 100% integrado.</p>
+    </div>
   </div>
 </section>
 
@@ -396,6 +430,48 @@
       <span class="ai-pill">🏥 Respuestas clínicas básicas</span>
       <span class="ai-pill">⏰ Disponibilidad 24/7</span>
       <span class="ai-pill">🌍 Multilingüe</span>
+    </div>
+  </div>
+</div>
+
+<!-- FACTURACIÓN ELECTRÓNICA -->
+<div style="padding: 2rem 1.5rem 0; max-width: 1100px; margin: 0 auto;" id="dte">
+  <div class="dte-section">
+    <div class="dte-badge">🧾 Disponible · Facturación Electrónica Chile</div>
+    <h2>Factura electrónica integrada<br><span style="background:linear-gradient(135deg,var(--green),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">directamente desde Dairi</span></h2>
+    <p>Emite boletas, facturas y honorarios electrónicos timbrados por el SII sin salir de la plataforma. Cumple con la normativa DTE y elimina el trabajo manual de conciliación tributaria.</p>
+    <a href="#cta" class="btn-primary" style="margin-top:.5rem;background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 8px 30px rgba(16,185,129,.35);">Solicitar acceso</a>
+    <div class="dte-grid">
+      <div class="dte-card">
+        <div class="dte-card-icon">🏷️</div>
+        <h4>Boleta Electrónica</h4>
+        <p>Emite boletas a pacientes particulares con timbre electrónico SII y envío automático por email al finalizar la atención.</p>
+      </div>
+      <div class="dte-card">
+        <div class="dte-card-icon">🏢</div>
+        <h4>Factura a Isapres / Empresas</h4>
+        <p>Facturación a terceros pagadores — Isapres, mutualidades, FONASA y empresas — en formato DTE válido.</p>
+      </div>
+      <div class="dte-card">
+        <div class="dte-card-icon">💼</div>
+        <h4>Boleta de Honorarios</h4>
+        <p>Profesionales independientes emiten sus boletas de honorarios electrónicas directamente desde su perfil en Dairi.</p>
+      </div>
+      <div class="dte-card">
+        <div class="dte-card-icon">🔗</div>
+        <h4>Integración SII</h4>
+        <p>Conexión directa con el Servicio de Impuestos Internos para timbrar y enviar documentos tributarios en tiempo real.</p>
+      </div>
+      <div class="dte-card">
+        <div class="dte-card-icon">📊</div>
+        <h4>Libro de Ventas Automático</h4>
+        <p>Generación automática del Libro de Ventas mensual para tu contador, exportable en PDF y Excel sin trabajo manual.</p>
+      </div>
+      <div class="dte-card">
+        <div class="dte-card-icon">🔄</div>
+        <h4>Notas de Crédito</h4>
+        <p>Anulación y corrección de documentos emitidos mediante notas de crédito electrónicas sin trámites adicionales.</p>
+      </div>
     </div>
   </div>
 </div>
@@ -445,6 +521,7 @@
       <ul>
         <li><a href="#features">Funcionalidades</a></li>
         <li><a href="#ai">IA WhatsApp</a></li>
+        <li><a href="#dte">Facturación Electrónica</a></li>
         <li><a href="#cta">Precios</a></li>
         <li><a href="#">Novedades</a></li>
       </ul>
