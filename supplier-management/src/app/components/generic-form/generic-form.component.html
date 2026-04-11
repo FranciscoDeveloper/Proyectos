@@ -138,6 +138,7 @@
           <label [for]="field.name" class="field-label">
             {{ field.label }}
             <span class="required" *ngIf="field.required && !isEncounterMode()">*</span>
+            <span class="field-locked-hint" *ngIf="field.lockWhenHasEncounters && hasEncounters()" title="No editable con atenciones registradas">🔒</span>
           </label>
           <select [id]="field.name" [formControlName]="field.name"
             class="field-input field-select" [class.invalid]="isInvalid(field.name)">

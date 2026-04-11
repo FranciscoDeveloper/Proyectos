@@ -194,6 +194,7 @@
   gap: 0.25rem;
 
   .required { color: #ef4444; }
+  .field-locked-hint { font-size: 0.75rem; margin-left: 0.25rem; opacity: 0.7; cursor: help; }
   .range-value {
     margin-left: auto;
     font-size: 0.9rem;
