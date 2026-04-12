@@ -9,12 +9,12 @@
     --primary: #6366f1;
     --primary-dark: #4f46e5;
     --accent: #22d3ee;
-    --bg: #0f0f1a;
-    --surface: #1a1a2e;
-    --surface2: #16213e;
-    --text: #f1f5f9;
-    --muted: #94a3b8;
-    --border: #2d2d4a;
+    --bg: #ffffff;
+    --surface: #f8fafc;
+    --surface2: #f1f5f9;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
     --green: #10b981;
     --yellow: #f59e0b;
     --pink: #ec4899;
@@ -27,8 +27,9 @@
   /* NAV */
   nav {
     position: fixed; top: 0; width: 100%; z-index: 100;
-    background: rgba(15,15,26,0.85); backdrop-filter: blur(12px);
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 8px rgba(15,23,42,.06);
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 2rem; height: 64px;
   }
@@ -49,11 +50,11 @@
     min-height: 100vh; display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     text-align: center; padding: 6rem 1.5rem 4rem;
-    background: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,.18) 0%, transparent 70%);
+    background: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,.07) 0%, transparent 70%);
   }
   .hero-badge {
     display: inline-flex; align-items: center; gap: .5rem;
-    background: rgba(99,102,241,.15); border: 1px solid rgba(99,102,241,.35);
+    background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.25);
     color: var(--primary); padding: .35rem 1rem; border-radius: 99px; font-size: .8rem; font-weight: 600;
     margin-bottom: 1.5rem; letter-spacing: .5px;
   }
@@ -72,9 +73,9 @@
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
     color: #fff; padding: .9rem 2.2rem; border-radius: var(--radius);
     font-weight: 700; font-size: 1rem; text-decoration: none; border: none; cursor: pointer;
-    box-shadow: 0 8px 30px rgba(99,102,241,.4); transition: transform .2s, box-shadow .2s;
+    box-shadow: 0 8px 30px rgba(99,102,241,.35); transition: transform .2s, box-shadow .2s;
   }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(99,102,241,.55); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(99,102,241,.5); }
   .btn-secondary {
     background: transparent; color: var(--text); padding: .9rem 2.2rem;
     border-radius: var(--radius); font-weight: 600; font-size: 1rem;
@@ -82,15 +83,15 @@
   }
   .btn-secondary:hover { border-color: var(--primary); }
 
-  /* MOCKUP */
+  /* MOCKUP — always dark regardless of page theme */
   .mockup-wrap {
     margin-top: 4rem; width: 100%; max-width: 960px;
     border-radius: 16px; overflow: hidden;
-    border: 1px solid var(--border);
-    box-shadow: 0 40px 100px rgba(0,0,0,.6);
+    border: 1px solid #2d2d4a;
+    box-shadow: 0 40px 100px rgba(0,0,0,.22);
   }
   .mockup-bar {
-    background: var(--surface2); padding: .7rem 1rem;
+    background: #16213e; padding: .7rem 1rem;
     display: flex; align-items: center; gap: .5rem;
   }
   .dot { width: 12px; height: 12px; border-radius: 50%; }
@@ -99,58 +100,58 @@
   .dot.g { background: #28c840; }
   .mockup-url {
     flex: 1; margin-left: .75rem; background: rgba(255,255,255,.06);
-    border-radius: 6px; padding: .25rem 1rem; font-size: .75rem; color: var(--muted);
+    border-radius: 6px; padding: .25rem 1rem; font-size: .75rem; color: #94a3b8;
   }
   .mockup-body {
-    background: var(--surface); display: flex; min-height: 460px;
+    background: #1a1a2e; display: flex; min-height: 460px;
   }
   /* Sidebar */
   .mock-sidebar {
-    width: 200px; background: var(--surface2); border-right: 1px solid var(--border);
+    width: 200px; background: #16213e; border-right: 1px solid #2d2d4a;
     padding: 1.25rem .75rem; flex-shrink: 0;
   }
-  .mock-logo { font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-bottom: 1.5rem; padding-left: .5rem; }
+  .mock-logo { font-size: 1.1rem; font-weight: 800; color: #6366f1; margin-bottom: 1.5rem; padding-left: .5rem; }
   .mock-nav-item {
     display: flex; align-items: center; gap: .6rem;
-    padding: .55rem .75rem; border-radius: 8px; font-size: .78rem; color: var(--muted);
+    padding: .55rem .75rem; border-radius: 8px; font-size: .78rem; color: #94a3b8;
     margin-bottom: .25rem; cursor: default;
   }
-  .mock-nav-item.active { background: rgba(99,102,241,.2); color: var(--primary); font-weight: 600; }
+  .mock-nav-item.active { background: rgba(99,102,241,.2); color: #6366f1; font-weight: 600; }
   .mock-nav-item .icon { font-size: .9rem; }
   /* Main area */
-  .mock-main { flex: 1; padding: 1.5rem; overflow: hidden; }
+  .mock-main { flex: 1; padding: 1.5rem; overflow: hidden; color: #f1f5f9; }
   .mock-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
-  .mock-title { font-size: 1rem; font-weight: 700; }
+  .mock-title { font-size: 1rem; font-weight: 700; color: #f1f5f9; }
   .mock-badge {
-    background: rgba(34,211,238,.15); color: var(--accent);
+    background: rgba(34,211,238,.15); color: #22d3ee;
     border-radius: 99px; padding: .2rem .7rem; font-size: .7rem; font-weight: 600;
   }
   /* Stats row */
   .mock-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: .75rem; margin-bottom: 1.25rem; }
   .mock-stat {
-    background: var(--surface2); border: 1px solid var(--border);
+    background: #16213e; border: 1px solid #2d2d4a;
     border-radius: 10px; padding: .85rem; text-align: center;
   }
   .mock-stat-val { font-size: 1.4rem; font-weight: 800; }
-  .mock-stat-lbl { font-size: .65rem; color: var(--muted); }
+  .mock-stat-lbl { font-size: .65rem; color: #94a3b8; }
   /* Table */
-  .mock-table { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .mock-table { background: #16213e; border: 1px solid #2d2d4a; border-radius: 10px; overflow: hidden; }
   .mock-table-head {
     display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
     background: rgba(255,255,255,.04); padding: .5rem 1rem;
-    font-size: .68rem; color: var(--muted); font-weight: 600; letter-spacing: .5px; text-transform: uppercase;
+    font-size: .68rem; color: #94a3b8; font-weight: 600; letter-spacing: .5px; text-transform: uppercase;
   }
   .mock-table-row {
     display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
-    padding: .55rem 1rem; border-top: 1px solid var(--border);
-    font-size: .75rem; align-items: center;
+    padding: .55rem 1rem; border-top: 1px solid #2d2d4a;
+    font-size: .75rem; align-items: center; color: #f1f5f9;
   }
   .mock-pill {
     display: inline-block; padding: .15rem .55rem; border-radius: 99px; font-size: .65rem; font-weight: 600;
   }
-  .pill-green { background: rgba(16,185,129,.15); color: var(--green); }
-  .pill-yellow { background: rgba(245,158,11,.15); color: var(--yellow); }
-  .pill-pink { background: rgba(236,72,153,.15); color: var(--pink); }
+  .pill-green { background: rgba(16,185,129,.15); color: #10b981; }
+  .pill-yellow { background: rgba(245,158,11,.15); color: #f59e0b; }
+  .pill-pink { background: rgba(236,72,153,.15); color: #ec4899; }
 
   /* FEATURES */
   section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
@@ -174,55 +175,28 @@
   /* AI SECTION */
   .ai-section {
     margin: 0 auto;
-    background: linear-gradient(135deg, rgba(99,102,241,.12), rgba(34,211,238,.08));
-    border: 1px solid rgba(99,102,241,.3); border-radius: 20px;
+    background: linear-gradient(135deg, rgba(99,102,241,.06), rgba(34,211,238,.04));
+    border: 1px solid rgba(99,102,241,.15); border-radius: 20px;
     padding: 4rem 2rem; text-align: center; max-width: 1100px;
   }
   .ai-badge {
     display: inline-flex; align-items: center; gap: .4rem;
-    background: rgba(34,211,238,.12); border: 1px solid rgba(34,211,238,.3);
-    color: var(--accent); padding: .35rem 1rem; border-radius: 99px;
+    background: rgba(34,211,238,.1); border: 1px solid rgba(34,211,238,.25);
+    color: #0891b2; padding: .35rem 1rem; border-radius: 99px;
     font-size: .8rem; font-weight: 700; margin-bottom: 1.25rem; letter-spacing: .5px;
   }
   .ai-section h2 { font-size: clamp(1.6rem, 3.5vw, 2.4rem); font-weight: 800; letter-spacing: -1px; margin-bottom: 1rem; }
   .ai-section p { color: var(--muted); max-width: 580px; margin: 0 auto 2rem; }
   .ai-features { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 2rem; }
   .ai-pill {
-    background: rgba(255,255,255,.05); border: 1px solid var(--border);
-    border-radius: 99px; padding: .4rem 1rem; font-size: .82rem;
+    background: rgba(99,102,241,.05); border: 1px solid var(--border);
+    border-radius: 99px; padding: .4rem 1rem; font-size: .82rem; color: var(--text);
   }
-
-  /* DTE / FACTURACIÓN ELECTRÓNICA */
-  .dte-section {
-    margin: 0 auto;
-    background: linear-gradient(135deg, rgba(16,185,129,.10), rgba(99,102,241,.07));
-    border: 1px solid rgba(16,185,129,.3); border-radius: 20px;
-    padding: 4rem 2rem; text-align: center; max-width: 1100px;
-  }
-  .dte-badge {
-    display: inline-flex; align-items: center; gap: .4rem;
-    background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.3);
-    color: var(--green); padding: .35rem 1rem; border-radius: 99px;
-    font-size: .8rem; font-weight: 700; margin-bottom: 1.25rem; letter-spacing: .5px;
-  }
-  .dte-section h2 { font-size: clamp(1.6rem, 3.5vw, 2.4rem); font-weight: 800; letter-spacing: -1px; margin-bottom: 1rem; }
-  .dte-section > p { color: var(--muted); max-width: 580px; margin: 0 auto 2rem; }
-  .dte-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1rem; margin-top: 2.5rem; text-align: left;
-  }
-  .dte-card {
-    background: rgba(255,255,255,.04); border: 1px solid rgba(16,185,129,.2);
-    border-radius: var(--radius); padding: 1.25rem;
-  }
-  .dte-card-icon { font-size: 1.5rem; margin-bottom: .6rem; }
-  .dte-card h4 { font-size: .9rem; font-weight: 700; margin-bottom: .35rem; }
-  .dte-card p { font-size: .8rem; color: var(--muted); }
 
   /* PRICING / CTA */
   .cta-section {
     text-align: center; padding: 6rem 1.5rem;
-    background: radial-gradient(ellipse at 50% 100%, rgba(99,102,241,.15) 0%, transparent 70%);
+    background: radial-gradient(ellipse at 50% 100%, rgba(99,102,241,.07) 0%, transparent 70%);
   }
   .cta-section h2 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; letter-spacing: -2px; margin-bottom: 1rem; }
   .cta-section p { color: var(--muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto 2.5rem; }
@@ -269,7 +243,6 @@
   <div class="nav-links">
     <a href="#features">Funcionalidades</a>
     <a href="#ai">IA WhatsApp</a>
-    <a href="#dte">Facturación</a>
     <a href="#cta">Precios</a>
     <a href="#contacto">Contacto</a>
   </div>
@@ -315,19 +288,19 @@
         </div>
         <div class="mock-stats">
           <div class="mock-stat">
-            <div class="mock-stat-val" style="color:var(--primary)">12</div>
+            <div class="mock-stat-val" style="color:#6366f1">12</div>
             <div class="mock-stat-lbl">Citas hoy</div>
           </div>
           <div class="mock-stat">
-            <div class="mock-stat-val" style="color:var(--green)">$840K</div>
+            <div class="mock-stat-val" style="color:#10b981">$840K</div>
             <div class="mock-stat-lbl">Ingresos mes</div>
           </div>
           <div class="mock-stat">
-            <div class="mock-stat-val" style="color:var(--accent)">247</div>
+            <div class="mock-stat-val" style="color:#22d3ee">247</div>
             <div class="mock-stat-lbl">Pacientes activos</div>
           </div>
           <div class="mock-stat">
-            <div class="mock-stat-val" style="color:var(--yellow)">8</div>
+            <div class="mock-stat-val" style="color:#f59e0b">8</div>
             <div class="mock-stat-lbl">Stock bajo</div>
           </div>
         </div>
@@ -404,9 +377,9 @@
       <p>Indicadores clave al iniciar sesión: citas del día, ingresos del mes, pacientes activos y alertas de stock bajo, todo en tiempo real.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">🧾</div>
-      <h3>Facturación Electrónica DTE</h3>
-      <p>Emite boletas, facturas y honorarios electrónicos timbrados por el SII sin salir de la plataforma. Cumplimiento tributario chileno 100% integrado.</p>
+      <div class="feature-icon">🏷️</div>
+      <h3>Boleta Electrónica</h3>
+      <p>Emite boletas a pacientes particulares con timbre electrónico SII y envío automático por email al finalizar la atención.</p>
     </div>
   </div>
 </section>
@@ -429,65 +402,23 @@
   </div>
 </div>
 
-<!-- FACTURACIÓN ELECTRÓNICA -->
-<div style="padding: 2rem 1.5rem 0; max-width: 1100px; margin: 0 auto;" id="dte">
-  <div class="dte-section">
-    <div class="dte-badge">🧾 Disponible · Facturación Electrónica Chile</div>
-    <h2>Factura electrónica integrada<br><span style="background:linear-gradient(135deg,var(--green),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">directamente desde Dairi</span></h2>
-    <p>Emite boletas, facturas y honorarios electrónicos timbrados por el SII sin salir de la plataforma. Cumple con la normativa DTE y elimina el trabajo manual de conciliación tributaria.</p>
-    <a href="#cta" class="btn-primary" style="margin-top:.5rem;background:linear-gradient(135deg,var(--green),#059669);box-shadow:0 8px 30px rgba(16,185,129,.35);">Solicitar acceso</a>
-    <div class="dte-grid">
-      <div class="dte-card">
-        <div class="dte-card-icon">🏷️</div>
-        <h4>Boleta Electrónica</h4>
-        <p>Emite boletas a pacientes particulares con timbre electrónico SII y envío automático por email al finalizar la atención.</p>
-      </div>
-      <div class="dte-card">
-        <div class="dte-card-icon">🏢</div>
-        <h4>Factura a Isapres / Empresas</h4>
-        <p>Facturación a terceros pagadores — Isapres, mutualidades, FONASA y empresas — en formato DTE válido.</p>
-      </div>
-      <div class="dte-card">
-        <div class="dte-card-icon">💼</div>
-        <h4>Boleta de Honorarios</h4>
-        <p>Profesionales independientes emiten sus boletas de honorarios electrónicas directamente desde su perfil en Dairi.</p>
-      </div>
-      <div class="dte-card">
-        <div class="dte-card-icon">🔗</div>
-        <h4>Integración SII</h4>
-        <p>Conexión directa con el Servicio de Impuestos Internos para timbrar y enviar documentos tributarios en tiempo real.</p>
-      </div>
-      <div class="dte-card">
-        <div class="dte-card-icon">📊</div>
-        <h4>Libro de Ventas Automático</h4>
-        <p>Generación automática del Libro de Ventas mensual para tu contador, exportable en PDF y Excel sin trabajo manual.</p>
-      </div>
-      <div class="dte-card">
-        <div class="dte-card-icon">🔄</div>
-        <h4>Notas de Crédito</h4>
-        <p>Anulación y corrección de documentos emitidos mediante notas de crédito electrónicas sin trámites adicionales.</p>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- POR QUÉ DAIRI -->
 <section>
   <div class="section-label">Ventajas competitivas</div>
   <h2 class="section-title">¿Por qué elegir Dairi?</h2>
   <p class="section-sub">Diseñado desde cero para la realidad de las clínicas latinoamericanas. Rápido de implementar, fácil de usar y escalable desde el primer día.</p>
   <div class="features-grid">
-    <div class="feature-card" style="border-color:rgba(99,102,241,.4);">
+    <div class="feature-card" style="border-color:rgba(99,102,241,.35);">
       <div class="feature-icon">⚡</div>
       <h3>Implementación en 24 horas</h3>
       <p>Sin instalaciones complejas ni servidores propios. Tu equipo puede estar operativo el mismo día con onboarding guiado incluido.</p>
     </div>
-    <div class="feature-card" style="border-color:rgba(34,211,238,.4);">
+    <div class="feature-card" style="border-color:rgba(34,211,238,.35);">
       <div class="feature-icon">🔒</div>
       <h3>Seguridad de nivel bancario</h3>
       <p>JWT, HTTPS forzado, cifrado AES-256 en base de datos y arquitectura serverless que elimina vectores de ataque tradicionales.</p>
     </div>
-    <div class="feature-card" style="border-color:rgba(16,185,129,.4);">
+    <div class="feature-card" style="border-color:rgba(16,185,129,.35);">
       <div class="feature-icon">🧩</div>
       <h3>Altamente configurable</h3>
       <p>Motor de entidades basado en schemas: agrega nuevos módulos, campos y flujos de trabajo sin tocar el código fuente.</p>
@@ -516,7 +447,6 @@
       <ul>
         <li><a href="#features">Funcionalidades</a></li>
         <li><a href="#ai">IA WhatsApp</a></li>
-        <li><a href="#dte">Facturación Electrónica</a></li>
         <li><a href="#cta">Precios</a></li>
         <li><a href="#">Novedades</a></li>
       </ul>
