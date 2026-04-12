@@ -515,7 +515,19 @@ export const SCHEMA_PAYMENTS: EntitySchema = {
       ],
       badgeColors: { pagado: '#10b981', pendiente: '#f59e0b', anulado: '#ef4444' }
     },
-    { name: 'notes', type: 'textarea', label: 'Observaciones', required: false, showInList: false, showInDetail: true }
+    { name: 'notes', type: 'textarea', label: 'Observaciones', required: false, showInList: false, showInDetail: true },
+    // ── Comisión profesional ──────────────────────────────────────────────────
+    { name: 'professionalName',  type: 'text',   label: 'Profesional',      required: false, showInList: false, showInDetail: true },
+    { name: 'commissionRate',    type: 'number', label: 'Comisión (%)',      required: false, showInList: false, showInDetail: true, min: 0, max: 100 },
+    { name: 'commissionAmount',  type: 'number', label: 'Monto Comisión',   required: false, showInList: false, showInDetail: true, min: 0, format: 'currency' },
+    { name: 'commissionStatus',  type: 'select', label: 'Estado Comisión',  required: false, isBadge: true,    showInList: false, showInDetail: true,
+      options: [
+        { value: 'pendiente',  label: 'Pendiente'  },
+        { value: 'pagada',     label: 'Pagada'     },
+        { value: 'no_aplica',  label: 'No aplica'  }
+      ],
+      badgeColors: { pendiente: '#f59e0b', pagada: '#10b981', no_aplica: '#6b7280' }
+    }
   ]
 };
 
