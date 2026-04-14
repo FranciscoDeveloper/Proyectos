@@ -162,6 +162,33 @@ const ENTITY_CONFIG = {
     }
   },
 
+  // ── patients ─────────────────────────────────────────────────────────────────
+  // Maps the 'paciente' DB table to the 'patients' entity key used by the frontend.
+  patients: {
+    table: "paciente",
+    toDb(d) {
+      const cols = {};
+      if (d.nombre     !== undefined) cols.nombre     = d.nombre;
+      if (d.email      !== undefined) cols.email      = d.email;
+      if (d.telefono   !== undefined) cols.telefono   = d.telefono;
+      if (d.diagnostic !== undefined) cols.diagnostic = d.diagnostic;
+      if (d.allergies  !== undefined) cols.allergies  = JSON.stringify(d.allergies);
+      return cols;
+    },
+    fromDb(r) {
+      return {
+        id:         r.id,
+        nombre:     r.nombre,
+        email:      r.email,
+        telefono:   r.telefono,
+        diagnostic: r.diagnostic ?? null,
+        allergies:  r.allergies  ?? [],
+        createdAt:  r.created_at,
+        updatedAt:  r.updated_at
+      };
+    }
+  },
+
   // ── appointments ─────────────────────────────────────────────────────────────
   // Resolves patient name and professional name via LEFT JOINs so the frontend
   // receives patientName / professionalName instead of raw foreign key IDs.
