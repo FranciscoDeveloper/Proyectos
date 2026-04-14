@@ -26,7 +26,7 @@
       <ul>
         <li *ngFor="let item of navItems()">
           <a [routerLink]="item.route" routerLinkActive="active"
-             [routerLinkActiveOptions]="{exact: item.route === '/dashboard'}"
+             [routerLinkActiveOptions]="{exact: item.route === '/app/dashboard'}"
              class="nav-item">
             <span class="nav-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="item.icon === 'grid'">

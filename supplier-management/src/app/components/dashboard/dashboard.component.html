@@ -72,8 +72,8 @@
       </div>
 
       <div class="ec-actions">
-        <a [routerLink]="'/entity/' + card.schema.entity.key" class="btn btn-ghost btn-sm">Ver todo</a>
-        <a [routerLink]="'/entity/' + card.schema.entity.key + '/new'" class="btn btn-primary btn-sm">
+        <a [routerLink]="'/app/entity/' + card.schema.entity.key" class="btn btn-ghost btn-sm">Ver todo</a>
+        <a [routerLink]="'/app/entity/' + card.schema.entity.key + '/new'" class="btn btn-primary btn-sm">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
@@ -122,7 +122,7 @@
         <ng-container *ngIf="card.statusDist.length">
           <div class="card-header" [class.section-gap]="!first">
             <span class="card-title">{{ card.schema.entity.plural }}</span>
-            <a [routerLink]="'/entity/' + card.schema.entity.key" class="btn btn-ghost btn-sm">Ver</a>
+            <a [routerLink]="'/app/entity/' + card.schema.entity.key" class="btn btn-ghost btn-sm">Ver</a>
           </div>
           <div class="dist-bars">
             <div class="dist-bar-item" *ngFor="let s of card.statusDist">

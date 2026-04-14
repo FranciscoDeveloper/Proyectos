@@ -59,7 +59,7 @@ export class GenericDetailComponent implements OnInit {
 
   navigateEdit() {
     const id = this.record()?.['id'];
-    if (id != null) this.router.navigate(['/entity', this.entityKey(), id, 'edit']);
+    if (id != null) this.router.navigate(['/app/entity', this.entityKey(), id, 'edit']);
   }
 
   confirmDelete() { this.deleteModal.set(true); }
@@ -68,7 +68,7 @@ export class GenericDetailComponent implements OnInit {
     const id = this.record()?.['id'];
     if (id != null) {
       this.crudService.delete(this.entityKey(), id);
-      this.router.navigate(['/entity', this.entityKey()]);
+      this.router.navigate(['/app/entity', this.entityKey()]);
     }
   }
 

@@ -131,9 +131,9 @@ export class GenericListComponent implements OnInit {
   nextPage() { this.currentPage.update(p => p + 1); }
   setPage(p: number) { this.currentPage.set(p); }
 
-  navigateNew() { this.router.navigate(['/entity', this.entityKey(), 'new']); }
-  navigateEdit(id: number) { this.router.navigate(['/entity', this.entityKey(), id, 'edit']); }
-  navigateDetail(id: number) { this.router.navigate(['/entity', this.entityKey(), id]); }
+  navigateNew() { this.router.navigate(['/app/entity', this.entityKey(), 'new']); }
+  navigateEdit(id: number) { this.router.navigate(['/app/entity', this.entityKey(), id, 'edit']); }
+  navigateDetail(id: number) { this.router.navigate(['/app/entity', this.entityKey(), id]); }
 
   getSelectFilter(fieldName: string): string {
     return this.selectFilters()[fieldName] || '';

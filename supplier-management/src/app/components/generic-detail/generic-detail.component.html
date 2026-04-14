@@ -2,7 +2,7 @@
 
   <!-- ── Header ── -->
   <div class="page-header">
-    <a [routerLink]="['/entity', entityKey()]" class="back-link">
+    <a [routerLink]="['/app/entity', entityKey()]" class="back-link">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       {{ schema()!.entity.plural }}
     </a>
@@ -11,7 +11,7 @@
       <div class="header-actions">
         <!-- Link to add encounter on associated clinical record -->
         <a *ngIf="linkedClinicalRecordId()"
-          [routerLink]="['/clinical', linkedClinicalEntityKey(), linkedClinicalRecordId(), 'encounter']"
+          [routerLink]="['/app/clinical', linkedClinicalEntityKey(), linkedClinicalRecordId(), 'encounter']"
           class="btn-encounter">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
@@ -120,7 +120,7 @@
       <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
     </svg>
     <p>Registro no encontrado.</p>
-    <a [routerLink]="['/entity', entityKey()]" class="btn-primary">Volver</a>
+    <a [routerLink]="['/app/entity', entityKey()]" class="btn-primary">Volver</a>
   </div>
 </ng-template>
 

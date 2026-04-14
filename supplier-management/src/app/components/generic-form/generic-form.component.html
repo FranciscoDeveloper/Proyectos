@@ -2,7 +2,7 @@
 
   <!-- ── Header ── -->
   <div class="page-header">
-    <a [routerLink]="isEncounterMode() ? ['/clinical', entityKey(), recordId()] : ['/entity', entityKey()]" class="back-link">
+    <a [routerLink]="isEncounterMode() ? ['/app/clinical', entityKey(), recordId()] : ['/app/entity', entityKey()]" class="back-link">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       {{ isEncounterMode() ? schema()!.entity.singular : schema()!.entity.plural }}
     </a>

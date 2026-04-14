@@ -3,7 +3,15 @@ import { authGuard, guestGuard } from './guards/auth.guard';
 import { CLINICAL_ROUTES } from './components/clinical/clinical.routes';
 
 export const routes: Routes = [
-  // ── Public ──────────────────────────────────────────────────────────────────
+  // ── Landing (public root) ────────────────────────────────────────────────────
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./components/landing/landing.component').then(m => m.LandingComponent)
+  },
+
+  // ── Public: login ────────────────────────────────────────────────────────────
   {
     path: 'login',
     canActivate: [guestGuard],
@@ -16,7 +24,7 @@ export const routes: Routes = [
   // ShellComponent renders the sidebar + header and has its own <router-outlet>
   // for the child routes. This avoids the double-outlet timing bug.
   {
-    path: '',
+    path: 'app',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./components/shell/shell.component').then(m => m.ShellComponent),
@@ -33,12 +41,12 @@ export const routes: Routes = [
       },
       {
         path: 'entity/:entityKey',
-        canActivate: [authGuard],   // also checks entity-level access
+        canActivate: [authGuard],
         loadComponent: () =>
           import('./components/generic-list/generic-list.component').then(m => m.GenericListComponent)
       },
       {
-        // Calendar-type modules use this route instead of /entity/:entityKey
+        // Calendar-type modules use this route instead of /app/entity/:entityKey
         path: 'module/:entityKey',
         canActivate: [authGuard],
         loadComponent: () =>
@@ -69,7 +77,7 @@ export const routes: Routes = [
           import('./components/chat/chat.component').then(m => m.ChatComponent)
       },
       {
-        // Clinical record module: /clinical/:entityKey and sub-routes
+        // Clinical record module: /app/clinical/:entityKey and sub-routes
         path: 'clinical',
         children: CLINICAL_ROUTES
       }
@@ -77,5 +85,5 @@ export const routes: Routes = [
   },
 
   // ── Fallback ─────────────────────────────────────────────────────────────────
-  { path: '**', redirectTo: 'login' }
+  { path: '**', redirectTo: '' }
 ];

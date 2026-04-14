@@ -65,7 +65,7 @@ export class LoginComponent implements OnDestroy {
     this.error.set('');
 
     const { email, password } = this.form.getRawValue();
-    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/app/dashboard';
 
     this.sub = this.auth.login({ email: email!, password: password! }).subscribe({
       next: (response) => {
@@ -75,7 +75,7 @@ export class LoginComponent implements OnDestroy {
         const raw = this.route.snapshot.queryParamMap.get('returnUrl') ?? '';
         const target = (raw && raw.startsWith('/') && !raw.startsWith('//') && raw !== '/')
           ? raw
-          : '/dashboard';
+          : '/app/dashboard';
         // Force full page reload so Angular bootstraps fresh and reads sessionStorage.
         // Changing the query string (?_=ts) forces a real browser reload even with hash routing.
         // S3 always serves index.html for the root path regardless of query string.

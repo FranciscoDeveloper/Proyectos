@@ -31,7 +31,7 @@
           </svg>
         </button>
       </div>
-      <a [routerLink]="['/entity', entityKey, 'new']" class="btn btn-primary">
+      <a [routerLink]="['/app/entity', entityKey, 'new']" class="btn btn-primary">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
@@ -191,7 +191,7 @@
               {{ ev.initials }}
             </div>
             <div class="up-body">
-              <a [routerLink]="['/entity', ev.entityKey, ev.id]" class="up-title">{{ ev.title }}</a>
+              <a [routerLink]="['/app/entity', ev.entityKey, ev.id]" class="up-title">{{ ev.title }}</a>
               <span class="up-sub" *ngIf="ev.subtitle">{{ ev.subtitle }}</span>
               <span class="up-date">{{ fmtShortDate(ev.startDate) }} · {{ ev.timeLabel }}</span>
             </div>
@@ -202,7 +202,7 @@
             </span>
           </li>
         </ul>
-        <a [routerLink]="['/entity', entityKey]" class="see-all">Ver lista completa →</a>
+        <a [routerLink]="['/app/entity', entityKey]" class="see-all">Ver lista completa →</a>
       </div>
 
     </aside>
@@ -238,7 +238,7 @@
                 <span class="now-dot"></span>
               </div>
               <a *ngFor="let ev of dayEvents()"
-                 [routerLink]="['/entity', ev.entityKey, ev.id]"
+                 [routerLink]="['/app/entity', ev.entityKey, ev.id]"
                  class="week-event day-event"
                  [style.top.px]="ev.topPx"
                  [style.height.px]="ev.heightPx"
@@ -265,7 +265,7 @@
                   <line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>
                 <span>Sin citas este día</span>
-                <a [routerLink]="['/entity', entityKey, 'new']" class="btn btn-primary btn-sm">+ Agregar</a>
+                <a [routerLink]="['/app/entity', entityKey, 'new']" class="btn btn-primary btn-sm">+ Agregar</a>
               </div>
             </div>
           </div>
@@ -302,7 +302,7 @@
                 <span class="now-dot"></span>
               </div>
               <a *ngFor="let ev of day.events"
-                 [routerLink]="['/entity', ev.entityKey, ev.id]"
+                 [routerLink]="['/app/entity', ev.entityKey, ev.id]"
                  class="week-event"
                  [style.top.px]="ev.topPx"
                  [style.height.px]="ev.heightPx"
@@ -332,7 +332,7 @@
             <div class="month-day-num" [class.today-circle]="day.isToday">{{ day.dayNum }}</div>
             <div class="month-events">
               <a *ngFor="let ev of day.events.slice(0, 3)"
-                 [routerLink]="['/entity', ev.entityKey, ev.id]"
+                 [routerLink]="['/app/entity', ev.entityKey, ev.id]"
                  class="month-event"
                  [style.background]="ev.statusColor + '1a'"
                  [style.border-left-color]="ev.statusColor"

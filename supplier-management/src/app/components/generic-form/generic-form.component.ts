@@ -177,7 +177,7 @@ export class GenericFormComponent implements OnInit {
         this.crudService.appendEncounter(this.entityKey(), this.recordId()!, encounter);
         this.saving.set(false);
         this.saved.set(true);
-        setTimeout(() => this.router.navigate(['/clinical', this.entityKey(), this.recordId()]), 800);
+        setTimeout(() => this.router.navigate(['/app/clinical', this.entityKey(), this.recordId()]), 800);
       } else {
         const processed = processFields();
         if (this.isEdit() && this.recordId() !== null) {
@@ -188,16 +188,16 @@ export class GenericFormComponent implements OnInit {
         }
         this.saving.set(false);
         this.saved.set(true);
-        setTimeout(() => this.router.navigate(['/entity', this.entityKey()]), 800);
+        setTimeout(() => this.router.navigate(['/app/entity', this.entityKey()]), 800);
       }
     }, 400);
   }
 
   cancel() {
     if (this.isEncounterMode() && this.recordId() !== null) {
-      this.router.navigate(['/clinical', this.entityKey(), this.recordId()]);
+      this.router.navigate(['/app/clinical', this.entityKey(), this.recordId()]);
     } else {
-      this.router.navigate(['/entity', this.entityKey()]);
+      this.router.navigate(['/app/entity', this.entityKey()]);
     }
   }
 

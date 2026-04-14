@@ -22,7 +22,7 @@ export const authGuard: CanActivateFn = (
   // For entity routes, verify the entity key is authorized by the backend
   const entityKey = route.paramMap.get('entityKey');
   if (entityKey && !auth.canAccessEntity(entityKey)) {
-    router.navigate(['/dashboard']);
+    router.navigate(['/app/dashboard']);
     return false;
   }
 
@@ -37,7 +37,7 @@ export const guestGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   if (auth.isAuthenticated()) {
-    router.navigate(['/dashboard']);
+    router.navigate(['/app/dashboard']);
     return false;
   }
 

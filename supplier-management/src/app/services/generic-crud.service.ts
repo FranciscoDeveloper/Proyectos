@@ -1,13 +1,10 @@
 import { Injectable, inject, signal, WritableSignal, Signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { SchemaService } from './schema.service';
 
 /**
- * Generic CRUD service backed by the mock REST API (/api/entities/:key).
+ * Generic CRUD service backed by the REST API (/api/entities/:key).
  *
  * Each entity key gets its own reactive Signal<Record<string,any>[]>.
- * HTTP calls go to the MockApiInterceptor during development; swap
- * the interceptor for a real backend in production without touching this service.
  *
  * Endpoints used
  * ──────────────
@@ -19,8 +16,7 @@ import { SchemaService } from './schema.service';
  */
 @Injectable({ providedIn: 'root' })
 export class GenericCrudService {
-  private http         = inject(HttpClient);
-  private schemaService = inject(SchemaService);
+  private http = inject(HttpClient);
 
   private stores  = new Map<string, WritableSignal<Record<string, any>[]>>();
   private loading = new Set<string>();
@@ -35,12 +31,7 @@ export class GenericCrudService {
 
     this.http.get<Record<string, any>[]>(`/api/entities/${key}`).subscribe({
       next: data  => { this.stores.get(key)!.set(data); this.loading.delete(key); },
-      error: _err => {
-        // Fallback: seed from SchemaService so the app still works offline
-        const payload = this.schemaService.getEntityPayload(key);
-        this.stores.get(key)!.set(payload ? [...payload.data] : []);
-        this.loading.delete(key);
-      }
+      error: _err => { this.loading.delete(key); }
     });
   }
 
