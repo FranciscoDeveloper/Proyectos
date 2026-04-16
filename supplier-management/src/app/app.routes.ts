@@ -76,6 +76,13 @@ export const routes: Routes = [
     ]
   },
 
+  // ── Public: patient self-booking via UUID link ───────────────────────────────
+  {
+    path: 'book/:token',
+    loadComponent: () =>
+      import('./components/patient-booking/patient-booking.component').then(m => m.PatientBookingComponent)
+  },
+
   // ── Fallback ─────────────────────────────────────────────────────────────────
   { path: '**', redirectTo: 'login' }
 ];

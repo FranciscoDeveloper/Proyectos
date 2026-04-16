@@ -1,0 +1,267 @@
+<div class="booking-page">
+
+  <!-- ── HEADER ── -->
+  <header class="booking-header">
+    <div class="header-inner">
+      <div class="brand">Dairi<span>.</span></div>
+      <div class="clinic-chip" *ngIf="bookingInfo()">
+        <span class="clinic-name">{{ bookingInfo()!.clinicName }}</span>
+        <span class="sep">·</span>
+        <span class="doctor-name">{{ bookingInfo()!.doctorName }}</span>
+        <span class="specialty-badge">{{ bookingInfo()!.specialty }}</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── LOADING ── -->
+  <div class="centered-state" *ngIf="loading()">
+    <div class="spinner"></div>
+    <p>Cargando agenda…</p>
+  </div>
+
+  <!-- ── INVALID TOKEN ── -->
+  <div class="centered-state error-state" *ngIf="!loading() && error() === 'invalid'">
+    <div class="error-icon">⚠️</div>
+    <h2>Enlace inválido o expirado</h2>
+    <p>Este código de acceso no existe o ya no está disponible.<br>Solicita un nuevo enlace a tu clínica.</p>
+    <div class="demo-links">
+      <p class="demo-label">Links de prueba disponibles:</p>
+      <a *ngFor="let d of DEMO_TOKENS"
+         [href]="'#/book/' + d.token"
+         class="demo-link">
+        {{ d.label }}
+      </a>
+    </div>
+  </div>
+
+  <!-- ── BOOKING FLOW ── -->
+  <main class="booking-main" *ngIf="!loading() && !error()">
+
+    <!-- Doctor card -->
+    <div class="doctor-card">
+      <div class="doctor-avatar">{{ bookingInfo()!.doctorName.charAt(0) }}</div>
+      <div class="doctor-info">
+        <div class="doctor-name-lg">{{ bookingInfo()!.doctorName }}</div>
+        <div class="doctor-specialty">{{ bookingInfo()!.specialty }} · {{ bookingInfo()!.duration }} min</div>
+      </div>
+      <div class="duration-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        {{ bookingInfo()!.duration }} min
+      </div>
+    </div>
+
+    <!-- Step indicator -->
+    <div class="steps" *ngIf="step() < 4">
+      <div class="step-item" [class.active]="step() >= 1" [class.done]="step() > 1">
+        <div class="step-circle">{{ step() > 1 ? '✓' : '1' }}</div>
+        <span>Fecha</span>
+      </div>
+      <div class="step-line" [class.done]="step() > 1"></div>
+      <div class="step-item" [class.active]="step() >= 2" [class.done]="step() > 2">
+        <div class="step-circle">{{ step() > 2 ? '✓' : '2' }}</div>
+        <span>Hora</span>
+      </div>
+      <div class="step-line" [class.done]="step() > 2"></div>
+      <div class="step-item" [class.active]="step() >= 3">
+        <div class="step-circle">3</div>
+        <span>Datos</span>
+      </div>
+    </div>
+
+    <!-- ── STEP 1: DATE ── -->
+    <div class="step-panel" *ngIf="step() === 1">
+      <h2 class="step-title">¿Qué día te acomoda?</h2>
+
+      <div class="calendar-card">
+        <div class="cal-nav">
+          <button class="cal-nav-btn" (click)="prevMonth()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="cal-month-label">{{ calendarMonthLabel() }}</span>
+          <button class="cal-nav-btn" (click)="nextMonth()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+
+        <div class="cal-grid">
+          <div class="cal-dow" *ngFor="let d of DOW_LABELS">{{ d }}</div>
+          <div *ngFor="let day of calendarDays()"
+               class="cal-day"
+               [class.other-month]="!day.currentMonth"
+               [class.past]="day.past"
+               [class.available]="day.available && day.currentMonth"
+               [class.today]="isToday(day)"
+               [class.selected]="isSelected(day)"
+               (click)="selectDate(day)">
+            {{ day.date.getDate() }}
+            <div class="day-dot" *ngIf="day.available && day.currentMonth && !isSelected(day)"></div>
+          </div>
+        </div>
+
+        <div class="cal-legend">
+          <span class="legend-item"><span class="legend-dot available"></span> Disponible</span>
+          <span class="legend-item"><span class="legend-dot today"></span> Hoy</span>
+        </div>
+      </div>
+
+      <div class="loading-slots" *ngIf="loadingSlots()">
+        <div class="spinner-sm"></div> Cargando horarios…
+      </div>
+    </div>
+
+    <!-- ── STEP 2: TIME ── -->
+    <div class="step-panel" *ngIf="step() === 2">
+      <button class="btn-back" (click)="back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Volver
+      </button>
+      <h2 class="step-title">¿A qué hora?</h2>
+      <p class="step-sub">{{ selectedDateLabel() }}</p>
+
+      <div class="slots-empty" *ngIf="availableSlots().length === 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <p>Sin horarios disponibles para este día.<br>Selecciona otra fecha.</p>
+        <button class="btn-secondary" (click)="back()">Elegir otro día</button>
+      </div>
+
+      <div class="slots-grid" *ngIf="availableSlots().length > 0">
+        <button *ngFor="let slot of availableSlots()"
+                class="slot-btn"
+                [class.active]="selectedTime() === slot"
+                (click)="selectTime(slot)">
+          {{ slot }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: PATIENT INFO ── -->
+    <div class="step-panel" *ngIf="step() === 3">
+      <button class="btn-back" (click)="back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Volver
+      </button>
+      <h2 class="step-title">Tus datos</h2>
+
+      <div class="booking-summary-bar">
+        <span class="sum-date">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          {{ selectedDateLabel() }}
+        </span>
+        <span class="sum-time">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          {{ selectedTime() }}
+        </span>
+      </div>
+
+      <form class="patient-form" (ngSubmit)="submitBooking()">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="pName">Nombre completo <span class="req">*</span></label>
+            <input id="pName" type="text" [(ngModel)]="patientName" name="pName"
+                   placeholder="Ej. María González" autocomplete="name" required />
+          </div>
+          <div class="form-group">
+            <label for="pEmail">Email <span class="req">*</span></label>
+            <input id="pEmail" type="email" [(ngModel)]="patientEmail" name="pEmail"
+                   placeholder="correo@ejemplo.cl" autocomplete="email" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="pPhone">Teléfono</label>
+          <input id="pPhone" type="tel" [(ngModel)]="patientPhone" name="pPhone"
+                 placeholder="+56 9 1234 5678" autocomplete="tel" />
+        </div>
+
+        <div class="form-group">
+          <label for="pReason">Motivo de consulta</label>
+          <textarea id="pReason" [(ngModel)]="reason" name="pReason"
+                    placeholder="Describe brevemente el motivo de tu consulta…"
+                    rows="3"></textarea>
+        </div>
+
+        <p class="error-msg" *ngIf="submitError()">{{ submitError() }}</p>
+
+        <button type="submit" class="btn-primary-full"
+                [disabled]="!formValid() || submitting()">
+          <span class="spinner-sm" *ngIf="submitting()"></span>
+          <svg *ngIf="!submitting()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          {{ submitting() ? 'Confirmando…' : 'Confirmar cita' }}
+        </button>
+      </form>
+    </div>
+
+    <!-- ── STEP 4: CONFIRMATION ── -->
+    <div class="step-panel confirm-panel" *ngIf="step() === 4">
+      <div class="confirm-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <h2 class="confirm-title">¡Cita confirmada!</h2>
+      <p class="confirm-sub">Te esperamos el día indicado. Guarda tu código de confirmación.</p>
+
+      <div class="confirm-card" *ngIf="bookingResult()">
+        <div class="confirm-code">{{ bookingResult()!.confirmCode }}</div>
+        <div class="confirm-details">
+          <div class="confirm-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span>{{ bookingResult()!.patientName }}</span>
+          </div>
+          <div class="confirm-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <span>{{ formatDate(bookingResult()!.date) }}</span>
+          </div>
+          <div class="confirm-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span>{{ bookingResult()!.time }}</span>
+          </div>
+          <div class="confirm-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span>{{ bookingResult()!.doctorName }} — {{ bookingResult()!.specialty }}</span>
+          </div>
+          <div class="confirm-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            <span>{{ bookingResult()!.clinicName }}</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="confirm-note">
+        Se enviará un recordatorio a tu email antes de la cita.<br>
+        Si necesitas cancelar, comunícate con la clínica directamente.
+      </p>
+    </div>
+
+  </main>
+
+  <footer class="booking-footer">
+    <span>Powered by <strong>Dairi.</strong> · Plataforma clínica inteligente</span>
+  </footer>
+</div>

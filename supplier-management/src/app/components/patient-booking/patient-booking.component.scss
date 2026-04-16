@@ -1,0 +1,687 @@
+:root {
+  --sky-primary: #0ea5e9;
+  --sky-dark:    #0284c7;
+  --sky-light:   #38bdf8;
+  --sky-50:      #f0f9ff;
+  --sky-100:     #e0f2fe;
+  --sky-200:     #bae6fd;
+  --sky-800:     #075985;
+  --text:        #0c2d48;
+  --muted:       #64748b;
+  --border:      #bae6fd;
+  --radius:      14px;
+}
+
+/* ── Page shell ── */
+:host { display: block; min-height: 100vh; background: var(--sky-50); }
+
+.booking-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(ellipse 70% 40% at 50% -5%, rgba(14,165,233,.10) 0%, transparent 60%), #f0f9ff;
+}
+
+/* ── Header ── */
+.booking-header {
+  background: rgba(255,255,255,.94);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--sky-200);
+  box-shadow: 0 1px 10px rgba(14,165,233,.07);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.header-inner {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.brand {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--sky-primary);
+  letter-spacing: -1px;
+  flex-shrink: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  span { color: #06b6d4; }
+}
+
+.clinic-chip {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .82rem;
+  flex-wrap: wrap;
+}
+
+.clinic-name   { color: var(--muted); }
+.doctor-name   { color: var(--text); font-weight: 700; }
+.sep           { color: var(--border); }
+
+.specialty-badge {
+  background: var(--sky-100);
+  color: var(--sky-800);
+  border: 1px solid var(--sky-200);
+  border-radius: 99px;
+  padding: .15rem .65rem;
+  font-size: .72rem;
+  font-weight: 700;
+}
+
+/* ── States ── */
+.centered-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 4rem 1.5rem;
+  text-align: center;
+  color: var(--muted);
+
+  p { max-width: 360px; font-size: .95rem; line-height: 1.65; }
+}
+
+.error-icon { font-size: 3rem; }
+.error-state h2 { font-size: 1.4rem; font-weight: 800; color: var(--text); }
+
+.demo-links {
+  margin-top: 1rem;
+  background: #fff;
+  border: 1.5px solid var(--sky-200);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.demo-label { font-size: .75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: .25rem; }
+.demo-link {
+  color: var(--sky-primary);
+  font-size: .83rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: .35rem .65rem;
+  border-radius: 8px;
+  transition: background .15s;
+  &:hover { background: var(--sky-100); }
+}
+
+/* ── Spinner ── */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--sky-200);
+  border-top-color: var(--sky-primary);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+.spinner-sm {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  flex-shrink: 0;
+}
+
+/* ── Main ── */
+.booking-main {
+  flex: 1;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+/* ── Doctor card ── */
+.doctor-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #fff;
+  border: 1.5px solid var(--sky-200);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 4px 16px rgba(14,165,233,.08);
+}
+
+.doctor-avatar {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sky-primary), #06b6d4);
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.doctor-info { flex: 1; min-width: 0; }
+.doctor-name-lg    { font-size: 1rem; font-weight: 800; color: var(--text); }
+.doctor-specialty  { font-size: .82rem; color: var(--muted); margin-top: .15rem; }
+
+.duration-chip {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  background: var(--sky-100);
+  color: var(--sky-800);
+  border: 1px solid var(--sky-200);
+  border-radius: 99px;
+  padding: .3rem .85rem;
+  font-size: .78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  svg { width: 13px; height: 13px; }
+}
+
+/* ── Step indicator ── */
+.steps {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  margin-bottom: 2rem;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .25rem;
+  flex-shrink: 0;
+
+  span { font-size: .7rem; color: var(--muted); font-weight: 600; }
+
+  .step-circle {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: #fff;
+    color: var(--muted);
+    font-size: .78rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .2s;
+  }
+
+  &.active .step-circle {
+    border-color: var(--sky-primary);
+    background: var(--sky-primary);
+    color: #fff;
+  }
+
+  &.done .step-circle {
+    border-color: var(--sky-primary);
+    background: var(--sky-50);
+    color: var(--sky-primary);
+  }
+}
+
+.step-line {
+  flex: 1;
+  height: 2px;
+  background: var(--border);
+  margin-bottom: 1.1rem;
+  transition: background .25s;
+  &.done { background: var(--sky-primary); }
+}
+
+/* ── Step panel ── */
+.step-panel { animation: fadeIn .25s ease; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.step-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -.5px;
+  margin-bottom: .35rem;
+}
+
+.step-sub {
+  font-size: .9rem;
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  background: transparent;
+  border: none;
+  color: var(--sky-primary);
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 1.25rem;
+  transition: opacity .15s;
+  svg { width: 14px; height: 14px; }
+  &:hover { opacity: .75; }
+}
+
+/* ── Calendar ── */
+.calendar-card {
+  background: #fff;
+  border: 1.5px solid var(--sky-200);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 24px rgba(14,165,233,.09);
+}
+
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.cal-month-label {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.cal-nav-btn {
+  width: 34px; height: 34px;
+  border: 1.5px solid var(--sky-200);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--sky-primary);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, border-color .15s;
+  svg { width: 16px; height: 16px; }
+  &:hover { background: var(--sky-100); border-color: var(--sky-primary); }
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: .25rem;
+}
+
+.cal-dow {
+  text-align: center;
+  font-size: .68rem;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  padding-bottom: .5rem;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: .82rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  cursor: default;
+  transition: background .15s, color .15s, transform .1s;
+  position: relative;
+  gap: 2px;
+
+  &.other-month { opacity: .25; }
+
+  &.past { color: #cbd5e1; }
+
+  &.available {
+    color: var(--text);
+    cursor: pointer;
+    &:hover {
+      background: var(--sky-100);
+      color: var(--sky-primary);
+      transform: scale(1.08);
+    }
+  }
+
+  &.today:not(.selected) {
+    border: 1.5px solid var(--sky-primary);
+    color: var(--sky-primary);
+    font-weight: 800;
+  }
+
+  &.selected {
+    background: linear-gradient(135deg, var(--sky-primary), #06b6d4);
+    color: #fff !important;
+    font-weight: 800;
+    box-shadow: 0 4px 14px rgba(14,165,233,.4);
+    transform: scale(1.1);
+    .day-dot { display: none; }
+  }
+}
+
+.day-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--sky-primary);
+  opacity: .7;
+}
+
+.cal-legend {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 1rem;
+  padding-top: .75rem;
+  border-top: 1px solid var(--sky-100);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .72rem;
+  color: var(--muted);
+}
+
+.legend-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  &.available { background: var(--sky-primary); }
+  &.today { border: 2px solid var(--sky-primary); background: transparent; }
+}
+
+.loading-slots {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-top: 1.25rem;
+  font-size: .85rem;
+  color: var(--muted);
+}
+
+/* ── Time slots ── */
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: .75rem;
+  margin-top: .5rem;
+}
+
+.slot-btn {
+  padding: .75rem .5rem;
+  border: 1.5px solid var(--sky-200);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text);
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .18s;
+  text-align: center;
+
+  &:hover {
+    border-color: var(--sky-primary);
+    background: var(--sky-50);
+    color: var(--sky-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(14,165,233,.16);
+  }
+
+  &.active {
+    background: linear-gradient(135deg, var(--sky-primary), #06b6d4);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(14,165,233,.38);
+    transform: translateY(-2px);
+  }
+}
+
+.slots-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  padding: 3rem 1rem;
+  color: var(--muted);
+  text-align: center;
+  svg { width: 44px; height: 44px; opacity: .45; }
+  p { font-size: .9rem; line-height: 1.6; }
+}
+
+/* ── Patient form ── */
+.booking-summary-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: var(--sky-100);
+  border: 1px solid var(--sky-200);
+  border-radius: 12px;
+  padding: .75rem 1.1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.sum-date, .sum-time {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--sky-800);
+  svg { width: 15px; height: 15px; }
+}
+
+.patient-form { display: flex; flex-direction: column; gap: .15rem; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  margin-bottom: .85rem;
+}
+
+label {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.req { color: #ef4444; }
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+textarea {
+  padding: .7rem 1rem;
+  border: 1.5px solid var(--sky-200);
+  border-radius: 10px;
+  font-size: .9rem;
+  color: var(--text);
+  font-family: inherit;
+  background: #fff;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  resize: vertical;
+
+  &::placeholder { color: #94a3b8; }
+
+  &:focus {
+    border-color: var(--sky-primary);
+    box-shadow: 0 0 0 3px rgba(14,165,233,.12);
+  }
+}
+
+.error-msg {
+  font-size: .82rem;
+  color: #ef4444;
+  padding: .5rem .75rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  margin-bottom: .5rem;
+}
+
+.btn-primary-full {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  width: 100%;
+  padding: .95rem;
+  background: linear-gradient(135deg, var(--sky-primary), var(--sky-dark));
+  color: #fff;
+  border: none;
+  border-radius: 99px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: .5rem;
+  box-shadow: 0 8px 28px rgba(14,165,233,.38);
+  transition: box-shadow .2s, transform .15s, opacity .15s;
+  font-family: inherit;
+  svg { width: 17px; height: 17px; }
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 12px 36px rgba(14,165,233,.5);
+    transform: translateY(-1px);
+  }
+
+  &:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: .65rem 1.5rem;
+  border: 1.5px solid var(--sky-200);
+  border-radius: 99px;
+  background: #fff;
+  color: var(--sky-primary);
+  font-size: .88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+  font-family: inherit;
+  &:hover { background: var(--sky-50); border-color: var(--sky-primary); }
+}
+
+/* ── Confirmation ── */
+.confirm-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 1rem;
+}
+
+.confirm-icon-wrap {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 10px 32px rgba(16,185,129,.35);
+  svg { width: 36px; height: 36px; }
+}
+
+.confirm-title {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: -.5px;
+  margin-bottom: .4rem;
+}
+
+.confirm-sub {
+  font-size: .92rem;
+  color: var(--muted);
+  margin-bottom: 1.75rem;
+  max-width: 380px;
+}
+
+.confirm-card {
+  background: #fff;
+  border: 1.5px solid var(--sky-200);
+  border-radius: 20px;
+  padding: 1.5rem 2rem;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 8px 32px rgba(14,165,233,.10);
+  margin-bottom: 1.5rem;
+}
+
+.confirm-code {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--sky-primary);
+  letter-spacing: 2px;
+  margin-bottom: 1.25rem;
+  padding: .65rem 1rem;
+  background: var(--sky-50);
+  border: 1.5px dashed var(--sky-200);
+  border-radius: 10px;
+  font-family: 'Courier New', monospace;
+}
+
+.confirm-details { display: flex; flex-direction: column; gap: .65rem; text-align: left; }
+
+.confirm-row {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  font-size: .88rem;
+  color: var(--text);
+  svg { width: 16px; height: 16px; color: var(--sky-primary); flex-shrink: 0; }
+}
+
+.confirm-note {
+  font-size: .82rem;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 380px;
+}
+
+/* ── Footer ── */
+.booking-footer {
+  text-align: center;
+  padding: 1.25rem;
+  font-size: .78rem;
+  color: #94a3b8;
+  border-top: 1px solid var(--sky-200);
+  strong { color: var(--sky-primary); }
+}
+
+/* ── Responsive ── */
+@media (max-width: 540px) {
+  .form-row { grid-template-columns: 1fr; }
+  .booking-main { padding: 1.25rem 1rem 2.5rem; }
+  .doctor-card { padding: 1rem; }
+  .clinic-chip { display: none; }
+}

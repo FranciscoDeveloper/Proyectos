@@ -80,6 +80,42 @@ function supplierStore(): Supplier[] {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Patient self-booking tokens
+// Each UUID maps to a clinic/doctor configuration.
+// Share /#/book/<token> with patients to let them book without logging in.
+// ─────────────────────────────────────────────────────────────────────────────
+interface BookingTokenConfig {
+  clinicName:     string;
+  doctorName:     string;
+  specialty:      string;
+  duration:       number;   // minutes
+  entityKey:      string;   // appointments store to write into
+  workDays:       number[]; // JS getDay() values: 0=Sun,1=Mon,...,5=Fri,6=Sat
+  availableHours: string[]; // HH:MM slots offered each workday
+}
+
+const BOOKING_TOKENS: Record<string, BookingTokenConfig> = {
+  'a1b2c3d4-e5f6-7890-abcd-ef1234567890': {
+    clinicName: 'Clínica Dairi', doctorName: 'Dra. Morales',
+    specialty: 'Medicina General', duration: 45, entityKey: 'appointments',
+    workDays: [1, 2, 3, 4, 5],
+    availableHours: ['09:00','09:45','10:30','11:15','12:00','15:00','15:45','16:30','17:15']
+  },
+  'b2c3d4e5-f6a7-8901-bcde-f12345678901': {
+    clinicName: 'Clínica Dairi', doctorName: 'Ps. Carolina Vega',
+    specialty: 'Psicología', duration: 50, entityKey: 'psych-sessions',
+    workDays: [1, 2, 3, 4, 5],
+    availableHours: ['10:00','11:00','12:00','15:00','16:00','17:00']
+  },
+  'c3d4e5f6-a7b8-9012-cdef-123456789012': {
+    clinicName: 'Clínica Dairi', doctorName: 'Dr. Ramírez',
+    specialty: 'Odontología', duration: 60, entityKey: 'dental-sessions',
+    workDays: [1, 2, 3, 4, 5],
+    availableHours: ['09:00','10:00','11:00','14:00','15:00','16:00']
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Chat store
 // ─────────────────────────────────────────────────────────────────────────────
 const CHAT_USERS = [
@@ -259,6 +295,70 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
     const msg = { ...data, id: _chatNextId++, timestamp: new Date() };
     _chatMessages.push(msg);
     return ok(msg);
+  }
+
+  // ── Patient self-booking ─────────────────────────────────────────────────
+  const bookInfoMatch  = url.match(/^\/api\/book\/([^/]+)$/);
+  const bookSlotsMatch = url.match(/^\/api\/book\/([^/]+)\/slots$/);
+
+  // GET /api/book/:token → clinic/doctor info
+  if (method === 'GET' && bookInfoMatch) {
+    const token = bookInfoMatch[1];
+    const cfg   = BOOKING_TOKENS[token];
+    if (!cfg) return err(404, 'Token de agenda inválido o expirado');
+    return ok({
+      clinicName: cfg.clinicName, doctorName: cfg.doctorName,
+      specialty:  cfg.specialty,  duration:   cfg.duration,
+      workDays:   cfg.workDays
+    });
+  }
+
+  // GET /api/book/:token/slots?date=YYYY-MM-DD → available time slots
+  if (method === 'GET' && bookSlotsMatch) {
+    const token = bookSlotsMatch[1];
+    const cfg   = BOOKING_TOKENS[token];
+    if (!cfg) return err(404, 'Token de agenda inválido');
+    const dateStr    = new URL(url, 'http://x').searchParams.get('date') ?? '';
+    const store      = entityStore(cfg.entityKey);
+    const bookedTimes = store
+      .filter(r => (r['startDate'] as string)?.startsWith(dateStr))
+      .map(r    => (r['startDate'] as string)?.slice(11, 16));
+    const available  = cfg.availableHours.filter(h => !bookedTimes.includes(h));
+    return ok(available);
+  }
+
+  // POST /api/book/:token → create appointment
+  if (method === 'POST' && bookInfoMatch) {
+    const token = bookInfoMatch[1];
+    const cfg   = BOOKING_TOKENS[token];
+    if (!cfg) return err(404, 'Token de agenda inválido');
+    const data = req.body as {
+      date: string; time: string;
+      patientName: string; patientEmail?: string;
+      patientPhone?: string; reason?: string;
+    };
+    const startDate = `${data.date}T${data.time}`;
+    const startMs   = new Date(startDate).getTime();
+    const endDate   = new Date(startMs + cfg.duration * 60_000).toISOString().slice(0, 16);
+    const key       = cfg.entityKey;
+    const id        = _entityNextId[key] ?? (entityStore(key), _entityNextId[key]);
+    _entityNextId[key] = id + 1;
+    const confirmCode = `DAI-${String(Date.now()).slice(-6)}`;
+    const item = {
+      id, title: data.reason || 'Consulta paciente',
+      patientName: data.patientName, patientEmail: data.patientEmail ?? '',
+      patientPhone: data.patientPhone ?? '',
+      startDate, endDate, status: 'scheduled', room: 'Por asignar',
+      notes: `Agendado por portal paciente. ${data.reason ?? ''}`.trim(),
+      confirmCode,
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+    };
+    entityStore(key).push(item);
+    return ok({
+      confirmCode, doctorName: cfg.doctorName,
+      clinicName: cfg.clinicName, specialty: cfg.specialty,
+      date: data.date, time: data.time, patientName: data.patientName
+    });
   }
 
   // ── Unknown /api/* → 404 ─────────────────────────────────────────────────
