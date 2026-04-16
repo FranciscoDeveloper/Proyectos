@@ -253,6 +253,62 @@
         </div>
       </div>
 
+      <!-- ── Google Calendar ── -->
+      <div class="gcal-section">
+
+        <!-- IDLE / ERROR: show button -->
+        <button class="btn-gcal"
+                *ngIf="gcalStatus() === 'idle' || gcalStatus() === 'error'"
+                (click)="addToGoogleCalendar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          Agregar a Google Calendar
+        </button>
+        <p class="gcal-error-hint" *ngIf="gcalStatus() === 'error'">
+          No se pudo crear el evento. Intenta nuevamente.
+        </p>
+
+        <!-- CONNECTING -->
+        <div class="gcal-status-row" *ngIf="gcalStatus() === 'connecting'">
+          <span class="spinner-sm dark"></span>
+          Conectando con Google…
+        </div>
+
+        <!-- SYNCING -->
+        <div class="gcal-status-row" *ngIf="gcalStatus() === 'syncing'">
+          <span class="spinner-sm dark"></span>
+          Creando evento en tu calendario…
+        </div>
+
+        <!-- SYNCED -->
+        <div class="gcal-synced" *ngIf="gcalStatus() === 'synced'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <div>
+            <span class="gcal-synced-label">Evento creado en Google Calendar</span>
+            <a *ngIf="gcalLink()" [href]="gcalLink()" target="_blank" rel="noopener" class="gcal-open-link">
+              Ver en Calendar →
+            </a>
+          </div>
+        </div>
+
+        <!-- URL_OPENED (no OAuth configured) -->
+        <div class="gcal-synced" *ngIf="gcalStatus() === 'url_opened'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <div>
+            <span class="gcal-synced-label">Google Calendar abierto en nueva pestaña</span>
+            <span class="gcal-hint">Haz clic en "Guardar" para agregar el evento.</span>
+          </div>
+        </div>
+
+      </div>
+
       <p class="confirm-note">
         Se enviará un recordatorio a tu email antes de la cita.<br>
         Si necesitas cancelar, comunícate con la clínica directamente.

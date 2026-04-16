@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { GoogleCalendarService } from '../../services/google-calendar.service';
+
+type GcalStatus = 'idle' | 'connecting' | 'syncing' | 'synced' | 'error' | 'url_opened';
 
 interface BookingInfo {
   clinicName: string;
@@ -37,8 +40,9 @@ interface BookingResult {
   styleUrl: './patient-booking.component.scss'
 })
 export class PatientBookingComponent implements OnInit {
-  private route = inject(ActivatedRoute);
-  private http   = inject(HttpClient);
+  private route   = inject(ActivatedRoute);
+  private http    = inject(HttpClient);
+  readonly gcalSvc = inject(GoogleCalendarService);
 
   token        = signal('');
   bookingInfo  = signal<BookingInfo | null>(null);
@@ -60,6 +64,9 @@ export class PatientBookingComponent implements OnInit {
   submitError  = signal('');
 
   bookingResult = signal<BookingResult | null>(null);
+
+  gcalStatus = signal<GcalStatus>('idle');
+  gcalLink   = signal('');
 
   readonly DOW_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   readonly MONTH_NAMES = [
@@ -220,5 +227,77 @@ export class PatientBookingComponent implements OnInit {
     const d = new Date(dateStr + 'T00:00:00');
     const dow = this.DOW_LABELS[(d.getDay() + 6) % 7];
     return `${dow} ${d.getDate()} de ${this.MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  // ── Google Calendar integration ────────────────────────────────────────────
+
+  /** Fallback URL: opens Google Calendar event creation page pre-filled */
+  buildGcalUrl(): string {
+    const booking = this.bookingResult();
+    if (!booking) return '';
+    const info     = this.bookingInfo();
+    const duration = info?.duration ?? 45;
+
+    // Build start/end as YYYYMMDDTHHMMSS (local time, no Z suffix)
+    const startLocal = booking.date.replace(/-/g, '') + 'T' + booking.time.replace(':', '') + '00';
+    const startMs    = new Date(`${booking.date}T${booking.time}:00`).getTime();
+    const endDate    = new Date(startMs + duration * 60_000);
+    const pad        = (n: number) => String(n).padStart(2, '0');
+    const endLocal   = `${endDate.getFullYear()}${pad(endDate.getMonth()+1)}${pad(endDate.getDate())}` +
+                       `T${pad(endDate.getHours())}${pad(endDate.getMinutes())}00`;
+
+    const params = new URLSearchParams({
+      action:   'TEMPLATE',
+      text:     `Cita con ${booking.doctorName} — ${booking.specialty}`,
+      dates:    `${startLocal}/${endLocal}`,
+      details:  `Clínica: ${booking.clinicName}\nCódigo de confirmación: ${booking.confirmCode}`,
+      location: booking.clinicName
+    });
+    return `https://calendar.google.com/calendar/render?${params}`;
+  }
+
+  async addToGoogleCalendar(): Promise<void> {
+    const booking = this.bookingResult();
+    if (!booking) return;
+
+    // No OAuth client configured → open URL directly
+    if (!this.gcalSvc.isConfigured) {
+      window.open(this.buildGcalUrl(), '_blank', 'noopener');
+      this.gcalStatus.set('url_opened');
+      return;
+    }
+
+    try {
+      if (!this.gcalSvc.isConnected()) {
+        this.gcalStatus.set('connecting');
+        await this.gcalSvc.connect();
+      }
+
+      this.gcalStatus.set('syncing');
+      const info     = this.bookingInfo();
+      const duration = info?.duration ?? 45;
+      const startMs  = new Date(`${booking.date}T${booking.time}:00`).getTime();
+      const endIso   = new Date(startMs + duration * 60_000).toISOString().slice(0, 16);
+
+      const result = await this.gcalSvc.createEvent({
+        summary:        `Cita con ${booking.doctorName} — ${booking.specialty}`,
+        description:    `Clínica: ${booking.clinicName}\n` +
+                        `Motivo: ${this.reason() || 'Consulta médica'}\n` +
+                        `Código de confirmación: ${booking.confirmCode}`,
+        startIso:       `${booking.date}T${booking.time}`,
+        endIso,
+        attendeeEmail:  this.patientEmail(),
+        location:       booking.clinicName
+      });
+
+      if (result.success) {
+        this.gcalStatus.set('synced');
+        this.gcalLink.set(result.link ?? '');
+      } else {
+        this.gcalStatus.set('error');
+      }
+    } catch {
+      this.gcalStatus.set('error');
+    }
   }
 }
