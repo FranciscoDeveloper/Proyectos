@@ -11,6 +11,13 @@ export const routes: Routes = [
       import('./components/landing/landing.component').then(m => m.LandingComponent)
   },
 
+  // ── Public: register (Starter plan) ─────────────────────────────────────────
+  {
+    path: 'register',
+    loadComponent: () =>
+      import('./components/register/register.component').then(m => m.RegisterComponent)
+  },
+
   // ── Public: login ────────────────────────────────────────────────────────────
   {
     path: 'login',

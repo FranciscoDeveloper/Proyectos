@@ -16,100 +16,135 @@
 <!-- HERO -->
 <section class="hero" style="max-width:100%;">
   <div class="hero-badge">
-    ✦ Plataforma clínica y empresarial · Cloud-native en AWS
+    ✦ Plataforma clínica y empresarial · Tus registros clínicos seguros y disponibles 24/7
   </div>
   <h1>Gestiona tu clínica<br><span class="gradient">sin límites ni papeles</span></h1>
-  <p>Dairi unifica pacientes, citas, fichas clínicas, inventario, proveedores y finanzas en una sola plataforma inteligente, respaldada por infraestructura AWS de nivel empresarial.</p>
+  <p>Dairi unifica pacientes, citas, fichas clínicas, inventario, proveedores y finanzas en una sola plataforma inteligente, respaldada por infraestructura en la nube de nivel empresarial.</p>
   <div class="hero-btns">
     <a routerLink="/login" class="btn-primary">Comenzar gratis 14 días</a>
     <a href="#features" class="btn-secondary">Ver funcionalidades →</a>
   </div>
 
-  <!-- APP MOCKUP -->
-  <div class="mockup-wrap">
-    <div class="mockup-bar">
-      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
-      <div class="mockup-url">app.dairi.cl / dashboard</div>
-    </div>
-    <div class="mockup-body">
-      <div class="mock-sidebar">
-        <div class="mock-logo">Dairi</div>
-        <div class="mock-nav-item active"><span class="icon">📊</span> Dashboard</div>
-        <div class="mock-nav-item"><span class="icon">🧑‍⚕️</span> Pacientes</div>
-        <div class="mock-nav-item"><span class="icon">📅</span> Citas</div>
-        <div class="mock-nav-item"><span class="icon">📋</span> Fichas Clínicas</div>
-        <div class="mock-nav-item"><span class="icon">💊</span> Productos</div>
-        <div class="mock-nav-item"><span class="icon">🤝</span> Proveedores</div>
-        <div class="mock-nav-item"><span class="icon">💳</span> Pagos</div>
-        <div class="mock-nav-item"><span class="icon">💬</span> Chat</div>
-        <div class="mock-nav-item"><span class="icon">⚙️</span> Configuración</div>
+  <!-- DUAL MOCKUP SCENE -->
+  <div style="margin-top:4rem;width:100%;max-width:980px;display:flex;flex-direction:column;align-items:center;gap:3.5rem;perspective:1400px;position:relative;padding-bottom:50px;">
+    <div style="width:100%;border-radius:12px;overflow:hidden;flex-shrink:0;z-index:2;
+          box-shadow:0 20px 60px rgba(0,0,0,.18),0 6px 20px rgba(14,165,233,.10),0 0 0 1px rgba(14,165,233,.12);
+          transition:box-shadow .35s ease,transform .35s ease;"
+          onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 28px 70px rgba(0,0,0,.22),0 8px 28px rgba(14,165,233,.14),0 0 0 1px rgba(14,165,233,.18)'"
+          onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 20px 60px rgba(0,0,0,.18),0 6px 20px rgba(14,165,233,.10),0 0 0 1px rgba(14,165,233,.12)'">
+      <div style="background:#0a1628;padding:.52rem .85rem;display:flex;align-items:center;gap:.4rem;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#ff5f57;"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:#febc2e;"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:#28c840;"></div>
+        <div style="flex:1;margin-left:.4rem;background:rgba(255,255,255,.07);border-radius:5px;padding:.17rem .75rem;font-size:.67rem;color:#64748b;">app.dairi.cl / dashboard</div>
       </div>
-      <div class="mock-main">
-        <div class="mock-header">
-          <span class="mock-title">Resumen del día</span>
-          <span class="mock-badge">● EN VIVO</span>
+      <div style="background:#111c2d;display:flex;min-height:410px;">
+        <div style="width:152px;background:#0f1e30;border-right:1px solid #1e3452;padding:.9rem .6rem;flex-shrink:0;">
+          <div style="font-size:.92rem;font-weight:800;color:#38bdf8;margin-bottom:1.1rem;padding-left:.35rem;font-family:'Plus Jakarta Sans',sans-serif;">Dairi</div>
+          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.75rem;background:rgba(14,165,233,.18);color:#38bdf8;font-weight:700;margin-bottom:.2rem;"><span>📊</span>Dashboard</div>
+          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.75rem;color:#64748b;margin-bottom:.2rem;"><span>🧑‍⚕️</span>Pacientes</div>
+          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.75rem;color:#64748b;margin-bottom:.2rem;"><span>📅</span>Citas</div>
+          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.75rem;color:#64748b;margin-bottom:.2rem;"><span>📋</span>Fichas</div>
+          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.75rem;color:#64748b;margin-bottom:.2rem;"><span>💊</span>Productos</div>
+          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.75rem;color:#64748b;margin-bottom:.2rem;"><span>🤝</span>Proveedores</div>
+          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.75rem;color:#64748b;margin-bottom:.2rem;"><span>💳</span>Pagos</div>
+          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.68rem;color:#64748b;"><span>💬</span>Chat</div>
         </div>
-        <div class="mock-stats">
-          <div class="mock-stat">
-            <div class="mock-stat-val" style="color:#818cf8">12</div>
-            <div class="mock-stat-lbl">Citas hoy</div>
+        <div style="flex:1;padding:1rem;overflow:hidden;color:#f1f5f9;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;">
+            <span style="font-size:.85rem;font-weight:700;">Resumen del día</span>
+            <span style="background:rgba(14,165,233,.18);color:#38bdf8;border-radius:99px;padding:.13rem .55rem;font-size:.6rem;font-weight:700;">● EN VIVO</span>
           </div>
-          <div class="mock-stat">
-            <div class="mock-stat-val" style="color:#10b981">$840K</div>
-            <div class="mock-stat-lbl">Ingresos mes</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.55rem;margin-bottom:.9rem;">
+            <div style="background:#0f1e30;border:1px solid #1e3452;border-radius:8px;padding:.6rem .45rem;text-align:center;"><div style="font-size:1rem;font-weight:800;color:#38bdf8;">12</div><div style="font-size:.56rem;color:#64748b;margin-top:.08rem;">Citas hoy</div></div>
+            <div style="background:#0f1e30;border:1px solid #1e3452;border-radius:8px;padding:.6rem .45rem;text-align:center;"><div style="font-size:1rem;font-weight:800;color:#10b981;">$840K</div><div style="font-size:.56rem;color:#64748b;margin-top:.08rem;">Ingresos</div></div>
+            <div style="background:#0f1e30;border:1px solid #1e3452;border-radius:8px;padding:.6rem .45rem;text-align:center;"><div style="font-size:1rem;font-weight:800;color:#06b6d4;">247</div><div style="font-size:.56rem;color:#64748b;margin-top:.08rem;">Pacientes</div></div>
+            <div style="background:#0f1e30;border:1px solid #1e3452;border-radius:8px;padding:.6rem .45rem;text-align:center;"><div style="font-size:1rem;font-weight:800;color:#f59e0b;">8</div><div style="font-size:.56rem;color:#64748b;margin-top:.08rem;">Stock bajo</div></div>
           </div>
-          <div class="mock-stat">
-            <div class="mock-stat-val" style="color:#22d3ee">247</div>
-            <div class="mock-stat-lbl">Pacientes activos</div>
-          </div>
-          <div class="mock-stat">
-            <div class="mock-stat-val" style="color:#f59e0b">8</div>
-            <div class="mock-stat-lbl">Stock bajo</div>
-          </div>
-        </div>
-        <div class="mock-table">
-          <div class="mock-table-head">
-            <span>Paciente</span><span>Hora</span><span>Profesional</span><span>Estado</span>
-          </div>
-          <div class="mock-table-row">
-            <span>María González</span><span>09:00</span><span>Dr. Rojas</span>
-            <span><span class="mock-pill pill-green">Completada</span></span>
-          </div>
-          <div class="mock-table-row">
-            <span>Carlos Soto</span><span>10:30</span><span>Dra. Vidal</span>
-            <span><span class="mock-pill pill-yellow">En espera</span></span>
-          </div>
-          <div class="mock-table-row">
-            <span>Ana Pérez</span><span>11:15</span><span>Dr. Rojas</span>
-            <span><span class="mock-pill pill-pink">Agendada</span></span>
-          </div>
-          <div class="mock-table-row">
-            <span>Luis Morales</span><span>14:00</span><span>Dra. Vidal</span>
-            <span><span class="mock-pill pill-green">Completada</span></span>
+          <div style="background:#16213e;border:1px solid #2d2d4a;border-radius:10px;overflow:hidden;">
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;background:rgba(255,255,255,.04);padding:.5rem 1rem;font-size:.68rem;color:#94a3b8;font-weight:600;letter-spacing:.5px;text-transform:uppercase;"><span>Paciente</span><span>Hora</span><span>Profesional</span><span>Estado</span></div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:.55rem 1rem;border-top:1px solid #2d2d4a;font-size:.75rem;align-items:center;color:#f1f5f9;"><span>María González</span><span>09:00</span><span>Dr. Rojas</span><span><span style="background:rgba(16,185,129,.15);color:#10b981;border-radius:99px;padding:.15rem .55rem;font-size:.65rem;font-weight:600;">Completada</span></span></div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:.55rem 1rem;border-top:1px solid #2d2d4a;font-size:.75rem;align-items:center;color:#f1f5f9;"><span>Carlos Soto</span><span>10:30</span><span>Dra. Vidal</span><span><span style="background:rgba(245,158,11,.15);color:#f59e0b;border-radius:99px;padding:.15rem .55rem;font-size:.65rem;font-weight:600;">En espera</span></span></div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:.55rem 1rem;border-top:1px solid #2d2d4a;font-size:.75rem;align-items:center;color:#f1f5f9;"><span>Ana Pérez</span><span>11:15</span><span>Dr. Rojas</span><span><span style="background:rgba(236,72,153,.15);color:#ec4899;border-radius:99px;padding:.15rem .55rem;font-size:.65rem;font-weight:600;">Agendada</span></span></div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:.55rem 1rem;border-top:1px solid #2d2d4a;font-size:.75rem;align-items:center;color:#f1f5f9;"><span>Luis Morales</span><span>14:00</span><span>Dra. Vidal</span><span><span style="background:rgba(16,185,129,.15);color:#10b981;border-radius:99px;padding:.15rem .55rem;font-size:.65rem;font-weight:600;">Completada</span></span></div>
           </div>
         </div>
       </div>
     </div>
+    <div style="width:100%;border-radius:12px;overflow:hidden;flex-shrink:0;z-index:1;
+          box-shadow:0 20px 60px rgba(0,0,0,.12),0 6px 20px rgba(14,165,233,.08),0 0 0 1px rgba(14,165,233,.10);
+          transition:box-shadow .35s ease,transform .35s ease;"
+          onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 28px 70px rgba(0,0,0,.16),0 8px 28px rgba(14,165,233,.12),0 0 0 1px rgba(14,165,233,.16)'"
+          onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 20px 60px rgba(0,0,0,.12),0 6px 20px rgba(14,165,233,.08),0 0 0 1px rgba(14,165,233,.10)'">
+      <div style="background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:.52rem .85rem;display:flex;align-items:center;gap:.4rem;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#ff5f57;"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:#febc2e;"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:#28c840;"></div>
+        <div style="flex:1;margin-left:.4rem;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:5px;padding:.17rem .75rem;font-size:.67rem;color:#94a3b8;">app.dairi.cl / calendario</div>
+      </div>
+      <div style="background:#fff;display:flex;flex-direction:column;min-height:410px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.55rem .85rem .42rem;border-bottom:1px solid #e0f2fe;flex-shrink:0;">
+          <div style="display:flex;align-items:center;gap:.38rem;">
+            <span style="font-size:.8rem;font-weight:800;color:#0c4a6e;font-family:'Plus Jakarta Sans',sans-serif;">Calendario</span>
+            <span style="background:#e0f2fe;color:#0284c7;border-radius:99px;padding:.1rem .48rem;font-size:.57rem;font-weight:700;">Abril 2026</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.32rem;">
+            <div style="display:flex;align-items:center;gap:.18rem;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:.16rem .48rem;font-size:.63rem;font-weight:600;color:#0284c7;"><span style="color:#94a3b8;">‹</span><span>Abril 2026</span><span style="color:#94a3b8;">›</span></div>
+            <div style="background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;border-radius:5px;padding:.18rem .52rem;font-size:.58rem;font-weight:700;">+ Nueva Cita</div>
+            <div style="display:flex;gap:.13rem;"><span style="background:#0ea5e9;color:#fff;border-radius:4px;padding:.16rem .38rem;font-size:.56rem;font-weight:700;">Mes</span><span style="color:#94a3b8;padding:.16rem .38rem;font-size:.56rem;">Semana</span><span style="color:#94a3b8;padding:.16rem .38rem;font-size:.56rem;">Día</span></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #e0f2fe;background:#f0f9ff;flex-shrink:0;">
+          <div style="padding:.25rem 0;text-align:center;font-size:.56rem;font-weight:800;color:#475569;letter-spacing:.6px;text-transform:uppercase;">Lun</div>
+          <div style="padding:.25rem 0;text-align:center;font-size:.56rem;font-weight:800;color:#475569;letter-spacing:.6px;text-transform:uppercase;">Mar</div>
+          <div style="padding:.25rem 0;text-align:center;font-size:.56rem;font-weight:800;color:#475569;letter-spacing:.6px;text-transform:uppercase;">Mié</div>
+          <div style="padding:.25rem 0;text-align:center;font-size:.56rem;font-weight:800;color:#475569;letter-spacing:.6px;text-transform:uppercase;">Jue</div>
+          <div style="padding:.25rem 0;text-align:center;font-size:.56rem;font-weight:800;color:#475569;letter-spacing:.6px;text-transform:uppercase;">Vie</div>
+          <div style="padding:.25rem 0;text-align:center;font-size:.56rem;font-weight:800;color:#0ea5e9;letter-spacing:.6px;text-transform:uppercase;">Sáb</div>
+          <div style="padding:.25rem 0;text-align:center;font-size:.56rem;font-weight:800;color:#0ea5e9;letter-spacing:.6px;text-transform:uppercase;">Dom</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(5,1fr);flex:1;">
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;opacity:0.15;min-height:0;"></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">1</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:00 M.González</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">11:30 C.Soto</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">2</div><div style="background:#ede9fe;color:#5b21b6;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">10:00 A.Pérez</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">3</div><div style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">08:30 L.Morales</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">15:00 P.Torres</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">4</div><div style="background:#fce7f3;color:#9d174d;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:00 S.Rojas</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">5</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">6</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">7</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:30 R.Vega</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">8</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">08:00 F.Castro</div><div style="background:#ede9fe;color:#5b21b6;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">11:00 G.Ruiz</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">9</div><div style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">10:30 K.Muñoz</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">10</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:00 S.López</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">14:00 T.Pinto</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">11</div><div style="background:#fce7f3;color:#9d174d;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">08:30 D.Ríos</div><div style="background:#e0f2fe;color:#0369a1;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">+ 2 más</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">12</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">10:00 B.Salas</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">13</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#f0f9ff;border-top:2px solid #0ea5e9 !important;min-height:0;"><div style="font-size:.6rem;font-weight:800;display:inline-flex;align-items:center;justify-content:center;background:#0ea5e9;color:#fff;border-radius:50%;width:14px;height:14px;margin-bottom:.2rem;">14</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:00 M.González</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">10:30 C.Soto</div><div style="background:#e0f2fe;color:#0369a1;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">+ 3 más</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">15</div><div style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">11:00 N.Araya</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">16:00 P.Vera</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">16</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">08:00 O.Silva</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">17</div><div style="background:#fce7f3;color:#9d174d;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:30 H.Pardo</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">13:00 I.Fuentes</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">18</div><div style="background:#ede9fe;color:#5b21b6;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">10:00 J.Bravo</div><div style="background:#e0f2fe;color:#0369a1;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">+ 1 más</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">19</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">20</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">21</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:00 Q.Lagos</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">22</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">08:30 R.Mena</div><div style="background:#fce7f3;color:#9d174d;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">14:30 S.Díaz</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">23</div><div style="background:#ede9fe;color:#5b21b6;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">11:30 T.Ibarra</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">24</div><div style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:00 U.Rojas</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">15:00 V.Cerda</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">25</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">10:00 W.Núñez</div><div style="background:#e0f2fe;color:#0369a1;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">+ 2 más</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">26</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">11:00 X.Palma</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">27</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">28</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:00 Y.Soria</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">29</div><div style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">10:30 Z.Reyes</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">30</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">08:30 A.Mora</div></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;opacity:0.15;min-height:0;"></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;opacity:0.15;min-height:0;"></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;opacity:0.15;min-height:0;"></div>
+          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;opacity:0.15;min-height:0;"></div>
+        </div>
+      </div>
+    </div>
+    <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:75%;height:36px;background:radial-gradient(ellipse,rgba(14,165,233,.14) 0%,transparent 70%);filter:blur(12px);pointer-events:none;"></div>
   </div>
 </section>
-
-<!-- STATS STRIP -->
-<div class="stats-strip">
-  <div class="stats-inner">
-    <div>
-      <div class="stat-num">+500</div>
-      <div class="stat-lbl">Profesionales de salud</div>
-    </div>
-    <div>
-      <div class="stat-num">99.9%</div>
-      <div class="stat-lbl">Disponibilidad garantizada</div>
-    </div>
-    <div>
-      <div class="stat-num">24h</div>
-      <div class="stat-lbl">Implementación promedio</div>
-    </div>
-  </div>
-</div>
 
 <!-- FEATURES -->
 <section id="features">
@@ -158,9 +193,9 @@
       <p>Indicadores clave al iniciar sesión: citas del día, ingresos del mes, pacientes activos y alertas de stock bajo, todo en tiempo real.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">☁️</div>
-      <h3>Infraestructura AWS</h3>
-      <p>Backend serverless en AWS (API Gateway + Lambda + RDS PostgreSQL). Alta disponibilidad, backups automáticos y cifrado de datos en reposo y en tránsito.</p>
+      <div class="feature-icon">🏷️</div>
+      <h3>Boleta Electrónica</h3>
+      <p>Emite boletas a pacientes particulares con timbre electrónico SII y envío automático por email al finalizar la atención.</p>
     </div>
   </div>
 </section>
@@ -187,24 +222,19 @@
 <section>
   <div class="section-label">Ventajas competitivas</div>
   <h2 class="section-title">¿Por qué elegir Dairi?</h2>
-  <p class="section-sub">Diseñado específicamente para clínicas y centros de salud latinoamericanos, con tecnología de vanguardia y un modelo de precios accesible.</p>
+  <p class="section-sub">Diseñado desde cero para la realidad de las clínicas latinoamericanas. Rápido de implementar, fácil de usar y escalable desde el primer día.</p>
   <div class="features-grid">
-    <div class="feature-card advantage-indigo">
-      <div class="feature-icon">🚀</div>
+    <div class="feature-card" style="border-color:rgba(14,165,233,.4);">
+      <div class="feature-icon">⚡</div>
       <h3>Implementación en 24 horas</h3>
-      <p>Sin instalaciones, sin servidores propios. Configura tu clínica, carga tus datos y comienza a operar el mismo día. Soporte dedicado durante el onboarding.</p>
+      <p>Sin instalaciones complejas ni servidores propios. Tu equipo puede estar operativo el mismo día con onboarding guiado incluido.</p>
     </div>
-    <div class="feature-card advantage-cyan">
-      <div class="feature-icon">💰</div>
-      <h3>Precio justo para Latinoamérica</h3>
-      <p>Tarifas en pesos chilenos, sin cobros en dólares ni sorpresas. Un precio mensual fijo que incluye todo: sin módulos adicionales ni funciones bloqueadas.</p>
-    </div>
-    <div class="feature-card advantage-green">
+    <div class="feature-card" style="border-color:rgba(6,182,212,.35);">
       <div class="feature-icon">🔒</div>
       <h3>Seguridad de nivel bancario</h3>
       <p>JWT, HTTPS forzado, cifrado AES-256 en base de datos y arquitectura serverless que elimina vectores de ataque tradicionales.</p>
     </div>
-    <div class="feature-card advantage-green">
+    <div class="feature-card" style="border-color:rgba(16,185,129,.35);">
       <div class="feature-icon">🧩</div>
       <h3>Altamente configurable</h3>
       <p>Motor de entidades basado en schemas: agrega nuevos módulos, campos y flujos de trabajo sin tocar el código fuente.</p>
@@ -216,9 +246,75 @@
 <div class="cta-section" id="cta">
   <h2>Empieza hoy.<br>Sin tarjeta de crédito.</h2>
   <p>14 días de prueba gratuita con acceso completo a todas las funcionalidades. Sin compromisos.</p>
-  <a href="mailto:contacto&#64;dairi.cl" class="btn-primary" style="font-size:1.1rem;padding:1rem 2.8rem;">
-    Solicitar mi demo gratuita
-  </a>
+
+  <div class="pricing-grid">
+
+    <!-- STARTER -->
+    <div class="pricing-card">
+      <div class="pricing-plan">Starter</div>
+      <div class="pricing-price">
+        <span class="p-currency">US$</span>
+        <span class="p-amount">9</span>
+        <span class="p-period">/mes</span>
+      </div>
+      <p class="pricing-desc">Ideal para clínicas pequeñas que están comenzando.</p>
+      <hr class="pricing-divider">
+      <ul class="pricing-features">
+        <li>Hasta 5 usuarios</li>
+        <li>Gestión de pacientes y citas</li>
+        <li>Fichas clínicas</li>
+        <li>Dashboard con métricas</li>
+        <li>Soporte por email</li>
+      </ul>
+      <a routerLink="/register" class="pricing-btn solid" style="margin-top:1.25rem;">Comenzar gratis</a>
+    </div>
+
+    <!-- PRO -->
+    <div class="pricing-card featured">
+      <div class="pricing-badge">MÁS POPULAR</div>
+      <div class="pricing-plan">Pro</div>
+      <div class="pricing-price">
+        <span class="p-currency">US$</span>
+        <span class="p-amount">18</span>
+        <span class="p-period">/mes</span>
+      </div>
+      <p class="pricing-desc">Para clínicas en crecimiento que necesitan más capacidad.</p>
+      <hr class="pricing-divider">
+      <ul class="pricing-features">
+        <li>Hasta 10 usuarios</li>
+        <li>Todo lo del plan Starter</li>
+        <li>Inventario y proveedores</li>
+        <li>Control de gastos y pagos</li>
+        <li>Chat interno del equipo</li>
+        <li>Boleta electrónica SII</li>
+        <li>Soporte prioritario</li>
+      </ul>
+      <a href="mailto:contacto&#64;dairi.cl" class="pricing-btn solid" style="margin-top:1.25rem;">Comenzar gratis</a>
+    </div>
+
+    <!-- ENTERPRISE -->
+    <div class="pricing-card">
+      <div class="pricing-plan">Enterprise</div>
+      <div class="pricing-price">
+        <span class="p-consult">Consultar</span>
+      </div>
+      <p class="pricing-desc">Para grandes organizaciones con necesidades personalizadas.</p>
+      <hr class="pricing-divider">
+      <ul class="pricing-features">
+        <li>Usuarios ilimitados</li>
+        <li>Todo lo del plan Pro</li>
+        <li>Módulos a medida</li>
+        <li>Integraciones personalizadas</li>
+        <li>SLA garantizado</li>
+        <li>Onboarding dedicado</li>
+        <li>Soporte 24/7</li>
+      </ul>
+      <a href="mailto:contacto&#64;dairi.cl" class="pricing-btn outline" style="margin-top:1.25rem;">Contactar ventas</a>
+    </div>
+
+  </div>
+
+  <p class="trial-note">Después de la prueba, continúa con el plan más adecuado para ti. Cancela cuando quieras.</p>
 </div>
 
 <!-- FOOTER -->

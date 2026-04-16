@@ -1,0 +1,361 @@
+<!-- ══════════════════════════════════════════════════════════════
+     REGISTER PAGE
+══════════════════════════════════════════════════════════════ -->
+<div class="rp-shell">
+
+  <!-- ── Nav strip ───────────────────────────────────────────── -->
+  <nav class="rp-nav">
+    <a routerLink="/" class="rp-logo">Dairi<span>.</span></a>
+    <div class="rp-nav-right">
+      <span class="rp-nav-hint">¿Ya tienes cuenta?</span>
+      <a routerLink="/login" class="rp-nav-login">Iniciar sesión</a>
+    </div>
+  </nav>
+
+  <!-- ── Main layout ─────────────────────────────────────────── -->
+  <main class="rp-main">
+
+    <!-- ── Left: plan info ───────────────────────────────────── -->
+    <aside class="rp-info">
+      <div class="rp-info-inner">
+        <div class="rp-plan-badge">Plan Starter · 14 días gratis</div>
+        <h2 class="rp-info-title">Empieza a gestionar<br>tu clínica hoy</h2>
+        <p class="rp-info-sub">Sin tarjeta de crédito. Cancela cuando quieras.</p>
+
+        <ul class="rp-features">
+          <li><span class="rp-check">✓</span> Hasta 5 usuarios</li>
+          <li><span class="rp-check">✓</span> Gestión de pacientes y citas</li>
+          <li><span class="rp-check">✓</span> Fichas clínicas</li>
+          <li><span class="rp-check">✓</span> Dashboard con métricas</li>
+          <li><span class="rp-check">✓</span> Soporte por email</li>
+        </ul>
+
+        <div class="rp-price-box">
+          <div class="rp-price-label">Después de la prueba</div>
+          <div class="rp-price">
+            <span class="rp-currency">US$</span>
+            <span class="rp-amount">9</span>
+            <span class="rp-period">/mes</span>
+          </div>
+        </div>
+
+        <a routerLink="/" class="rp-back-link">← Volver a la landing</a>
+      </div>
+    </aside>
+
+    <!-- ── Right: form / success ────────────────────────────── -->
+    <div class="rp-form-wrap">
+
+      <!-- ── SUCCESS STATE ──────────────────────────────────── -->
+      @if (submitted()) {
+        <div class="rp-card rp-success">
+          <div class="rp-success-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="9 12 11.5 14.5 15.5 9.5"/>
+            </svg>
+          </div>
+          <h2>¡Revisa tu correo!</h2>
+          <p>Hemos enviado un enlace de activación a</p>
+          <div class="rp-email-pill">{{ registeredEmail }}</div>
+          <p class="rp-email-hint">
+            Haz clic en el enlace del correo para activar tu cuenta y comenzar tu prueba gratuita de 14 días.<br>
+            Puede tardar unos minutos. Revisa también tu carpeta de spam.
+          </p>
+          <a routerLink="/login" class="rp-btn-primary" style="margin-top:1.5rem;">
+            Ir a iniciar sesión
+          </a>
+          <div class="rp-resend">
+            ¿No llegó el correo?
+            <button type="button" class="rp-link-btn">Reenviar activación</button>
+          </div>
+        </div>
+      }
+
+      <!-- ── FORM STATE ─────────────────────────────────────── -->
+      @if (!submitted()) {
+        <div class="rp-card">
+          <div class="rp-card-header">
+            <h1>Crear tu cuenta</h1>
+            <p>Plan Starter — 14 días sin costo</p>
+          </div>
+
+          <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+            <!-- Nombre + Apellidos -->
+            <div class="rp-row-2">
+              <div class="rp-field">
+                <label for="nombre">Nombre</label>
+                <input
+                  id="nombre" type="text" formControlName="nombre"
+                  placeholder="Tu nombre"
+                  [class.rp-invalid]="isInvalid('nombre')"
+                  autocomplete="given-name">
+                @if (isInvalid('nombre')) {
+                  <span class="rp-error">Ingresa tu nombre (mínimo 2 caracteres)</span>
+                }
+              </div>
+              <div class="rp-field">
+                <label for="apellidos">Apellidos</label>
+                <input
+                  id="apellidos" type="text" formControlName="apellidos"
+                  placeholder="Tus apellidos"
+                  [class.rp-invalid]="isInvalid('apellidos')"
+                  autocomplete="family-name">
+                @if (isInvalid('apellidos')) {
+                  <span class="rp-error">Ingresa tus apellidos (mínimo 2 caracteres)</span>
+                }
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="rp-field">
+              <label for="email">Correo electrónico</label>
+              <input
+                id="email" type="email" formControlName="email"
+                placeholder="correo@ejemplo.com"
+                [class.rp-invalid]="isInvalid('email')"
+                autocomplete="email">
+              @if (isInvalid('email')) {
+                <span class="rp-error">Ingresa un correo electrónico válido</span>
+              }
+            </div>
+
+            <!-- Teléfono -->
+            <div class="rp-field">
+              <label for="telefono">Teléfono de contacto</label>
+              <input
+                id="telefono" type="tel" formControlName="telefono"
+                placeholder="+56 9 1234 5678"
+                [class.rp-invalid]="isInvalid('telefono')"
+                autocomplete="tel">
+              @if (isInvalid('telefono')) {
+                <span class="rp-error">Ingresa un número de teléfono válido</span>
+              }
+            </div>
+
+            <!-- Contraseña -->
+            <div class="rp-field">
+              <label for="password">Contraseña</label>
+              <div class="rp-pass-wrap">
+                <input
+                  id="password"
+                  [type]="showPass() ? 'text' : 'password'"
+                  formControlName="password"
+                  placeholder="Mínimo 8 caracteres"
+                  [class.rp-invalid]="isInvalid('password')"
+                  autocomplete="new-password">
+                <button type="button" class="rp-eye" (click)="togglePass()"
+                        [attr.aria-label]="showPass() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                  @if (showPass()) {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  }
+                </button>
+              </div>
+              @if (isInvalid('password')) {
+                <span class="rp-error">La contraseña debe tener al menos 8 caracteres</span>
+              }
+            </div>
+
+            <!-- Repetir contraseña -->
+            <div class="rp-field">
+              <label for="confirmPassword">Repetir contraseña</label>
+              <div class="rp-pass-wrap">
+                <input
+                  id="confirmPassword"
+                  [type]="showConfirm() ? 'text' : 'password'"
+                  formControlName="confirmPassword"
+                  placeholder="Repite tu contraseña"
+                  [class.rp-invalid]="isInvalid('confirmPassword') || passwordMismatch"
+                  autocomplete="new-password">
+                <button type="button" class="rp-eye" (click)="toggleConfirm()"
+                        [attr.aria-label]="showConfirm() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                  @if (showConfirm()) {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  }
+                </button>
+              </div>
+              @if (passwordMismatch) {
+                <span class="rp-error">Las contraseñas no coinciden</span>
+              } @else if (isInvalid('confirmPassword')) {
+                <span class="rp-error">Repite tu contraseña</span>
+              }
+            </div>
+
+            <!-- Términos y condiciones -->
+            <div class="rp-terms-row" [class.rp-terms-error]="isInvalid('termsAccepted')">
+              <label class="rp-checkbox-label">
+                <input type="checkbox" formControlName="termsAccepted" class="rp-checkbox">
+                <span class="rp-checkbox-custom"></span>
+                <span class="rp-terms-text">
+                  He leído y acepto los
+                  <a href="#" class="rp-terms-link" (click)="openTerms($event)">
+                    Términos y Condiciones de Uso
+                  </a>
+                  y la Política de Privacidad de Dairi, conforme a la
+                  <strong>Ley N° 19.799</strong> sobre Documentos Electrónicos y Firma Electrónica.
+                </span>
+              </label>
+              @if (isInvalid('termsAccepted')) {
+                <span class="rp-error" style="margin-top:.35rem;display:block;">
+                  Debes aceptar los términos y condiciones para continuar
+                </span>
+              }
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="rp-btn-primary rp-submit" [disabled]="loading()">
+              @if (loading()) {
+                <span class="rp-spinner"></span>
+                Creando tu cuenta...
+              } @else {
+                Crear cuenta gratis
+              }
+            </button>
+
+          </form>
+
+          <p class="rp-login-hint">
+            ¿Ya tienes cuenta?
+            <a routerLink="/login" class="rp-terms-link">Iniciar sesión</a>
+          </p>
+        </div>
+      }
+
+    </div><!-- /rp-form-wrap -->
+  </main><!-- /rp-main -->
+
+</div><!-- /rp-shell -->
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL TÉRMINOS Y CONDICIONES
+══════════════════════════════════════════════════════════════ -->
+@if (showTerms()) {
+  <div class="rp-modal-overlay" (click)="closeTerms()">
+    <div class="rp-modal" (click)="$event.stopPropagation()" role="dialog"
+         aria-modal="true" aria-labelledby="modal-title">
+
+      <div class="rp-modal-header">
+        <div>
+          <h2 id="modal-title">Términos y Condiciones de Uso</h2>
+          <p>Dairi — Servicios Informáticos Francisco Riquelme E.I.R.L.</p>
+        </div>
+        <button type="button" class="rp-modal-close" (click)="closeTerms()" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="rp-modal-body">
+
+        <div class="tc-meta">
+          Última actualización: abril de 2026 · Versión 1.0<br>
+          Referencia legal: <strong>Ley N° 19.799</strong> (Documentos Electrónicos, Firma Electrónica y Servicios de Certificación) · <strong>Ley N° 19.628</strong> (Protección de Datos de Carácter Personal) · <strong>Ley N° 19.496</strong> (Protección al Consumidor)
+        </div>
+
+        <h3>1. Identificación del Titular del Servicio</h3>
+        <p>El presente sitio web y la plataforma Dairi son operados por <strong>Servicios Informáticos Dairi Francisco Riquelme E.I.R.L.</strong>, persona jurídica constituida conforme a las leyes de la República de Chile, con domicilio en Santiago, Chile. Correo de contacto: <strong>admin&#64;dairi.cl</strong>.</p>
+
+        <h3>2. Objeto del Servicio</h3>
+        <p>Dairi es una plataforma SaaS (Software as a Service) de gestión clínica y empresarial que permite la administración de pacientes, citas, fichas clínicas, inventario, proveedores y registros financieros. El acceso al servicio se presta bajo los términos y condiciones aquí descritos y mediante documento electrónico conforme al artículo 3 de la Ley N° 19.799.</p>
+
+        <h3>3. Definiciones</h3>
+        <p>Para efectos de estos términos, se entenderá por:</p>
+        <ul>
+          <li><strong>Documento Electrónico:</strong> toda representación de un acto o declaración formalmente expresada y archivada en soporte electrónico (Art. 2, Ley N° 19.799).</li>
+          <li><strong>Firma Electrónica Simple:</strong> cualquier sonido, símbolo o proceso electrónico que permita al receptor de un documento electrónico identificar al menos formalmente a su autor (Art. 2 letra f, Ley N° 19.799).</li>
+          <li><strong>Usuario:</strong> toda persona natural o jurídica que accede a la plataforma Dairi mediante registro y aceptación de los presentes términos.</li>
+          <li><strong>Datos Personales:</strong> información relativa a personas naturales identificadas o identificables (Art. 2 letra f, Ley N° 19.628).</li>
+        </ul>
+
+        <h3>4. Consentimiento Electrónico e Integridad del Contrato</h3>
+        <p>La marcación de la casilla de aceptación en el formulario de registro constituye una <strong>firma electrónica simple</strong> en los términos del artículo 2, letra f) de la Ley N° 19.799, y tiene plena validez legal como manifestación de consentimiento. El presente contrato es un <strong>documento electrónico</strong> y surte todos los efectos jurídicos que el ordenamiento chileno reconoce a los documentos escritos, conforme al artículo 3 de la misma ley.</p>
+
+        <h3>5. Registro y Condiciones de Acceso</h3>
+        <p>Para acceder al servicio, el Usuario debe:</p>
+        <ul>
+          <li>Proporcionar información veraz, exacta y actualizada al momento del registro.</li>
+          <li>Ser mayor de 18 años o actuar en representación de una persona jurídica.</li>
+          <li>Mantener la confidencialidad de sus credenciales de acceso.</li>
+          <li>No compartir su cuenta con terceros no autorizados.</li>
+          <li>Notificar de inmediato a Dairi ante cualquier uso no autorizado de su cuenta.</li>
+        </ul>
+
+        <h3>6. Plan Starter y Período de Prueba</h3>
+        <p>El plan Starter incluye un período de prueba gratuita de <strong>14 días corridos</strong> desde la activación de la cuenta. Transcurrido dicho período, el servicio continuará disponible únicamente si el Usuario contrata un plan de pago. Dairi se reserva el derecho de suspender el acceso al vencimiento de la prueba sin previo aviso adicional al correo de activación enviado al momento del registro.</p>
+        <p>El costo del plan Starter es de <strong>USD 9 mensual</strong> (más IVA cuando corresponda), cobrado en ciclos mensuales desde la fecha de contratación del plan de pago.</p>
+
+        <h3>7. Obligaciones del Usuario</h3>
+        <p>El Usuario se obliga a:</p>
+        <ul>
+          <li>Utilizar la plataforma exclusivamente para fines lícitos y conforme a la legislación chilena vigente.</li>
+          <li>No realizar ingeniería inversa, descompilar ni reproducir el software.</li>
+          <li>No cargar contenido ilegal, malicioso o que vulnere derechos de terceros.</li>
+          <li>Cumplir con la normativa vigente en materia de protección de datos de los pacientes o clientes registrados en la plataforma.</li>
+          <li>Mantener respaldos propios de información crítica.</li>
+        </ul>
+
+        <h3>8. Protección de Datos Personales (Ley N° 19.628)</h3>
+        <p>Dairi actúa como <strong>responsable del tratamiento</strong> de los datos personales del Usuario. Los datos recopilados en el registro (nombre, apellidos, correo electrónico y teléfono) se utilizarán exclusivamente para:</p>
+        <ul>
+          <li>Habilitar y gestionar el acceso al servicio.</li>
+          <li>Enviar comunicaciones relacionadas con la cuenta y el servicio.</li>
+          <li>Cumplir obligaciones legales.</li>
+        </ul>
+        <p>Dairi no cederá, venderá ni transferirá datos personales a terceros sin consentimiento expreso del titular, salvo obligación legal. El Usuario tiene derecho a acceder, rectificar, cancelar y oponerse al tratamiento de sus datos personales, conforme a los artículos 12 y siguientes de la Ley N° 19.628, enviando solicitud a admin&#64;dairi.cl.</p>
+
+        <h3>9. Comunicaciones Electrónicas</h3>
+        <p>El Usuario acepta expresamente recibir comunicaciones electrónicas al correo registrado, incluyendo el correo de activación de cuenta, avisos de facturación, actualizaciones del servicio y notificaciones legales. Dichas comunicaciones tienen plena validez conforme al artículo 12 de la Ley N° 19.799.</p>
+
+        <h3>10. Disponibilidad y Niveles de Servicio</h3>
+        <p>Dairi procurará mantener una disponibilidad del servicio de al menos <strong>99% mensual</strong>, sin perjuicio de mantenimientos programados comunicados con al menos 24 horas de anticipación. El plan Starter no incluye SLA garantizado. Dairi no será responsable por interrupciones derivadas de fuerza mayor, fallas de terceros proveedores de infraestructura (AWS) o ataques informáticos.</p>
+
+        <h3>11. Propiedad Intelectual</h3>
+        <p>Todo el software, diseño, código fuente, marcas y contenidos de la plataforma Dairi son propiedad exclusiva de Servicios Informáticos Dairi Francisco Riquelme E.I.R.L. y están protegidos por la Ley N° 17.336 sobre Propiedad Intelectual. Queda prohibida su reproducción total o parcial sin autorización escrita.</p>
+
+        <h3>12. Limitación de Responsabilidad</h3>
+        <p>En ningún caso Dairi será responsable por daños indirectos, lucro cesante, pérdida de datos o daños emergentes derivados del uso o imposibilidad de uso del servicio. La responsabilidad máxima de Dairi frente al Usuario se limitará al monto efectivamente pagado por éste durante los últimos 3 meses de servicio.</p>
+
+        <h3>13. Modificaciones de los Términos</h3>
+        <p>Dairi podrá modificar los presentes términos en cualquier momento, notificando al Usuario con al menos <strong>30 días de anticipación</strong> mediante correo electrónico al correo registrado. El uso continuo del servicio tras la entrada en vigencia de las modificaciones implica su aceptación. Si el Usuario no acepta los nuevos términos, podrá cancelar su cuenta antes de la fecha de vigencia sin penalización.</p>
+
+        <h3>14. Cancelación y Portabilidad</h3>
+        <p>El Usuario podrá cancelar su cuenta en cualquier momento. Dairi garantiza la exportación de los datos en formato estándar (CSV/JSON) durante los 30 días posteriores a la cancelación. Vencido dicho plazo, los datos serán eliminados de forma permanente conforme a los estándares de seguridad aplicables.</p>
+
+        <h3>15. Jurisdicción y Ley Aplicable</h3>
+        <p>Los presentes Términos y Condiciones se rigen por las leyes de la República de Chile. Cualquier controversia derivada del uso de la plataforma será sometida a la jurisdicción de los Tribunales Ordinarios de Justicia de la ciudad de Santiago, Chile, con renuncia expresa a cualquier otro fuero o jurisdicción que pudiera corresponder.</p>
+
+        <div class="tc-footer">
+          Al hacer clic en "Aceptar términos", el Usuario declara haber leído y comprendido íntegramente los presentes Términos y Condiciones, y manifiesta su consentimiento electrónico conforme a la <strong>Ley N° 19.799</strong>.
+        </div>
+
+      </div><!-- /rp-modal-body -->
+
+      <div class="rp-modal-footer">
+        <button type="button" class="rp-btn-ghost" (click)="closeTerms()">Cancelar</button>
+        <button type="button" class="rp-btn-primary" (click)="acceptTerms()">
+          Aceptar términos y condiciones
+        </button>
+      </div>
+
+    </div><!-- /rp-modal -->
+  </div><!-- /rp-modal-overlay -->
+}

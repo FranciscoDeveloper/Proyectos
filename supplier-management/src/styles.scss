@@ -1,6 +1,19 @@
 /* ===== GLOBAL STYLES ===== */
 
 :root {
+  /* ── Dairi sky palette (landing + register) ── */
+  --sky-primary:       #0ea5e9;
+  --sky-primary-dark:  #0284c7;
+  --sky-primary-light: #38bdf8;
+  --sky-accent:        #06b6d4;
+  --sky-50:            #f0f9ff;
+  --sky-100:           #e0f2fe;
+  --sky-200:           #bae6fd;
+  --sky-800:           #075985;
+  --sky-900:           #0c4a6e;
+  --sky-text:          #0c2d48;
+
+  /* ── App palette (dashboard) ── */
   --primary: #6366f1;
   --primary-light: #818cf8;
   --primary-dark: #4f46e5;
