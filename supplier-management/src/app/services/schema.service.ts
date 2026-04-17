@@ -686,11 +686,13 @@ export class SchemaService {
   }
 
   /**
-   * Merges an authorized schema (from backend, may have fields:[]) with a
-   * catalog schema (local, has full field definitions).
+   * Merges an authorized schema (from backend) with a catalog schema (local).
    *
    * Rules:
-   *  - entity metadata (moduleType, singular, plural, icon…): backend wins
+   *  - key: backend wins (needed for API routing, e.g. 'paciente' not 'patients')
+   *  - moduleType: backend wins for special types (calendar, clinical-record);
+   *    for generic 'list' the local catalog type takes precedence
+   *  - singular/plural/icon/description: local catalog wins (richer labels/icons)
    *  - fields: backend wins if non-empty, otherwise falls back to local catalog
    */
   private mergeSchema(
@@ -699,6 +701,16 @@ export class SchemaService {
   ): EntitySchema | null {
     if (!authorized) return catalog;
     const fields = authorized.fields.length > 0 ? authorized.fields : (catalog?.fields ?? []);
-    return { ...authorized, fields };
+    const backendType  = authorized.entity.moduleType;
+    const isSpecific   = backendType === 'calendar' || backendType === 'clinical-record';
+    const entity = {
+      ...authorized.entity,
+      singular:    catalog?.entity.singular    ?? authorized.entity.singular,
+      plural:      catalog?.entity.plural      ?? authorized.entity.plural,
+      icon:        catalog?.entity.icon        ?? authorized.entity.icon,
+      description: catalog?.entity.description ?? authorized.entity.description,
+      moduleType:  isSpecific ? backendType : (catalog?.entity.moduleType ?? backendType),
+    };
+    return { entity, fields };
   }
 }
