@@ -26,48 +26,47 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
           description: 'Agenda de citas y consultas médicas'
         },
         fields: [
-          { name: 'title',       type: 'text',     label: 'Motivo de consulta', required: true,  isTitle: true,        showInList: true,  showInDetail: true,  filterable: true, filterType: 'search', minLength: 2 },
-          { name: 'patientName', type: 'text',     label: 'Paciente',           required: true,  isSubtitle: true,     showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
-          { name: 'startDate',   type: 'datetime', label: 'Fecha y hora',       required: true,  isCalendarStart: true, showInList: true, showInDetail: true,  sortable: true },
-          { name: 'endDate',     type: 'datetime', label: 'Fin',                required: false, isCalendarEnd: true,  showInList: false, showInDetail: true },
-          { name: 'status',      type: 'select',   label: 'Estado',             required: true,  isBadge: true,        showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
+          { name: 'service',          type: 'text',     label: 'Servicio',        required: true,  isTitle: true,         showInList: true,  showInDetail: true,  filterable: true,  filterType: 'search' },
+          { name: 'patientName',      type: 'text',     label: 'Paciente',        required: false, isSubtitle: true,      showInList: true,  showInDetail: true,  filterable: true,  filterType: 'search' },
+          { name: 'dateTime',         type: 'datetime', label: 'Fecha y hora',    required: true,  isCalendarStart: true, showInList: true,  showInDetail: true,  sortable: true },
+          { name: 'durationMinutes',  type: 'number',   label: 'Duración (min)',  required: false,                        showInList: false, showInDetail: true,  min: 0 },
+          { name: 'status',           type: 'select',   label: 'Estado',          required: true,  isBadge: true,         showInList: true,  showInDetail: true,  filterable: true,  filterType: 'select',
             options: [
-              { value: 'scheduled', label: 'Programada' },
-              { value: 'completed', label: 'Completada'  },
-              { value: 'cancelled', label: 'Cancelada'   },
-              { value: 'no_show',   label: 'No asistió'  }
+              { value: 'AGENDADA',    label: 'Agendada'    },
+              { value: 'COMPLETADA',  label: 'Completada'  },
+              { value: 'CANCELADA',   label: 'Cancelada'   },
+              { value: 'NO_ASISTIO',  label: 'No asistió'  }
             ],
-            badgeColors: { scheduled: '#3b82f6', completed: '#10b981', cancelled: '#ef4444', no_show: '#f59e0b' }
+            badgeColors: { AGENDADA: '#3b82f6', COMPLETADA: '#10b981', CANCELADA: '#ef4444', NO_ASISTIO: '#f59e0b' }
           },
-          { name: 'patientEmail', type: 'email', label: 'Email del paciente', required: false, showInList: false, showInDetail: true },
-          { name: 'room',  type: 'text',     label: 'Consultorio', required: false, showInList: true,  showInDetail: true  },
-          { name: 'notes', type: 'textarea', label: 'Notas',       required: false, showInList: false, showInDetail: true  }
+          { name: 'professionalName', type: 'text',     label: 'Profesional',     required: false,                        showInList: true,  showInDetail: true  },
+          { name: 'notes',            type: 'textarea', label: 'Notas',           required: false,                        showInList: false, showInDetail: true  }
         ]
       },
       data: [
-        // ── Semana 1 (2–6 mar) ──────────────────────────────────────────────
-        { id: 1,  title: 'Control de hipertensión',           patientName: 'María González López',    patientEmail: 'maria.g@email.com',   startDate: '2026-03-03T09:00', endDate: '2026-03-03T09:45', status: 'completed', room: 'Consultorio 1', notes: 'Ajuste de dosis antihipertensiva.',          createdAt: '2026-02-20', updatedAt: '2026-03-03' },
-        { id: 2,  title: 'Revisión post-operatoria',          patientName: 'Carlos Fernández Torres', patientEmail: 'carlos.f@email.com',  startDate: '2026-03-03T09:45', endDate: '2026-03-03T10:30', status: 'completed', room: 'Consultorio 1', notes: 'Evolución favorable tras stent coronario.',   createdAt: '2026-02-22', updatedAt: '2026-03-03' },
-        { id: 3,  title: 'Consulta cardiología',              patientName: 'Ana Martínez Soto',       patientEmail: 'ana.m@email.com',     startDate: '2026-03-05T10:30', endDate: '2026-03-05T11:15', status: 'completed', room: 'Consultorio 2', notes: 'ECG en rango normal.',                        createdAt: '2026-02-25', updatedAt: '2026-03-05' },
-        // ── Semana 2 (9–13 mar) ─────────────────────────────────────────────
-        { id: 4,  title: 'Seguimiento diabetes',              patientName: 'Sofia Ruiz Castillo',     patientEmail: 'sofia.r@email.com',   startDate: '2026-03-10T09:00', endDate: '2026-03-10T09:45', status: 'completed', room: 'Consultorio 3', notes: 'HbA1c 6.8%. Dosis estable.',                  createdAt: '2026-03-01', updatedAt: '2026-03-10' },
-        { id: 5,  title: 'Control respiratorio',              patientName: 'Isabel Díaz Vega',        patientEmail: 'isabel.d@email.com',  startDate: '2026-03-10T09:45', endDate: '2026-03-10T10:30', status: 'completed', room: 'Consultorio 1', notes: 'Espirometría mejorada vs mes anterior.',       createdAt: '2026-03-05', updatedAt: '2026-03-10' },
-        { id: 6,  title: 'Revisión postquirúrgica rodilla',   patientName: 'Ana Martínez Soto',       patientEmail: 'ana.m@email.com',     startDate: '2026-03-12T14:00', endDate: '2026-03-12T14:45', status: 'no_show',   room: 'Consultorio 2', notes: 'Paciente no se presentó. Reprogramar.',      createdAt: '2026-03-05', updatedAt: '2026-03-12' },
-        // ── Semana 3 (16–20 mar) ────────────────────────────────────────────
-        { id: 7,  title: 'Primera consulta',                  patientName: 'Sofia Ruiz Castillo',     patientEmail: 'sofia.r@email.com',   startDate: '2026-03-17T09:00', endDate: '2026-03-17T09:45', status: 'completed', room: 'Consultorio 1', notes: 'Derivado por médico de cabecera.',             createdAt: '2026-03-10', updatedAt: '2026-03-17' },
-        { id: 8,  title: 'Control cardiológico',              patientName: 'Carlos Fernández Torres', patientEmail: 'carlos.f@email.com',  startDate: '2026-03-17T10:30', endDate: '2026-03-17T11:15', status: 'cancelled', room: 'Consultorio 3', notes: 'Cancelada por el paciente.',                  createdAt: '2026-03-12', updatedAt: '2026-03-17' },
-        { id: 9,  title: 'Ajuste de tratamiento',             patientName: 'Carlos Fernández Torres', patientEmail: 'carlos.f@email.com',  startDate: '2026-03-19T09:00', endDate: '2026-03-19T09:45', status: 'completed', room: 'Consultorio 2', notes: 'Reducción dosis anticoagulante.',              createdAt: '2026-03-15', updatedAt: '2026-03-19' },
-        { id: 10, title: 'Evaluación neurológica',            patientName: 'Isabel Díaz Vega',        patientEmail: 'isabel.d@email.com',  startDate: '2026-03-19T14:00', endDate: '2026-03-19T14:45', status: 'completed', room: 'Consultorio 1', notes: 'Sin nuevos episodios. Control en 3 meses.',   createdAt: '2026-03-10', updatedAt: '2026-03-19' },
-        // ── Semana 4 (23–27 mar — semana actual, hoy jue 26) ────────────────
-        { id: 11, title: 'Control mensual',                   patientName: 'María González López',    patientEmail: 'maria.g@email.com',   startDate: '2026-03-24T09:00', endDate: '2026-03-24T09:45', status: 'completed', room: 'Consultorio 1', notes: 'Presión arterial estabilizada 120/80.',        createdAt: '2026-03-17', updatedAt: '2026-03-24' },
-        { id: 12, title: 'Revisión de exámenes',              patientName: 'Luis Hernández Pérez',    patientEmail: 'luis.h@email.com',    startDate: '2026-03-24T10:30', endDate: '2026-03-24T11:15', status: 'completed', room: 'Consultorio 2', notes: 'Resultados de lab normales.',                  createdAt: '2026-03-20', updatedAt: '2026-03-24' },
-        { id: 13, title: 'Seguimiento postquirúrgico',        patientName: 'Luis Hernández Pérez',    patientEmail: 'luis.h@email.com',    startDate: '2026-03-26T09:00', endDate: '2026-03-26T09:45', status: 'scheduled', room: 'Consultorio 1', notes: 'Seguimiento a 4 meses de la operación.',      createdAt: '2026-03-20', updatedAt: '2026-03-20' },
-        { id: 14, title: 'Control diabetes',                  patientName: 'Sofia Ruiz Castillo',     patientEmail: 'sofia.r@email.com',   startDate: '2026-03-26T10:30', endDate: '2026-03-26T11:15', status: 'scheduled', room: 'Consultorio 3', notes: 'Control mensual glucemia.',                    createdAt: '2026-03-21', updatedAt: '2026-03-21' },
-        { id: 15, title: 'Consulta urgencia — dolor torácico', patientName: 'Carlos Fernández Torres', patientEmail: 'carlos.f@email.com', startDate: '2026-03-27T09:00', endDate: '2026-03-27T09:45', status: 'scheduled', room: 'Consultorio 2', notes: 'Derivación por dolor torácico recurrente.', createdAt: '2026-03-25', updatedAt: '2026-03-25' },
-        { id: 16, title: 'Control postquirúrgico rodilla',    patientName: 'Ana Martínez Soto',       patientEmail: 'ana.m@email.com',     startDate: '2026-03-27T14:00', endDate: '2026-03-27T14:45', status: 'scheduled', room: 'Consultorio 2', notes: 'Reprogramada de id-6.',                        createdAt: '2026-03-25', updatedAt: '2026-03-25' },
-        // ── Semana 5 (30 mar – 3 abr) ───────────────────────────────────────
-        { id: 17, title: 'Revisión eco-cardiograma',     patientName: 'Ana Martínez Soto',  patientEmail: 'ana.m@email.com',    startDate: '2026-03-31T14:00', endDate: '2026-03-31T14:45', status: 'scheduled', room: 'Consultorio 1', notes: 'Seguimiento post cirugía de rodilla.',  createdAt: '2026-03-20', updatedAt: '2026-03-20' },
-        { id: 18, title: 'Control respiratorio trim.',   patientName: 'Isabel Díaz Vega',   patientEmail: 'isabel.d@email.com', startDate: '2026-04-07T09:00', endDate: '2026-04-07T09:45', status: 'scheduled', room: 'Consultorio 1', notes: 'Revisión trimestral EPOC.',             createdAt: '2026-03-22', updatedAt: '2026-03-22' }
+        // ── Semana 1 (2–6 mar) ─────────────────────────────────────────────────
+        { id: 1,  service: 'Control de hipertensión',            patientName: 'María González López',    dateTime: '2026-03-03T09:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Ajuste de dosis antihipertensiva.',          createdAt: '2026-02-20', updatedAt: '2026-03-03' },
+        { id: 2,  service: 'Revisión post-operatoria',           patientName: 'Carlos Fernández Torres', dateTime: '2026-03-03T09:45', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Evolución favorable tras stent coronario.',   createdAt: '2026-02-22', updatedAt: '2026-03-03' },
+        { id: 3,  service: 'Consulta cardiología',               patientName: 'Ana Martínez Soto',       dateTime: '2026-03-05T10:30', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'ECG en rango normal.',                        createdAt: '2026-02-25', updatedAt: '2026-03-05' },
+        // ── Semana 2 (9–13 mar) ────────────────────────────────────────────────
+        { id: 4,  service: 'Seguimiento diabetes',               patientName: 'Sofia Ruiz Castillo',     dateTime: '2026-03-10T09:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'HbA1c 6.8%. Dosis estable.',                  createdAt: '2026-03-01', updatedAt: '2026-03-10' },
+        { id: 5,  service: 'Control respiratorio',               patientName: 'Isabel Díaz Vega',        dateTime: '2026-03-10T09:45', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Espirometría mejorada vs mes anterior.',       createdAt: '2026-03-05', updatedAt: '2026-03-10' },
+        { id: 6,  service: 'Revisión postquirúrgica rodilla',    patientName: 'Ana Martínez Soto',       dateTime: '2026-03-12T14:00', durationMinutes: 45, status: 'NO_ASISTIO',  professionalName: 'Dra. Morales', notes: 'Paciente no se presentó. Reprogramar.',      createdAt: '2026-03-05', updatedAt: '2026-03-12' },
+        // ── Semana 3 (16–20 mar) ───────────────────────────────────────────────
+        { id: 7,  service: 'Primera consulta',                   patientName: 'Sofia Ruiz Castillo',     dateTime: '2026-03-17T09:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Derivado por médico de cabecera.',             createdAt: '2026-03-10', updatedAt: '2026-03-17' },
+        { id: 8,  service: 'Control cardiológico',               patientName: 'Carlos Fernández Torres', dateTime: '2026-03-17T10:30', durationMinutes: 45, status: 'CANCELADA',   professionalName: 'Dra. Morales', notes: 'Cancelada por el paciente.',                  createdAt: '2026-03-12', updatedAt: '2026-03-17' },
+        { id: 9,  service: 'Ajuste de tratamiento',              patientName: 'Carlos Fernández Torres', dateTime: '2026-03-19T09:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Reducción dosis anticoagulante.',              createdAt: '2026-03-15', updatedAt: '2026-03-19' },
+        { id: 10, service: 'Evaluación neurológica',             patientName: 'Isabel Díaz Vega',        dateTime: '2026-03-19T14:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Sin nuevos episodios. Control en 3 meses.',   createdAt: '2026-03-10', updatedAt: '2026-03-19' },
+        // ── Semana 4 (23–27 mar) ───────────────────────────────────────────────
+        { id: 11, service: 'Control mensual',                    patientName: 'María González López',    dateTime: '2026-03-24T09:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Presión arterial estabilizada 120/80.',        createdAt: '2026-03-17', updatedAt: '2026-03-24' },
+        { id: 12, service: 'Revisión de exámenes',               patientName: 'Luis Hernández Pérez',    dateTime: '2026-03-24T10:30', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Resultados de lab normales.',                  createdAt: '2026-03-20', updatedAt: '2026-03-24' },
+        { id: 13, service: 'Seguimiento postquirúrgico',         patientName: 'Luis Hernández Pérez',    dateTime: '2026-03-26T09:00', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Seguimiento a 4 meses de la operación.',      createdAt: '2026-03-20', updatedAt: '2026-03-20' },
+        { id: 14, service: 'Control diabetes',                   patientName: 'Sofia Ruiz Castillo',     dateTime: '2026-03-26T10:30', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Control mensual glucemia.',                    createdAt: '2026-03-21', updatedAt: '2026-03-21' },
+        { id: 15, service: 'Urgencia — dolor torácico',          patientName: 'Carlos Fernández Torres', dateTime: '2026-03-27T09:00', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Derivación por dolor torácico recurrente.',   createdAt: '2026-03-25', updatedAt: '2026-03-25' },
+        { id: 16, service: 'Control postquirúrgico rodilla',     patientName: 'Ana Martínez Soto',       dateTime: '2026-03-27T14:00', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Reprogramada de id-6.',                        createdAt: '2026-03-25', updatedAt: '2026-03-25' },
+        // ── Semanas futuras ─────────────────────────────────────────────────────
+        { id: 17, service: 'Revisión eco-cardiograma',           patientName: 'Ana Martínez Soto',       dateTime: '2026-03-31T14:00', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Seguimiento post cirugía de rodilla.',         createdAt: '2026-03-20', updatedAt: '2026-03-20' },
+        { id: 18, service: 'Control respiratorio trimestral',    patientName: 'Isabel Díaz Vega',        dateTime: '2026-04-07T09:00', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Revisión trimestral EPOC.',                    createdAt: '2026-03-22', updatedAt: '2026-03-22' }
       ]
     },
 
@@ -206,51 +205,19 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
           description: 'Registro y seguimiento de pacientes'
         },
         fields: [
-          { name: 'fullName',       type: 'text',   label: 'Nombre Completo',   required: true,  isTitle: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true, filterType: 'search', minLength: 3 },
-          { name: 'patientId',      type: 'text',   label: 'ID Paciente',       required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  sortable: true,  pattern: '^PAC-\\d{5}$', patternMessage: 'Formato: PAC-00000' },
-          { name: 'status',         type: 'select', label: 'Estado',            required: true,  isBadge: true,    showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
-            options: [
-              { value: 'active',     label: 'Activo'        },
-              { value: 'discharged', label: 'Alta'          },
-              { value: 'critical',   label: 'Crítico'       },
-              { value: 'scheduled',  label: 'Programado'    }
-            ],
-            badgeColors: { 'active': '#10b981', 'discharged': '#6b7280', 'critical': '#ef4444', 'scheduled': '#3b82f6' }
-          },
-          { name: 'age',            type: 'number', label: 'Edad',              required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 0, max: 150 },
-          { name: 'gender',         type: 'select', label: 'Género',            required: true,                   showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
-            options: [
-              { value: 'male',   label: 'Masculino' },
-              { value: 'female', label: 'Femenino'  },
-              { value: 'other',  label: 'Otro'      }
-            ]
-          },
-          { name: 'bloodType',      type: 'select', label: 'Tipo de Sangre',    required: true,  isBadge: true,    showInList: true,  showInDetail: true,
-            options: [
-              { value: 'A+', label: 'A+' }, { value: 'A-', label: 'A-' },
-              { value: 'B+', label: 'B+' }, { value: 'B-', label: 'B-' },
-              { value: 'O+', label: 'O+' }, { value: 'O-', label: 'O-' },
-              { value: 'AB+',label: 'AB+'},  { value: 'AB-',label: 'AB-'}
-            ],
-            badgeColors: { 'A+': '#ef4444', 'A-': '#f97316', 'B+': '#3b82f6', 'B-': '#6366f1', 'O+': '#10b981', 'O-': '#14b8a6', 'AB+': '#8b5cf6', 'AB-': '#ec4899' }
-          },
-          { name: 'phone',          type: 'tel',    label: 'Teléfono',          required: true,                   showInList: false, showInDetail: true  },
-          { name: 'email',          type: 'email',  label: 'Email',                                               showInList: false, showInDetail: true  },
-          { name: 'doctor',         type: 'text',   label: 'Médico Asignado',   required: true,                   showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
-          { name: 'admissionDate',  type: 'date',   label: 'Fecha de Ingreso',  required: true,                   showInList: true,  showInDetail: true,  sortable: true,  format: 'date' },
-          { name: 'diagnosis',      type: 'textarea',label: 'Diagnóstico',      required: true,                   showInList: false, showInDetail: true  },
-          { name: 'allergies',      type: 'tags',   label: 'Alergias',                                            showInList: false, showInDetail: true  }
+          { name: 'nombre',     type: 'text',     label: 'Nombre',       required: true,  isTitle: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true,  filterType: 'search' },
+          { name: 'email',      type: 'email',    label: 'Email',        required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
+          { name: 'telefono',   type: 'tel',      label: 'Teléfono',     required: true,                   showInList: true,  showInDetail: true  },
+          { name: 'diagnostic', type: 'textarea', label: 'Diagnóstico',                                    showInList: false, showInDetail: true  },
+          { name: 'allergies',  type: 'tags',     label: 'Alergias',                                       showInList: false, showInDetail: true  }
         ]
       },
       data: [
-        { id: 1, fullName: 'María González López',   patientId: 'PAC-00001', status: 'active',     age: 45, gender: 'female', bloodType: 'O+',  phone: '+34 612 345 678', email: 'maria.g@email.com',   doctor: 'Dr. Ramírez',   admissionDate: '2024-12-01', diagnosis: 'Hipertensión arterial crónica bajo tratamiento.',       allergies: ['penicilina'] },
-        { id: 2, fullName: 'Carlos Fernández Torres', patientId: 'PAC-00002', status: 'critical',   age: 67, gender: 'male',   bloodType: 'A+',  phone: '+34 698 765 432', email: 'carlos.f@email.com',  doctor: 'Dra. Morales',  admissionDate: '2024-12-10', diagnosis: 'Infarto agudo de miocardio, UCI.',                      allergies: ['aspirina', 'iodine'] },
-        { id: 3, fullName: 'Ana Martínez Soto',       patientId: 'PAC-00003', status: 'scheduled',  age: 32, gender: 'female', bloodType: 'B+',  phone: '+34 677 123 456', email: 'ana.m@email.com',     doctor: 'Dr. Ramírez',   admissionDate: '2025-01-05', diagnosis: 'Cirugía programada de rodilla (menisco).',              allergies: [] },
-        { id: 4, fullName: 'Luis Hernández Pérez',    patientId: 'PAC-00004', status: 'discharged', age: 58, gender: 'male',   bloodType: 'AB+', phone: '+34 654 987 321', email: 'luis.h@email.com',    doctor: 'Dra. Morales',  admissionDate: '2024-11-15', diagnosis: 'Neumonía bacteriana. Alta el 28/11/2024.',              allergies: ['sulfas'] },
-        { id: 5, fullName: 'Sofia Ruiz Castillo',     patientId: 'PAC-00005', status: 'active',     age: 28, gender: 'female', bloodType: 'O-',  phone: '+34 633 456 789', email: 'sofia.r@email.com',   doctor: 'Dr. López',     admissionDate: '2024-12-15', diagnosis: 'Diabetes mellitus tipo 1, control y ajuste de dosis.',  allergies: ['latex'] },
-        { id: 6, fullName: 'Roberto García Blanco',   patientId: 'PAC-00006', status: 'active',     age: 41, gender: 'male',   bloodType: 'B-',  phone: '+34 666 789 012', email: 'roberto.g@email.com', doctor: 'Dr. López',     admissionDate: '2024-12-18', diagnosis: 'Fractura de fémur derecho. Postoperatorio.',            allergies: [] },
-        { id: 7, fullName: 'Isabel Díaz Vega',        patientId: 'PAC-00007', status: 'active',     age: 75, gender: 'female', bloodType: 'A-',  phone: '+34 611 234 567', email: 'isabel.d@email.com',  doctor: 'Dr. Ramírez',   admissionDate: '2024-12-05', diagnosis: 'EPOC. Control respiratorio y rehabilitación.',          allergies: ['penicilina', 'dust'] },
-        { id: 8, fullName: 'Miguel Torres Fuentes',   patientId: 'PAC-00008', status: 'scheduled',  age: 19, gender: 'male',   bloodType: 'O+',  phone: '+34 644 567 890', email: 'miguel.t@email.com',  doctor: 'Dra. Morales',  admissionDate: '2025-01-12', diagnosis: 'Apendicitis aguda. Cirugía laparoscópica programada.',  allergies: [] }
+        { id: 1, nombre: 'María González López',    email: 'maria.g@email.com',   telefono: '+56912345678', diagnostic: 'Hipertensión arterial', allergies: 'Penicilina' },
+        { id: 2, nombre: 'Carlos Fernández Torres', email: 'carlos.f@email.com',  telefono: '+56923456789', diagnostic: 'Diabetes tipo 2',       allergies: null },
+        { id: 3, nombre: 'Ana Martínez Soto',       email: 'ana.m@email.com',     telefono: '+56934567890', diagnostic: null,                    allergies: 'Aspirina' },
+        { id: 4, nombre: 'Luis Hernández Pérez',    email: 'luis.h@email.com',    telefono: '+56945678901', diagnostic: 'Asma bronquial',         allergies: null },
+        { id: 5, nombre: 'Sofia Ruiz Castillo',     email: 'sofia.r@email.com',   telefono: '+56956789012', diagnostic: 'Hipotiroidismo',         allergies: 'Mariscos' }
       ]
     },
 
@@ -655,11 +622,21 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
     }
 };
 
+/** Maps backend entity keys that differ from local catalog keys */
+const KEY_ALIASES: Record<string, string> = {
+  paciente: 'patients'
+};
+
 @Injectable({ providedIn: 'root' })
 export class SchemaService {
   private auth = inject(AuthService);
 
   private readonly catalog = ENTITY_CATALOG;
+
+  /** Resolves a backend key to the local catalog key via alias table */
+  private catalogKey(key: string): string {
+    return KEY_ALIASES[key] ?? key;
+  }
 
   /**
    * Returns entity metadata for sidebar navigation.
@@ -669,7 +646,12 @@ export class SchemaService {
   getAvailableEntities(): EntityMeta[] {
     const authorized = this.auth.getAuthorizedSchemas();
     if (authorized.length > 0) {
-      return authorized.map(s => s.entity);
+      // Apply mergeSchema so moduleType is resolved correctly for each entity
+      return authorized.map(s => {
+        const cKey   = this.catalogKey(s.entity.key);
+        const merged = this.mergeSchema(s, this.catalog[cKey]?.schema ?? null);
+        return merged!.entity;
+      });
     }
     // Fallback to full catalog (used in tests / before login)
     return Object.values(this.catalog).map(p => p.schema.entity);
@@ -681,11 +663,12 @@ export class SchemaService {
    * data rows come from the local catalog (mock store).
    */
   getEntityPayload(key: string): EntityPayload | null {
-    if (!this.catalog[key]) return null;
+    const cKey = this.catalogKey(key);
+    if (!this.catalog[cKey]) return null;
     const authorizedSchema = this.auth.getAuthorizedSchemas().find(s => s.entity.key === key);
     return {
-      schema: this.mergeSchema(authorizedSchema, this.catalog[key].schema)!,
-      data: this.catalog[key].data
+      schema: this.mergeSchema(authorizedSchema, this.catalog[cKey].schema)!,
+      data: this.catalog[cKey].data
     };
   }
 
@@ -696,16 +679,19 @@ export class SchemaService {
    * the frontend owns the field definitions (types, labels, display options).
    */
   getSchema(key: string): EntitySchema | null {
+    const cKey = this.catalogKey(key);
     const authorizedSchema = this.auth.getAuthorizedSchemas().find(s => s.entity.key === key);
-    const catalogSchema    = this.catalog[key]?.schema ?? null;
+    const catalogSchema    = this.catalog[cKey]?.schema ?? null;
     return this.mergeSchema(authorizedSchema, catalogSchema);
   }
 
   /**
    * Merges an authorized schema (from backend, may have fields:[]) with a
    * catalog schema (local, has full field definitions).
-   * Entity metadata from backend takes precedence; fields from local catalog
-   * are used when the backend returns an empty fields array.
+   *
+   * Rules:
+   *  - entity metadata (moduleType, singular, plural, icon…): backend wins
+   *  - fields: backend wins if non-empty, otherwise falls back to local catalog
    */
   private mergeSchema(
     authorized: EntitySchema | undefined,
