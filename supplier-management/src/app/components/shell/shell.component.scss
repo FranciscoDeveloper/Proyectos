@@ -318,6 +318,150 @@
   background: #f9fafb;
 }
 
+/* ===== ZK STATUS BADGE ===== */
+.zk-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border: 1px solid transparent;
+  cursor: default;
+  transition: all 0.3s ease;
+  svg { width: 13px; height: 13px; }
+
+  &.zk-active {
+    background: #ecfdf5;
+    color: #059669;
+    border-color: #a7f3d0;
+  }
+
+  &.zk-locked {
+    background: #fff7ed;
+    color: #c2410c;
+    border-color: #fed7aa;
+    animation: zk-pulse 2s infinite;
+  }
+
+  &:not(.zk-active):not(.zk-locked) {
+    background: #f9fafb;
+    color: #9ca3af;
+    border-color: #e5e7eb;
+  }
+}
+
+@keyframes zk-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+/* ===== ZK UNLOCK BANNER ===== */
+.zk-unlock-banner {
+  background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
+  border-bottom: 1px solid #fbbf24;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+
+  .zk-banner-icon {
+    width: 40px;
+    height: 40px;
+    background: #fef3c7;
+    border: 1.5px solid #f59e0b;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    svg { width: 18px; height: 18px; color: #b45309; }
+  }
+
+  .zk-banner-text {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    strong {
+      font-size: 13px;
+      font-weight: 700;
+      color: #92400e;
+    }
+    span {
+      font-size: 12px;
+      color: #a16207;
+      line-height: 1.4;
+    }
+  }
+
+  .zk-banner-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+
+    input[type="password"] {
+      height: 36px;
+      padding: 0 12px;
+      border: 1.5px solid #fbbf24;
+      border-radius: 8px;
+      background: white;
+      font-size: 13px;
+      outline: none;
+      width: 190px;
+      &:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+    }
+
+    button {
+      height: 36px;
+      padding: 0 16px;
+      background: #f59e0b;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s ease;
+      &:hover:not(:disabled) { background: #d97706; }
+      &:disabled { opacity: 0.6; cursor: not-allowed; }
+    }
+  }
+
+  .zk-banner-error {
+    width: 100%;
+    font-size: 12px;
+    color: #b91c1c;
+    font-weight: 500;
+    margin: 0;
+    padding-top: 4px;
+  }
+}
+
+.spinner-sm {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .sidebar {

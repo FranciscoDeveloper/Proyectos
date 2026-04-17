@@ -76,6 +76,11 @@ export interface FieldDefinition {
    * encounter registered. Prevents retroactive changes to critical clinical data.
    */
   lockWhenHasEncounters?: boolean;
+  /**
+   * When true, this field is encrypted at rest using AES-256-GCM (Zero-Knowledge model).
+   * The server only stores ciphertext; only the user's derived key can decrypt it.
+   */
+  encrypted?: boolean;
 }
 
 export interface EntityMeta {

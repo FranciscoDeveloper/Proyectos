@@ -1,26 +1,13 @@
 import { Injectable, inject, signal, WritableSignal, Signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { SchemaService } from './schema.service';
+import { CryptoService } from './crypto.service';
 
-/**
- * Generic CRUD service backed by the mock REST API (/api/entities/:key).
- *
- * Each entity key gets its own reactive Signal<Record<string,any>[]>.
- * HTTP calls go to the MockApiInterceptor during development; swap
- * the interceptor for a real backend in production without touching this service.
- *
- * Endpoints used
- * ──────────────
- *  GET    /api/entities/:key
- *  POST   /api/entities/:key
- *  PUT    /api/entities/:key/:id
- *  DELETE /api/entities/:key/:id
- *  POST   /api/entities/:key/:id/encounters
- */
 @Injectable({ providedIn: 'root' })
 export class GenericCrudService {
-  private http         = inject(HttpClient);
+  private http          = inject(HttpClient);
   private schemaService = inject(SchemaService);
+  private crypto        = inject(CryptoService);
 
   private stores  = new Map<string, WritableSignal<Record<string, any>[]>>();
   private loading = new Set<string>();
@@ -28,15 +15,20 @@ export class GenericCrudService {
   // ── Initialise / refresh store from the server ─────────────────────────────
 
   initStore(key: string): void {
-    if (this.stores.has(key)) return;         // already initialised
-    if (this.loading.has(key)) return;        // in-flight request
+    if (this.stores.has(key)) return;
+    if (this.loading.has(key)) return;
     this.loading.add(key);
     this.stores.set(key, signal([]));
 
     this.http.get<Record<string, any>[]>(`/api/entities/${key}`).subscribe({
-      next: data  => { this.stores.get(key)!.set(data); this.loading.delete(key); },
+      next: async data => {
+        const decrypted = await Promise.all(
+          data.map(r => this.crypto.decryptRecord(r, key))
+        );
+        this.stores.get(key)!.set(decrypted);
+        this.loading.delete(key);
+      },
       error: _err => {
-        // Fallback: seed from SchemaService so the app still works offline
         const payload = this.schemaService.getEntityPayload(key);
         this.stores.get(key)!.set(payload ? [...payload.data] : []);
         this.loading.delete(key);
@@ -57,24 +49,39 @@ export class GenericCrudService {
   // ── Mutations ─────────────────────────────────────────────────────────────
 
   create(key: string, data: Record<string, any>): void {
-    this.http.post<Record<string, any>>(`/api/entities/${key}`, data).subscribe({
-      next: created => this.stores.get(key)?.update(list => [...list, created])
+    this.crypto.encryptRecord(data, key).then(encrypted => {
+      this.http.post<Record<string, any>>(`/api/entities/${key}`, encrypted).subscribe({
+        next: async created => {
+          const decrypted = await this.crypto.decryptRecord(created, key);
+          this.stores.get(key)?.update(list => [...list, decrypted]);
+        }
+      });
     });
   }
 
   update(key: string, id: number, data: Record<string, any>): void {
-    this.http.put<Record<string, any>>(`/api/entities/${key}/${id}`, data).subscribe({
-      next: updated => this.stores.get(key)?.update(
-        list => list.map(item => item['id'] === id ? updated : item)
-      )
+    this.crypto.encryptRecord(data, key).then(encrypted => {
+      this.http.put<Record<string, any>>(`/api/entities/${key}/${id}`, encrypted).subscribe({
+        next: async updated => {
+          const decrypted = await this.crypto.decryptRecord(updated, key);
+          this.stores.get(key)?.update(
+            list => list.map(item => item['id'] === id ? decrypted : item)
+          );
+        }
+      });
     });
   }
 
   appendEncounter(key: string, id: number, encounter: Record<string, any>): void {
-    this.http.post<Record<string, any>>(`/api/entities/${key}/${id}/encounters`, encounter).subscribe({
-      next: updated => this.stores.get(key)?.update(
-        list => list.map(item => item['id'] === id ? updated : item)
-      )
+    this.crypto.encryptRecord(encounter, key).then(encryptedEnc => {
+      this.http.post<Record<string, any>>(`/api/entities/${key}/${id}/encounters`, encryptedEnc).subscribe({
+        next: async updated => {
+          const decrypted = await this.crypto.decryptRecord(updated, key);
+          this.stores.get(key)?.update(
+            list => list.map(item => item['id'] === id ? decrypted : item)
+          );
+        }
+      });
     });
   }
 

@@ -5,6 +5,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { LoginCredentials, AuthResponse, AuthState, AuthUser } from '../models/auth.model';
 import { EntitySchema } from '../models/entity-schema.model';
+import { CryptoService } from './crypto.service';
 
 // ─── Mock schema definitions (same data as SchemaService) ────────────────────
 // Kept inline so they can be composed per-role in the mock backend response.
@@ -631,8 +632,9 @@ const SESSION_VERSION = 8;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private _state = signal<AuthState>(this.loadFromStorage());
-  private http   = inject(HttpClient);
+  private _state  = signal<AuthState>(this.loadFromStorage());
+  private http    = inject(HttpClient);
+  private cryptoSvc = inject(CryptoService);
 
   readonly user    = computed(() => this._state().user);
   readonly token   = computed(() => this._state().token);
@@ -671,6 +673,7 @@ export class AuthService {
   logout(): void {
     this._state.set({ authenticated: false, token: null, user: null, schemas: [] });
     sessionStorage.removeItem(SESSION_KEY);
+    this.cryptoSvc.clearKey();   // wipe ZK key from memory on logout
     this.router.navigate(['/login']);
   }
 

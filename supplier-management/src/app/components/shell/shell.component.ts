@@ -1,19 +1,25 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { CryptoService } from '../../services/crypto.service';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, FormsModule],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss'
 })
 export class ShellComponent {
-  readonly auth = inject(AuthService);
+  readonly auth      = inject(AuthService);
+  readonly cryptoSvc = inject(CryptoService);
 
-  sidebarOpen = signal(true);
+  sidebarOpen  = signal(true);
+  unlockPass   = signal('');
+  unlockError  = signal(false);
+  unlocking    = signal(false);
 
   toggleSidebar() { this.sidebarOpen.update(v => !v); }
 
@@ -23,12 +29,23 @@ export class ShellComponent {
     return this.auth.user()?.name?.split(' ')[0] ?? '';
   }
 
-  /**
-   * Navigation items derived purely from backend-authorized schemas.
-   * moduleType === 'calendar' → /module/:key  (calendar view)
-   * otherwise                 → /entity/:key  (CRUD list view)
-   * The shell has no hardcoded knowledge of which entities exist.
-   */
+  async unlock(): Promise<void> {
+    const pass  = this.unlockPass().trim();
+    const email = this.auth.user()?.email ?? '';
+    if (!pass || !email) return;
+
+    this.unlocking.set(true);
+    this.unlockError.set(false);
+
+    const ok = await this.cryptoSvc.unlockWithPassword(pass, email);
+    this.unlocking.set(false);
+    if (ok) {
+      this.unlockPass.set('');
+    } else {
+      this.unlockError.set(true);
+    }
+  }
+
   navItems = computed(() => {
     const schemas = this.auth.schemas();
     return [
