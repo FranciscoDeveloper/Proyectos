@@ -1,6 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
+import { CryptoService, CHAT_ENCRYPTED_FIELDS } from './crypto.service';
 
 export interface ChatUser {
   id: number;
@@ -29,28 +30,18 @@ export interface Conversation {
   participants: number[];
 }
 
-/**
- * Chat service backed by the mock REST API (/api/chat/*).
- *
- * Endpoints used
- * ──────────────
- *  GET  /api/chat/users
- *  GET  /api/chat/messages?conversationId=:id
- *  POST /api/chat/messages
- */
 @Injectable({ providedIn: 'root' })
 export class ChatService {
-  private http = inject(HttpClient);
-  private auth = inject(AuthService);
+  private http   = inject(HttpClient);
+  private auth   = inject(AuthService);
+  private crypto = inject(CryptoService);
 
-  // Static channel definitions
   readonly channels: Conversation[] = [
     { id: 'ch-general',  type: 'channel', name: 'general',  icon: '#',  participants: [] },
     { id: 'ch-anuncios', type: 'channel', name: 'anuncios', icon: '📢', participants: [] },
     { id: 'ch-clinica',  type: 'channel', name: 'clínica',  icon: '🏥', participants: [] },
   ];
 
-  // All users loaded from GET /api/chat/users
   readonly allUsers: ChatUser[] = [];
 
   constructor() {
@@ -59,7 +50,6 @@ export class ChatService {
     });
   }
 
-  // Messages store: conversationId → signal<ChatMessage[]>
   private _messages = new Map<string, ReturnType<typeof signal<ChatMessage[]>>>();
   private _lastRead  = new Map<string, number>();
 
@@ -89,7 +79,15 @@ export class ChatService {
       const sig = signal<ChatMessage[]>([]);
       this._messages.set(conversationId, sig);
       this.http.get<ChatMessage[]>(`/api/chat/messages?conversationId=${conversationId}`).subscribe({
-        next: msgs => sig.set(msgs.map(m => ({ ...m, timestamp: new Date(m.timestamp) })))
+        next: async msgs => {
+          const decrypted = await Promise.all(
+            msgs.map(async m => {
+              const dec = await this.crypto.decryptFields(m as any, CHAT_ENCRYPTED_FIELDS);
+              return { ...dec, timestamp: new Date(m.timestamp) } as ChatMessage;
+            })
+          );
+          sig.set(decrypted);
+        }
       });
     }
     return this._messages.get(conversationId)!;
@@ -114,12 +112,15 @@ export class ChatService {
       senderAvatar: meUser?.avatar ?? me.name.charAt(0),
       content: content.trim()
     };
-    this.http.post<ChatMessage>('/api/chat/messages', payload).subscribe({
-      next: msg => {
-        const m = { ...msg, timestamp: new Date(msg.timestamp) };
-        this._ensureSignal(conversationId).update(arr => [...arr, m]);
-        this.markRead(conversationId);
-      }
+    this.crypto.encryptFields(payload as any, CHAT_ENCRYPTED_FIELDS).then(encrypted => {
+      this.http.post<ChatMessage>('/api/chat/messages', encrypted).subscribe({
+        next: async msg => {
+          const dec = await this.crypto.decryptFields(msg as any, CHAT_ENCRYPTED_FIELDS);
+          const m   = { ...dec, timestamp: new Date(msg.timestamp) } as ChatMessage;
+          this._ensureSignal(conversationId).update(arr => [...arr, m]);
+          this.markRead(conversationId);
+        }
+      });
     });
   }
 

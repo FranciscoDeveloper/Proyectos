@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { CryptoService } from '../../services/crypto.service';
 
 interface DemoAccount {
   email: string;
@@ -22,8 +23,9 @@ interface DemoAccount {
   styleUrl: './login.component.scss'
 })
 export class LoginComponent implements OnDestroy {
-  private fb    = inject(FormBuilder);
-  private auth  = inject(AuthService);
+  private fb     = inject(FormBuilder);
+  private auth   = inject(AuthService);
+  private crypto = inject(CryptoService);
   private route  = inject(ActivatedRoute);
   private router = inject(Router);
   private sub?: Subscription;
@@ -68,17 +70,19 @@ export class LoginComponent implements OnDestroy {
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/app/dashboard';
 
     this.sub = this.auth.login({ email: email!, password: password! }).subscribe({
-      next: (response) => {
-        // 1. Persist auth state to sessionStorage BEFORE navigating
+      next: async (response) => {
+        // Persist auth state to sessionStorage BEFORE navigating
         this.auth.handleAuthResponse(response);
 
-        const raw = this.route.snapshot.queryParamMap.get('returnUrl') ?? '';
+        // Derive AES-256-GCM Zero-Knowledge key from password (PBKDF2, 310k iterations).
+        // The raw password is not stored anywhere after this call.
+        await this.crypto.deriveKey(password!, email!);
+
+        const raw    = this.route.snapshot.queryParamMap.get('returnUrl') ?? '';
         const target = (raw && raw.startsWith('/') && !raw.startsWith('//') && raw !== '/')
           ? raw
           : '/app/dashboard';
         // Force full page reload so Angular bootstraps fresh and reads sessionStorage.
-        // Changing the query string (?_=ts) forces a real browser reload even with hash routing.
-        // S3 always serves index.html for the root path regardless of query string.
         window.location.href = '/?_=' + Date.now() + '#' + target;
       },
       error: (err: Error) => {

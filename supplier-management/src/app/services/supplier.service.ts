@@ -1,25 +1,22 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Supplier, SupplierFilter, SupplierStats } from '../models/supplier.model';
+import { CryptoService, SUPPLIER_ENCRYPTED_FIELDS } from './crypto.service';
 
-/**
- * Supplier service backed by the mock REST API (/api/suppliers).
- *
- * Endpoints used
- * ──────────────
- *  GET    /api/suppliers
- *  POST   /api/suppliers
- *  PUT    /api/suppliers/:id
- *  DELETE /api/suppliers/:id
- */
 @Injectable({ providedIn: 'root' })
 export class SupplierService {
-  private http = inject(HttpClient);
+  private http   = inject(HttpClient);
+  private crypto = inject(CryptoService);
   private _suppliers = signal<Supplier[]>([]);
 
   constructor() {
     this.http.get<Supplier[]>('/api/suppliers').subscribe({
-      next: data => this._suppliers.set(data)
+      next: async data => {
+        const decrypted = await Promise.all(
+          data.map(s => this.crypto.decryptFields(s as any, SUPPLIER_ENCRYPTED_FIELDS))
+        );
+        this._suppliers.set(decrypted as Supplier[]);
+      }
     });
   }
 
@@ -32,16 +29,26 @@ export class SupplierService {
   }
 
   create(data: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>): void {
-    this.http.post<Supplier>('/api/suppliers', data).subscribe({
-      next: created => this._suppliers.update(list => [...list, created])
+    this.crypto.encryptFields(data as any, SUPPLIER_ENCRYPTED_FIELDS).then(encrypted => {
+      this.http.post<Supplier>('/api/suppliers', encrypted).subscribe({
+        next: async created => {
+          const decrypted = await this.crypto.decryptFields(created as any, SUPPLIER_ENCRYPTED_FIELDS);
+          this._suppliers.update(list => [...list, decrypted as Supplier]);
+        }
+      });
     });
   }
 
   update(id: number, data: Partial<Supplier>): void {
-    this.http.put<Supplier>(`/api/suppliers/${id}`, data).subscribe({
-      next: updated => this._suppliers.update(
-        list => list.map(s => s.id === id ? updated : s)
-      )
+    this.crypto.encryptFields(data as any, SUPPLIER_ENCRYPTED_FIELDS).then(encrypted => {
+      this.http.put<Supplier>(`/api/suppliers/${id}`, encrypted).subscribe({
+        next: async updated => {
+          const decrypted = await this.crypto.decryptFields(updated as any, SUPPLIER_ENCRYPTED_FIELDS);
+          this._suppliers.update(
+            list => list.map(s => s.id === id ? decrypted as Supplier : s)
+          );
+        }
+      });
     });
   }
 

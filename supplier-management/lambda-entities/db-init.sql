@@ -44,6 +44,62 @@ CREATE TABLE IF NOT EXISTS product (
   updated_at  TIMESTAMPTZ    NOT NULL DEFAULT NOW()
 );
 
+-- ── Clinical Records ──────────────────────────────────────────────────────────
+-- References paciente(id) and profesional(id) via TEXT FKs (stored as codes)
+CREATE TABLE IF NOT EXISTS ficha_clinica (
+  id                     SERIAL PRIMARY KEY,
+  full_name              VARCHAR(200)   NOT NULL,
+  patient_code           VARCHAR(50)    NOT NULL UNIQUE,
+  rut                    VARCHAR(20)    NOT NULL,
+  birth_date             DATE,
+  age                    INTEGER,
+  gender                 VARCHAR(20),
+  blood_type             VARCHAR(10),
+  insurance              VARCHAR(30),
+  phone                  VARCHAR(50),
+  email                  VARCHAR(255),
+  address                VARCHAR(255),
+  emergency_contact      VARCHAR(200),
+  doctor                 VARCHAR(200),
+  last_visit             DATE,
+  status                 VARCHAR(30)    NOT NULL DEFAULT 'active',
+  -- Alerts
+  allergies              JSONB          NOT NULL DEFAULT '[]',
+  contraindications      TEXT           NOT NULL DEFAULT '',
+  alert_notes            TEXT           NOT NULL DEFAULT '',
+  -- Vital signs (updated each encounter)
+  bp                     VARCHAR(20),
+  heart_rate             NUMERIC(5,1),
+  temperature            NUMERIC(4,1),
+  o2_saturation          NUMERIC(5,1),
+  weight                 NUMERIC(6,1),
+  height                 NUMERIC(5,1),
+  bmi                    NUMERIC(5,1),
+  respiratory_rate       NUMERIC(5,1),
+  -- Medical history (stable)
+  personal_history       TEXT           NOT NULL DEFAULT '',
+  family_history         TEXT           NOT NULL DEFAULT '',
+  habits                 TEXT           NOT NULL DEFAULT '',
+  -- Surgical (stable)
+  surgical_history       TEXT           NOT NULL DEFAULT '',
+  planned_interventions  TEXT           NOT NULL DEFAULT '',
+  -- Medications / Diagnosis
+  current_medications    TEXT           NOT NULL DEFAULT '',
+  chronic_conditions     JSONB          NOT NULL DEFAULT '[]',
+  diagnosis_code         VARCHAR(30),
+  diagnosis_label        VARCHAR(255),
+  differential_dx        TEXT           NOT NULL DEFAULT '',
+  -- SOAP note (updated each encounter)
+  soap_subjective        TEXT           NOT NULL DEFAULT '',
+  soap_objective         TEXT           NOT NULL DEFAULT '',
+  soap_assessment        TEXT           NOT NULL DEFAULT '',
+  soap_plan              TEXT           NOT NULL DEFAULT '',
+  -- Encounter history
+  encounters             JSONB          NOT NULL DEFAULT '[]',
+  created_at             TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
+  updated_at             TIMESTAMPTZ    NOT NULL DEFAULT NOW()
+);
+
 -- ── Expenses ──────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS expense (
   id             SERIAL PRIMARY KEY,

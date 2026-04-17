@@ -1,0 +1,171 @@
+<div class="commissions-page">
+
+  <!-- ── Header ── -->
+  <div class="page-header">
+    <div class="header-info">
+      <h1 class="page-title">Comisiones por Profesional</h1>
+      <span class="record-count">{{ professionals().length }} profesionales</span>
+    </div>
+  </div>
+
+  <!-- ── Totals strip ── -->
+  <div class="totals-strip">
+    <div class="total-card">
+      <span class="total-label">Total facturado</span>
+      <span class="total-value">{{ fmtCurrency(totals().invoiced) }}</span>
+    </div>
+    <div class="total-card accent-blue">
+      <span class="total-label">Comisión total</span>
+      <span class="total-value">{{ fmtCurrency(totals().commission) }}</span>
+    </div>
+    <div class="total-card accent-green">
+      <span class="total-label">Comisión pagada</span>
+      <span class="total-value">{{ fmtCurrency(totals().paid) }}</span>
+    </div>
+    <div class="total-card accent-orange" *ngIf="totals().pending > 0">
+      <span class="total-label">Comisión pendiente</span>
+      <span class="total-value">{{ fmtCurrency(totals().pending) }}</span>
+    </div>
+  </div>
+
+  <!-- ── Filter tabs ── -->
+  <div class="filter-tabs">
+    <button class="tab-btn" [class.active]="filterStatus() === 'all'"       (click)="setFilter('all')">Todos</button>
+    <button class="tab-btn pending" [class.active]="filterStatus() === 'pendiente'" (click)="setFilter('pendiente')">
+      Con pendientes
+    </button>
+    <button class="tab-btn paid"    [class.active]="filterStatus() === 'pagada'"    (click)="setFilter('pagada')">
+      Pagadas
+    </button>
+  </div>
+
+  <!-- ── Professional cards ── -->
+  <div class="prof-list">
+
+    <div class="prof-card" *ngFor="let prof of professionals()"
+         [class.expanded]="isExpanded(prof.name)">
+
+      <!-- Card header (always visible) -->
+      <div class="prof-card-header" (click)="toggleExpand(prof.name)">
+
+        <div class="prof-avatar" [style.background]="prof.color">{{ prof.initials }}</div>
+
+        <div class="prof-info">
+          <span class="prof-name">{{ prof.name }}</span>
+          <span class="prof-specialty">{{ prof.specialty }}</span>
+        </div>
+
+        <div class="prof-stat">
+          <span class="stat-label">Cobros</span>
+          <span class="stat-value">{{ prof.totalPayments }}</span>
+        </div>
+
+        <div class="prof-stat">
+          <span class="stat-label">Facturado</span>
+          <span class="stat-value">{{ fmtCurrency(prof.totalInvoiced) }}</span>
+        </div>
+
+        <div class="prof-stat">
+          <span class="stat-label">Tasa prom.</span>
+          <span class="stat-value">{{ prof.avgRate }}%</span>
+        </div>
+
+        <div class="prof-commission">
+          <div class="commission-total">{{ fmtCurrency(prof.totalCommission) }}</div>
+          <div class="commission-breakdown">
+            <span class="paid-badge" *ngIf="prof.paidCommission > 0">
+              ✓ {{ fmtCurrency(prof.paidCommission) }} pagado
+            </span>
+            <span class="pending-badge" *ngIf="prof.pendingCommission > 0">
+              ⚠ {{ fmtCurrency(prof.pendingCommission) }} pendiente
+            </span>
+          </div>
+        </div>
+
+        <!-- Pay-all button (only when there are pending) -->
+        <button class="btn-pay-all"
+                *ngIf="prof.pendingCommission > 0"
+                (click)="$event.stopPropagation(); markAllPending(prof)"
+                title="Marcar todas las comisiones pendientes como pagadas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Pagar {{ pendingCount(prof) }} pendiente{{ pendingCount(prof) > 1 ? 's' : '' }}
+        </button>
+
+        <div class="expand-icon" [class.open]="isExpanded(prof.name)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+
+      </div>
+
+      <!-- ── Expanded payment detail ── -->
+      <div class="payment-detail" *ngIf="isExpanded(prof.name)">
+
+        <div class="detail-header">
+          <span class="dh-col">Fecha</span>
+          <span class="dh-col">Paciente</span>
+          <span class="dh-col">Concepto</span>
+          <span class="dh-col text-right">Cobro</span>
+          <span class="dh-col text-right">Tasa</span>
+          <span class="dh-col text-right">Comisión</span>
+          <span class="dh-col">Estado</span>
+          <span class="dh-col"></span>
+        </div>
+
+        <div class="detail-row" *ngFor="let pay of prof.payments">
+          <span class="dc-date">{{ fmtDate(pay['date']) }}</span>
+          <span class="dc-patient">{{ pay['patientName'] }}</span>
+          <span class="dc-concept">{{ conceptLabel(pay['concept']) }}</span>
+          <span class="dc-amount text-right">{{ fmtFull(pay['amount']) }}</span>
+          <span class="dc-rate   text-right">{{ pay['commissionRate'] }}%</span>
+          <span class="dc-comm  text-right">{{ fmtFull(pay['commissionAmount']) }}</span>
+          <span class="dc-status">
+            <span class="status-pill" [class.paid]="pay['commissionStatus'] === 'pagada'" [class.pending]="pay['commissionStatus'] === 'pendiente'" [class.na]="pay['commissionStatus'] === 'no_aplica'">
+              {{ pay['commissionStatus'] === 'pagada' ? 'Pagada' : pay['commissionStatus'] === 'pendiente' ? 'Pendiente' : 'N/A' }}
+            </span>
+          </span>
+          <span class="dc-action">
+            <button class="btn-pay-row"
+                    *ngIf="pay['commissionStatus'] === 'pendiente'"
+                    [disabled]="isPaying(pay['id'])"
+                    (click)="markPaid(pay['id'])">
+              <span class="mini-spinner" *ngIf="isPaying(pay['id'])"></span>
+              <svg *ngIf="!isPaying(pay['id'])" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Pagar
+            </button>
+          </span>
+        </div>
+
+        <!-- Row totals -->
+        <div class="detail-totals">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span class="text-right total-val">{{ fmtFull(prof.totalInvoiced) }}</span>
+          <span></span>
+          <span class="text-right total-val">{{ fmtFull(prof.totalCommission) }}</span>
+          <span></span>
+          <span></span>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="professionals().length === 0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p>No hay comisiones para el filtro seleccionado.</p>
+    </div>
+
+  </div>
+</div>

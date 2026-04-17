@@ -11,7 +11,7 @@ import { Injectable, signal, computed } from '@angular/core';
  *  4. Activa la "Google Calendar API" en APIs & Services → Library
  *  5. Pega el Client ID generado aquí abajo
  */
-const GCAL_CLIENT_ID: string = 'YOUR_GOOGLE_OAUTH_CLIENT_ID';
+const GCAL_CLIENT_ID: string = '549490430485-97crbjoma2gjrusacjmlsif2q9irbku3.apps.googleusercontent.com';
 
 const STORAGE_KEY = 'gcal_access_token';
 const SCOPE       = 'https://www.googleapis.com/auth/calendar.events';

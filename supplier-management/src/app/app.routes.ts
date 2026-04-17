@@ -84,11 +84,30 @@ export const routes: Routes = [
           import('./components/chat/chat.component').then(m => m.ChatComponent)
       },
       {
+        path: 'commissions',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./components/commission-report/commission-report.component').then(m => m.CommissionReportComponent)
+      },
+      {
+        path: 'reports',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./components/medical-reports/medical-reports.component').then(m => m.MedicalReportsComponent)
+      },
+      {
         // Clinical record module: /app/clinical/:entityKey and sub-routes
         path: 'clinical',
         children: CLINICAL_ROUTES
       }
     ]
+  },
+
+  // ── Public: patient self-booking via UUID link ───────────────────────────────
+  {
+    path: 'book/:token',
+    loadComponent: () =>
+      import('./components/patient-booking/patient-booking.component').then(m => m.PatientBookingComponent)
   },
 
   // ── Fallback ─────────────────────────────────────────────────────────────────
