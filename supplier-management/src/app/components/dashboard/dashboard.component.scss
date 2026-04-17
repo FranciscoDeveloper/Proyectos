@@ -2,6 +2,273 @@
   display: block;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   CLINIC DASHBOARD
+═══════════════════════════════════════════════════════════════════ */
+
+.clinic-dash {
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Day header ──────────────────────────────────────────────────── */
+.day-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.day-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.day-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0c2d48;
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.day-date {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(14,165,233,.1);
+  border: 1px solid rgba(14,165,233,.25);
+  color: #0284c7;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 5px 12px;
+  border-radius: 99px;
+  letter-spacing: 1px;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .5; transform: scale(.75); }
+}
+
+/* ── KPI grid ────────────────────────────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+
+  @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
+}
+
+.kpi-card {
+  background: #fff;
+  border: 1px solid #e0f2fe;
+  border-radius: 16px;
+  padding: 22px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 1px 4px rgba(14,165,233,.06);
+  transition: box-shadow .2s, transform .2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(14,165,233,.12);
+  }
+}
+
+.kpi-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+
+  &--blue  { background: rgba(59,130,246,.12); }
+  &--green { background: rgba(16,185,129,.12); }
+  &--cyan  { background: rgba(6,182,212,.12);  }
+  &--amber { background: rgba(245,158,11,.12); }
+}
+
+.kpi-body {
+  min-width: 0;
+}
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -1px;
+
+  &--blue  { color: #3b82f6; }
+  &--green { color: #10b981; }
+  &--cyan  { color: #06b6d4; }
+  &--amber { color: #f59e0b; }
+}
+
+.kpi-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Appointments card ───────────────────────────────────────────── */
+.appt-card {
+  background: #fff;
+  border: 1px solid #e0f2fe;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(14,165,233,.06);
+}
+
+.appt-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid #f0f9ff;
+}
+
+.appt-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0c2d48;
+}
+
+.appt-table-wrap {
+  overflow-x: auto;
+}
+
+.appt-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead tr {
+    background: #f8fbff;
+  }
+
+  th {
+    padding: 10px 20px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 14px 20px;
+    font-size: 14px;
+    color: #1e293b;
+    border-top: 1px solid #f0f9ff;
+    vertical-align: middle;
+  }
+
+  tbody tr {
+    transition: background .15s;
+    &:hover { background: #f8fbff; }
+  }
+}
+
+.appt-patient-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.appt-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.appt-patient-name {
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.appt-time {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0ea5e9;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.appt-service {
+  font-size: 13px;
+  color: #475569;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appt-prof {
+  font-size: 13px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.appt-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.appt-empty {
+  padding: 32px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GENERIC DASHBOARD
+═══════════════════════════════════════════════════════════════════ */
+
 .dashboard {
   max-width: 1400px;
 }

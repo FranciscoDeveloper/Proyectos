@@ -37,15 +37,18 @@ const DELAY = 80;
 const _entityStores: Record<string, Record<string, any>[]> = {};
 const _entityNextId: Record<string, number> = {};
 
+const CATALOG_ALIASES: Record<string, string> = { paciente: 'patients' };
+
 function entityStore(key: string): Record<string, any>[] {
-  if (!_entityStores[key]) {
-    const seed = ENTITY_CATALOG[key]?.data ?? [];
-    _entityStores[key] = seed.map(r => ({ ...r }));
-    _entityNextId[key] = _entityStores[key].reduce(
+  const k = CATALOG_ALIASES[key] ?? key;
+  if (!_entityStores[k]) {
+    const seed = ENTITY_CATALOG[k]?.data ?? [];
+    _entityStores[k] = seed.map(r => ({ ...r }));
+    _entityNextId[k] = _entityStores[k].reduce(
       (max, r) => Math.max(max, Number(r['id'] ?? 0)), 0
     ) + 1;
   }
-  return _entityStores[key];
+  return _entityStores[k];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

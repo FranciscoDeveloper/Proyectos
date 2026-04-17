@@ -43,7 +43,33 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
           { name: 'notes',            type: 'textarea', label: 'Notas',           required: false,                        showInList: false, showInDetail: true  }
         ]
       },
-      data: []
+      data: [
+        { id: 1,  service: 'Control HTA',            patientName: 'María González López',     dateTime: '2026-04-16T09:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: 'Control mensual',           createdAt: '2026-04-10', updatedAt: '2026-04-16' },
+        { id: 2,  service: 'Seguimiento DM2 + HTA',  patientName: 'Pedro Alvarado Fuentes',   dateTime: '2026-04-16T09:45', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: 'Ajuste insulina Glargina',  createdAt: '2026-04-10', updatedAt: '2026-04-16' },
+        { id: 3,  service: 'Control prenatal S28',   patientName: 'Carla Soto Vera',           dateTime: '2026-04-16T10:30', durationMinutes: 40, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: 'Semana 28 de embarazo',     createdAt: '2026-04-10', updatedAt: '2026-04-16' },
+        { id: 4,  service: 'Control AR mensual',     patientName: 'Diego Morales Reyes',       dateTime: '2026-04-16T11:30', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-12', updatedAt: '2026-04-12' },
+        { id: 5,  service: 'Seguimiento migraña',    patientName: 'Patricia Lagos Muñoz',      dateTime: '2026-04-16T12:00', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-12', updatedAt: '2026-04-12' },
+        { id: 6,  service: 'Control lumbalgia',      patientName: 'Roberto Vega Espinoza',     dateTime: '2026-04-16T14:00', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: 'Post-reagudización',        createdAt: '2026-04-13', updatedAt: '2026-04-13' },
+        { id: 7,  service: 'Seguimiento depresión',  patientName: 'Francisca Herrera Salinas', dateTime: '2026-04-16T14:45', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: 'Ajuste sertralina',         createdAt: '2026-04-13', updatedAt: '2026-04-13' },
+        { id: 8,  service: 'Control DM1',            patientName: 'Sofia Ruiz Castillo',       dateTime: '2026-04-16T15:30', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-14', updatedAt: '2026-04-14' },
+        { id: 9,  service: 'Control EPOC',           patientName: 'Isabel Díaz Vega',          dateTime: '2026-04-16T16:15', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: 'Post-exacerbación',         createdAt: '2026-04-14', updatedAt: '2026-04-14' },
+        { id: 10, service: 'Control HTA',            patientName: 'María González López',     dateTime: '2026-04-08T09:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-01', updatedAt: '2026-04-08' },
+        { id: 11, service: 'Control AR',             patientName: 'Diego Morales Reyes',       dateTime: '2026-04-08T10:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-01', updatedAt: '2026-04-08' },
+        { id: 12, service: 'Control migraña',        patientName: 'Patricia Lagos Muñoz',      dateTime: '2026-04-03T11:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-03-28', updatedAt: '2026-04-03' },
+        { id: 13, service: 'Control lumbalgia',      patientName: 'Roberto Vega Espinoza',     dateTime: '2026-04-09T10:30', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-02', updatedAt: '2026-04-09' },
+        { id: 14, service: 'Seguimiento depresión',  patientName: 'Francisca Herrera Salinas', dateTime: '2026-04-10T14:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-03', updatedAt: '2026-04-10' },
+        { id: 15, service: 'Control prenatal S24',   patientName: 'Carla Soto Vera',           dateTime: '2026-03-10T10:30', durationMinutes: 40, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-03-05', updatedAt: '2026-03-10' },
+        { id: 16, service: 'Seguimiento DM2',        patientName: 'Pedro Alvarado Fuentes',   dateTime: '2026-03-05T09:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-02-27', updatedAt: '2026-03-05' },
+        { id: 17, service: 'Control HTA + lipídico', patientName: 'María González López',     dateTime: '2026-03-24T09:30', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-03-17', updatedAt: '2026-03-24' },
+        { id: 18, service: 'Cardiopatía post-IAM',   patientName: 'Carlos Fernández Torres',   dateTime: '2026-03-19T11:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: 'Ajuste Metoprolol',         createdAt: '2026-03-12', updatedAt: '2026-03-19' },
+        { id: 19, service: 'Control post-colonosc.', patientName: 'Luis Hernández Pérez',      dateTime: '2026-03-26T10:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-03-20', updatedAt: '2026-03-26' },
+        { id: 20, service: 'Control DM1',            patientName: 'Sofia Ruiz Castillo',       dateTime: '2026-03-26T09:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-03-20', updatedAt: '2026-03-26' },
+        { id: 21, service: 'Control preoperatorio',  patientName: 'Ana Martínez Soto',         dateTime: '2026-03-31T15:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: 'Artroscopía rodilla',       createdAt: '2026-03-24', updatedAt: '2026-03-31' },
+        { id: 22, service: 'Exacerbación EPOC',      patientName: 'Isabel Díaz Vega',          dateTime: '2026-03-19T08:30', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: 'Antibióticos + prednisona', createdAt: '2026-03-12', updatedAt: '2026-03-19' },
+        { id: 23, service: 'Control diverticulosis', patientName: 'Luis Hernández Pérez',      dateTime: '2026-04-17T09:00', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-10', updatedAt: '2026-04-10' },
+        { id: 24, service: 'Stent post-IAM',         patientName: 'Carlos Fernández Torres',   dateTime: '2026-04-17T10:00', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: 'Control Ecocardiograma',    createdAt: '2026-04-10', updatedAt: '2026-04-10' },
+        { id: 25, service: 'Control preop. menisco', patientName: 'Ana Martínez Soto',         dateTime: '2026-04-18T11:30', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-10', updatedAt: '2026-04-10' }
+      ]
     },
 
     // ─────────────────────────── PROVEEDORES ───────────────────────────
@@ -452,6 +478,272 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
           soapObjective: 'PA: 125/80, FC: 65, T: 36.5°C, SatO2: 98%. Abdomen blando, no doloroso. Sin masas palpables.',
           soapAssessment: 'Diverticulosis colónica sin complicaciones. Sin evidencia de displasia en biopsias. Factores de riesgo modificables presentes (tabaco, sedentarismo, dieta).',
           soapPlan: '1. Informe histológico: sin displasia. Repetir colonoscopía en 5 años\n2. Dieta alta en fibra 25-30g/día\n3. Actividad física ≥150 min/semana\n4. Cesación tabáquica: referir a programa\n5. Screening familiar (hijo >40 años)\n6. Control anual médico general'
+        },
+        {
+          id: 7, fullName: 'Pedro Alvarado Fuentes', patientId: 'PAC-00008', rut: '7.654.321-0',
+          birthDate: '1955-04-20', age: 71, gender: 'male', bloodType: 'B-',
+          insurance: 'fonasa_d', phone: '+56 9 6421 3344', email: 'pedro.a@email.com',
+          address: 'Av. Gran Avenida 4320, La Granja, Santiago', emergencyContact: 'Marta Fuentes +56 9 8811 2233',
+          doctor: 'Dra. Morales', lastVisit: '2026-04-02', status: 'active',
+          allergies: ['Metformina (intolerancia GI)'],
+          contraindications: 'Metformina contraindicada (náuseas severas). Precaución con diuréticos por insuficiencia renal leve (FG 58 mL/min).',
+          alertNotes: 'Pie diabético grado 1 derecho (úlcera plantar cicatrizada 2025). Requiere inspección en cada visita.',
+          bp: '145/88', heartRate: 76, temperature: 36.8, o2Saturation: 96, weight: 92, height: 170, bmi: 31.8, respiratoryRate: 16,
+          personalHistory: 'DM tipo 2 (desde 2008). HTA (2010). Dislipidemia mixta. IRC leve estadio 2 (FG 58). Pie diabético grado 1 derecho (2025, resuelto).',
+          familyHistory: 'Madre: DM2. Hermano: IRC en hemodiálisis.',
+          surgicalHistory: 'Angioplastia periférica MII (2023). Desbridamiento úlcera plantar (2025).',
+          plannedInterventions: 'Fondo de ojo anual pendiente (derivado a oftalmología, cita solicitada 2026-03-28). Control nefrológico trimestral.',
+          habits: 'Ex fumador (15 paquetes-año, dejó 1998). Sin alcohol. Muy sedentario por dolor en pies.',
+          currentMedications: 'Insulina Glargina 28 UI nocturno\nInsulina Regular 6 UI antes desayuno y almuerzo\nAmlodipino 10mg c/24h\nAtorvastantina 40mg c/24h\nAAS 100mg c/24h\nFurosemida 20mg c/24h',
+          chronicConditions: ['DM2', 'HTA', 'Dislipidemia', 'IRC leve'],
+          diagnosisCode: 'E11.65', diagnosisLabel: 'Diabetes mellitus tipo 2 con hiperglicemia',
+          differentialDx: 'DM1 descartada. Nefropatía diabética estadio 2 confirmada.',
+          soapSubjective: 'Control mensual. Refiere glucemias en ayunas 180-220 mg/dL en casa. Poliuria nocturna x2. Sin dolor en pie derecho. Cumple insulina pero olvida dosis almuerzo 2-3 veces/semana.',
+          soapObjective: 'PA: 145/88, FC: 76, T: 36.8°C, SatO2: 96%. Pie derecho: sin úlcera activa, monofilamento 5.07 positivo bilateral. HbA1c: 8.9%. Creatinina: 1.5 mg/dL (FG 58).',
+          soapAssessment: 'DM2 con control glicémico subóptimo. HTA en tratamiento con control parcial. IRC leve estable. Riesgo pie diabético recurrente por neuropatía periférica.',
+          soapPlan: '1. Ajustar Insulina Glargina → 32 UI nocturno\n2. Agregar Insulina Regular 4 UI dosis nocturna\n3. Derivar a podología para control preventivo mensual\n4. Ajustar Amlodipino → + HCTZ 12.5mg (valorar función renal)\n5. Solicitar microalbuminuria y perfil renal\n6. Reforzar educación sobre adherencia insulínica\n7. Control en 3 semanas con libreta glucémica',
+          encounters: [
+            {
+              encounterDate: '2026-04-02', doctor: 'Dra. Morales', motivo: 'Control mensual DM2 + HTA',
+              presionArterial: '145/88 mmHg', frecuenciaCardiaca: '76 lpm', peso: '92 kg',
+              diagnostico: 'DM2 con control subóptimo. HTA parcialmente controlada.',
+              examenes: 'HbA1c: 8.9%. Creatinina: 1.5 mg/dL. Microalbuminuria: 85 mg/g (elevada).',
+              tratamiento: 'Ajuste insulina Glargina 28→32 UI. Agrega HCTZ 12.5mg.',
+              indicaciones: 'Libreta glucémica diaria. Podología mensual. Control en 3 semanas.'
+            },
+            {
+              encounterDate: '2026-03-05', doctor: 'Dra. Morales', motivo: 'Control trimestral',
+              presionArterial: '148/90 mmHg', frecuenciaCardiaca: '78 lpm', peso: '93.5 kg',
+              diagnostico: 'DM2 mal controlada. HTA sobre metas.',
+              examenes: 'HbA1c: 9.2%. Perfil lipídico: LDL 140 mg/dL.',
+              tratamiento: 'Intensificación insulina. Mantiene Atorvastatina.',
+              indicaciones: 'Dieta hipocalórica. Evitar carbohidratos simples. Control en 4 semanas.'
+            },
+            {
+              encounterDate: '2026-01-20', doctor: 'Dra. Morales', motivo: 'Control post-alta podológica',
+              presionArterial: '140/85 mmHg', frecuenciaCardiaca: '74 lpm', peso: '94 kg',
+              diagnostico: 'Úlcera plantar derecha cicatrizada. IRC leve estable.',
+              examenes: 'Eco Doppler MII: flujo conservado. Creatinina 1.4 mg/dL.',
+              tratamiento: 'Mantiene esquema actual. Ortesis plantar indicada.',
+              indicaciones: 'Inspección de pies diaria. Calzado ortopédico. Podología cada 3 semanas.'
+            }
+          ]
+        },
+        {
+          id: 8, fullName: 'Carla Soto Vera', patientId: 'PAC-00009', rut: '22.456.789-3',
+          birthDate: '1993-08-15', age: 33, gender: 'female', bloodType: 'A+',
+          insurance: 'fonasa_b', phone: '+56 9 6678 9900', email: 'carla.s@email.com',
+          address: 'Calle Miraflores 455, Recoleta, Santiago', emergencyContact: 'Javier Soto +56 9 7799 0011',
+          doctor: 'Dra. Morales', lastVisit: '2026-04-07', status: 'scheduled',
+          allergies: [],
+          contraindications: 'Evitar AINEs durante embarazo (especialmente tercer trimestre). Sin otros antecedentes.',
+          alertNotes: 'Embarazo 28 semanas. Control prenatal activo. Prueba tolerancia glucosa pendiente.',
+          bp: '110/68', heartRate: 88, temperature: 36.6, o2Saturation: 99, weight: 72, height: 163, bmi: 27.1, respiratoryRate: 14,
+          personalHistory: 'Primigesta. Embarazo fisiológico de 28 semanas. Sin patologías previas.',
+          familyHistory: 'Madre: DM gestacional (embarazo hermano). Padre: HTA.',
+          surgicalHistory: 'Ninguna cirugía previa.',
+          plannedInterventions: 'Parto vaginal planificado semana 39-40. Sin indicación de cesárea por el momento.',
+          habits: 'No fumadora. Sin alcohol (suspendió desde semana 4). Yoga prenatal 2 veces/semana.',
+          currentMedications: 'Ácido fólico 5mg c/24h\nHierro polimaltosato 100mg c/24h\nCalcio 1g c/24h\nOmega-3 1g c/24h',
+          chronicConditions: ['Embarazo'],
+          diagnosisCode: 'Z34.28', diagnosisLabel: 'Control de embarazo normal, 28 semanas',
+          differentialDx: 'Preeclampsia descartada (PA normal, sin proteinuria). DM gestacional en screening.',
+          soapSubjective: 'Control prenatal semana 28. Refiere movimientos fetales activos. Dolor lumbar leve (EVA 3/10). Edema tobillo izquierdo al final del día. Sin cefalea ni visión borrosa.',
+          soapObjective: 'PA: 110/68, FC: 88, T: 36.6°C, SatO2: 99%, Peso: 72 kg (ganancia 10 kg desde inicio). AFU: 27 cm. FCF: 148 lpm regular. Edema pretibial +/++++.',
+          soapAssessment: 'Embarazo de 28 semanas en evolución normal. Edema fisiológico leve. Screening DM gestacional pendiente. Dolor lumbar por hiperlordosis gravídica.',
+          soapPlan: '1. PTG 75g (PTGO) programada próxima semana\n2. Ecografía morfológica fetal semana 30\n3. Kinesioterapia prenatal para dolor lumbar\n4. Reposo piernas elevadas 20 min c/6h\n5. Hierro: verificar ferritina en próximo control\n6. Próximo control: semana 30',
+          encounters: [
+            {
+              encounterDate: '2026-04-07', doctor: 'Dra. Morales', motivo: 'Control prenatal semana 28',
+              presionArterial: '110/68 mmHg', frecuenciaCardiaca: '88 lpm', peso: '72 kg',
+              diagnostico: 'Embarazo 28 semanas. Evolución fisiológica. Screening DM gestacional pendiente.',
+              examenes: 'FCF 148 lpm. AFU 27 cm. Hemoglobina: 11.2 g/dL (leve anemia dilucional).',
+              tratamiento: 'Mantiene suplementos. Agrega reposo relativo y elevación EEII.',
+              indicaciones: 'PTGO la próxima semana. Kinesioterapia prenatal. Control semana 30.'
+            },
+            {
+              encounterDate: '2026-03-10', doctor: 'Dra. Morales', motivo: 'Control prenatal semana 24',
+              presionArterial: '108/65 mmHg', frecuenciaCardiaca: '84 lpm', peso: '69.5 kg',
+              diagnostico: 'Embarazo 24 semanas fisiológico.',
+              examenes: 'Eco semana 22: morfología normal, LCC acorde. Cervix 38 mm.',
+              tratamiento: 'Mantiene suplementación habitual.',
+              indicaciones: 'Continúa yoga prenatal. Evitar esfuerzos. Control en 4 semanas.'
+            }
+          ]
+        },
+        {
+          id: 9, fullName: 'Diego Morales Reyes', patientId: 'PAC-00010', rut: '14.321.098-5',
+          birthDate: '1975-12-03', age: 50, gender: 'male', bloodType: 'O+',
+          insurance: 'isapre', phone: '+56 9 6887 5544', email: 'diego.m@email.com',
+          address: 'Av. Irarrázaval 3210, Ñuñoa, Santiago', emergencyContact: 'Claudia Reyes +56 9 9900 1122',
+          doctor: 'Dra. Morales', lastVisit: '2026-04-08', status: 'active',
+          allergies: ['Metotrexato (toxicidad hepática)'],
+          contraindications: 'Metotrexato contraindicado (hepatotoxicidad confirmada 2021). Evitar AINEs > 5 días por riesgo GI.',
+          alertNotes: 'Artritis reumatoide seropositiva con actividad moderada-alta (DAS28: 4.2). En terapia biológica.',
+          bp: '128/82', heartRate: 70, temperature: 36.7, o2Saturation: 98, weight: 78, height: 176, bmi: 25.2, respiratoryRate: 14,
+          personalHistory: 'Artritis reumatoide seropositiva (FR+ y anti-CCP+, desde 2018). Episodio hepatotoxicidad metotrexato (2021). Gastritis crónica (2019).',
+          familyHistory: 'Madre: lupus eritematoso sistémico. Hermana: artritis reumatoide.',
+          surgicalHistory: 'Artroscopía muñeca izquierda (2023) por sinovitis refractaria.',
+          plannedInterventions: 'Evaluación de artroplastia rodilla derecha si progresa daño estructural en próximo control radiológico (semestre 2026).',
+          habits: 'No fumador. Alcohol ocasional (1-2 veces/mes). Natación 3 veces/semana (terapéutica).',
+          currentMedications: 'Adalimumab 40mg cada 2 semanas (subcutáneo)\nLeflunomida 20mg c/24h\nPrednisona 5mg c/24h (mantenimiento)\nOmeprazol 20mg c/24h\nCalcio + Vit D c/24h',
+          chronicConditions: ['Artritis reumatoide', 'Gastritis crónica'],
+          diagnosisCode: 'M05.79', diagnosisLabel: 'Artritis reumatoide seropositiva con afectación de múltiples articulaciones',
+          differentialDx: 'Lupus articular descartado (ANA negativo). Espondilitis descartada (HLA-B27 negativo).',
+          soapSubjective: 'Refiere rigidez matutina 45-60 min (antes 90 min). Dolor articular EVA 4/10 en manos, muñecas y rodilla derecha. Tolera bien adalimumab, sin infecciones recientes. Pendiente Rx manos control.',
+          soapObjective: 'PA: 128/82, FC: 70, T: 36.7°C. DAS28: 4.2 (actividad moderada). Articulaciones: leve sinovitis IFP 2°-3° manos bilateral. Rodilla derecha: derrame articular leve. Sin nódulos reumatoides.',
+          soapAssessment: 'AR seropositiva con respuesta parcial a adalimumab. Actividad moderada persistente. Daño estructural progresivo en rodilla derecha.',
+          soapPlan: '1. Solicitar Rx manos y rodillas (control erosiones)\n2. Evaluar switch a tocilizumab si DAS28 no mejora en 3 meses\n3. Aspiración rodilla derecha si derrame persiste\n4. Kinesioterapia articular 2 veces/semana\n5. Densitometría ósea (riesgo corticoides crónicos)\n6. Control reumatología en 6 semanas',
+          encounters: [
+            {
+              encounterDate: '2026-04-08', doctor: 'Dra. Morales', motivo: 'Control AR mensual',
+              presionArterial: '128/82 mmHg', frecuenciaCardiaca: '70 lpm', peso: '78 kg',
+              diagnostico: 'AR seropositiva actividad moderada. DAS28: 4.2.',
+              examenes: 'PCR: 18 mg/L (elevada). VHS: 42 mm/h. Hemograma: sin citopenias.',
+              tratamiento: 'Mantiene adalimumab + leflunomida. Evalúa cambio biológico próximo control.',
+              indicaciones: 'Rx manos urgente. Kinesioterapia 2x/semana. No suspender adalimumab.'
+            },
+            {
+              encounterDate: '2026-02-25', doctor: 'Dra. Morales', motivo: 'Control bimestral AR',
+              presionArterial: '130/84 mmHg', frecuenciaCardiaca: '72 lpm', peso: '77.5 kg',
+              diagnostico: 'AR seropositiva con respuesta parcial. DAS28: 4.5.',
+              examenes: 'PCR: 22 mg/L. Anti-CCP: 480 U/mL (muy elevado).',
+              tratamiento: 'Ajuste leflunomida 20mg. Mantiene adalimumab.',
+              indicaciones: 'Evitar contacto con personas infectadas (inmunosupresión). Control en 6 semanas.'
+            },
+            {
+              encounterDate: '2026-01-14', doctor: 'Reumatología HCUCH', motivo: 'Control especialidad AR',
+              presionArterial: '125/80 mmHg', frecuenciaCardiaca: '68 lpm', peso: '77 kg',
+              diagnostico: 'AR seropositiva. Respuesta insuficiente a terapia convencional. Indica biológico.',
+              examenes: 'Rx manos: erosiones leves IFP 2°-3° bilateral. Eco articular: sinovitis grado II.',
+              tratamiento: 'Inicio adalimumab 40mg c/2 semanas + leflunomida 20mg.',
+              indicaciones: 'Aplicación adalimumab cada 2 semanas domicilio. Control en 6 semanas. Vigilar infecciones.'
+            }
+          ]
+        },
+        {
+          id: 10, fullName: 'Patricia Lagos Muñoz', patientId: 'PAC-00011', rut: '15.678.234-8',
+          birthDate: '1985-09-22', age: 40, gender: 'female', bloodType: 'AB-',
+          insurance: 'fonasa_c', phone: '+56 9 6993 4455', email: 'patricia.l@email.com',
+          address: 'Los Leones 890, Providencia, Santiago', emergencyContact: 'Rodrigo Lagos +56 9 6655 4433',
+          doctor: 'Dra. Morales', lastVisit: '2026-04-03', status: 'active',
+          allergies: ['Triptanes orales (náuseas severas)'],
+          contraindications: 'Triptanes orales mal tolerados (náuseas). Se prefiere vía subcutánea o nasal.',
+          alertNotes: 'Migraña crónica con aura visual. Promedio 15+ días/mes con cefalea. En seguimiento neurológico.',
+          bp: '118/74', heartRate: 66, temperature: 36.5, o2Saturation: 99, weight: 64, height: 165, bmi: 23.5, respiratoryRate: 14,
+          personalHistory: 'Migraña con aura desde los 22 años. Cronificación progresiva (>15 días/mes desde 2022). Episodio de depresión leve (2020, resuelto).',
+          familyHistory: 'Madre: migraña. Abuela paterna: epilepsia.',
+          surgicalHistory: 'Ninguna.',
+          plannedInterventions: 'Aplicación de toxina botulínica tipo A (OnabotulinumtoxinA 155U) para migraña crónica, programada 2026-04-25 en neurología HCUCH.',
+          habits: 'No fumadora. Sin alcohol. Trabaja frente a pantalla 8h/día (factor desencadenante).',
+          currentMedications: 'Topiramato 100mg c/24h (profilaxis)\nAmitriptilina 25mg nocturno\nSumatriptán 6mg SC PRN crisis aguda\nIbuprofeno 600mg PRN (máx 2 veces/semana)',
+          chronicConditions: ['Migraña crónica'],
+          diagnosisCode: 'G43.309', diagnosisLabel: 'Migraña crónica sin aura, refractaria, sin estado migrañoso',
+          differentialDx: 'Cefalea por abuso de analgésicos descartada (uso controlado). Cefalea tensional crónica descartada.',
+          soapSubjective: 'Refiere 12 días de cefalea en el último mes (mejora vs. 18 días previos). Aura visual presente en 3 episodios. Tolera bien topiramato pero refiere parestesias en manos (efecto conocido). Pregunta por botox.',
+          soapObjective: 'PA: 118/74, FC: 66. Neurológico: pares craneales normales. Sin signos meníngeos. Campos visuales: sin déficit persistente. MIDAS score: 21 (discapacidad severa).',
+          soapAssessment: 'Migraña crónica con respuesta parcial a profilaxis oral. Botox indicado como siguiente escalón terapéutico. Mejoría en frecuencia pero discapacidad funcional persiste.',
+          soapPlan: '1. Mantener Topiramato 100mg + Amitriptilina 25mg\n2. Confirmar cita botox 2026-04-25 neurología\n3. Diario de cefalea digital (app Migraine Buddy)\n4. Filtro azul para pantallas + pausas cada 45 min\n5. Evitar ibuprofeno > 2 veces/semana (riesgo abuso)\n6. Control post-botox en 6 semanas',
+          encounters: [
+            {
+              encounterDate: '2026-04-03', doctor: 'Dra. Morales', motivo: 'Control migraña crónica',
+              presionArterial: '118/74 mmHg', frecuenciaCardiaca: '66 lpm', peso: '64 kg',
+              diagnostico: 'Migraña crónica. Mejoría parcial con profilaxis. MIDAS 21.',
+              examenes: 'Pendiente RMN cerebro con gadolinio (solicitada neurología).',
+              tratamiento: 'Mantiene Topiramato + Amitriptilina. Confirma botox abril.',
+              indicaciones: 'Diario cefalea. Filtro pantalla. Control post-botox junio.'
+            },
+            {
+              encounterDate: '2026-02-18', doctor: 'Dra. Morales', motivo: 'Seguimiento mensual migraña',
+              presionArterial: '120/76 mmHg', frecuenciaCardiaca: '68 lpm', peso: '64 kg',
+              diagnostico: 'Migraña crónica. 18 días cefalea/mes. Sin respuesta suficiente a profilaxis actual.',
+              examenes: 'Sin exámenes nuevos.',
+              tratamiento: 'Aumento Topiramato 50mg → 100mg c/24h.',
+              indicaciones: 'Derivar a neurología para valorar botox. Mantiene Amitriptilina.'
+            }
+          ]
+        },
+        {
+          id: 11, fullName: 'Roberto Vega Espinoza', patientId: 'PAC-00012', rut: '11.234.567-4',
+          birthDate: '1970-06-18', age: 55, gender: 'male', bloodType: 'O-',
+          insurance: 'isapre', phone: '+56 9 6770 2288', email: 'roberto.v@email.com',
+          address: 'Av. Tobalaba 5600, Peñalolén, Santiago', emergencyContact: 'Andrea Vega +56 9 5544 6677',
+          doctor: 'Dra. Morales', lastVisit: '2026-04-09', status: 'active',
+          allergies: ['Tramadol (vómitos intratables)'],
+          contraindications: 'Tramadol contraindicado. Precaución con relajantes musculares (somnolencia laboral).',
+          alertNotes: '',
+          bp: '130/84', heartRate: 68, temperature: 36.6, o2Saturation: 98, weight: 95, height: 180, bmi: 29.3, respiratoryRate: 15,
+          personalHistory: 'Lumbalgia crónica inespecífica (desde 2016). Hernia discal L4-L5 intervenida (2019). Obesidad grado I. HTA leve.',
+          familyHistory: 'Padre: osteoartritis severa. Madre: osteoporosis.',
+          surgicalHistory: 'Microdiscectomía L4-L5 (2019). Artroscopía rodilla izquierda (2017).',
+          plannedInterventions: 'Bloqueo facetario lumbar (L4-L5-S1) planificado para 2026-05-12 en unidad de dolor HCUCH.',
+          habits: 'Ex fumador (10 paquetes-año, dejó 2019). Alcohol social 1 vez/semana. Trabajo físico moderado (supervisor obra).',
+          currentMedications: 'Ibuprofeno 400mg c/8h PRN\nPregabalina 75mg c/12h\nCiclobenzaprina 5mg nocturno PRN\nOmeprazol 20mg c/24h\nEnalapril 5mg c/24h',
+          chronicConditions: ['Lumbalgia crónica', 'HTA leve', 'Obesidad'],
+          diagnosisCode: 'M54.5', diagnosisLabel: 'Lumbalgia crónica inespecífica con componente radicular',
+          differentialDx: 'Estenosis de canal descartada (RMN 2024: canal amplio). Neoplasia descartada.',
+          soapSubjective: 'Consulta por reagudización lumbar EVA 7/10 desde hace 5 días. Irradia a glúteo derecho y muslo posterior. Sin déficit motor ni vesical. Asocia rigidez matutina 30 min. No tolera de pie > 15 min.',
+          soapObjective: 'PA: 130/84, FC: 68, T: 36.6°C. Lasègue (+) 45° derecho. Hiporreflexia patelar derecha. Contractura paravertebral lumbar bilateral ++. Marcha normal.',
+          soapAssessment: 'Reagudización de lumbalgia crónica con componente radicular L4 derecho. Sin signos de alarma. Manejo conservador. Confirma bloqueo facetario programado.',
+          soapPlan: '1. Reposo relativo 48-72h. Evitar cargas > 5 kg\n2. Ibuprofeno 600mg c/8h × 5 días (con Omeprazol)\n3. Aplicar calor local 15 min c/6h\n4. Confirmar bloqueo facetario mayo\n5. Kinesioterapia 3 veces/semana (programa de estabilización lumbar)\n6. Control en 2 semanas',
+          encounters: [
+            {
+              encounterDate: '2026-04-09', doctor: 'Dra. Morales', motivo: 'Reagudización lumbalgia + radiculopatía',
+              presionArterial: '130/84 mmHg', frecuenciaCardiaca: '68 lpm', peso: '95 kg',
+              diagnostico: 'Lumbalgia crónica reagudizada con radiculopatía L4 derecha.',
+              tratamiento: 'Ibuprofeno 600mg c/8h × 5d. Pregabalina mantiene. Calor local.',
+              indicaciones: 'Reposo relativo. Confirma bloqueo mayo. Kinesioterapia 3x/semana. Control en 2 semanas.'
+            },
+            {
+              encounterDate: '2026-02-12', doctor: 'Dra. Morales', motivo: 'Control lumbalgia crónica',
+              presionArterial: '128/82 mmHg', frecuenciaCardiaca: '66 lpm', peso: '96 kg',
+              diagnostico: 'Lumbalgia crónica estable. Sin exacerbaciones.',
+              examenes: 'RMN lumbar (2024): hernia L4-L5 residual mínima, sin compresión radicular activa.',
+              tratamiento: 'Mantiene Pregabalina 75mg c/12h. PRN Ibuprofeno.',
+              indicaciones: 'Kinesioterapia 2x/semana mantenimiento. Solicitar bloqueo facetario en próximo control.'
+            }
+          ]
+        },
+        {
+          id: 12, fullName: 'Francisca Herrera Salinas', patientId: 'PAC-00013', rut: '19.345.678-2',
+          birthDate: '1999-03-07', age: 27, gender: 'female', bloodType: 'B+',
+          insurance: 'fonasa_a', phone: '+56 9 6112 7788', email: 'francisca.h@email.com',
+          address: 'Calle Zenteno 1122, Santiago Centro', emergencyContact: 'Elena Salinas +56 9 9988 1234',
+          doctor: 'Dra. Morales', lastVisit: '2026-04-10', status: 'active',
+          allergies: [],
+          contraindications: 'Sin contraindicaciones conocidas.',
+          alertNotes: 'Episodio depresivo mayor moderado activo. Bajo seguimiento médico y psicológico simultáneo.',
+          bp: '108/68', heartRate: 92, temperature: 36.8, o2Saturation: 99, weight: 55, height: 160, bmi: 21.5, respiratoryRate: 16,
+          personalHistory: 'Episodio depresivo mayor moderado (diagnóstico enero 2026). Antecedente de trastorno de alimentación restrictivo (2019, resuelto).',
+          familyHistory: 'Madre: trastorno bipolar tipo II. Tío paterno: esquizofrenia.',
+          surgicalHistory: 'Ninguna.',
+          plannedInterventions: 'Ninguna intervención quirúrgica programada.',
+          habits: 'No fumadora. Sin alcohol. Estudiante universitaria (pedagógica). Aislamiento social progresivo.',
+          currentMedications: 'Sertralina 50mg c/24h (en ajuste)\nLorazepam 0.5mg PRN ansiedad aguda (máx 2/semana)',
+          chronicConditions: ['Depresión mayor moderada'],
+          diagnosisCode: 'F32.1', diagnosisLabel: 'Episodio depresivo moderado',
+          differentialDx: 'Bipolaridad descartada por psiquiatra (sin episodios maníacos). Hipotiroidismo descartado (TSH normal).',
+          soapSubjective: 'Refiere mejoría del 30% en ánimo desde inicio sertralina hace 6 semanas. Aún presenta anhedonia, fatiga e hipersomnia (10-12h/día). Cumple medicación pero olvidó 3 dosis en el mes. Sin ideación suicida activa. Retomó clases presenciales parcialmente.',
+          soapObjective: 'PA: 108/68, FC: 92, T: 36.8°C. PHQ-9: 14 (moderado, antes 18). Aspecto cuidado. Contacto visual mejorado. Ánimo hipotímico. Sin agitación.',
+          soapAssessment: 'Episodio depresivo moderado con respuesta parcial a sertralina 6 semanas. Mejoría progresiva pero aún por debajo de remisión. Adherencia subóptima.',
+          soapPlan: '1. Ajuste Sertralina 50mg → 100mg c/24h\n2. Derivar a psiquiatría para seguimiento conjunto\n3. Psicoeducación sobre adherencia farmacológica\n4. Continuar psicoterapia semanal (Ps. Vega)\n5. Vigilar activación conductual: mínimo 30 min actividad física/día\n6. Control médico en 3 semanas',
+          encounters: [
+            {
+              encounterDate: '2026-04-10', doctor: 'Dra. Morales', motivo: 'Seguimiento depresión - 6 semanas sertralina',
+              presionArterial: '108/68 mmHg', frecuenciaCardiaca: '92 lpm', peso: '55 kg',
+              diagnostico: 'Episodio depresivo moderado. Respuesta parcial a sertralina. PHQ-9: 14.',
+              tratamiento: 'Sertralina 50mg → 100mg c/24h. Mantiene Lorazepam PRN.',
+              indicaciones: 'Psiquiatría urgente. Continúa psicoterapia. Actividad física diaria. Control en 3 semanas.'
+            },
+            {
+              encounterDate: '2026-03-02', doctor: 'Dra. Morales', motivo: 'Primera consulta por ánimo depresivo',
+              presionArterial: '110/70 mmHg', frecuenciaCardiaca: '90 lpm', peso: '53 kg',
+              diagnostico: 'Episodio depresivo mayor moderado. PHQ-9: 18.',
+              examenes: 'TSH: 2.1 mUI/L (normal). Hemograma: normal. Vit D: 18 ng/mL (insuficiente).',
+              tratamiento: 'Inicio Sertralina 50mg c/24h. Vit D 2000 UI c/24h. Derivar a psicología.',
+              indicaciones: 'Derivada a Ps. Vega para psicoterapia. Control médico en 6 semanas. Sin ideación suicida activa.'
+            }
+          ]
         }
       ]
     },
@@ -571,7 +863,22 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
         { id: 12, patientName: 'Valentina Rojas',         invoiceNumber: 'BOL-0012', date: '2026-03-18', concept: 'psicologia',    amount: 60000,  paymentMethod: 'transferencia', status: 'pagado',   notes: 'Sesión terapia individual.' },
         { id: 13, patientName: 'Luis Hernández Pérez',    invoiceNumber: 'BOL-0013', date: '2026-03-26', concept: 'consulta',      amount: 35000,  paymentMethod: 'fonasa',        status: 'pendiente', notes: 'Pendiente validación bono FONASA.' },
         { id: 14, patientName: 'Sofia Ruiz Castillo',     invoiceNumber: 'BOL-0014', date: '2026-03-26', concept: 'consulta',      amount: 35000,  paymentMethod: 'fonasa',        status: 'pendiente', notes: 'Control mensual diabetes.' },
-        { id: 15, patientName: 'Ana Martínez Soto',       invoiceNumber: 'BOL-0015', date: '2026-03-15', concept: 'odontologia',   amount: 95000,  paymentMethod: 'credito',       status: 'pagado',   notes: 'Obturación pieza 36 resina compuesta.' }
+        { id: 15, patientName: 'Ana Martínez Soto',       invoiceNumber: 'BOL-0015', date: '2026-03-15', concept: 'odontologia',   amount: 95000,  paymentMethod: 'credito',       status: 'pagado',   notes: 'Obturación pieza 36 resina compuesta.' },
+        { id: 16, patientName: 'Pedro Alvarado Fuentes',  invoiceNumber: 'BOL-0016', date: '2026-04-02', concept: 'consulta',      amount: 35000,  paymentMethod: 'fonasa',        status: 'pagado',   notes: 'Control mensual DM2 + HTA. Copago FONASA.' },
+        { id: 17, patientName: 'Carla Soto Vera',          invoiceNumber: 'BOL-0017', date: '2026-04-07', concept: 'consulta',      amount: 35000,  paymentMethod: 'fonasa',        status: 'pagado',   notes: 'Control prenatal semana 28.' },
+        { id: 18, patientName: 'Diego Morales Reyes',      invoiceNumber: 'BOL-0018', date: '2026-04-08', concept: 'consulta',      amount: 55000,  paymentMethod: 'isapre',        status: 'pagado',   notes: 'Control AR mensual. Isapre Cruz Blanca.' },
+        { id: 19, patientName: 'Patricia Lagos Muñoz',     invoiceNumber: 'BOL-0019', date: '2026-04-03', concept: 'consulta',      amount: 35000,  paymentMethod: 'fonasa',        status: 'pagado',   notes: 'Control migraña crónica.' },
+        { id: 20, patientName: 'Roberto Vega Espinoza',    invoiceNumber: 'BOL-0020', date: '2026-04-09', concept: 'consulta',      amount: 55000,  paymentMethod: 'isapre',        status: 'pagado',   notes: 'Control lumbalgia + reagudización.' },
+        { id: 21, patientName: 'Francisca Herrera Salinas',invoiceNumber: 'BOL-0021', date: '2026-04-10', concept: 'consulta',      amount: 35000,  paymentMethod: 'fonasa',        status: 'pendiente', notes: 'Seguimiento depresión. Validación bono pendiente.' },
+        { id: 22, patientName: 'Valentina Rojas',          invoiceNumber: 'BOL-0022', date: '2026-04-07', concept: 'psicologia',    amount: 60000,  paymentMethod: 'transferencia', status: 'pagado',   notes: 'Sesión terapia individual semana 1 abril.' },
+        { id: 23, patientName: 'Tomás Herrera',            invoiceNumber: 'BOL-0023', date: '2026-04-07', concept: 'psicologia',    amount: 60000,  paymentMethod: 'debito',        status: 'pagado',   notes: 'Evaluación psicodiagnóstica + sesión.' },
+        { id: 24, patientName: 'María González López',     invoiceNumber: 'BOL-0024', date: '2026-04-08', concept: 'examenes',      amount: 42000,  paymentMethod: 'fonasa',        status: 'pagado',   notes: 'Perfil lipídico + HbA1c control.' },
+        { id: 25, patientName: 'Andrea Muñoz',             invoiceNumber: 'BOL-0025', date: '2026-04-09', concept: 'odontologia',   amount: 85000,  paymentMethod: 'credito',       status: 'pagado',   notes: 'Control ortodoncia abril. Activación arco.' },
+        { id: 26, patientName: 'Felipe Contreras',         invoiceNumber: 'BOL-0026', date: '2026-04-09', concept: 'odontologia',   amount: 110000, paymentMethod: 'transferencia', status: 'pagado',   notes: 'Obturación pieza 36 + evaluación pieza 38.' },
+        { id: 27, patientName: 'Carlos Fernández Torres',  invoiceNumber: 'BOL-0027', date: '2026-04-04', concept: 'procedimiento', amount: 95000,  paymentMethod: 'isapre',        status: 'pagado',   notes: 'BNP + troponina + ECG control cardíaco.' },
+        { id: 28, patientName: 'Pedro Alvarado Fuentes',   invoiceNumber: 'BOL-0028', date: '2026-04-02', concept: 'examenes',      amount: 38000,  paymentMethod: 'fonasa',        status: 'pagado',   notes: 'Microalbuminuria + perfil renal.' },
+        { id: 29, patientName: 'Sofia Ruiz Castillo',      invoiceNumber: 'BOL-0029', date: '2026-04-10', concept: 'consulta',      amount: 35000,  paymentMethod: 'fonasa',        status: 'pendiente', notes: 'Control DM1. Solicitud CGM Fonasa pendiente.' },
+        { id: 30, patientName: 'Francisca Herrera Salinas',invoiceNumber: 'BOL-0030', date: '2026-04-10', concept: 'psicologia',    amount: 60000,  paymentMethod: 'transferencia', status: 'pagado',   notes: 'Sesión psicoterapia — derivación Dra. Morales.' }
       ]
     },
 
