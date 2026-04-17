@@ -170,6 +170,21 @@ export const mockApiInterceptor: HttpInterceptorFn = (req, next) => {
   // Only intercept /api/* paths
   if (!url.startsWith('/api/')) return next(req);
 
+  // ── Auth ─────────────────────────────────────────────────────────────────
+  if (method === 'POST' && url === '/api/auth/login') {
+    const { email, password } = (req.body ?? {}) as { email?: string; password?: string };
+    const found = MOCK_USERS.find(
+      u => u.user.email.toLowerCase() === (email ?? '').toLowerCase().trim()
+        && u.password === password
+    );
+    if (!found) return err(401, 'Credenciales inválidas. Verifique su email y contraseña.');
+    return ok({
+      token: `mock.${btoa(found.user.email)}.${Date.now()}`,
+      user:  found.user,
+      schemas: found.schemas
+    });
+  }
+
   // ── Entity CRUD ───────────────────────────────────────────────────────────
   const entityListMatch   = url.match(/^\/api\/entities\/([^/]+)$/);
   const entityItemMatch   = url.match(/^\/api\/entities\/([^/]+)\/(\d+)$/);
