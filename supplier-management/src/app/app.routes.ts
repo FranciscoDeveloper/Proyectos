@@ -69,6 +69,12 @@ export const routes: Routes = [
           import('./components/chat/chat.component').then(m => m.ChatComponent)
       },
       {
+        path: 'commissions',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./components/commission-report/commission-report.component').then(m => m.CommissionReportComponent)
+      },
+      {
         // Clinical record module: /clinical/:entityKey and sub-routes
         path: 'clinical',
         children: CLINICAL_ROUTES

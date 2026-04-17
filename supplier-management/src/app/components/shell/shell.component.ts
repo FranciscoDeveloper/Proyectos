@@ -48,8 +48,9 @@ export class ShellComponent {
 
   navItems = computed(() => {
     const schemas = this.auth.schemas();
+    const hasPayments = schemas.some(s => s.entity.key === 'payments');
     return [
-      { label: 'Dashboard', icon: 'grid',      route: '/dashboard' },
+      { label: 'Dashboard', icon: 'grid',         route: '/dashboard'   },
       ...schemas.map(s => ({
         label: s.entity.plural,
         icon: s.entity.icon,
@@ -59,7 +60,8 @@ export class ShellComponent {
             ? '/clinical/' + s.entity.key
             : '/entity/' + s.entity.key
       })),
-      { label: 'Chat',      icon: 'chat',      route: '/chat'      }
+      ...(hasPayments ? [{ label: 'Comisiones', icon: 'dollar-sign', route: '/commissions' }] : []),
+      { label: 'Chat',      icon: 'chat',         route: '/chat'        }
     ];
   });
 }
