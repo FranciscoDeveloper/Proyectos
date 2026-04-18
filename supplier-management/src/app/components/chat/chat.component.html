@@ -1,0 +1,156 @@
+<div class="chat-shell">
+
+  <!-- ════ LEFT SIDEBAR ════ -->
+  <aside class="chat-sidebar">
+
+    <!-- Sidebar header -->
+    <div class="sb-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+      </svg>
+      <span>Chat</span>
+    </div>
+
+    <!-- Search -->
+    <div class="sb-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <span class="sb-search-placeholder">Buscar en Chat</span>
+    </div>
+
+    <!-- CHANNELS section -->
+    <div class="sb-section">
+      <div class="sb-section-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+        <span>Canales</span>
+      </div>
+      <ul class="sb-list">
+        <li *ngFor="let entry of channelEntries()"
+            class="sb-item"
+            [class.active]="activeConvId() === entry.conv.id"
+            (click)="selectConv(entry.conv.id)">
+          <span class="sb-channel-icon">{{ entry.conv.icon ?? '#' }}</span>
+          <span class="sb-item-name">{{ entry.conv.name }}</span>
+          <span class="sb-badge" *ngIf="entry.unread > 0">{{ entry.unread }}</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- DM section -->
+    <div class="sb-section">
+      <div class="sb-section-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+        <span>Mensajes Directos</span>
+      </div>
+      <ul class="sb-list">
+        <li *ngFor="let entry of dmEntries()"
+            class="sb-item sb-item--dm"
+            [class.active]="activeConvId() === entry.conv.id"
+            (click)="selectConv(entry.conv.id)">
+          <div class="sb-avatar"
+               [style.background]="getUserColor(entry.otherUser!.id) + '33'"
+               [style.color]="getUserColor(entry.otherUser!.id)">
+            {{ entry.otherUser!.avatar }}
+            <span class="sb-presence" [class.online]="entry.otherUser!.online"></span>
+          </div>
+          <div class="sb-dm-info">
+            <span class="sb-item-name">{{ entry.otherUser!.name }}</span>
+            <span class="sb-preview">{{ formatPreview(entry.lastMessage) }}</span>
+          </div>
+          <span class="sb-badge" *ngIf="entry.unread > 0">{{ entry.unread }}</span>
+        </li>
+      </ul>
+    </div>
+
+  </aside>
+
+  <!-- ════ MAIN PANEL ════ -->
+  <div class="chat-main">
+
+    <!-- Top bar -->
+    <div class="chat-topbar">
+      <div class="ct-title">
+        <span class="ct-name">{{ activeConvName() }}</span>
+        <span class="ct-type" *ngIf="activeConvType() === 'channel'">canal</span>
+        <span class="ct-type" *ngIf="activeConvType() === 'direct'">mensaje directo</span>
+      </div>
+      <div class="ct-meta" *ngIf="activeOtherUser() as other">
+        <span class="ct-presence-dot" [class.online]="other.online"></span>
+        <span class="ct-presence-label">{{ other.online ? 'En línea' : 'Desconectado' }}</span>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-messages" #msgContainer>
+
+      <!-- Empty state -->
+      <div class="msg-empty" *ngIf="activeMessages().length === 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+        </svg>
+        <p>No hay mensajes aún. ¡Sé el primero en escribir!</p>
+      </div>
+
+      <!-- Message list -->
+      <ng-container *ngFor="let msg of activeMessages(); let i = index">
+        <!-- Date separator -->
+        <div class="msg-date-sep"
+             *ngIf="i === 0 || msg.timestamp.toDateString() !== activeMessages()[i-1].timestamp.toDateString()">
+          {{ msg.timestamp | date:'EEEE d MMMM' }}
+        </div>
+
+        <!-- Message bubble -->
+        <div class="msg-row" [class.msg-row--own]="isOwn(msg)" [class.msg-row--grouped]="isSameAuthorAsPrev(activeMessages(), i)">
+
+          <!-- Avatar (hidden when grouped) -->
+          <div class="msg-avatar"
+               [style.background]="getUserColor(msg.senderId) + '33'"
+               [style.color]="getUserColor(msg.senderId)"
+               *ngIf="!isSameAuthorAsPrev(activeMessages(), i)">
+            {{ msg.senderAvatar }}
+          </div>
+          <div class="msg-avatar msg-avatar--spacer" *ngIf="isSameAuthorAsPrev(activeMessages(), i)"></div>
+
+          <div class="msg-content">
+            <!-- Author + time (hidden when grouped) -->
+            <div class="msg-meta" *ngIf="!isSameAuthorAsPrev(activeMessages(), i)">
+              <span class="msg-author" [style.color]="getUserColor(msg.senderId)">
+                {{ isOwn(msg) ? 'Tú' : msg.senderName }}
+              </span>
+              <span class="msg-time">{{ formatTime(msg.timestamp) }}</span>
+            </div>
+            <div class="msg-bubble" [class.msg-bubble--own]="isOwn(msg)">
+              {{ msg.content }}
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+    </div>
+
+    <!-- Input area -->
+    <div class="chat-input-bar">
+      <textarea
+        class="chat-input"
+        [placeholder]="'Escribe en ' + activeConvName()"
+        rows="1"
+        [value]="messageText()"
+        (input)="messageText.set($any($event.target).value)"
+        (keydown)="onKeydown($event)">
+      </textarea>
+      <button class="chat-send" [disabled]="!messageText().trim()" (click)="send()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+
+</div>

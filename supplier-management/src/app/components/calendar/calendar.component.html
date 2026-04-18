@@ -1,0 +1,355 @@
+<div class="cal-page">
+
+  <!-- ══════════ PAGE HEADER ══════════ -->
+  <div class="page-header">
+    <div class="ph-left">
+      <div class="cal-title-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="page-title">{{ schema?.entity?.plural ?? 'Calendario' }}</h1>
+        <p class="page-sub" *ngIf="schema?.entity?.description">{{ schema!.entity.description }}</p>
+      </div>
+    </div>
+    <div class="ph-right">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text"
+               placeholder="Buscar citas..."
+               [value]="searchTerm()"
+               (input)="searchTerm.set($any($event.target).value)">
+        <button *ngIf="searchTerm()" class="search-clear" (click)="searchTerm.set('')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <a [routerLink]="['/entity', entityKey, 'new']" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nueva {{ schema?.entity?.singular ?? 'cita' }}
+      </a>
+    </div>
+  </div>
+
+  <!-- ══════════ TOOLBAR ══════════ -->
+  <div class="cal-toolbar">
+    <div class="nav-group">
+      <button class="nav-btn" (click)="prev()" title="Anterior">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <button class="today-btn" (click)="goToToday()">Hoy</button>
+      <button class="nav-btn" (click)="next()" title="Siguiente">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+      <h2 class="period-label">
+        <ng-container *ngIf="viewMode() === 'week'">{{ weekLabel() }}</ng-container>
+        <ng-container *ngIf="viewMode() === 'day'">{{ dayLabel().dow }}, {{ dayLabel().date }} {{ dayLabel().month }}</ng-container>
+        <ng-container *ngIf="viewMode() === 'month'">{{ monthLabel() }}</ng-container>
+      </h2>
+    </div>
+
+    <div class="toolbar-right">
+      <!-- Status filter chips -->
+      <div class="filter-chips" *ngIf="statusOptions().length > 0">
+        <button class="chip" [class.active]="!activeStatusFilter()" (click)="setStatusFilter('')">
+          Todos
+        </button>
+        <button *ngFor="let s of statusOptions()"
+                class="chip"
+                [class.chip-active]="activeStatusFilter() === s.label"
+                (click)="setStatusFilter(s.label)">
+          <span class="chip-dot" [style.background]="activeStatusFilter() === s.label ? 'white' : s.color"></span>
+          {{ s.label }}
+        </button>
+      </div>
+
+      <!-- Google Calendar connect -->
+      <div class="gcal-wrap" *ngIf="gcalSvc.isConfigured">
+        <button *ngIf="!gcalSvc.isConnected()"
+                class="gcal-connect-btn"
+                [disabled]="gcalConnecting()"
+                (click)="connectGcal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          {{ gcalConnecting() ? 'Conectando...' : 'Conectar Google Calendar' }}
+        </button>
+        <div *ngIf="gcalSvc.isConnected()" class="gcal-connected-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          Google Calendar
+          <button class="gcal-disconnect" (click)="gcalSvc.disconnect()" title="Desconectar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- View toggle -->
+      <div class="view-toggle">
+        <button [class.active]="viewMode() === 'day'"   (click)="setViewMode('day')">Día</button>
+        <button [class.active]="viewMode() === 'week'"  (click)="setViewMode('week')">Semana</button>
+        <button [class.active]="viewMode() === 'month'" (click)="setViewMode('month')">Mes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ MAIN LAYOUT ══════════ -->
+  <div class="cal-layout">
+
+    <!-- ════════ SIDEBAR (left) ════════ -->
+    <aside class="cal-sidebar">
+
+      <!-- Mini calendar -->
+      <div class="card mini-cal-card">
+        <div class="mini-cal-header">
+          <button class="mini-nav" (click)="miniCalPrev()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <span class="mini-cal-label">{{ miniCalLabel() }}</span>
+          <button class="mini-nav" (click)="miniCalNext()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+        <div class="mini-cal-dow-row">
+          <span *ngFor="let d of WEEK_DAYS">{{ d.slice(0,1) }}</span>
+        </div>
+        <div class="mini-cal-grid">
+          <button *ngFor="let day of miniCalDays()"
+                  class="mini-day"
+                  [class.other-month]="!day.isCurrentMonth"
+                  [class.is-today]="day.isToday"
+                  [class.is-selected]="day.isSelected && !day.isToday"
+                  [class.has-events]="day.events.length > 0"
+                  (click)="jumpToDate(day.date)">
+            {{ day.dayNum }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Period summary -->
+      <div class="card summary-card">
+        <h3 class="sidebar-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <ng-container *ngIf="viewMode() === 'week'">Esta semana</ng-container>
+          <ng-container *ngIf="viewMode() === 'day'">Hoy</ng-container>
+          <ng-container *ngIf="viewMode() === 'month'">{{ monthLabel() }}</ng-container>
+        </h3>
+        <div class="total-row">
+          <span class="total-num">{{ statsPeriod().total }}</span>
+          <span class="total-lbl">{{ schema?.entity?.plural ?? 'citas' }}</span>
+        </div>
+        <div class="status-list" *ngIf="statsPeriod().statusStats.length > 0">
+          <div *ngFor="let s of statsPeriod().statusStats" class="status-row">
+            <span class="s-dot" [style.background]="s.color"></span>
+            <span class="s-label">{{ s.label }}</span>
+            <span class="s-count">{{ s.count }}</span>
+          </div>
+        </div>
+        <div class="empty-note" *ngIf="statsPeriod().total === 0">
+          Sin {{ schema?.entity?.plural?.toLowerCase() ?? 'citas' }} en este período
+        </div>
+      </div>
+
+      <!-- Upcoming -->
+      <div class="card upcoming-card">
+        <h3 class="sidebar-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          Próximas citas
+        </h3>
+        <div class="empty-note" *ngIf="upcomingEvents().length === 0">No hay citas próximas</div>
+        <ul class="upcoming-list" *ngIf="upcomingEvents().length > 0">
+          <li *ngFor="let ev of upcomingEvents()" class="upcoming-item">
+            <div class="up-avatar"
+                 [style.background]="ev.statusColor + '22'"
+                 [style.color]="ev.statusColor">
+              {{ ev.initials }}
+            </div>
+            <div class="up-body">
+              <a [routerLink]="['/entity', ev.entityKey, ev.id]" class="up-title">{{ ev.title }}</a>
+              <span class="up-sub" *ngIf="ev.subtitle">{{ ev.subtitle }}</span>
+              <span class="up-date">{{ fmtShortDate(ev.startDate) }} · {{ ev.timeLabel }}</span>
+            </div>
+            <span class="up-badge"
+                  [style.background]="ev.statusColor + '22'"
+                  [style.color]="ev.statusColor">
+              {{ ev.statusLabel }}
+            </span>
+          </li>
+        </ul>
+        <a [routerLink]="['/entity', entityKey]" class="see-all">Ver lista completa →</a>
+      </div>
+
+    </aside>
+
+    <!-- ════════ CALENDAR MAIN ════════ -->
+    <div class="cal-main-wrap">
+
+      <!-- ════ DAY VIEW ════ -->
+      <div class="cal-main card" *ngIf="viewMode() === 'day'">
+        <div class="day-header">
+          <div class="time-gutter-head"></div>
+          <div class="day-head-single" [class.today-head]="isDayToday()">
+            <span class="dh-dow-full">{{ dayLabel().dow }}</span>
+            <span class="dh-num-lg" [class.today-circle]="isDayToday()">{{ dayLabel().date }}</span>
+            <span class="dh-month-label">{{ dayLabel().month }} {{ dayLabel().year }}</span>
+            <span class="day-count-badge" *ngIf="dayEvents().length > 0">
+              {{ dayEvents().length }} {{ dayEvents().length === 1 ? 'cita' : 'citas' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="week-scroll">
+          <div class="week-grid">
+            <div class="time-gutter">
+              <div *ngFor="let h of HOURS" class="time-slot">{{ h }}:00</div>
+            </div>
+            <div class="day-col day-col-full"
+                 [class.today-col]="isDayToday()"
+                 [style.height.px]="GRID_H">
+              <div *ngFor="let h of HOURS; let i = index" class="hour-line"      [style.top.px]="i * 72"></div>
+              <div *ngFor="let h of HOURS; let i = index" class="half-hour-line" [style.top.px]="i * 72 + 36"></div>
+              <div *ngIf="isDayToday() && nowLinePx >= 0" class="now-line" [style.top.px]="nowLinePx">
+                <span class="now-dot"></span>
+              </div>
+              <a *ngFor="let ev of dayEvents()"
+                 [routerLink]="['/entity', ev.entityKey, ev.id]"
+                 class="week-event day-event"
+                 [style.top.px]="ev.topPx"
+                 [style.height.px]="ev.heightPx"
+                 [style.background]="ev.statusColor + '18'"
+                 [style.border-left-color]="ev.statusColor">
+                <div class="we-inner">
+                  <div class="we-avatar" [style.background]="ev.statusColor">{{ ev.initials }}</div>
+                  <div class="we-info">
+                    <span class="we-time">{{ ev.timeLabel }} – {{ ev.endTimeLabel }}</span>
+                    <span class="we-title">{{ ev.title }}</span>
+                    <span class="we-sub" *ngIf="ev.subtitle">{{ ev.subtitle }}</span>
+                  </div>
+                  <span class="we-status-badge"
+                        [style.background]="ev.statusColor + '22'"
+                        [style.color]="ev.statusColor">
+                    {{ ev.statusLabel }}
+                  </span>
+                </div>
+              </a>
+              <div class="day-empty-state" *ngIf="dayEvents().length === 0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <span>Sin citas este día</span>
+                <a [routerLink]="['/entity', entityKey, 'new']" class="btn btn-primary btn-sm">+ Agregar</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ WEEK VIEW ════ -->
+      <div class="cal-main card" *ngIf="viewMode() === 'week'">
+        <div class="week-header">
+          <div class="time-gutter-head"></div>
+          <div *ngFor="let day of weekDays()"
+               class="day-head"
+               [class.today-head]="day.isToday"
+               (click)="jumpToDate(day.date)"
+               style="cursor:pointer">
+            <span class="dh-dow">{{ WEEK_DAYS[day.dow] }}</span>
+            <span class="dh-num" [class.today-circle]="day.isToday">{{ day.date.getDate() }}</span>
+            <span class="dh-event-count" *ngIf="day.events.length > 0">{{ day.events.length }}</span>
+          </div>
+        </div>
+
+        <div class="week-scroll">
+          <div class="week-grid">
+            <div class="time-gutter">
+              <div *ngFor="let h of HOURS" class="time-slot">{{ h }}:00</div>
+            </div>
+            <div *ngFor="let day of weekDays()"
+                 class="day-col"
+                 [class.today-col]="day.isToday"
+                 [style.height.px]="GRID_H">
+              <div *ngFor="let h of HOURS; let i = index" class="hour-line"      [style.top.px]="i * 72"></div>
+              <div *ngFor="let h of HOURS; let i = index" class="half-hour-line" [style.top.px]="i * 72 + 36"></div>
+              <div *ngIf="day.isToday && nowLinePx >= 0" class="now-line" [style.top.px]="nowLinePx">
+                <span class="now-dot"></span>
+              </div>
+              <a *ngFor="let ev of day.events"
+                 [routerLink]="['/entity', ev.entityKey, ev.id]"
+                 class="week-event"
+                 [style.top.px]="ev.topPx"
+                 [style.height.px]="ev.heightPx"
+                 [style.background]="ev.statusColor + '18'"
+                 [style.border-left-color]="ev.statusColor"
+                 [title]="ev.timeLabel + '–' + ev.endTimeLabel + ' · ' + ev.title">
+                <span class="we-time">{{ ev.timeLabel }}–{{ ev.endTimeLabel }}</span>
+                <span class="we-title">{{ ev.title }}</span>
+                <span class="we-sub" *ngIf="ev.heightPx > 56 && ev.subtitle">{{ ev.subtitle }}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ MONTH VIEW ════ -->
+      <div class="cal-main card" *ngIf="viewMode() === 'month'">
+        <div class="month-header-row">
+          <div *ngFor="let d of WEEK_DAYS" class="month-dow">{{ d }}</div>
+        </div>
+        <div class="month-grid">
+          <div *ngFor="let day of calDays()"
+               class="month-cell"
+               [class.other-month]="!day.isCurrentMonth"
+               [class.today-cell]="day.isToday"
+               (click)="jumpToDate(day.date)">
+            <div class="month-day-num" [class.today-circle]="day.isToday">{{ day.dayNum }}</div>
+            <div class="month-events">
+              <a *ngFor="let ev of day.events.slice(0, 3)"
+                 [routerLink]="['/entity', ev.entityKey, ev.id]"
+                 class="month-event"
+                 [style.background]="ev.statusColor + '1a'"
+                 [style.border-left-color]="ev.statusColor"
+                 [title]="ev.timeLabel + ' · ' + ev.title"
+                 (click)="$event.stopPropagation()">
+                <span class="me-dot" [style.background]="ev.statusColor"></span>
+                <span class="me-time">{{ ev.timeLabel }}</span>
+                <span class="me-title">{{ ev.title }}</span>
+              </a>
+              <span *ngIf="day.events.length > 3" class="month-more">+{{ day.events.length - 3 }} más</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /cal-main-wrap -->
+
+  </div><!-- /cal-layout -->
+
+</div>

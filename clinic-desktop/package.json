@@ -1,0 +1,51 @@
+{
+  "name": "clinic-desktop",
+  "version": "1.0.0",
+  "description": "Aplicación de escritorio de gestión clínica con arquitectura schema-driven",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "ng": "ng",
+    "build:angular": "ng build --base-href ./ --output-hashing none",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build": "npm run build:angular && npm run build:electron",
+    "electron": "electron .",
+    "dev": "concurrently \"ng serve --port 4200\" \"wait-on http://localhost:4200 && cross-env ELECTRON_DEV=true electron .\"",
+    "start": "npm run build && npm run electron",
+    "dist": "npm run build && electron-builder"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "^17.3.0",
+    "@angular/common": "^17.3.0",
+    "@angular/compiler": "^17.3.0",
+    "@angular/core": "^17.3.0",
+    "@angular/forms": "^17.3.0",
+    "@angular/platform-browser": "^17.3.0",
+    "@angular/platform-browser-dynamic": "^17.3.0",
+    "@angular/router": "^17.3.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "zone.js": "~0.14.3"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^17.3.17",
+    "@angular/cli": "^17.3.17",
+    "@angular/compiler-cli": "^17.3.0",
+    "@types/node": "^22.0.0",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^41.1.0",
+    "electron-builder": "^26.8.1",
+    "typescript": "~5.4.2",
+    "wait-on": "^9.0.4"
+  },
+  "build": {
+    "appId": "com.clinicamedica.desktop",
+    "productName": "Clínica Desktop",
+    "directories": { "output": "release" },
+    "files": ["dist-electron/**/*", "dist/clinic-desktop/**/*"],
+    "mac": { "target": "dmg" },
+    "win": { "target": "nsis" },
+    "linux": { "target": "AppImage" }
+  }
+}

@@ -1,0 +1,353 @@
+:host { display: block; }
+
+.cr-page { max-width: 1400px; }
+
+/* ── Page header ── */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cr-title-icon {
+  width: 36px;
+  height: 36px;
+  background: #ecfdf5;
+  color: #10b981;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  svg { width: 18px; height: 18px; }
+}
+
+.page-sub { font-size: 13px; color: #6b7280; margin: 0; }
+
+/* ── Stats bar ── */
+.stats-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+
+  &--critical {
+    border-color: #fecaca;
+    background: #fff5f5;
+    .stat-num { color: #ef4444; }
+  }
+
+  &--active {
+    border-color: #a7f3d0;
+    background: #f0fdf4;
+    .stat-num { color: #10b981; }
+  }
+}
+
+.stat-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1;
+}
+
+.stat-lbl { font-size: 12px; color: #6b7280; }
+
+/* ── Search ── */
+.search-bar {
+  position: relative;
+  margin-bottom: 20px;
+  max-width: 440px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 9px 36px 9px 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  background: white;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+
+  &:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+  }
+}
+
+.search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  &:hover { background: #f3f4f6; }
+  svg { width: 14px; height: 14px; }
+}
+
+/* ── Cards grid ── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.patient-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    border-color: #10b981;
+  }
+
+  &.critical {
+    border-color: #fecaca;
+    &:hover { border-color: #ef4444; }
+  }
+}
+
+/* Critical banner */
+.critical-banner {
+  background: #fef2f2;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid #fecaca;
+
+  svg { width: 14px; height: 14px; flex-shrink: 0; }
+}
+
+/* Card header */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 16px 10px;
+}
+
+.patient-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.patient-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.patient-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.patient-meta {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.status-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+/* Card body */
+.card-body {
+  padding: 0 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.card-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.card-row--meta {
+  font-size: 12px;
+  color: #6b7280;
+  gap: 5px;
+
+  svg { width: 13px; height: 13px; flex-shrink: 0; }
+}
+
+.blood-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.ins-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+/* Allergy row */
+.allergy-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  padding: 8px 16px;
+  background: #fff5f5;
+  border-top: 1px solid #fecaca;
+}
+
+.allergy-icon { width: 13px; height: 13px; flex-shrink: 0; }
+
+.allergy-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ef4444;
+}
+
+.allergy-tag {
+  font-size: 10px;
+  font-weight: 600;
+  background: #fecaca;
+  color: #b91c1c;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+/* Card footer */
+.card-footer {
+  padding: 10px 16px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.view-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: #10b981;
+}
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #9ca3af;
+
+  svg {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 16px;
+    display: block;
+  }
+
+  p { font-size: 15px; margin: 0 0 16px; }
+}
+
+/* ── Shared buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  svg { width: 16px; height: 16px; }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  &:hover { box-shadow: 0 6px 16px rgba(16, 185, 129, 0.45); transform: translateY(-1px); }
+}
+
+.btn-outline {
+  background: white;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  &:hover { background: #f9fafb; }
+}

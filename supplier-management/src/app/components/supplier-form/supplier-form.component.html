@@ -1,0 +1,288 @@
+<div class="supplier-form-page">
+  <!-- Header -->
+  <div class="form-page-header">
+    <a routerLink="/suppliers" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Back to Suppliers
+    </a>
+    <div>
+      <h1 class="page-title">{{ isEdit() ? 'Edit Supplier' : 'New Supplier' }}</h1>
+      <p class="page-subtitle">{{ isEdit() ? 'Update the supplier information below' : 'Fill in the details to register a new supplier' }}</p>
+    </div>
+  </div>
+
+  <!-- Success State -->
+  <div class="success-banner" *ngIf="saved()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    Supplier {{ isEdit() ? 'updated' : 'created' }} successfully! Redirecting...
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="form-layout">
+      <!-- Left Column -->
+      <div class="form-main">
+
+        <!-- Basic Info Card -->
+        <div class="card form-card">
+          <div class="card-header">
+            <span class="card-title">
+              <span class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </span>
+              Basic Information
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>Company Name <span class="required">*</span></label>
+                <input type="text" class="form-control" formControlName="name"
+                  [class.ng-invalid]="isInvalid('name')" placeholder="e.g. Acme Corporation">
+                <div class="form-error" *ngIf="isInvalid('name')">
+                  Company name is required (min. 2 characters)
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Supplier Code <span class="required">*</span></label>
+                <input type="text" class="form-control" formControlName="code"
+                  [class.ng-invalid]="isInvalid('code')" placeholder="e.g. TC-001" style="text-transform:uppercase;">
+                <div class="form-error" *ngIf="isInvalid('code')">
+                  Format: XX-000 (e.g. TC-001)
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Category <span class="required">*</span></label>
+                <select class="form-control" formControlName="category" [class.ng-invalid]="isInvalid('category')">
+                  <option value="">Select category...</option>
+                  <option *ngFor="let cat of categories" [value]="cat">{{ cat | titlecase }}</option>
+                </select>
+                <div class="form-error" *ngIf="isInvalid('category')">Category is required</div>
+              </div>
+
+              <div class="form-group">
+                <label>Status <span class="required">*</span></label>
+                <select class="form-control" formControlName="status">
+                  <option *ngFor="let s of statuses" [value]="s">{{ s | titlecase }}</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Tax ID <span class="required">*</span></label>
+                <input type="text" class="form-control" formControlName="taxId"
+                  [class.ng-invalid]="isInvalid('taxId')" placeholder="e.g. US-123456789">
+                <div class="form-error" *ngIf="isInvalid('taxId')">Tax ID is required</div>
+              </div>
+
+              <div class="form-group">
+                <label>Website</label>
+                <input type="url" class="form-control" formControlName="website" placeholder="https://example.com">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Info Card -->
+        <div class="card form-card">
+          <div class="card-header">
+            <span class="card-title">
+              <span class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </span>
+              Contact Information
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>Contact Person <span class="required">*</span></label>
+                <input type="text" class="form-control" formControlName="contactPerson"
+                  [class.ng-invalid]="isInvalid('contactPerson')" placeholder="Full name">
+                <div class="form-error" *ngIf="isInvalid('contactPerson')">Contact person is required</div>
+              </div>
+
+              <div class="form-group">
+                <label>Email Address <span class="required">*</span></label>
+                <input type="email" class="form-control" formControlName="email"
+                  [class.ng-invalid]="isInvalid('email')" placeholder="contact@company.com">
+                <div class="form-error" *ngIf="isInvalid('email')">Valid email is required</div>
+              </div>
+
+              <div class="form-group">
+                <label>Phone Number <span class="required">*</span></label>
+                <input type="tel" class="form-control" formControlName="phone"
+                  [class.ng-invalid]="isInvalid('phone')" placeholder="+1 (555) 000-0000">
+                <div class="form-error" *ngIf="isInvalid('phone')">Phone number is required</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location Card -->
+        <div class="card form-card">
+          <div class="card-header">
+            <span class="card-title">
+              <span class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+              </span>
+              Location
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>Country <span class="required">*</span></label>
+                <select class="form-control" formControlName="country" [class.ng-invalid]="isInvalid('country')">
+                  <option value="">Select country...</option>
+                  <option *ngFor="let c of countries" [value]="c">{{ c }}</option>
+                </select>
+                <div class="form-error" *ngIf="isInvalid('country')">Country is required</div>
+              </div>
+
+              <div class="form-group">
+                <label>City <span class="required">*</span></label>
+                <input type="text" class="form-control" formControlName="city"
+                  [class.ng-invalid]="isInvalid('city')" placeholder="City name">
+                <div class="form-error" *ngIf="isInvalid('city')">City is required</div>
+              </div>
+
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Address <span class="required">*</span></label>
+                <input type="text" class="form-control" formControlName="address"
+                  [class.ng-invalid]="isInvalid('address')" placeholder="Street address">
+                <div class="form-error" *ngIf="isInvalid('address')">Address is required</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes Card -->
+        <div class="card form-card">
+          <div class="card-header">
+            <span class="card-title">
+              <span class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+              </span>
+              Notes & Tags
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>Internal Notes</label>
+              <textarea class="form-control" formControlName="notes" rows="3"
+                placeholder="Add any internal notes about this supplier..."></textarea>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Tags <span class="label-hint">(comma-separated)</span></label>
+              <input type="text" class="form-control" formControlName="tags"
+                placeholder="e.g. ISO-certified, preferred, electronics">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Sidebar -->
+      <div class="form-sidebar">
+        <!-- Metrics Card -->
+        <div class="card form-card">
+          <div class="card-header">
+            <span class="card-title">
+              <span class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="20" x2="18" y2="10"/>
+                  <line x1="12" y1="20" x2="12" y2="4"/>
+                  <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+              </span>
+              Performance
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>Rating (1–5)</label>
+              <div class="rating-input">
+                <input type="range" class="range-input" formControlName="rating" min="1" max="5" step="0.1">
+                <div class="rating-display">
+                  <div class="star-rating">
+                    <span *ngFor="let full of getRatingStars()">{{ full ? '★' : '☆' }}</span>
+                  </div>
+                  <span class="rating-number">{{ form.get('rating')?.value | number:'1.1-1' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Total Orders</label>
+              <input type="number" class="form-control" formControlName="totalOrders" min="0" placeholder="0">
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Total Spent (USD)</label>
+              <div class="input-prefix-wrapper">
+                <span class="input-prefix">$</span>
+                <input type="number" class="form-control" formControlName="totalSpent" min="0" placeholder="0" style="padding-left:32px;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions-card">
+          <button type="submit" class="btn btn-primary w-full" [disabled]="saving() || saved()">
+            <span *ngIf="saving()" class="spinner"></span>
+            <svg *ngIf="!saving() && !saved()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            <svg *ngIf="saved()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            {{ saved() ? 'Saved!' : saving() ? 'Saving...' : isEdit() ? 'Save Changes' : 'Create Supplier' }}
+          </button>
+
+          <button type="button" class="btn btn-outline w-full" (click)="cancel()">
+            Cancel
+          </button>
+        </div>
+
+        <!-- Help Card -->
+        <div class="help-card">
+          <div class="help-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <div>
+            <div class="help-title">Need help?</div>
+            <div class="help-desc">Supplier codes must follow format XX-000. Rating range is 1.0 to 5.0.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,16 @@
+{
+  "name": "dairi-lambda-auth",
+  "version": "1.0.0",
+  "description": "Lambda handler for POST /api/auth/login — validates credentials against RDS PostgreSQL",
+  "type": "module",
+  "main": "index.mjs",
+  "scripts": {
+    "build": "npm install --omit=dev",
+    "zip": "zip -r ../lambda-auth.zip index.mjs package.json node_modules/"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.11.3"
+  }
+}

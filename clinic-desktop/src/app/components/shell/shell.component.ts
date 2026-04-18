@@ -1,0 +1,40 @@
+import { Component, signal, computed, inject } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
+
+@Component({
+  selector: 'app-shell',
+  standalone: true,
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
+  templateUrl: './shell.component.html',
+  styleUrl: './shell.component.scss'
+})
+export class ShellComponent {
+  readonly auth = inject(AuthService);
+
+  sidebarOpen = signal(true);
+
+  toggleSidebar() { this.sidebarOpen.update(v => !v); }
+  logout() { this.auth.logout(); }
+
+  getUserFirstName(): string {
+    return this.auth.user()?.name?.split(' ')[0] ?? '';
+  }
+
+  /**
+   * Navigation derived purely from backend-authorized schemas.
+   * The shell has no hardcoded knowledge of which entities exist.
+   */
+  navItems = computed(() => {
+    const schemas = this.auth.schemas();
+    return [
+      { label: 'Dashboard', icon: 'grid',  route: '/dashboard' },
+      ...schemas.map(s => ({
+        label: s.entity.plural,
+        icon: s.entity.icon,
+        route: '/entity/' + s.entity.key
+      }))
+    ];
+  });
+}

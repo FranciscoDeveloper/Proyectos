@@ -1,0 +1,326 @@
+.form-page {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ── Header ── */
+.page-header {
+  margin-bottom: 1.75rem;
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    color: #6366f1;
+    text-decoration: none;
+    margin-bottom: 0.75rem;
+    svg { width: 16px; height: 16px; }
+    &:hover { text-decoration: underline; }
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+}
+
+/* ── Success banner ── */
+.success-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  color: #166534;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  svg { width: 20px; height: 20px; flex-shrink: 0; }
+}
+
+/* ── Google Calendar sync status ── */
+.gcal-status-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0369a1;
+  svg { width: 15px; height: 15px; flex-shrink: 0; }
+}
+
+.gcal-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #bae6fd;
+  border-top-color: #0369a1;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Encounter mode ── */
+.encounter-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  color: #1e40af;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+  svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+}
+
+.stable-summary {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.stable-summary-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  svg { width: 14px; height: 14px; }
+}
+
+.stable-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0;
+}
+
+.stable-item {
+  padding: 10px 16px;
+  border-right: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stable-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.stable-value {
+  font-size: 13px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 1rem;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e5e7eb;
+  svg { width: 15px; height: 15px; color: #6366f1; }
+}
+
+.encounter-date-field {
+  max-width: 220px;
+}
+
+/* ── Form ── */
+.entity-form {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  padding: 2rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+}
+
+/* ── Field group ── */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  &.full-width { grid-column: 1 / -1; }
+  &.checkbox-group { justify-content: flex-end; padding-bottom: 0.25rem; }
+}
+
+.field-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  .required { color: #ef4444; }
+  .field-locked-hint { font-size: 0.75rem; margin-left: 0.25rem; opacity: 0.7; cursor: help; }
+  .range-value {
+    margin-left: auto;
+    font-size: 0.9rem;
+    color: #6366f1;
+    font-weight: 700;
+  }
+}
+
+.field-input {
+  padding: 0.65rem 0.875rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #1e293b;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  }
+
+  &.invalid {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+  }
+
+  &.textarea { resize: vertical; min-height: 80px; }
+  &.field-select { cursor: pointer; }
+}
+
+.field-error {
+  font-size: 0.75rem;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.field-hint {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+/* ── Range ── */
+.range-input {
+  width: 100%;
+  accent-color: #6366f1;
+  cursor: pointer;
+}
+
+.range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+/* ── Checkbox ── */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+}
+
+.checkbox-input {
+  width: 16px;
+  height: 16px;
+  accent-color: #6366f1;
+  cursor: pointer;
+}
+
+/* ── Actions ── */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+
+  svg { width: 16px; height: 16px; }
+  &:hover:not(:disabled) { opacity: 0.9; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.btn-ghost {
+  display: flex;
+  align-items: center;
+  padding: 0.7rem 1.25rem;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #64748b;
+  cursor: pointer;
+  &:hover { background: #f8fafc; }
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: #94a3b8;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.8s linear infinite; }
