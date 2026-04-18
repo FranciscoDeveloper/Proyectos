@@ -1,7 +1,7 @@
 import { Injectable, signal, computed } from '@angular/core';
 
 const ZK_PREFIX = 'zk1:';
-const HINT_SK   = 'zk_hint';
+const THUMB_SK  = 'zk_thumb';
 
 /**
  * Authoritative list of fields encrypted per entity.
@@ -60,15 +60,31 @@ export const CHAT_ENCRYPTED_FIELDS = ['content'];
 /** Supplier-specific encrypted fields (SupplierService uses its own endpoint) */
 export const SUPPLIER_ENCRYPTED_FIELDS = ENCRYPTED_FIELDS['suppliers'];
 
+interface ZkCertificate {
+  type:    'dairi-zk-certificate';
+  version: number;
+  email:   string;
+  created: string;
+  key:     string; // base64-encoded raw 256-bit AES key
+}
+
 @Injectable({ providedIn: 'root' })
 export class CryptoService {
-  private readonly _key     = signal<CryptoKey | null>(null);
-  private readonly _hasHint = signal(!!sessionStorage.getItem(HINT_SK));
+  private readonly _key      = signal<CryptoKey | null>(null);
+  private readonly _hasThumb = signal(!!localStorage.getItem(THUMB_SK));
 
   /** True when the AES-256-GCM key is loaded in memory */
   readonly isReady     = computed(() => !!this._key());
-  /** True when there is a stored hint (= encrypted data exists) but the key is not loaded */
-  readonly needsUnlock = computed(() => this._hasHint() && !this._key());
+  /**
+   * True when a certificate thumbprint is registered on this device but the
+   * in-memory key was lost (page reload). Shows the upload-certificate banner.
+   */
+  readonly needsUnlock = computed(() => this._hasThumb() && !this._key());
+  /**
+   * True when the user has never generated a ZK certificate on this device.
+   * Shows the initial setup banner.
+   */
+  readonly needsSetup  = computed(() => !this._hasThumb() && !this._key());
 
   // ─── Public API ──────────────────────────────────────────────────────────────
 
@@ -84,42 +100,93 @@ export class CryptoService {
     return typeof value === 'string' && value.startsWith(ZK_PREFIX);
   }
 
-  // ─── Key lifecycle ────────────────────────────────────────────────────────────
+  // ─── Certificate lifecycle ────────────────────────────────────────────────────
 
   /**
-   * Derives an AES-256-GCM key from the user's password via PBKDF2-SHA-256
-   * (310 000 iterations, salt = SHA-256 of email). The raw key material never
-   * leaves the Web Crypto subsystem — it is marked non-extractable.
-   *
-   * A password-verification hint (HMAC-SHA-256) is stored in sessionStorage so
-   * the key can be re-derived after a page reload without storing the key itself.
+   * Generates a random AES-256-GCM key, wraps it in a JSON certificate file,
+   * triggers a browser download, and activates the key in memory.
+   * The certificate file is the only copy of the key — the user must keep it safe.
    */
-  async deriveKey(password: string, email: string): Promise<void> {
-    const key  = await this._pbkdf2(password, email);
-    const hint = await this._hmacHint(password, email);
-    this._key.set(key);
-    sessionStorage.setItem(HINT_SK, hint);
-    this._hasHint.set(true);
+  async generateAndDownloadCertificate(email: string): Promise<void> {
+    // Generate an extractable key so we can write it to the certificate
+    const key = await crypto.subtle.generateKey(
+      { name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']
+    );
+    const rawKey = new Uint8Array(await crypto.subtle.exportKey('raw', key));
+    const keyB64 = btoa(String.fromCharCode(...rawKey));
+    const thumb  = await this._thumbprint(rawKey);
+
+    const cert: ZkCertificate = {
+      type:    'dairi-zk-certificate',
+      version: 1,
+      email:   email.toLowerCase().trim(),
+      created: new Date().toISOString(),
+      key:     keyB64,
+    };
+
+    // Download the certificate
+    const blob = new Blob([JSON.stringify(cert, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `dairi-zk-${email.split('@')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    // Re-import as non-extractable for in-memory use
+    const importedKey = await crypto.subtle.importKey(
+      'raw', rawKey, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']
+    );
+    this._key.set(importedKey);
+    localStorage.setItem(THUMB_SK, thumb);
+    this._hasThumb.set(true);
   }
 
   /**
-   * Called after a page reload when the session is still valid but the in-memory
-   * key was lost. Returns true if the password matches the stored hint.
+   * Reads a `.json` ZK certificate file, imports the AES key, and verifies it
+   * matches the thumbprint registered on this device.
+   * Returns true on success, false if the file is invalid or mismatched.
    */
-  async unlockWithPassword(password: string, email: string): Promise<boolean> {
-    const stored = sessionStorage.getItem(HINT_SK);
-    if (!stored) return false;
-    const hint = await this._hmacHint(password, email);
-    if (hint !== stored) return false;
-    await this.deriveKey(password, email);
-    return true;
+  async unlockWithCertificate(file: File): Promise<boolean> {
+    try {
+      const text = await file.text();
+      const cert = JSON.parse(text) as ZkCertificate;
+      if (cert.type !== 'dairi-zk-certificate' || !cert.key) return false;
+
+      const rawKey = Uint8Array.from(atob(cert.key), c => c.charCodeAt(0));
+      const thumb  = await this._thumbprint(rawKey);
+      const stored = localStorage.getItem(THUMB_SK);
+
+      if (stored && thumb !== stored) return false;
+
+      const importedKey = await crypto.subtle.importKey(
+        'raw', rawKey, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']
+      );
+      this._key.set(importedKey);
+
+      if (!stored) {
+        localStorage.setItem(THUMB_SK, thumb);
+        this._hasThumb.set(true);
+      }
+      return true;
+    } catch {
+      return false;
+    }
   }
 
-  /** Wipes the in-memory key and the sessionStorage hint on logout */
+  /**
+   * Called on logout: wipes the in-memory key but keeps the thumbprint so the
+   * upload banner appears on next login instead of the setup banner.
+   */
   clearKey(): void {
     this._key.set(null);
-    this._hasHint.set(false);
-    sessionStorage.removeItem(HINT_SK);
+  }
+
+  /** Clears both the in-memory key and the stored thumbprint (certificate reset). */
+  clearHint(): void {
+    this._key.set(null);
+    this._hasThumb.set(false);
+    localStorage.removeItem(THUMB_SK);
   }
 
   // ─── Encrypt / Decrypt primitives ────────────────────────────────────────────
@@ -145,8 +212,8 @@ export class CryptoService {
     if (!key) return '[🔒 cifrado]';
 
     try {
-      const combined  = Uint8Array.from(atob(cipherText.slice(ZK_PREFIX.length)), c => c.charCodeAt(0));
-      const plainBuf  = await crypto.subtle.decrypt(
+      const combined = Uint8Array.from(atob(cipherText.slice(ZK_PREFIX.length)), c => c.charCodeAt(0));
+      const plainBuf = await crypto.subtle.decrypt(
         { name: 'AES-GCM', iv: combined.slice(0, 12) },
         key,
         combined.slice(12)
@@ -159,28 +226,19 @@ export class CryptoService {
 
   // ─── Record-level helpers ─────────────────────────────────────────────────────
 
-  /**
-   * Returns a shallow copy of `record` with the listed fields encrypted.
-   * Arrays and numbers are JSON-serialised before encryption so they
-   * round-trip correctly through `decryptFields`.
-   */
   async encryptFields<T extends Record<string, any>>(record: T, fields: string[]): Promise<T> {
     if (!this._key() || !fields.length) return record;
     const result = { ...record } as Record<string, any>;
     await Promise.all(fields.map(async field => {
       const val = result[field];
       if (val == null || val === '') return;
-      if (this.isEncryptedValue(val)) return;   // already encrypted
+      if (this.isEncryptedValue(val)) return;
       const plaintext = typeof val === 'string' ? val : JSON.stringify(val);
       result[field] = await this.encrypt(plaintext);
     }));
     return result as T;
   }
 
-  /**
-   * Returns a shallow copy of `record` with the listed `zk1:` fields decrypted.
-   * JSON arrays/objects are parsed back to their original type.
-   */
   async decryptFields<T extends Record<string, any>>(record: T, fields: string[]): Promise<T> {
     if (!fields.length) return record;
     const result = { ...record } as Record<string, any>;
@@ -193,21 +251,15 @@ export class CryptoService {
     return result as T;
   }
 
-  /**
-   * Encrypts a record AND each encounter inside it (encounters share the same field list).
-   */
   async encryptRecord<T extends Record<string, any>>(record: T, entityKey: string): Promise<T> {
     const fields = this.getEncryptedFields(entityKey);
     return this.encryptFields(record, fields);
   }
 
-  /**
-   * Decrypts a record AND each encounter object inside `record.encounters`.
-   */
   async decryptRecord<T extends Record<string, any>>(record: T, entityKey: string): Promise<T> {
-    const fields  = this.getEncryptedFields(entityKey);
-    const result  = await this.decryptFields(record, fields);
-    const encs    = (result as any)['encounters'];
+    const fields = this.getEncryptedFields(entityKey);
+    const result = await this.decryptFields(record, fields);
+    const encs   = (result as any)['encounters'];
     if (Array.isArray(encs)) {
       (result as any)['encounters'] = await Promise.all(
         encs.map((e: Record<string, any>) => this.decryptFields(e, fields))
@@ -218,26 +270,8 @@ export class CryptoService {
 
   // ─── Private helpers ──────────────────────────────────────────────────────────
 
-  private async _pbkdf2(password: string, email: string): Promise<CryptoKey> {
-    const enc  = new TextEncoder();
-    const salt = await crypto.subtle.digest('SHA-256', enc.encode(email.toLowerCase().trim()));
-    const base = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
-    return crypto.subtle.deriveKey(
-      { name: 'PBKDF2', salt, iterations: 310_000, hash: 'SHA-256' },
-      base,
-      { name: 'AES-GCM', length: 256 },
-      false,               // non-extractable: key bytes never leave Web Crypto
-      ['encrypt', 'decrypt']
-    );
-  }
-
-  /** HMAC-SHA-256 of (email) signed with password — stored as verification hint */
-  private async _hmacHint(password: string, email: string): Promise<string> {
-    const enc = new TextEncoder();
-    const k   = await crypto.subtle.importKey(
-      'raw', enc.encode(password), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-    );
-    const sig = await crypto.subtle.sign('HMAC', k, enc.encode(`dairi:zk:${email.toLowerCase().trim()}`));
-    return btoa(String.fromCharCode(...new Uint8Array(sig)));
+  private async _thumbprint(rawKey: Uint8Array): Promise<string> {
+    const hashBuf = await crypto.subtle.digest('SHA-256', rawKey);
+    return btoa(String.fromCharCode(...new Uint8Array(hashBuf)));
   }
 }

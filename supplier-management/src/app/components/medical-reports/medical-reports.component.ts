@@ -81,12 +81,12 @@ export class MedicalReportsComponent {
   // ── KPIs ─────────────────────────────────────────────────────────────────
 
   kpiAppt = computed(() => {
-    const all       = this.inPeriod(this._appointments(), 'startDate');
+    const all       = this.inPeriod(this._appointments(), 'dateTime');
     const total     = all.length;
-    const completed = all.filter(a => a['status'] === 'completed').length;
-    const scheduled = all.filter(a => a['status'] === 'scheduled').length;
-    const noShow    = all.filter(a => a['status'] === 'no_show').length;
-    const cancelled = all.filter(a => a['status'] === 'cancelled').length;
+    const completed = all.filter(a => a['status'] === 'COMPLETADA').length;
+    const scheduled = all.filter(a => a['status'] === 'AGENDADA').length;
+    const noShow    = all.filter(a => a['status'] === 'NO_ASISTIO').length;
+    const cancelled = all.filter(a => a['status'] === 'CANCELADA').length;
     return {
       total, completed, scheduled, noShow, cancelled,
       attendanceRate: total ? Math.round((completed / total) * 100) : 0,
@@ -120,13 +120,13 @@ export class MedicalReportsComponent {
   // ── Appointment charts ────────────────────────────────────────────────────
 
   apptStatusDonut = computed((): DonutSegment[] => {
-    const all   = this.inPeriod(this._appointments(), 'startDate');
+    const all   = this.inPeriod(this._appointments(), 'dateTime');
     const total = all.length || 1;
     const defs  = [
-      { key: 'completed', label: 'Completada', color: '#10b981' },
-      { key: 'scheduled', label: 'Programada', color: '#3b82f6' },
-      { key: 'cancelled', label: 'Cancelada',  color: '#ef4444' },
-      { key: 'no_show',   label: 'No asistió', color: '#f59e0b' },
+      { key: 'COMPLETADA', label: 'Completada', color: '#10b981' },
+      { key: 'AGENDADA',   label: 'Programada', color: '#3b82f6' },
+      { key: 'CANCELADA',  label: 'Cancelada',  color: '#ef4444' },
+      { key: 'NO_ASISTIO', label: 'No asistió', color: '#f59e0b' },
     ];
     const items = defs.map(d => ({
       ...d,
@@ -137,12 +137,12 @@ export class MedicalReportsComponent {
   });
 
   apptByDow = computed((): BarItem[] => {
-    const all    = this.inPeriod(this._appointments(), 'startDate');
+    const all    = this.inPeriod(this._appointments(), 'dateTime');
     const days   = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const colors = ['#6b7280','#6366f1','#6366f1','#6366f1','#6366f1','#6366f1','#6b7280'];
     const counts = new Array(7).fill(0);
     for (const a of all) {
-      const d = new Date(a['startDate']);
+      const d = new Date(a['dateTime']);
       if (!isNaN(d.getTime())) counts[d.getDay()]++;
     }
     const max = Math.max(...counts, 1);
@@ -152,10 +152,10 @@ export class MedicalReportsComponent {
   });
 
   apptTopMotives = computed((): BarItem[] => {
-    const all = this.inPeriod(this._appointments(), 'startDate');
+    const all = this.inPeriod(this._appointments(), 'dateTime');
     const map = new Map<string, number>();
     for (const a of all) {
-      const key = (a['title'] as string || 'Otro').trim();
+      const key = (a['service'] as string || 'Otro').trim();
       map.set(key, (map.get(key) ?? 0) + 1);
     }
     const sorted = [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);

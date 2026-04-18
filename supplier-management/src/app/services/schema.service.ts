@@ -44,31 +44,29 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
         ]
       },
       data: [
-        { id: 1,  service: 'Control HTA',            patientName: 'María González López',     dateTime: '2026-04-16T09:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: 'Control mensual',           createdAt: '2026-04-10', updatedAt: '2026-04-16' },
-        { id: 2,  service: 'Seguimiento DM2 + HTA',  patientName: 'Pedro Alvarado Fuentes',   dateTime: '2026-04-16T09:45', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: 'Ajuste insulina Glargina',  createdAt: '2026-04-10', updatedAt: '2026-04-16' },
-        { id: 3,  service: 'Control prenatal S28',   patientName: 'Carla Soto Vera',           dateTime: '2026-04-16T10:30', durationMinutes: 40, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: 'Semana 28 de embarazo',     createdAt: '2026-04-10', updatedAt: '2026-04-16' },
-        { id: 4,  service: 'Control AR mensual',     patientName: 'Diego Morales Reyes',       dateTime: '2026-04-16T11:30', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-12', updatedAt: '2026-04-12' },
-        { id: 5,  service: 'Seguimiento migraña',    patientName: 'Patricia Lagos Muñoz',      dateTime: '2026-04-16T12:00', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-12', updatedAt: '2026-04-12' },
-        { id: 6,  service: 'Control lumbalgia',      patientName: 'Roberto Vega Espinoza',     dateTime: '2026-04-16T14:00', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: 'Post-reagudización',        createdAt: '2026-04-13', updatedAt: '2026-04-13' },
-        { id: 7,  service: 'Seguimiento depresión',  patientName: 'Francisca Herrera Salinas', dateTime: '2026-04-16T14:45', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: 'Ajuste sertralina',         createdAt: '2026-04-13', updatedAt: '2026-04-13' },
-        { id: 8,  service: 'Control DM1',            patientName: 'Sofia Ruiz Castillo',       dateTime: '2026-04-16T15:30', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-14', updatedAt: '2026-04-14' },
-        { id: 9,  service: 'Control EPOC',           patientName: 'Isabel Díaz Vega',          dateTime: '2026-04-16T16:15', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: 'Post-exacerbación',         createdAt: '2026-04-14', updatedAt: '2026-04-14' },
-        { id: 10, service: 'Control HTA',            patientName: 'María González López',     dateTime: '2026-04-08T09:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-01', updatedAt: '2026-04-08' },
-        { id: 11, service: 'Control AR',             patientName: 'Diego Morales Reyes',       dateTime: '2026-04-08T10:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-01', updatedAt: '2026-04-08' },
-        { id: 12, service: 'Control migraña',        patientName: 'Patricia Lagos Muñoz',      dateTime: '2026-04-03T11:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-03-28', updatedAt: '2026-04-03' },
-        { id: 13, service: 'Control lumbalgia',      patientName: 'Roberto Vega Espinoza',     dateTime: '2026-04-09T10:30', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-02', updatedAt: '2026-04-09' },
-        { id: 14, service: 'Seguimiento depresión',  patientName: 'Francisca Herrera Salinas', dateTime: '2026-04-10T14:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-03', updatedAt: '2026-04-10' },
-        { id: 15, service: 'Control prenatal S24',   patientName: 'Carla Soto Vera',           dateTime: '2026-03-10T10:30', durationMinutes: 40, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-03-05', updatedAt: '2026-03-10' },
-        { id: 16, service: 'Seguimiento DM2',        patientName: 'Pedro Alvarado Fuentes',   dateTime: '2026-03-05T09:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-02-27', updatedAt: '2026-03-05' },
-        { id: 17, service: 'Control HTA + lipídico', patientName: 'María González López',     dateTime: '2026-03-24T09:30', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-03-17', updatedAt: '2026-03-24' },
-        { id: 18, service: 'Cardiopatía post-IAM',   patientName: 'Carlos Fernández Torres',   dateTime: '2026-03-19T11:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: 'Ajuste Metoprolol',         createdAt: '2026-03-12', updatedAt: '2026-03-19' },
-        { id: 19, service: 'Control post-colonosc.', patientName: 'Luis Hernández Pérez',      dateTime: '2026-03-26T10:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-03-20', updatedAt: '2026-03-26' },
-        { id: 20, service: 'Control DM1',            patientName: 'Sofia Ruiz Castillo',       dateTime: '2026-03-26T09:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-03-20', updatedAt: '2026-03-26' },
-        { id: 21, service: 'Control preoperatorio',  patientName: 'Ana Martínez Soto',         dateTime: '2026-03-31T15:00', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: 'Artroscopía rodilla',       createdAt: '2026-03-24', updatedAt: '2026-03-31' },
-        { id: 22, service: 'Exacerbación EPOC',      patientName: 'Isabel Díaz Vega',          dateTime: '2026-03-19T08:30', durationMinutes: 30, status: 'COMPLETADA', professionalName: 'Dra. Morales', notes: 'Antibióticos + prednisona', createdAt: '2026-03-12', updatedAt: '2026-03-19' },
-        { id: 23, service: 'Control diverticulosis', patientName: 'Luis Hernández Pérez',      dateTime: '2026-04-17T09:00', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-10', updatedAt: '2026-04-10' },
-        { id: 24, service: 'Stent post-IAM',         patientName: 'Carlos Fernández Torres',   dateTime: '2026-04-17T10:00', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: 'Control Ecocardiograma',    createdAt: '2026-04-10', updatedAt: '2026-04-10' },
-        { id: 25, service: 'Control preop. menisco', patientName: 'Ana Martínez Soto',         dateTime: '2026-04-18T11:30', durationMinutes: 30, status: 'AGENDADA',   professionalName: 'Dra. Morales', notes: '',                          createdAt: '2026-04-10', updatedAt: '2026-04-10' }
+        // ── Semana 1 (2–6 mar) ─────────────────────────────────────────────────
+        { id: 1,  service: 'Control de hipertensión',            patientName: 'María González López',    dateTime: '2026-03-03T09:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Ajuste de dosis antihipertensiva.',          createdAt: '2026-02-20', updatedAt: '2026-03-03' },
+        { id: 2,  service: 'Revisión post-operatoria',           patientName: 'Carlos Fernández Torres', dateTime: '2026-03-03T09:45', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Evolución favorable tras stent coronario.',   createdAt: '2026-02-22', updatedAt: '2026-03-03' },
+        { id: 3,  service: 'Consulta cardiología',               patientName: 'Ana Martínez Soto',       dateTime: '2026-03-05T10:30', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'ECG en rango normal.',                        createdAt: '2026-02-25', updatedAt: '2026-03-05' },
+        // ── Semana 2 (9–13 mar) ────────────────────────────────────────────────
+        { id: 4,  service: 'Seguimiento diabetes',               patientName: 'Sofia Ruiz Castillo',     dateTime: '2026-03-10T09:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'HbA1c 6.8%. Dosis estable.',                  createdAt: '2026-03-01', updatedAt: '2026-03-10' },
+        { id: 5,  service: 'Control respiratorio',               patientName: 'Isabel Díaz Vega',        dateTime: '2026-03-10T09:45', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Espirometría mejorada vs mes anterior.',       createdAt: '2026-03-05', updatedAt: '2026-03-10' },
+        { id: 6,  service: 'Revisión postquirúrgica rodilla',    patientName: 'Ana Martínez Soto',       dateTime: '2026-03-12T14:00', durationMinutes: 45, status: 'NO_ASISTIO',  professionalName: 'Dra. Morales', notes: 'Paciente no se presentó. Reprogramar.',      createdAt: '2026-03-05', updatedAt: '2026-03-12' },
+        // ── Semana 3 (16–20 mar) ───────────────────────────────────────────────
+        { id: 7,  service: 'Primera consulta',                   patientName: 'Sofia Ruiz Castillo',     dateTime: '2026-03-17T09:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Derivado por médico de cabecera.',             createdAt: '2026-03-10', updatedAt: '2026-03-17' },
+        { id: 8,  service: 'Control cardiológico',               patientName: 'Carlos Fernández Torres', dateTime: '2026-03-17T10:30', durationMinutes: 45, status: 'CANCELADA',   professionalName: 'Dra. Morales', notes: 'Cancelada por el paciente.',                  createdAt: '2026-03-12', updatedAt: '2026-03-17' },
+        { id: 9,  service: 'Ajuste de tratamiento',              patientName: 'Carlos Fernández Torres', dateTime: '2026-03-19T09:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Reducción dosis anticoagulante.',              createdAt: '2026-03-15', updatedAt: '2026-03-19' },
+        { id: 10, service: 'Evaluación neurológica',             patientName: 'Isabel Díaz Vega',        dateTime: '2026-03-19T14:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Sin nuevos episodios. Control en 3 meses.',   createdAt: '2026-03-10', updatedAt: '2026-03-19' },
+        // ── Semana 4 (23–27 mar) ───────────────────────────────────────────────
+        { id: 11, service: 'Control mensual',                    patientName: 'María González López',    dateTime: '2026-03-24T09:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Presión arterial estabilizada 120/80.',        createdAt: '2026-03-17', updatedAt: '2026-03-24' },
+        { id: 12, service: 'Revisión de exámenes',               patientName: 'Luis Hernández Pérez',    dateTime: '2026-03-24T10:30', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Resultados de lab normales.',                  createdAt: '2026-03-20', updatedAt: '2026-03-24' },
+        { id: 13, service: 'Seguimiento postquirúrgico',         patientName: 'Luis Hernández Pérez',    dateTime: '2026-03-26T09:00', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Seguimiento a 4 meses de la operación.',      createdAt: '2026-03-20', updatedAt: '2026-03-20' },
+        { id: 14, service: 'Control diabetes',                   patientName: 'Sofia Ruiz Castillo',     dateTime: '2026-03-26T10:30', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Control mensual glucemia.',                    createdAt: '2026-03-21', updatedAt: '2026-03-21' },
+        { id: 15, service: 'Urgencia — dolor torácico',          patientName: 'Carlos Fernández Torres', dateTime: '2026-03-27T09:00', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Derivación por dolor torácico recurrente.',   createdAt: '2026-03-25', updatedAt: '2026-03-25' },
+        { id: 16, service: 'Control postquirúrgico rodilla',     patientName: 'Ana Martínez Soto',       dateTime: '2026-03-27T14:00', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Reprogramada de id-6.',                        createdAt: '2026-03-25', updatedAt: '2026-03-25' },
+        // ── Semanas futuras ─────────────────────────────────────────────────────
+        { id: 17, service: 'Revisión eco-cardiograma',           patientName: 'Ana Martínez Soto',       dateTime: '2026-03-31T14:00', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Seguimiento post cirugía de rodilla.',         createdAt: '2026-03-20', updatedAt: '2026-03-20' },
+        { id: 18, service: 'Control respiratorio trimestral',    patientName: 'Isabel Díaz Vega',        dateTime: '2026-04-07T09:00', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Revisión trimestral EPOC.',                    createdAt: '2026-03-22', updatedAt: '2026-03-22' }
       ]
     },
 
@@ -969,11 +967,13 @@ export class SchemaService {
   }
 
   /**
-   * Merges an authorized schema (from backend, may have fields:[]) with a
-   * catalog schema (local, has full field definitions).
+   * Merges an authorized schema (from backend) with a catalog schema (local).
    *
    * Rules:
-   *  - entity metadata (moduleType, singular, plural, icon…): backend wins
+   *  - key: backend wins (needed for API routing, e.g. 'paciente' not 'patients')
+   *  - moduleType: backend wins for special types (calendar, clinical-record);
+   *    for generic 'list' the local catalog type takes precedence
+   *  - singular/plural/icon/description: local catalog wins (richer labels/icons)
    *  - fields: backend wins if non-empty, otherwise falls back to local catalog
    */
   private mergeSchema(
@@ -982,6 +982,16 @@ export class SchemaService {
   ): EntitySchema | null {
     if (!authorized) return catalog;
     const fields = authorized.fields.length > 0 ? authorized.fields : (catalog?.fields ?? []);
-    return { ...authorized, fields };
+    const backendType  = authorized.entity.moduleType;
+    const isSpecific   = backendType === 'calendar' || backendType === 'clinical-record';
+    const entity = {
+      ...authorized.entity,
+      singular:    catalog?.entity.singular    ?? authorized.entity.singular,
+      plural:      catalog?.entity.plural      ?? authorized.entity.plural,
+      icon:        catalog?.entity.icon        ?? authorized.entity.icon,
+      description: catalog?.entity.description ?? authorized.entity.description,
+      moduleType:  isSpecific ? backendType : (catalog?.entity.moduleType ?? backendType),
+    };
+    return { entity, fields };
   }
 }

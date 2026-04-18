@@ -162,6 +162,46 @@ const ENTITY_CONFIG = {
     }
   },
 
+  // ── payments ─────────────────────────────────────────────────────────────────
+  payments: {
+    table: "payment",
+    toDb(d) {
+      const cols = {};
+      if (d.patientName      !== undefined) cols.patient_name       = d.patientName;
+      if (d.invoiceNumber    !== undefined) cols.invoice_number     = d.invoiceNumber;
+      if (d.date             !== undefined) cols.date               = d.date;
+      if (d.concept          !== undefined) cols.concept            = d.concept;
+      if (d.amount           !== undefined) cols.amount             = d.amount;
+      if (d.paymentMethod    !== undefined) cols.payment_method     = d.paymentMethod;
+      if (d.status           !== undefined) cols.status             = d.status;
+      if (d.notes            !== undefined) cols.notes              = d.notes;
+      if (d.professionalName !== undefined) cols.professional_name  = d.professionalName;
+      if (d.commissionRate   !== undefined) cols.commission_rate    = d.commissionRate;
+      if (d.commissionAmount !== undefined) cols.commission_amount  = d.commissionAmount;
+      if (d.commissionStatus !== undefined) cols.commission_status  = d.commissionStatus;
+      return cols;
+    },
+    fromDb(r) {
+      return {
+        id:               r.id,
+        patientName:      r.patient_name,
+        invoiceNumber:    r.invoice_number,
+        date:             r.date,
+        concept:          r.concept,
+        amount:           r.amount           !== null ? parseFloat(r.amount) : null,
+        paymentMethod:    r.payment_method,
+        status:           r.status,
+        notes:            r.notes,
+        professionalName: r.professional_name,
+        commissionRate:   r.commission_rate   !== null ? parseFloat(r.commission_rate) : null,
+        commissionAmount: r.commission_amount !== null ? parseFloat(r.commission_amount) : null,
+        commissionStatus: r.commission_status,
+        createdAt:        r.created_at,
+        updatedAt:        r.updated_at
+      };
+    }
+  },
+
   // ── patients ─────────────────────────────────────────────────────────────────
   // Maps the 'paciente' DB table to the 'patients' entity key used by the frontend.
   patients: {

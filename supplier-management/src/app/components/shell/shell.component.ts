@@ -1,14 +1,13 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { CryptoService } from '../../services/crypto.service';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, FormsModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss'
 })
@@ -16,10 +15,14 @@ export class ShellComponent {
   readonly auth      = inject(AuthService);
   readonly cryptoSvc = inject(CryptoService);
 
-  sidebarOpen  = signal(true);
-  unlockPass   = signal('');
-  unlockError  = signal(false);
-  unlocking    = signal(false);
+  sidebarOpen = signal(true);
+
+  // ZK setup state
+  zkSetting   = signal(false);
+
+  // ZK unlock state (certificate upload)
+  zkUnlocking  = signal(false);
+  zkCertError  = signal(false);
 
   toggleSidebar() { this.sidebarOpen.update(v => !v); }
 
@@ -29,25 +32,36 @@ export class ShellComponent {
     return this.auth.user()?.name?.split(' ')[0] ?? '';
   }
 
-  async unlock(): Promise<void> {
-    const pass  = this.unlockPass().trim();
+  async setupZk(): Promise<void> {
     const email = this.auth.user()?.email ?? '';
-    if (!pass || !email) return;
-
-    this.unlocking.set(true);
-    this.unlockError.set(false);
-
-    const ok = await this.cryptoSvc.unlockWithPassword(pass, email);
-    this.unlocking.set(false);
-    if (ok) {
-      this.unlockPass.set('');
-    } else {
-      this.unlockError.set(true);
+    if (!email) return;
+    this.zkSetting.set(true);
+    try {
+      await this.cryptoSvc.generateAndDownloadCertificate(email);
+    } finally {
+      this.zkSetting.set(false);
     }
   }
 
+  async onCertFile(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file  = input.files?.[0];
+    if (!file) return;
+
+    this.zkUnlocking.set(true);
+    this.zkCertError.set(false);
+
+    const ok = await this.cryptoSvc.unlockWithCertificate(file);
+    this.zkUnlocking.set(false);
+    if (!ok) {
+      this.zkCertError.set(true);
+    }
+    // Reset the file input so the same file can be re-selected if needed
+    input.value = '';
+  }
+
   navItems = computed(() => {
-    const schemas    = this.auth.schemas();
+    const schemas     = this.auth.schemas();
     const hasPayments = schemas.some(s => s.entity.key === 'payments');
     const hasRecords  = schemas.some(s => s.entity.key === 'clinical-records');
     return [

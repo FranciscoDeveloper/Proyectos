@@ -358,7 +358,63 @@
   50%       { opacity: 0.6; }
 }
 
-/* ===== ZK UNLOCK BANNER ===== */
+/* ===== ZK SETUP BANNER (first time) ===== */
+.zk-setup-banner {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-bottom: 1px solid #6ee7b7;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+
+  .zk-banner-icon {
+    width: 40px;
+    height: 40px;
+    background: #d1fae5;
+    border: 1.5px solid #34d399;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    svg { width: 18px; height: 18px; color: #059669; }
+  }
+
+  .zk-banner-text {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    strong { font-size: 13px; font-weight: 700; color: #065f46; }
+    span   { font-size: 12px; color: #047857; line-height: 1.4; }
+  }
+}
+
+.zk-setup-btn {
+  height: 36px;
+  padding: 0 16px;
+  background: #059669;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+  svg { width: 15px; height: 15px; }
+  &:hover:not(:disabled) { background: #047857; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+/* ===== ZK UNLOCK BANNER (certificate upload) ===== */
 .zk-unlock-banner {
   background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
   border-bottom: 1px solid #fbbf24;
@@ -389,16 +445,9 @@
     flex-direction: column;
     gap: 2px;
 
-    strong {
-      font-size: 13px;
-      font-weight: 700;
-      color: #92400e;
-    }
-    span {
-      font-size: 12px;
-      color: #a16207;
-      line-height: 1.4;
-    }
+    strong { font-size: 13px; font-weight: 700; color: #92400e; }
+    span   { font-size: 12px; color: #a16207; line-height: 1.4; }
+    code   { font-family: monospace; background: rgba(0,0,0,0.06); padding: 1px 4px; border-radius: 3px; }
   }
 
   .zk-banner-form {
@@ -406,36 +455,6 @@
     gap: 8px;
     align-items: center;
     flex-shrink: 0;
-
-    input[type="password"] {
-      height: 36px;
-      padding: 0 12px;
-      border: 1.5px solid #fbbf24;
-      border-radius: 8px;
-      background: white;
-      font-size: 13px;
-      outline: none;
-      width: 190px;
-      &:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
-    }
-
-    button {
-      height: 36px;
-      padding: 0 16px;
-      background: #f59e0b;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.2s ease;
-      &:hover:not(:disabled) { background: #d97706; }
-      &:disabled { opacity: 0.6; cursor: not-allowed; }
-    }
   }
 
   .zk-banner-error {
@@ -446,6 +465,25 @@
     margin: 0;
     padding-top: 4px;
   }
+}
+
+.cert-upload-label {
+  height: 36px;
+  padding: 0 16px;
+  background: #f59e0b;
+  color: white;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s ease;
+  svg { width: 15px; height: 15px; }
+  &:hover:not(.loading) { background: #d97706; }
+  &.loading { opacity: 0.6; cursor: not-allowed; }
+  input[type="file"] { display: none; }
 }
 
 .spinner-sm {

@@ -153,7 +153,29 @@
       </div>
     </header>
 
-    <!-- ── ZK unlock banner (shown after page reload when key was lost) ── -->
+    <!-- ── ZK setup banner (first time — no certificate yet) ── -->
+    <div class="zk-setup-banner" *ngIf="cryptoSvc.needsSetup()">
+      <div class="zk-banner-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <div class="zk-banner-text">
+        <strong>Activa el cifrado Zero-Knowledge</strong>
+        <span>Genera tu certificado de cifrado personal. Guárdalo en un lugar seguro — lo necesitarás para descifrar tus datos en cada sesión.</span>
+      </div>
+      <button class="zk-setup-btn" (click)="setupZk()" [disabled]="zkSetting()">
+        <span class="spinner-sm" *ngIf="zkSetting()"></span>
+        <svg *ngIf="!zkSetting()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        {{ zkSetting() ? 'Generando…' : 'Generar Certificado' }}
+      </button>
+    </div>
+
+    <!-- ── ZK unlock banner (page reload — certificate required) ── -->
     <div class="zk-unlock-banner" *ngIf="cryptoSvc.needsUnlock()">
       <div class="zk-banner-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -162,22 +184,22 @@
         </svg>
       </div>
       <div class="zk-banner-text">
-        <strong>Datos cifrados — requieren contraseña</strong>
-        <span>La clave de cifrado Zero-Knowledge se pierde al recargar la página. Reingresa tu contraseña para descifrar los datos.</span>
+        <strong>Datos cifrados — sube tu certificado</strong>
+        <span>La clave de cifrado se pierde al recargar la página. Sube tu certificado <code>.json</code> para descifrar los datos.</span>
       </div>
       <div class="zk-banner-form">
-        <input type="password"
-               [ngModel]="unlockPass()"
-               (ngModelChange)="unlockPass.set($event)"
-               placeholder="Contraseña"
-               (keydown.enter)="unlock()"
-               autocomplete="current-password" />
-        <button (click)="unlock()" [disabled]="unlocking()">
-          <span class="spinner-sm" *ngIf="unlocking()"></span>
-          {{ unlocking() ? 'Verificando…' : 'Desbloquear' }}
-        </button>
+        <label class="cert-upload-label" [class.loading]="zkUnlocking()">
+          <span class="spinner-sm" *ngIf="zkUnlocking()"></span>
+          <svg *ngIf="!zkUnlocking()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          {{ zkUnlocking() ? 'Verificando…' : 'Subir Certificado' }}
+          <input type="file" accept=".json" (change)="onCertFile($event)" [disabled]="zkUnlocking()" />
+        </label>
       </div>
-      <p class="zk-banner-error" *ngIf="unlockError()">Contraseña incorrecta. Intenta nuevamente.</p>
+      <p class="zk-banner-error" *ngIf="zkCertError()">Certificado inválido o no corresponde a esta cuenta.</p>
     </div>
 
     <main class="page-content">
