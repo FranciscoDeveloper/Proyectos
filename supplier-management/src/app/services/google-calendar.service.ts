@@ -24,12 +24,14 @@ export interface GcalEventParams {
   endIso?:        string;
   attendeeEmail?: string;
   location?:      string;
+  withVideo?:     boolean;  // generate Google Meet link
 }
 
 export interface GcalResult {
-  success: boolean;
-  link?:   string;
-  error?:  'not_connected' | 'token_expired' | 'api_error' | 'network_error' | 'not_configured';
+  success:   boolean;
+  link?:     string;   // calendar event htmlLink
+  meetLink?: string;   // Google Meet URL (only when withVideo: true)
+  error?:    'not_connected' | 'token_expired' | 'api_error' | 'network_error' | 'not_configured';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -119,12 +121,23 @@ export class GoogleCalendarService {
     };
 
     if (params.attendeeEmail) {
-      body['attendees']    = [{ email: params.attendeeEmail }];
-      body['sendUpdates']  = 'all';  // envía invitación al paciente
+      body['attendees']   = [{ email: params.attendeeEmail }];
+      body['sendUpdates'] = 'all';
     }
 
+    if (params.withVideo) {
+      body['conferenceData'] = {
+        createRequest: {
+          requestId:             crypto.randomUUID(),
+          conferenceSolutionKey: { type: 'hangoutsMeet' }
+        }
+      };
+    }
+
+    const url = params.withVideo ? `${API_URL}?conferenceDataVersion=1` : API_URL;
+
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(url, {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body:    JSON.stringify(body)
@@ -138,7 +151,9 @@ export class GoogleCalendarService {
       if (!res.ok) return { success: false, error: 'api_error' };
 
       const created = await res.json();
-      return { success: true, link: created.htmlLink };
+      const meetLink = created.conferenceData?.entryPoints
+        ?.find((e: any) => e.entryPointType === 'video')?.uri ?? undefined;
+      return { success: true, link: created.htmlLink, meetLink };
     } catch {
       return { success: false, error: 'network_error' };
     }

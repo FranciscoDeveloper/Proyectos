@@ -55,7 +55,7 @@
         </span>
       </div>
       <div class="ph-meta-row">
-        <span class="ph-meta-chip">{{ patient()!.patientId }}</span>
+        <span class="ph-meta-chip" *ngIf="patient()!.patientId">{{ patient()!.patientId }}</span>
         <span class="ph-meta-chip">{{ patient()!.rut }}</span>
         <span class="ph-meta-chip">{{ patient()!.age }} años · {{ patient()!.gender }}</span>
         <span class="blood-chip" [style.background]="patient()!.bloodTypeColor + '22'" [style.color]="patient()!.bloodTypeColor">
@@ -542,7 +542,7 @@
         <rect x="9" y="3" width="6" height="4" rx="1" ry="1"/>
       </svg>
       <span class="share-chip-name">{{ patient()!.fullName }}</span>
-      <span class="share-chip-id">{{ patient()!.patientId }}</span>
+      <span class="share-chip-id">{{ patient()!.rut }}</span>
     </div>
 
     <!-- Success state -->

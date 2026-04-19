@@ -14,28 +14,49 @@
   </header>
 
   <!-- ── LOADING ── -->
-  <div class="centered-state" *ngIf="loading()">
+  <div class="centered-state" *ngIf="loading() || loadingProfs()">
     <div class="spinner"></div>
-    <p>Cargando agenda…</p>
+    <p>{{ loading() ? 'Cargando agenda…' : 'Buscando profesionales…' }}</p>
   </div>
 
-  <!-- ── INVALID TOKEN ── -->
-  <div class="centered-state error-state" *ngIf="!loading() && error() === 'invalid'">
+  <!-- ── ERROR ── -->
+  <div class="centered-state error-state" *ngIf="error() === 'invalid' || error() === 'load_error'">
     <div class="error-icon">⚠️</div>
-    <h2>Enlace inválido o expirado</h2>
-    <p>Este código de acceso no existe o ya no está disponible.<br>Solicita un nuevo enlace a tu clínica.</p>
-    <div class="demo-links">
-      <p class="demo-label">Links de prueba disponibles:</p>
-      <a *ngFor="let d of DEMO_TOKENS"
-         [href]="'#/book/' + d.token"
-         class="demo-link">
-        {{ d.label }}
-      </a>
-    </div>
+    <h2>No se pudo cargar la agenda</h2>
+    <p>Verifica tu conexión e intenta nuevamente.</p>
+    <button class="btn-secondary" (click)="error.set(''); loadProfessionals()">Reintentar</button>
   </div>
+
+  <!-- ── STEP 0: PROFESSIONAL PICKER ── -->
+  <main class="booking-main" *ngIf="!loading() && !loadingProfs() && !error() && step() === 0">
+    <h2 class="step-title" style="margin-bottom:1.5rem">¿Con quién deseas agendar?</h2>
+    <div class="prof-list">
+      <button class="prof-card" *ngFor="let prof of professionals()"
+              (click)="selectProfessional(prof)">
+        <div class="prof-avatar">{{ prof.nombre.charAt(0) }}</div>
+        <div class="prof-info">
+          <div class="prof-name">{{ prof.nombre }}</div>
+          <div class="prof-spec">{{ prof.especialidad }}</div>
+          <div class="prof-meta">
+            <span class="meta-chip">{{ prof.duration }} min</span>
+            <span class="meta-chip video" *ngIf="prof.videoconsulta">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="23 7 16 12 23 17 23 7"/>
+                <rect x="1" y="5" width="15" height="14" rx="2"/>
+              </svg>
+              Videoconsulta
+            </span>
+          </div>
+        </div>
+        <svg class="prof-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+  </main>
 
   <!-- ── BOOKING FLOW ── -->
-  <main class="booking-main" *ngIf="!loading() && !error()">
+  <main class="booking-main" *ngIf="!loading() && !loadingProfs() && !error() && step() >= 1">
 
     <!-- Doctor card -->
     <div class="doctor-card">
@@ -189,6 +210,34 @@
                     rows="3"></textarea>
         </div>
 
+        <!-- Modalidad: solo si el profesional tiene videoconsulta habilitada -->
+        <div class="form-group modality-group" *ngIf="bookingInfo()?.videoconsulta">
+          <label>Modalidad de atención</label>
+          <div class="modality-selector">
+            <button type="button" class="modality-btn"
+                    [class.active]="modality() === 'presencial'"
+                    (click)="modality.set('presencial')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+              Presencial
+            </button>
+            <button type="button" class="modality-btn"
+                    [class.active]="modality() === 'video'"
+                    (click)="modality.set('video')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="23 7 16 12 23 17 23 7"/>
+                <rect x="1" y="5" width="15" height="14" rx="2"/>
+              </svg>
+              Videoconsulta
+            </button>
+          </div>
+          <p class="modality-hint" *ngIf="modality() === 'video'">
+            Recibirás el enlace de Google Meet al confirmar la cita.
+          </p>
+        </div>
+
         <p class="error-msg" *ngIf="submitError()">{{ submitError() }}</p>
 
         <button type="submit" class="btn-primary-full"
@@ -253,10 +302,42 @@
         </div>
       </div>
 
-      <!-- ── Google Calendar ── -->
-      <div class="gcal-section">
+      <!-- ── Meet link (video) ── -->
+      <div class="meet-section" *ngIf="bookingResult()?.modality === 'video'">
+        <!-- Link ya disponible -->
+        <div class="meet-link-card" *ngIf="meetLink()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2"/>
+          </svg>
+          <div>
+            <span class="meet-label">Enlace de videoconsulta</span>
+            <a [href]="meetLink()" target="_blank" rel="noopener" class="meet-url">{{ meetLink() }}</a>
+          </div>
+        </div>
 
-        <!-- IDLE / ERROR: show button -->
+        <!-- Generar enlace -->
+        <button class="btn-meet"
+                *ngIf="!meetLink() && (gcalStatus() === 'idle' || gcalStatus() === 'error')"
+                (click)="addToGoogleCalendar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2"/>
+          </svg>
+          Obtener enlace de Google Meet
+        </button>
+        <p class="gcal-error-hint" *ngIf="gcalStatus() === 'error' && !meetLink()">
+          No se pudo generar el enlace. Intenta nuevamente.
+        </p>
+        <div class="gcal-status-row" *ngIf="gcalStatus() === 'connecting' || gcalStatus() === 'syncing'">
+          <span class="spinner-sm dark"></span>
+          {{ gcalStatus() === 'connecting' ? 'Conectando con Google…' : 'Generando enlace Meet…' }}
+        </div>
+      </div>
+
+      <!-- ── Google Calendar (presencial) ── -->
+      <div class="gcal-section" *ngIf="bookingResult()?.modality !== 'video'">
+
         <button class="btn-gcal"
                 *ngIf="gcalStatus() === 'idle' || gcalStatus() === 'error'"
                 (click)="addToGoogleCalendar()">
@@ -271,19 +352,15 @@
           No se pudo crear el evento. Intenta nuevamente.
         </p>
 
-        <!-- CONNECTING -->
         <div class="gcal-status-row" *ngIf="gcalStatus() === 'connecting'">
           <span class="spinner-sm dark"></span>
           Conectando con Google…
         </div>
-
-        <!-- SYNCING -->
         <div class="gcal-status-row" *ngIf="gcalStatus() === 'syncing'">
           <span class="spinner-sm dark"></span>
           Creando evento en tu calendario…
         </div>
 
-        <!-- SYNCED -->
         <div class="gcal-synced" *ngIf="gcalStatus() === 'synced'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
@@ -296,7 +373,6 @@
           </div>
         </div>
 
-        <!-- URL_OPENED (no OAuth configured) -->
         <div class="gcal-synced" *ngIf="gcalStatus() === 'url_opened'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>

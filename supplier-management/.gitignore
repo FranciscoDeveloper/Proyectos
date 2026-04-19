@@ -44,3 +44,10 @@ Thumbs.db
 # Credenciales locales — nunca subir al repo
 .env
 lambda-entities/.env
+
+# Claude Code internals
+.claude/
+
+# Archivos generados localmente
+dairi-oferta-comercial.html
+index.html

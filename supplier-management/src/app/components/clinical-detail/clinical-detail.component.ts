@@ -56,7 +56,7 @@ export class ClinicalDetailComponent {
 
     return {
       fullName:     String(get('fullName') ?? ''),
-      patientId:    String(get('patientId') ?? ''),
+      patientId:    '',
       rut:          String(get('rut') ?? ''),
       birthDate:    String(get('birthDate') ?? ''),
       age:          Number(get('age') ?? 0),
@@ -65,9 +65,9 @@ export class ClinicalDetailComponent {
       statusColor:  statusField?.badgeColors?.[statusVal] ?? '#6b7280',
       bloodType:    String(btVal ?? ''),
       bloodTypeColor: btField?.badgeColors?.[btVal] ?? '#6b7280',
-      insurance:    insField?.options?.find(o => o.value === insVal)?.label ?? '',
+      insurance:    insField?.options?.find(o => o.value === insVal)?.label ?? String(insVal ?? ''),
       insuranceColor: insField?.badgeColors?.[insVal] ?? '#6b7280',
-      doctor:       String(get('doctor') ?? ''),
+      doctor:       String(get('doctorName') ?? get('doctor') ?? ''),
       lastVisit:    String(get('lastVisit') ?? ''),
       phone:        String(get('phone') ?? ''),
       email:        String(get('email') ?? ''),
@@ -428,7 +428,7 @@ export class ClinicalDetailComponent {
     const extra = this.shareMessage().trim();
     const msg = [
       `📋 *${singular} compartida*`,
-      `Paciente: ${p.fullName} · ${p.patientId}`,
+      `Paciente: ${p.fullName} · ${p.rut}`,
       `Estado: ${p.statusLabel}`,
       extra ? `\n"${extra}"` : '',
       `→ Ver ficha: ${link}`

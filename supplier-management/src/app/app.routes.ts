@@ -103,7 +103,12 @@ export const routes: Routes = [
     ]
   },
 
-  // ── Public: patient self-booking via UUID link ───────────────────────────────
+  // ── Public: patient self-booking (with or without UUID token) ───────────────
+  {
+    path: 'book',
+    loadComponent: () =>
+      import('./components/patient-booking/patient-booking.component').then(m => m.PatientBookingComponent)
+  },
   {
     path: 'book/:token',
     loadComponent: () =>

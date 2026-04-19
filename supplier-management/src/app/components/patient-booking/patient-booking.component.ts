@@ -7,29 +7,43 @@ import { GoogleCalendarService } from '../../services/google-calendar.service';
 
 type GcalStatus = 'idle' | 'connecting' | 'syncing' | 'synced' | 'error' | 'url_opened';
 
+interface ProfessionalSummary {
+  id:            string;
+  nombre:        string;
+  especialidad:  string;
+  duration:      number;
+  workDays:      number[];
+  videoconsulta: boolean;
+}
+
 interface BookingInfo {
-  clinicName: string;
-  doctorName: string;
-  specialty: string;
-  duration: number;
-  workDays: number[];
+  professionalId: string;
+  doctorName:     string;
+  specialty:      string;
+  clinicName:     string;
+  duration:       number;
+  workDays:       number[];
+  videoconsulta:  boolean;
 }
 
 interface CalDay {
-  date: Date;
+  date:         Date;
   currentMonth: boolean;
-  available: boolean;
-  past: boolean;
+  available:    boolean;
+  past:         boolean;
 }
 
 interface BookingResult {
-  confirmCode: string;
-  doctorName: string;
-  clinicName: string;
-  specialty: string;
-  date: string;
-  time: string;
-  patientName: string;
+  appointmentId: string;
+  confirmCode:   string;
+  doctorName:    string;
+  clinicName:    string;
+  specialty:     string;
+  date:          string;
+  time:          string;
+  patientName:   string;
+  modality:      string;
+  meetLink?:     string;
 }
 
 @Component({
@@ -40,16 +54,22 @@ interface BookingResult {
   styleUrl: './patient-booking.component.scss'
 })
 export class PatientBookingComponent implements OnInit {
-  private route   = inject(ActivatedRoute);
-  private http    = inject(HttpClient);
+  private route    = inject(ActivatedRoute);
+  private http     = inject(HttpClient);
   readonly gcalSvc = inject(GoogleCalendarService);
 
-  token        = signal('');
-  bookingInfo  = signal<BookingInfo | null>(null);
-  loading      = signal(true);
-  error        = signal('');
+  // Step 0: professional list
+  professionals    = signal<ProfessionalSummary[]>([]);
+  loadingProfs     = signal(false);
 
-  step           = signal(1);
+  // Selected professional
+  professionalId   = signal('');
+  bookingInfo      = signal<BookingInfo | null>(null);
+  loading          = signal(false);
+  error            = signal('');
+
+  // Steps 1-4
+  step           = signal(0);   // 0 = professional picker
   calendarMonth  = signal(new Date());
   selectedDate   = signal<Date | null>(null);
   selectedTime   = signal('');
@@ -60,6 +80,7 @@ export class PatientBookingComponent implements OnInit {
   patientEmail = signal('');
   patientPhone = signal('');
   reason       = signal('');
+  modality     = signal<'presencial' | 'video'>('presencial');
   submitting   = signal(false);
   submitError  = signal('');
 
@@ -67,56 +88,39 @@ export class PatientBookingComponent implements OnInit {
 
   gcalStatus = signal<GcalStatus>('idle');
   gcalLink   = signal('');
+  meetLink   = signal('');
 
-  readonly DOW_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-  readonly MONTH_NAMES = [
+  readonly DOW_LABELS   = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  readonly MONTH_NAMES  = [
     'Enero','Febrero','Marzo','Abril','Mayo','Junio',
     'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
   ];
 
-  // Demo tokens shown on invalid-token screen
-  readonly DEMO_TOKENS = [
-    { token: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', label: 'Dra. Morales — Medicina General' },
-    { token: 'b2c3d4e5-f6a7-8901-bcde-f12345678901', label: 'Ps. Carolina Vega — Psicología'   },
-    { token: 'c3d4e5f6-a7b8-9012-cdef-123456789012', label: 'Dr. Ramírez — Odontología'        },
-  ];
-
   readonly calendarDays = computed<CalDay[]>(() => {
-    const ref   = this.calendarMonth();
-    const year  = ref.getFullYear();
-    const month = ref.getMonth();
-    const first = new Date(year, month, 1);
-    const last  = new Date(year, month + 1, 0);
-    const info  = this.bookingInfo();
-    const workDays = info?.workDays ?? [1, 2, 3, 4, 5];
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
+    const ref      = this.calendarMonth();
+    const year     = ref.getFullYear();
+    const month    = ref.getMonth();
+    const first    = new Date(year, month, 1);
+    const last     = new Date(year, month + 1, 0);
+    const workDays = this.bookingInfo()?.workDays ?? [1, 2, 3, 4, 5];
+    const today    = new Date(); today.setHours(0, 0, 0, 0);
     const days: CalDay[] = [];
 
-    // Leading days from previous month (week starts Monday: dow 0=Mon)
     const startDow = (first.getDay() + 6) % 7;
-    for (let i = startDow - 1; i >= 0; i--) {
+    for (let i = startDow - 1; i >= 0; i--)
       days.push({ date: new Date(year, month, -i), currentMonth: false, available: false, past: true });
-    }
 
-    // Current month
     for (let d = 1; d <= last.getDate(); d++) {
       const date = new Date(year, month, d);
       const past = date < today;
-      const dow  = date.getDay(); // 0=Sun,1=Mon,...,5=Fri,6=Sat
-      days.push({ date, currentMonth: true, available: !past && workDays.includes(dow), past });
+      days.push({ date, currentMonth: true, available: !past && workDays.includes(date.getDay()), past });
     }
 
-    // Trailing days
     while (days.length % 7 !== 0) {
-      const prev = days[days.length - 1].date;
-      const next = new Date(prev);
+      const next = new Date(days[days.length - 1].date);
       next.setDate(next.getDate() + 1);
       days.push({ date: next, currentMonth: false, available: false, past: true });
     }
-
     return days;
   });
 
@@ -138,16 +142,48 @@ export class PatientBookingComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    this.token.set(this.route.snapshot.paramMap.get('token') ?? '');
-    this.loadBookingInfo();
+    const idParam = this.route.snapshot.paramMap.get('token') ?? '';
+    if (idParam) {
+      this.professionalId.set(idParam);
+      this.loadBookingInfo(idParam);
+    } else {
+      this.loadProfessionals();
+    }
   }
 
-  private loadBookingInfo(): void {
-    this.http.get<BookingInfo>(`/api/book/${this.token()}`).subscribe({
-      next: info => { this.bookingInfo.set(info); this.loading.set(false); },
-      error: ()   => { this.error.set('invalid'); this.loading.set(false); }
+  // ── Step 0 ─────────────────────────────────────────────────────────────────
+
+  loadProfessionals(): void {
+    this.loadingProfs.set(true);
+    this.http.get<ProfessionalSummary[]>('/api/book').subscribe({
+      next: list => { this.professionals.set(list); this.loadingProfs.set(false); },
+      error: ()  => { this.error.set('load_error');  this.loadingProfs.set(false); }
     });
   }
+
+  selectProfessional(prof: ProfessionalSummary): void {
+    this.professionalId.set(prof.id);
+    this.bookingInfo.set({
+      professionalId: prof.id,
+      doctorName:     prof.nombre,
+      specialty:      prof.especialidad,
+      clinicName:     'Dairi Clínica',
+      duration:       prof.duration,
+      workDays:       prof.workDays,
+      videoconsulta:  prof.videoconsulta
+    });
+    this.step.set(1);
+  }
+
+  private loadBookingInfo(id: string): void {
+    this.loading.set(true);
+    this.http.get<BookingInfo>(`/api/book/${id}`).subscribe({
+      next: info => { this.bookingInfo.set(info); this.loading.set(false); this.step.set(1); },
+      error: ()  => { this.error.set('invalid');   this.loading.set(false); }
+    });
+  }
+
+  // ── Calendar ───────────────────────────────────────────────────────────────
 
   prevMonth(): void {
     const d = this.calendarMonth();
@@ -178,7 +214,7 @@ export class PatientBookingComponent implements OnInit {
   private loadSlots(date: Date): void {
     this.loadingSlots.set(true);
     const dateStr = date.toISOString().slice(0, 10);
-    this.http.get<string[]>(`/api/book/${this.token()}/slots?date=${dateStr}`).subscribe({
+    this.http.get<string[]>(`/api/book/${this.professionalId()}/slots?date=${dateStr}`).subscribe({
       next: slots => {
         this.availableSlots.set(slots);
         this.loadingSlots.set(false);
@@ -194,22 +230,37 @@ export class PatientBookingComponent implements OnInit {
   }
 
   back(): void {
-    if (this.step() > 1) this.step.update(s => s - 1);
+    if (this.step() > 0) {
+      if (this.step() === 1 && !this.route.snapshot.paramMap.get('token')) {
+        // Volver al selector de profesionales
+        this.professionalId.set('');
+        this.bookingInfo.set(null);
+        this.selectedDate.set(null);
+        this.step.set(0);
+      } else {
+        this.step.update(s => s - 1);
+      }
+    }
   }
+
+  // ── Booking ────────────────────────────────────────────────────────────────
 
   submitBooking(): void {
     if (!this.formValid()) return;
     this.submitting.set(true);
     this.submitError.set('');
+
     const payload = {
-      date:        this.selectedDate()!.toISOString().slice(0, 10),
-      time:        this.selectedTime(),
-      patientName: this.patientName().trim(),
+      date:         this.selectedDate()!.toISOString().slice(0, 10),
+      time:         this.selectedTime(),
+      patientName:  this.patientName().trim(),
       patientEmail: this.patientEmail().trim(),
       patientPhone: this.patientPhone().trim(),
-      reason:      this.reason().trim()
+      reason:       this.reason().trim(),
+      modality:     this.modality()
     };
-    this.http.post<BookingResult>(`/api/book/${this.token()}`, payload).subscribe({
+
+    this.http.post<BookingResult>(`/api/book/${this.professionalId()}`, payload).subscribe({
       next: result => {
         this.bookingResult.set(result);
         this.step.set(4);
@@ -224,33 +275,29 @@ export class PatientBookingComponent implements OnInit {
 
   formatDate(dateStr: string): string {
     if (!dateStr) return '';
-    const d = new Date(dateStr + 'T00:00:00');
+    const d   = new Date(dateStr + 'T00:00:00');
     const dow = this.DOW_LABELS[(d.getDay() + 6) % 7];
     return `${dow} ${d.getDate()} de ${this.MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
   }
 
-  // ── Google Calendar integration ────────────────────────────────────────────
+  // ── Google Calendar + Meet ─────────────────────────────────────────────────
 
-  /** Fallback URL: opens Google Calendar event creation page pre-filled */
   buildGcalUrl(): string {
     const booking = this.bookingResult();
     if (!booking) return '';
     const info     = this.bookingInfo();
     const duration = info?.duration ?? 45;
-
-    // Build start/end as YYYYMMDDTHHMMSS (local time, no Z suffix)
     const startLocal = booking.date.replace(/-/g, '') + 'T' + booking.time.replace(':', '') + '00';
     const startMs    = new Date(`${booking.date}T${booking.time}:00`).getTime();
     const endDate    = new Date(startMs + duration * 60_000);
     const pad        = (n: number) => String(n).padStart(2, '0');
     const endLocal   = `${endDate.getFullYear()}${pad(endDate.getMonth()+1)}${pad(endDate.getDate())}` +
                        `T${pad(endDate.getHours())}${pad(endDate.getMinutes())}00`;
-
     const params = new URLSearchParams({
       action:   'TEMPLATE',
       text:     `Cita con ${booking.doctorName} — ${booking.specialty}`,
       dates:    `${startLocal}/${endLocal}`,
-      details:  `Clínica: ${booking.clinicName}\nCódigo de confirmación: ${booking.confirmCode}`,
+      details:  `Clínica: ${booking.clinicName}\nCódigo: ${booking.confirmCode}`,
       location: booking.clinicName
     });
     return `https://calendar.google.com/calendar/render?${params}`;
@@ -260,7 +307,8 @@ export class PatientBookingComponent implements OnInit {
     const booking = this.bookingResult();
     if (!booking) return;
 
-    // No OAuth client configured → open URL directly
+    const isVideo = this.modality() === 'video';
+
     if (!this.gcalSvc.isConfigured) {
       window.open(this.buildGcalUrl(), '_blank', 'noopener');
       this.gcalStatus.set('url_opened');
@@ -280,19 +328,26 @@ export class PatientBookingComponent implements OnInit {
       const endIso   = new Date(startMs + duration * 60_000).toISOString().slice(0, 16);
 
       const result = await this.gcalSvc.createEvent({
-        summary:        `Cita con ${booking.doctorName} — ${booking.specialty}`,
-        description:    `Clínica: ${booking.clinicName}\n` +
-                        `Motivo: ${this.reason() || 'Consulta médica'}\n` +
-                        `Código de confirmación: ${booking.confirmCode}`,
-        startIso:       `${booking.date}T${booking.time}`,
+        summary:       `Cita con ${booking.doctorName} — ${booking.specialty}`,
+        description:   `Clínica: ${booking.clinicName}\n` +
+                       `Motivo: ${this.reason() || 'Consulta médica'}\n` +
+                       `Código: ${booking.confirmCode}`,
+        startIso:      `${booking.date}T${booking.time}`,
         endIso,
-        attendeeEmail:  this.patientEmail(),
-        location:       booking.clinicName
+        attendeeEmail: this.patientEmail(),
+        location:      booking.clinicName,
+        withVideo:     isVideo
       });
 
       if (result.success) {
         this.gcalStatus.set('synced');
         this.gcalLink.set(result.link ?? '');
+        if (result.meetLink) {
+          this.meetLink.set(result.meetLink);
+          this.http.put(`/api/book/appointment/${booking.appointmentId}/meet-link`, {
+            meetLink: result.meetLink
+          }).subscribe();
+        }
       } else {
         this.gcalStatus.set('error');
       }
