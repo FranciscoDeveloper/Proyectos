@@ -75,8 +75,13 @@ export class GenericCrudService {
   appendEncounter(key: string, id: number, encounter: Record<string, any>): void {
     this.crypto.encryptRecord(encounter, key).then(encryptedEnc => {
       this.http.post<Record<string, any>>(`/api/entities/${key}/${id}/encounters`, encryptedEnc).subscribe({
-        next: async updated => {
-          const decrypted = await this.crypto.decryptRecord(updated, key);
+        next: async result => {
+          // Server returns the full updated record; if it doesn't (legacy), re-fetch
+          const isFullRecord = result && ('id' in result) && ('encounters' in result);
+          const source = isFullRecord
+            ? result
+            : await this.http.get<Record<string, any>>(`/api/entities/${key}/${id}`).toPromise();
+          const decrypted = await this.crypto.decryptRecord(source!, key);
           this.stores.get(key)?.update(
             list => list.map(item => item['id'] === id ? decrypted : item)
           );

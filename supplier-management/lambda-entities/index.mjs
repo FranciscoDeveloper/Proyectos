@@ -470,21 +470,23 @@ export const handler = async (event, context) => {
 
   // ── Path parsing ──────────────────────────────────────────────────────────
   // Supported patterns:
-  //   /api/entities/{entity}        → list / create
-  //   /api/entities/{entity}/{id}   → get / update / delete
+  //   /api/entities/{entity}                   → list / create
+  //   /api/entities/{entity}/{id}              → get / update / delete
+  //   /api/entities/{entity}/{id}/{subresource} → sub-resource actions (e.g. encounters)
   const rawPath = event.rawPath || event.path || "";
-  const match   = rawPath.match(/\/api\/entities\/([^/]+)(?:\/([^/]+))?/);
+  const match   = rawPath.match(/\/api\/entities\/([^/]+)(?:\/([^/]+)(?:\/([^/]+))?)?/);
 
   if (!match) {
     log("WARN", "Path did not match expected pattern", { rawPath });
     return response(404, { message: "Ruta no encontrada" });
   }
 
-  const entityKey = match[1];
-  const id        = match[2] ?? null;
-  const config    = ENTITY_CONFIG[entityKey];
+  const entityKey   = match[1];
+  const id          = match[2] ?? null;
+  const subResource = match[3] ?? null;
+  const config      = ENTITY_CONFIG[entityKey];
 
-  log("INFO", "Path parsed", { entityKey, id });
+  log("INFO", "Path parsed", { entityKey, id, subResource });
 
   if (!config) {
     log("WARN", "Unknown entity key", { entityKey, available: Object.keys(ENTITY_CONFIG) });
@@ -510,11 +512,12 @@ export const handler = async (event, context) => {
     client = await pool.connect();
     log("INFO", "DB connection acquired");
 
-    if (method === "GET" && !id)        return await listEntities(client, config, entityKey);
-    if (method === "GET" && id)         return await getEntity(client, config, id, entityKey);
-    if (method === "POST" && !id)       return await createEntity(client, config, body, entityKey);
-    if (method === "PUT" && id)         return await updateEntity(client, config, id, body, entityKey);
-    if (method === "DELETE" && id)      return await deleteEntity(client, config, id, entityKey);
+    if (method === "GET"    && !id)                                    return await listEntities(client, config, entityKey);
+    if (method === "GET"    && id && !subResource)                     return await getEntity(client, config, id, entityKey);
+    if (method === "POST"   && !id)                                    return await createEntity(client, config, body, entityKey);
+    if (method === "PUT"    && id && !subResource)                     return await updateEntity(client, config, id, body, entityKey);
+    if (method === "DELETE" && id && !subResource)                     return await deleteEntity(client, config, id, entityKey);
+    if (method === "POST"   && id && subResource === "encounters")     return await appendEncounter(client, config, id, body, entityKey);
 
     log("WARN", "Method not allowed", { method });
     return response(405, { message: "Método no permitido" });
@@ -635,6 +638,35 @@ async function deleteEntity(client, config, id, entityKey) {
   }
   log("INFO", "deleteEntity — success", { table: config.table, id });
   return response(200, { message: "Registro eliminado", id: parseInt(id) });
+}
+
+async function appendEncounter(client, config, id, data, entityKey) {
+  if (!data || typeof data !== "object") {
+    log("WARN", "appendEncounter — missing body", { entityKey, id });
+    return response(400, { message: "Body requerido para agregar una consulta" });
+  }
+  if (!config.table) {
+    return response(400, { message: `La entidad '${entityKey}' no soporta consultas` });
+  }
+
+  const encounter = { ...data, id: Date.now(), createdAt: new Date().toISOString() };
+  log("INFO", "appendEncounter — appending", { table: config.table, id, encounterId: encounter.id });
+
+  const result = await client.query(
+    `UPDATE ${config.table}
+     SET encounters  = COALESCE(encounters, '[]'::jsonb) || $1::jsonb,
+         updated_at  = NOW()
+     WHERE id = $2
+     RETURNING *`,
+    [JSON.stringify(encounter), id]
+  );
+
+  if (result.rowCount === 0) {
+    log("WARN", "appendEncounter — record not found", { table: config.table, id });
+    return response(404, { message: "Registro no encontrado" });
+  }
+  log("INFO", "appendEncounter — success", { table: config.table, id });
+  return response(200, config.fromDb(result.rows[0]));
 }
 
 // ── Helper ────────────────────────────────────────────────────────────────────
