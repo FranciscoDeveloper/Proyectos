@@ -143,7 +143,7 @@ export class GoogleCalendarService {
         body:    JSON.stringify(body)
       });
 
-      if (res.status === 401) {
+      if (res.status === 401 || res.status === 403) {
         this._token.set(null);
         localStorage.removeItem(STORAGE_KEY);
         return { success: false, error: 'token_expired' };
