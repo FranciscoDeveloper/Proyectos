@@ -2,6 +2,7 @@ import { Component, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { WebAuthnService } from '../../services/webauthn.service';
@@ -27,6 +28,7 @@ export class LoginComponent implements OnDestroy {
   private fb       = inject(FormBuilder);
   private auth     = inject(AuthService);
   private route    = inject(ActivatedRoute);
+  private http     = inject(HttpClient);
   private webauthn = inject(WebAuthnService);
   private crypto   = inject(CryptoService);
   private sub?: Subscription;
@@ -38,7 +40,16 @@ export class LoginComponent implements OnDestroy {
   bioError       = signal('');
   showBioSuccess = signal(false);
 
+  // Biometric availability: false until confirmed enabled for this email's subscription
+  bioEnabled   = signal(false);
+  bioCheckDone = signal(false);
+
   readonly bioSupported = this.webauthn.isSupported;
+
+  // Show bio button only when WebAuthn is supported AND the subscription allows it
+  get showBioButton(): boolean {
+    return this.bioSupported() && (!this.bioCheckDone() || this.bioEnabled());
+  }
 
   form = this.fb.group({
     email:    ['', [Validators.required, Validators.email]],
@@ -58,6 +69,27 @@ export class LoginComponent implements OnDestroy {
     this.form.patchValue({ email: account.email, password: account.password });
     this.error.set('');
     this.bioError.set('');
+    this._checkBioConfig(account.email);
+  }
+
+  async onEmailBlur(): Promise<void> {
+    const email = this.form.get('email')?.value?.trim();
+    if (email) this._checkBioConfig(email);
+  }
+
+  private _checkBioConfig(email: string): void {
+    if (!this.bioSupported()) return;
+    this.http.get<{ biometricEnabled: boolean }>(`/api/auth/config?email=${encodeURIComponent(email)}`)
+      .subscribe({
+        next: (cfg) => {
+          this.bioEnabled.set(cfg.biometricEnabled);
+          this.bioCheckDone.set(true);
+        },
+        error: () => {
+          // On error (e.g. email not found yet) keep showing the button
+          this.bioCheckDone.set(false);
+        }
+      });
   }
 
   togglePass() { this.showPass.update(v => !v); }

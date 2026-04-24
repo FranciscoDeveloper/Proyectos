@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './guards/auth.guard';
+import { superadminGuard } from './guards/superadmin.guard';
 import { CLINICAL_ROUTES } from './components/clinical/clinical.routes';
 
 export const routes: Routes = [
@@ -99,6 +100,12 @@ export const routes: Routes = [
         // Clinical record module: /app/clinical/:entityKey and sub-routes
         path: 'clinical',
         children: CLINICAL_ROUTES
+      },
+      {
+        path: 'vendor',
+        canActivate: [superadminGuard],
+        loadComponent: () =>
+          import('./components/vendor-dashboard/vendor-dashboard.component').then(m => m.VendorDashboardComponent)
       }
     ]
   },

@@ -37,12 +37,16 @@ export const handler = async (event) => {
   if (method === "OPTIONS") return response(204, null);
 
   // ── Route dispatch ────────────────────────────────────────────────────────
-  if (method === "POST" && rawPath.endsWith("/login"))                   return handlePasswordLogin(event);
-  if (method === "POST" && rawPath.endsWith("/webauthn/register/begin")) return handleRegisterBegin(event);
-  if (method === "POST" && rawPath.endsWith("/webauthn/register/complete")) return handleRegisterComplete(event);
-  if (method === "POST" && rawPath.endsWith("/webauthn/login/begin"))    return handleLoginBegin(event);
-  if (method === "POST" && rawPath.endsWith("/webauthn/login/complete")) return handleLoginComplete(event);
-  if (method === "DELETE" && rawPath.includes("/webauthn/credential/"))  return handleDeleteCredential(event);
+  if (method === "POST"   && rawPath.endsWith("/login"))                      return handlePasswordLogin(event);
+  if (method === "GET"    && rawPath.includes("/auth/config"))                return handleAuthConfig(event);
+  if (method === "POST"   && rawPath.endsWith("/webauthn/register/begin"))    return handleRegisterBegin(event);
+  if (method === "POST"   && rawPath.endsWith("/webauthn/register/complete")) return handleRegisterComplete(event);
+  if (method === "POST"   && rawPath.endsWith("/webauthn/login/begin"))       return handleLoginBegin(event);
+  if (method === "POST"   && rawPath.endsWith("/webauthn/login/complete"))    return handleLoginComplete(event);
+  if (method === "DELETE" && rawPath.includes("/webauthn/credential/"))       return handleDeleteCredential(event);
+
+  // ── Vendor / superadmin routes ────────────────────────────────────────────
+  if (rawPath.includes("/vendor/subscriptions")) return handleVendor(event, rawPath, method);
 
   return response(404, { message: "Ruta no encontrada" });
 };
@@ -475,6 +479,226 @@ async function handleDeleteCredential(event) {
     console.error("Delete credential error:", err.message);
     return response(500, { message: "Error interno del servidor" });
   } finally { client?.release(); }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Auth config — public endpoint used by login page
+//   GET /api/auth/config?email=<email>
+//   Returns { biometricEnabled } for the user's subscription
+// ════════════════════════════════════════════════════════════════════════════
+async function handleAuthConfig(event) {
+  const email = (event.queryStringParameters?.email || "").toLowerCase().trim();
+  if (!email) return response(400, { message: "'email' es requerido" });
+
+  let client;
+  try {
+    client = await pool.connect();
+    const result = await client.query(
+      `SELECT
+         COALESCE(s.biometric_auth, sp.biometric_auth) AS biometric_auth,
+         s.active AS sub_active
+       FROM app_user u
+       LEFT JOIN subscription s   ON s.id = u.subscription_id
+       LEFT JOIN subscription_plan sp ON sp.id = s.plan_id
+       WHERE u.email = $1
+       LIMIT 1`,
+      [email]
+    );
+    if (result.rowCount === 0) {
+      // Don't reveal whether the user exists — return disabled
+      return response(200, { biometricEnabled: false });
+    }
+    const row = result.rows[0];
+    const biometricEnabled = row.sub_active !== false && row.biometric_auth === true;
+    return response(200, { biometricEnabled });
+  } catch (err) {
+    console.error("Auth config error:", err.message);
+    return response(500, { message: "Error interno del servidor" });
+  } finally { client?.release(); }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Vendor / Superadmin — subscription management
+//   All routes require role = 'superadmin' in JWT
+//
+//   GET    /api/vendor/subscriptions            → list
+//   POST   /api/vendor/subscriptions            → create
+//   GET    /api/vendor/subscriptions/:id        → get one
+//   PUT    /api/vendor/subscriptions/:id        → update (includes biometric toggle)
+//   DELETE /api/vendor/subscriptions/:id        → delete
+//   GET    /api/vendor/subscriptions/:id/users  → list users of subscription
+//   GET    /api/vendor/plans                    → list available plans
+// ════════════════════════════════════════════════════════════════════════════
+async function handleVendor(event, rawPath, method) {
+  const token = extractBearerToken(event);
+  if (!token) return response(401, { message: "Autenticación requerida" });
+
+  let payload;
+  try { payload = jwt.verify(token, JWT_SECRET); }
+  catch { return response(401, { message: "Token inválido" }); }
+
+  if (payload.role !== "superadmin") {
+    return response(403, { message: "Acceso denegado — se requiere rol superadmin" });
+  }
+
+  // Parse path segments after /vendor/
+  // e.g. /api/vendor/subscriptions/5/users  → segments = ['subscriptions','5','users']
+  const vendorBase = rawPath.split("/vendor/")[1] || "";
+  const segments   = vendorBase.split("/").filter(Boolean);
+
+  let client;
+  try {
+    client = await pool.connect();
+
+    // GET /api/vendor/plans
+    if (segments[0] === "plans" && method === "GET") {
+      const r = await client.query(`SELECT id, code, label, biometric_auth, max_users FROM subscription_plan ORDER BY id`);
+      return response(200, r.rows.map(p => ({
+        id: p.id, code: p.code, label: p.label,
+        biometricAuth: p.biometric_auth, maxUsers: p.max_users
+      })));
+    }
+
+    // GET /api/vendor/subscriptions/:id/users
+    if (segments[0] === "subscriptions" && segments[2] === "users" && method === "GET") {
+      const subId = parseInt(segments[1]);
+      const r = await client.query(
+        `SELECT id, name, email, role, avatar, created_at
+         FROM app_user WHERE subscription_id = $1 ORDER BY name`,
+        [subId]
+      );
+      return response(200, r.rows.map(u => ({
+        id: u.id, name: u.name, email: u.email, role: u.role,
+        avatar: u.avatar, createdAt: u.created_at
+      })));
+    }
+
+    // GET /api/vendor/subscriptions
+    if (segments[0] === "subscriptions" && !segments[1] && method === "GET") {
+      const r = await client.query(
+        `SELECT s.id, s.name, s.active, s.contact_email, s.created_at, s.updated_at,
+                sp.code AS plan_code, sp.label AS plan_label,
+                COALESCE(s.biometric_auth, sp.biometric_auth) AS biometric_auth,
+                s.biometric_auth AS biometric_override,
+                (SELECT COUNT(*) FROM app_user u WHERE u.subscription_id = s.id) AS user_count
+         FROM subscription s
+         JOIN subscription_plan sp ON sp.id = s.plan_id
+         ORDER BY s.id DESC`
+      );
+      return response(200, r.rows.map(mapSubscription));
+    }
+
+    // GET /api/vendor/subscriptions/:id
+    if (segments[0] === "subscriptions" && segments[1] && !segments[2] && method === "GET") {
+      const subId = parseInt(segments[1]);
+      const r = await client.query(
+        `SELECT s.id, s.name, s.active, s.contact_email, s.created_at, s.updated_at,
+                sp.code AS plan_code, sp.label AS plan_label,
+                COALESCE(s.biometric_auth, sp.biometric_auth) AS biometric_auth,
+                s.biometric_auth AS biometric_override,
+                (SELECT COUNT(*) FROM app_user u WHERE u.subscription_id = s.id) AS user_count
+         FROM subscription s
+         JOIN subscription_plan sp ON sp.id = s.plan_id
+         WHERE s.id = $1`,
+        [subId]
+      );
+      if (r.rowCount === 0) return response(404, { message: "Suscripción no encontrada" });
+      return response(200, mapSubscription(r.rows[0]));
+    }
+
+    // POST /api/vendor/subscriptions
+    if (segments[0] === "subscriptions" && !segments[1] && method === "POST") {
+      let body;
+      try { body = parseBody(event); } catch { return response(400, { message: "Body inválido" }); }
+      const { name, planCode, contactEmail, biometricAuth } = body || {};
+      if (!name || !planCode) return response(400, { message: "'name' y 'planCode' son requeridos" });
+
+      const planResult = await client.query(
+        `SELECT id FROM subscription_plan WHERE code = $1`, [planCode]
+      );
+      if (planResult.rowCount === 0) return response(400, { message: `Plan '${planCode}' no existe` });
+
+      const r = await client.query(
+        `INSERT INTO subscription (name, plan_id, biometric_auth, contact_email)
+         VALUES ($1, $2, $3, $4) RETURNING id`,
+        [name.trim(), planResult.rows[0].id,
+         biometricAuth === true ? true : biometricAuth === false ? false : null,
+         contactEmail || null]
+      );
+      return response(201, { id: r.rows[0].id, message: "Suscripción creada" });
+    }
+
+    // PUT /api/vendor/subscriptions/:id
+    if (segments[0] === "subscriptions" && segments[1] && !segments[2] && method === "PUT") {
+      let body;
+      try { body = parseBody(event); } catch { return response(400, { message: "Body inválido" }); }
+      const subId = parseInt(segments[1]);
+      const { name, planCode, contactEmail, biometricAuth, active } = body || {};
+
+      const sets = [];
+      const vals = [];
+      let i = 1;
+
+      if (name          !== undefined) { sets.push(`name = $${i++}`);           vals.push(name.trim()); }
+      if (contactEmail  !== undefined) { sets.push(`contact_email = $${i++}`);  vals.push(contactEmail || null); }
+      if (active        !== undefined) { sets.push(`active = $${i++}`);         vals.push(!!active); }
+      // biometricAuth: true/false = override; null = inherit from plan
+      if (biometricAuth !== undefined) {
+        sets.push(`biometric_auth = $${i++}`);
+        vals.push(biometricAuth === null ? null : !!biometricAuth);
+      }
+      if (planCode !== undefined) {
+        const planRes = await client.query(`SELECT id FROM subscription_plan WHERE code = $1`, [planCode]);
+        if (planRes.rowCount === 0) return response(400, { message: `Plan '${planCode}' no existe` });
+        sets.push(`plan_id = $${i++}`); vals.push(planRes.rows[0].id);
+      }
+      if (sets.length === 0) return response(400, { message: "Sin campos para actualizar" });
+
+      sets.push(`updated_at = NOW()`);
+      vals.push(subId);
+
+      const r = await client.query(
+        `UPDATE subscription SET ${sets.join(", ")} WHERE id = $${i} RETURNING id`, vals
+      );
+      if (r.rowCount === 0) return response(404, { message: "Suscripción no encontrada" });
+      return response(200, { message: "Suscripción actualizada" });
+    }
+
+    // DELETE /api/vendor/subscriptions/:id
+    if (segments[0] === "subscriptions" && segments[1] && !segments[2] && method === "DELETE") {
+      const subId = parseInt(segments[1]);
+      const usersCheck = await client.query(
+        `SELECT COUNT(*) AS cnt FROM app_user WHERE subscription_id = $1`, [subId]
+      );
+      if (parseInt(usersCheck.rows[0].cnt) > 0) {
+        return response(409, { message: "No se puede eliminar: la suscripción tiene usuarios activos" });
+      }
+      const r = await client.query(`DELETE FROM subscription WHERE id = $1 RETURNING id`, [subId]);
+      if (r.rowCount === 0) return response(404, { message: "Suscripción no encontrada" });
+      return response(200, { message: "Suscripción eliminada" });
+    }
+
+    return response(404, { message: "Ruta no encontrada" });
+  } catch (err) {
+    console.error("Vendor handler error:", err.message, err.stack);
+    return response(500, { message: "Error interno del servidor" });
+  } finally { client?.release(); }
+}
+
+function mapSubscription(r) {
+  return {
+    id:                r.id,
+    name:              r.name,
+    active:            r.active,
+    contactEmail:      r.contact_email,
+    planCode:          r.plan_code,
+    planLabel:         r.plan_label,
+    biometricAuth:     r.biometric_auth,     // effective value (override ?? plan default)
+    biometricOverride: r.biometric_override, // explicit override (null = inherit from plan)
+    userCount:         parseInt(r.user_count),
+    createdAt:         r.created_at,
+    updatedAt:         r.updated_at
+  };
 }
 
 // ════════════════════════════════════════════════════════════════════════════

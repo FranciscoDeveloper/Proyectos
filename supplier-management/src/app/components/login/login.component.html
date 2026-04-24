@@ -74,7 +74,8 @@
               placeholder="usuario@empresa.com"
               class="field-input"
               [class.invalid]="isInvalid('email')"
-              autocomplete="email" />
+              autocomplete="email"
+              (blur)="onEmailBlur()" />
           </div>
           <span class="field-error" *ngIf="isInvalid('email')">
             {{ form.get('email')?.hasError('required') ? 'El email es obligatorio.' : 'Ingresa un email válido.' }}
@@ -126,12 +127,12 @@
       </form>
 
       <!-- ── Biometric / WebAuthn login ── -->
-      <div class="bio-divider" *ngIf="bioSupported()">
+      <div class="bio-divider" *ngIf="showBioButton">
         <span>o</span>
       </div>
 
       <button class="btn-biometric"
-              *ngIf="bioSupported()"
+              *ngIf="showBioButton"
               type="button"
               [disabled]="bioLoading() || loading()"
               (click)="loginWithBiometric()">

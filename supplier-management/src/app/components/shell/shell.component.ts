@@ -122,9 +122,10 @@ export class ShellComponent {
   // ── Nav ───────────────────────────────────────────────────────────────────
 
   navItems = computed(() => {
-    const schemas     = this.auth.schemas();
-    const hasPayments = schemas.some(s => s.entity.key === 'payments');
-    const hasRecords  = schemas.some(s => s.entity.key === 'clinical-records');
+    const schemas        = this.auth.schemas();
+    const hasPayments    = schemas.some(s => s.entity.key === 'payments');
+    const hasRecords     = schemas.some(s => s.entity.key === 'clinical-records');
+    const isSuperadmin   = this.auth.user()?.role === 'superadmin';
     return [
       { label: 'Dashboard', icon: 'grid',      route: '/app/dashboard' },
       ...schemas.map(s => ({
@@ -136,9 +137,10 @@ export class ShellComponent {
             ? '/app/clinical/' + s.entity.key
             : '/app/entity/' + s.entity.key
       })),
-      ...(hasRecords  ? [{ label: 'Reportes',   icon: 'bar-chart',   route: '/app/reports'     }] : []),
-      ...(hasPayments ? [{ label: 'Comisiones', icon: 'dollar-sign', route: '/app/commissions' }] : []),
-      { label: 'Chat', icon: 'chat', route: '/app/chat' }
+      ...(hasRecords    ? [{ label: 'Reportes',        icon: 'bar-chart',   route: '/app/reports'     }] : []),
+      ...(hasPayments   ? [{ label: 'Comisiones',       icon: 'dollar-sign', route: '/app/commissions' }] : []),
+      { label: 'Chat',  icon: 'chat',                                        route: '/app/chat'        },
+      ...(isSuperadmin  ? [{ label: 'Vendor Admin',     icon: 'monitor',     route: '/app/vendor'      }] : [])
     ];
   });
 }
