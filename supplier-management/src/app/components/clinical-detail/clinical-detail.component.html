@@ -98,6 +98,37 @@
         </svg>
         Nueva Atención
       </a>
+
+      <!-- ── Audio recorder button ── -->
+      <button class="btn btn-sm"
+              [class.btn-record]="!recorder.isRecording"
+              [class.btn-stop]="recorder.isRecording"
+              [disabled]="recorder.state() === 'saving'"
+              (click)="toggleRecording()"
+              [title]="recorder.isRecording ? 'Detener grabación' : 'Grabar consulta'">
+        <!-- Play icon -->
+        <svg *ngIf="!recorder.isRecording && recorder.state() !== 'saving'"
+             viewBox="0 0 24 24" fill="currentColor" stroke="none">
+          <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+          <polygon points="10,8 16,12 10,16"/>
+        </svg>
+        <!-- Stop icon -->
+        <svg *ngIf="recorder.isRecording"
+             viewBox="0 0 24 24" fill="currentColor" stroke="none">
+          <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+          <rect x="9" y="9" width="6" height="6" rx="1"/>
+        </svg>
+        <!-- Saving spinner -->
+        <span *ngIf="recorder.state() === 'saving'" class="spinner-xs"></span>
+
+        <span *ngIf="recorder.isRecording" class="rec-dot"></span>
+        <span>
+          {{ recorder.state() === 'saving' ? 'Guardando…'
+           : recorder.isRecording ? AudioRecorderService.formatDuration(recorder.duration())
+           : 'Grabar' }}
+        </span>
+      </button>
+      <p *ngIf="recorder.error()" class="rec-error">{{ recorder.error() }}</p>
       <button class="btn btn-share btn-sm" (click)="showShare.set(true)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
