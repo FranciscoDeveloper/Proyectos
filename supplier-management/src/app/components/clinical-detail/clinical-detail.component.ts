@@ -5,6 +5,7 @@ import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { FieldDefinition } from '../../models/entity-schema.model';
 import { ChatService, ChatUser } from '../../services/chat.service';
+import { AudioRecorderService } from '../../services/audio-recorder.service';
 
 interface VitalSign {
   label: string;
@@ -32,6 +33,8 @@ export class ClinicalDetailComponent {
   private schemaSvc = inject(SchemaService);
   private crudSvc   = inject(GenericCrudService);
   protected chatSvc = inject(ChatService);
+  readonly recorder = inject(AudioRecorderService);
+  readonly AudioRecorderService = AudioRecorderService;
 
   readonly entityKey = this.route.snapshot.paramMap.get('entityKey')!;
   readonly id        = Number(this.route.snapshot.paramMap.get('id')!);
@@ -386,6 +389,17 @@ export class ClinicalDetailComponent {
 
     const tab = window.open('', '_blank');
     if (tab) { tab.document.write(html); tab.document.close(); }
+  }
+
+  // ── Audio recording ───────────────────────────────────────────────────────
+
+  toggleRecording(): void {
+    if (this.recorder.isRecording) {
+      this.recorder.stop();
+    } else {
+      const name = this.patient()?.fullName ?? 'paciente';
+      this.recorder.start(name);
+    }
   }
 
   // ── Share record ──────────────────────────────────────────────────────────
