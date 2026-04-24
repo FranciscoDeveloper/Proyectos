@@ -358,6 +358,63 @@
   50%       { opacity: 0.6; }
 }
 
+/* ===== BIOMETRIC SETUP / UNLOCK VARIANTS ===== */
+.zk-bio-unlock-banner {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-bottom: 1px solid #93c5fd;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+
+  .zk-banner-icon {
+    width: 40px;
+    height: 40px;
+    background: #dbeafe;
+    border: 1.5px solid #60a5fa;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    svg { width: 18px; height: 18px; color: #1d4ed8; }
+  }
+
+  .zk-banner-text {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    strong { font-size: 13px; font-weight: 700; color: #1e3a8a; }
+    span   { font-size: 12px; color: #1d4ed8; line-height: 1.4; }
+  }
+}
+
+.zk-bio-btn {
+  background: #2563eb !important;
+  &:hover:not(:disabled) { background: #1d4ed8 !important; }
+  svg { width: 15px; height: 15px; }
+}
+
+.zk-cert-btn {
+  background: rgba(5,150,105,0.15) !important;
+  color: #065f46 !important;
+  border: 1px solid #6ee7b7 !important;
+  &:hover:not(:disabled) { background: rgba(5,150,105,0.25) !important; }
+}
+
+.zk-banner-ok {
+  width: 100%;
+  font-size: 12px;
+  color: #065f46;
+  font-weight: 600;
+  margin: 0;
+  padding-top: 4px;
+}
+
 /* ===== ZK SETUP BANNER (first time) ===== */
 .zk-setup-banner {
   background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);

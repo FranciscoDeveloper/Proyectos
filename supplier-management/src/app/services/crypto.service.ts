@@ -68,25 +68,61 @@ interface ZkCertificate {
   key:     string; // base64-encoded raw 256-bit AES key
 }
 
+/** localStorage key that records how the ZK key was last unlocked */
+const KEY_SOURCE_SK = 'zk_source'; // 'prf' | 'certificate'
+
 @Injectable({ providedIn: 'root' })
 export class CryptoService {
-  private readonly _key      = signal<CryptoKey | null>(null);
-  private readonly _hasThumb = signal(!!localStorage.getItem(THUMB_SK));
+  private readonly _key       = signal<CryptoKey | null>(null);
+  private readonly _hasThumb  = signal(!!localStorage.getItem(THUMB_SK));
+  /** 'prf' when key came from WebAuthn PRF, 'certificate' otherwise */
+  readonly keySource = signal<'prf' | 'certificate' | null>(
+    localStorage.getItem(KEY_SOURCE_SK) as 'prf' | 'certificate' | null
+  );
 
   /** True when the AES-256-GCM key is loaded in memory */
   readonly isReady     = computed(() => !!this._key());
   /**
    * True when a certificate thumbprint is registered on this device but the
    * in-memory key was lost (page reload). Shows the upload-certificate banner.
+   * Not shown when the key source is PRF — in that case the shell prompts
+   * biometric re-authentication instead.
    */
-  readonly needsUnlock = computed(() => this._hasThumb() && !this._key());
+  readonly needsUnlock = computed(
+    () => this._hasThumb() && !this._key() && this.keySource() !== 'prf'
+  );
   /**
-   * True when the user has never generated a ZK certificate on this device.
-   * Shows the initial setup banner.
+   * True when the user should re-authenticate via biometric to restore the ZK key.
+   * Only shown when the key was previously derived via WebAuthn PRF.
    */
-  readonly needsSetup  = computed(() => !this._hasThumb() && !this._key());
+  readonly needsBiometricUnlock = computed(
+    () => this.keySource() === 'prf' && !this._key()
+  );
+  /**
+   * True when the user has never generated a ZK certificate on this device
+   * and has no PRF source. Shows the initial setup banner.
+   */
+  readonly needsSetup  = computed(
+    () => !this._hasThumb() && !this._key() && this.keySource() !== 'prf'
+  );
 
-  // ─── Public API ──────────────────────────────────────────────────────────────
+  // ── WebAuthn PRF integration ──────────────────────────────────────────────────
+
+  /**
+   * Called after a successful WebAuthn authentication that returned a PRF output.
+   * Activates the derived CryptoKey as the ZK encryption key.
+   * Marks the source as 'prf' so the shell knows to prompt biometrics on reload
+   * instead of certificate upload.
+   */
+  loadKeyFromPrf(cryptoKey: CryptoKey): void {
+    this._key.set(cryptoKey);
+    this._hasThumb.set(true);
+    this.keySource.set('prf');
+    localStorage.setItem(KEY_SOURCE_SK, 'prf');
+    localStorage.setItem(THUMB_SK, 'prf-managed'); // presence marker
+  }
+
+  // ── Public API ──────────────────────────────────────────────────────────────
 
   getEncryptedFields(entityKey: string): string[] {
     return ENCRYPTED_FIELDS[entityKey] ?? [];
@@ -175,18 +211,20 @@ export class CryptoService {
   }
 
   /**
-   * Called on logout: wipes the in-memory key but keeps the thumbprint so the
-   * upload banner appears on next login instead of the setup banner.
+   * Called on logout: wipes the in-memory key.
+   * Keeps the thumbprint / PRF source so the correct unlock banner shows on next login.
    */
   clearKey(): void {
     this._key.set(null);
   }
 
-  /** Clears both the in-memory key and the stored thumbprint (certificate reset). */
+  /** Clears both the in-memory key and ALL stored hints (certificate reset or full logout). */
   clearHint(): void {
     this._key.set(null);
     this._hasThumb.set(false);
+    this.keySource.set(null);
     localStorage.removeItem(THUMB_SK);
+    localStorage.removeItem(KEY_SOURCE_SK);
   }
 
   // ─── Encrypt / Decrypt primitives ────────────────────────────────────────────
