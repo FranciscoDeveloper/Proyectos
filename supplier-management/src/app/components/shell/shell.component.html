@@ -1,9 +1,16 @@
 <div class="app-shell">
 
+  <!-- Mobile backdrop -->
+  <div class="sidebar-backdrop"
+       [class.visible]="sidebarOpen() && isMobile()"
+       (click)="closeSidebar()"></div>
+
   <!-- ── Sidebar ── -->
-  <aside class="sidebar" [class.collapsed]="!sidebarOpen()">
+  <aside class="sidebar" [class.collapsed]="!sidebarOpen()" [class.mobile-open]="sidebarOpen() && isMobile()">
+
+    <!-- Header: brand + toggle -->
     <div class="sidebar-header">
-      <div class="brand">
+      <div class="brand" [title]="!sidebarOpen() ? 'DataHub' : ''">
         <div class="brand-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -12,22 +19,24 @@
         </div>
         <span class="brand-name">DataHub</span>
       </div>
-      <button class="toggle-btn" (click)="toggleSidebar()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <line x1="3" y1="12" x2="21" y2="12"/>
-          <line x1="3" y1="18" x2="21" y2="18"/>
+
+      <button class="toggle-btn" (click)="toggleSidebar()" [title]="sidebarOpen() ? 'Colapsar menú' : 'Expandir menú'">
+        <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6"/>
         </svg>
       </button>
     </div>
 
+    <!-- Navigation -->
     <nav class="sidebar-nav">
-      <div class="nav-section-label">Menú</div>
+      <div class="nav-section-label"><span>Menú</span></div>
       <ul>
         <li *ngFor="let item of navItems()">
-          <a [routerLink]="item.route" routerLinkActive="active"
+          <a [routerLink]="item.route"
+             routerLinkActive="active"
              [routerLinkActiveOptions]="{exact: item.route === '/app/dashboard'}"
-             class="nav-item">
+             class="nav-item"
+             [title]="!sidebarOpen() ? item.label : ''">
             <span class="nav-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="item.icon === 'grid'">
                 <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
@@ -81,8 +90,14 @@
                 <line x1="12" y1="20" x2="12" y2="4"/>
                 <line x1="6"  y1="20" x2="6"  y2="14"/>
               </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="item.icon === 'monitor'">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+              <!-- Fallback icon -->
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                *ngIf="item.icon !== 'grid' && item.icon !== 'users' && item.icon !== 'package' && item.icon !== 'heart' && item.icon !== 'calendar' && item.icon !== 'stethoscope' && item.icon !== 'clipboard' && item.icon !== 'brain' && item.icon !== 'tooth' && item.icon !== 'chat' && item.icon !== 'dollar-sign' && item.icon !== 'bar-chart'">
+                *ngIf="!['grid','users','package','heart','calendar','stethoscope','clipboard','brain','tooth','chat','dollar-sign','bar-chart','monitor'].includes(item.icon)">
                 <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
                 <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
               </svg>
@@ -93,9 +108,9 @@
       </ul>
     </nav>
 
-    <!-- User info + logout -->
+    <!-- Footer: user info + logout -->
     <div class="sidebar-footer">
-      <div class="user-info">
+      <div class="user-info" [title]="!sidebarOpen() ? (auth.user()?.name ?? '') : ''">
         <div class="user-avatar">{{ auth.user()?.avatar ?? '?' }}</div>
         <div class="user-details">
           <span class="user-name">{{ auth.user()?.name ?? '' }}</span>
@@ -115,6 +130,7 @@
   <!-- ── Main content ── -->
   <div class="main-wrapper">
     <header class="top-bar">
+      <!-- Mobile hamburger -->
       <button class="mobile-toggle" (click)="toggleSidebar()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="3" y1="6" x2="21" y2="6"/>
@@ -165,7 +181,6 @@
         <span *ngIf="!webauthn.isSupported()">Genera tu certificado de cifrado personal y guárdalo en un lugar seguro.</span>
         <span *ngIf="webauthn.isSupported()">Registra tu huella dactilar para cifrado automático, o genera un certificado JSON.</span>
       </div>
-      <!-- Fingerprint registration (preferred) -->
       <button class="zk-setup-btn zk-bio-btn" *ngIf="webauthn.isSupported()"
               (click)="registerBiometric()" [disabled]="bioRegistering()">
         <span class="spinner-sm" *ngIf="bioRegistering()"></span>
@@ -179,7 +194,6 @@
         </svg>
         {{ bioRegistering() ? 'Esperando huella…' : 'Registrar Huella Dactilar' }}
       </button>
-      <!-- Certificate fallback -->
       <button class="zk-setup-btn zk-cert-btn" (click)="setupZk()" [disabled]="zkSetting() || bioRegistering()">
         <span class="spinner-sm" *ngIf="zkSetting()"></span>
         <svg *ngIf="!zkSetting()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -193,7 +207,7 @@
       <p class="zk-banner-ok"    *ngIf="bioRegisterOk()">Huella registrada. Cifrado ZK activo.</p>
     </div>
 
-    <!-- ── ZK biometric re-unlock banner (page reload — PRF key) ── -->
+    <!-- ── ZK biometric re-unlock banner ── -->
     <div class="zk-bio-unlock-banner" *ngIf="cryptoSvc.needsBiometricUnlock()">
       <div class="zk-banner-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -224,7 +238,7 @@
       <p class="zk-banner-error" *ngIf="bioUnlockError()">{{ bioUnlockError() }}</p>
     </div>
 
-    <!-- ── ZK unlock banner (page reload — certificate required) ── -->
+    <!-- ── ZK unlock banner (certificate upload) ── -->
     <div class="zk-unlock-banner" *ngIf="cryptoSvc.needsUnlock()">
       <div class="zk-banner-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

@@ -1,9 +1,11 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject, HostListener } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { CryptoService } from '../../services/crypto.service';
 import { WebAuthnService } from '../../services/webauthn.service';
+
+const SIDEBAR_KEY = 'sidebar_open';
 
 @Component({
   selector: 'app-shell',
@@ -17,7 +19,17 @@ export class ShellComponent {
   readonly cryptoSvc = inject(CryptoService);
   readonly webauthn  = inject(WebAuthnService);
 
-  sidebarOpen = signal(true);
+  isMobile    = signal(window.innerWidth <= 768);
+  sidebarOpen = signal(this._loadSidebarState());
+
+  @HostListener('window:resize')
+  onResize() { this.isMobile.set(window.innerWidth <= 768); }
+
+  private _loadSidebarState(): boolean {
+    if (window.innerWidth <= 768) return false;
+    const stored = localStorage.getItem(SIDEBAR_KEY);
+    return stored === null ? true : stored === 'true';
+  }
 
   // ZK setup state (certificate flow)
   zkSetting   = signal(false);
@@ -35,8 +47,15 @@ export class ShellComponent {
   bioUnlocking      = signal(false);
   bioUnlockError    = signal('');
 
-  toggleSidebar() { this.sidebarOpen.update(v => !v); }
-  logout()        { this.auth.logout(); }
+  toggleSidebar() {
+    const next = !this.sidebarOpen();
+    this.sidebarOpen.set(next);
+    if (!this.isMobile()) localStorage.setItem(SIDEBAR_KEY, String(next));
+  }
+
+  closeSidebar() { this.sidebarOpen.set(false); }
+
+  logout() { this.auth.logout(); }
 
   getUserFirstName(): string {
     return this.auth.user()?.name?.split(' ')[0] ?? '';
