@@ -4,6 +4,18 @@
   margin: 0 auto;
 }
 
+/* ── Breadcrumb ── */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+.bc-link    { font-size: 0.8rem; color: #6366f1; text-decoration: none; &:hover { text-decoration: underline; } }
+.bc-sep     { font-size: 0.8rem; color: #cbd5e1; }
+.bc-current { font-size: 0.8rem; color: #64748b; font-weight: 500; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* ── Header ── */
 .page-header {
   margin-bottom: 1.75rem;

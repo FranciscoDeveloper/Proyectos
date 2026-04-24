@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, Signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SchemaService } from '../../services/schema.service';
@@ -77,20 +77,47 @@ export class ClinicalRecordComponent {
     return { total, critical, active };
   });
 
+  readonly isLoading: Signal<boolean> = computed(() =>
+    this.crudSvc.isLoading(this.entityKey)()
+  );
+  readonly skeletonRows = Array(6).fill(0);
+
   readonly activeFilter = signal('');
+  readonly sortKey      = signal<'name' | 'lastVisit' | 'status'>('name');
+  readonly sortDir      = signal<'asc' | 'desc'>('asc');
 
   readonly filteredRecords = computed(() => {
-    const recs = this.records();
     const f = this.activeFilter().toLowerCase();
-    if (!f) return recs;
-    return recs.filter(r =>
-      r.title.toLowerCase().includes(f) ||
-      r.subtitle.toLowerCase().includes(f) ||
-      r.doctor.toLowerCase().includes(f) ||
-      r.statusLabel.toLowerCase().includes(f)
-    );
+    let recs = this.records();
+    if (f) {
+      recs = recs.filter(r =>
+        r.title.toLowerCase().includes(f) ||
+        r.subtitle.toLowerCase().includes(f) ||
+        r.doctor.toLowerCase().includes(f) ||
+        r.statusLabel.toLowerCase().includes(f)
+      );
+    }
+    const key = this.sortKey();
+    const dir = this.sortDir();
+    return [...recs].sort((a, b) => {
+      let av: any, bv: any;
+      if (key === 'name')       { av = a.title;     bv = b.title;     }
+      else if (key === 'lastVisit') { av = a.lastVisit || ''; bv = b.lastVisit || ''; }
+      else                      { av = a.statusLabel; bv = b.statusLabel; }
+      const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+      return dir === 'asc' ? cmp : -cmp;
+    });
   });
 
   setFilter(v: string) { this.activeFilter.set(v); }
-  clearFilter() { this.activeFilter.set(''); }
+  clearFilter()        { this.activeFilter.set(''); }
+
+  setSort(key: 'name' | 'lastVisit' | 'status') {
+    if (this.sortKey() === key) {
+      this.sortDir.update(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      this.sortKey.set(key);
+      this.sortDir.set('asc');
+    }
+  }
 }

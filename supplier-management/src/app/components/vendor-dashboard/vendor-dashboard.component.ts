@@ -194,17 +194,30 @@ export class VendorDashboardComponent implements OnInit {
     }
   }
 
-  // ── Quick biometric toggle ────────────────────────────────────────────────
+  // ── Quick biometric toggle (with confirmation) ───────────────────────────
 
-  async toggleBiometric(sub: Subscription): Promise<void> {
-    const newVal = !sub.effectiveBiometricAuth;
+  confirmToggleSub   = signal<Subscription | null>(null);
+  confirmToggleValue = signal(false);
+  confirmToggling    = signal(false);
+
+  askToggleBiometric(sub: Subscription): void {
+    this.confirmToggleSub.set(sub);
+    this.confirmToggleValue.set(!sub.effectiveBiometricAuth);
+  }
+
+  cancelToggle(): void { this.confirmToggleSub.set(null); }
+
+  async executeToggle(): Promise<void> {
+    const sub = this.confirmToggleSub();
+    if (!sub) return;
+    this.confirmToggling.set(true);
     try {
-      const updated = await this.svc.updateSubscription(sub.id, { biometricAuth: newVal });
+      const updated = await this.svc.updateSubscription(sub.id, { biometricAuth: this.confirmToggleValue() });
       this.subscriptions.update(list => list.map(s => s.id === updated.id ? updated : s));
       if (this.detailSub()?.id === updated.id) this.detailSub.set(updated);
-    } catch {
-      // silent — user can use edit modal for more control
-    }
+    } catch { /* silent */ }
+    this.confirmToggling.set(false);
+    this.confirmToggleSub.set(null);
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

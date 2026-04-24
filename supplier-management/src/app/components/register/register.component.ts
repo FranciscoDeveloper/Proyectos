@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -34,6 +34,28 @@ export class RegisterComponent {
     confirmPassword: ['', [Validators.required]],
     termsAccepted:   [false, [Validators.requiredTrue]]
   }, { validators: passwordMatch });
+
+  // ── Password strength ─────────────────────────────────────────────────────
+
+  passwordStrength = computed((): { score: number; label: string; color: string } => {
+    const v = this.form.get('password')?.value ?? '';
+    if (!v) return { score: 0, label: '', color: '' };
+    let score = 0;
+    if (v.length >= 8)                        score++;
+    if (v.length >= 12)                       score++;
+    if (/[A-Z]/.test(v))                      score++;
+    if (/[0-9]/.test(v))                      score++;
+    if (/[^A-Za-z0-9]/.test(v))              score++;
+    const map = [
+      { score: 0, label: '',         color: '' },
+      { score: 1, label: 'Muy débil', color: '#ef4444' },
+      { score: 2, label: 'Débil',    color: '#f97316' },
+      { score: 3, label: 'Regular',  color: '#eab308' },
+      { score: 4, label: 'Buena',    color: '#22c55e' },
+      { score: 5, label: 'Muy fuerte', color: '#10b981' },
+    ];
+    return map[score] ?? map[4];
+  });
 
   isInvalid(field: string): boolean {
     const ctrl = this.form.get(field);

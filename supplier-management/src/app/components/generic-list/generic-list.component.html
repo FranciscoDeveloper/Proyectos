@@ -1,6 +1,28 @@
 <div class="list-page" *ngIf="schema(); else notFound">
+
+  <!-- ── Skeleton loader ── -->
+  <ng-container *ngIf="isLoading()">
+    <div class="page-header">
+      <div class="skel skel-title"></div>
+      <div class="skel skel-btn"></div>
+    </div>
+    <div class="table-card">
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead><tr><th class="th-avatar"></th><th *ngFor="let _ of [1,2,3,4]"><div class="skel skel-th"></div></th><th class="th-actions"></th></tr></thead>
+          <tbody>
+            <tr *ngFor="let _ of skeletonRows" class="table-row">
+              <td class="td-avatar"><div class="skel skel-avatar"></div></td>
+              <td *ngFor="let _ of [1,2,3,4]"><div class="skel skel-cell"></div></td>
+              <td class="td-actions"><div class="skel skel-actions"></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-container>
   <!-- ── Page Header ── -->
-  <div class="page-header">
+  <div class="page-header" *ngIf="!isLoading()">
     <div class="header-info">
       <h1 class="page-title">{{ schema()!.entity.plural }}</h1>
       <span class="record-count">{{ filteredItems().length }} registros</span>
@@ -12,7 +34,7 @@
   </div>
 
   <!-- ── Filters ── -->
-  <div class="filters-bar">
+  <div class="filters-bar" *ngIf="!isLoading()">
     <div class="search-wrap" *ngIf="searchFilterField()">
       <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -41,7 +63,7 @@
   </div>
 
   <!-- ── Table ── -->
-  <div class="table-card" *ngIf="paginatedItems().length > 0; else emptyState">
+  <div class="table-card" *ngIf="!isLoading() && (paginatedItems().length > 0); else emptyState">
     <div class="table-wrapper">
       <table class="data-table">
         <thead>
@@ -52,9 +74,13 @@
                 [class.sortable]="f.sortable"
                 [class.sort-asc]="sortField() === f.name && sortDir() === 'asc'"
                 [class.sort-desc]="sortField() === f.name && sortDir() === 'desc'"
-                (click)="f.sortable && setSort(f.name)">
+                [attr.aria-sort]="sortField() === f.name ? (sortDir() === 'asc' ? 'ascending' : 'descending') : (f.sortable ? 'none' : null)"
+                [attr.tabindex]="f.sortable ? 0 : null"
+                (click)="f.sortable && setSort(f.name)"
+                (keydown.enter)="f.sortable && setSort(f.name)"
+                (keydown.space)="f.sortable && setSort(f.name)">
                 {{ f.label }}
-                <svg *ngIf="f.sortable" class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg *ngIf="f.sortable" class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <polyline points="6 9 12 15 18 9"/>
                 </svg>
               </th>
@@ -142,9 +168,9 @@
     </div>
   </div>
 
-  <!-- ── Empty state ── -->
+  <!-- ── Empty state (not shown while loading) ── -->
   <ng-template #emptyState>
-    <div class="empty-state">
+    <div class="empty-state" *ngIf="!isLoading()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
@@ -168,19 +194,20 @@
 </ng-template>
 
 <!-- ── Delete Modal ── -->
-<div class="modal-backdrop" *ngIf="deleteModalId() !== null" (click)="cancelDelete()">
+<div class="modal-backdrop" *ngIf="deleteModalId() !== null" (click)="cancelDelete()"
+     role="dialog" aria-modal="true" aria-labelledby="del-modal-title-list">
   <div class="modal" (click)="$event.stopPropagation()">
-    <div class="modal-icon">
+    <div class="modal-icon" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
         <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
       </svg>
     </div>
-    <h3>Confirmar eliminación</h3>
+    <h3 id="del-modal-title-list">Confirmar eliminación</h3>
     <p>¿Estás seguro de que deseas eliminar este {{ getEntitySingular() | lowercase }}? Esta acción no se puede deshacer.</p>
     <div class="modal-actions">
       <button class="btn-ghost" (click)="cancelDelete()">Cancelar</button>
-      <button class="btn-danger" (click)="executeDelete()">Eliminar</button>
+      <button class="btn-danger" (click)="executeDelete()" cdkFocusInitial>Eliminar</button>
     </div>
   </div>
 </div>

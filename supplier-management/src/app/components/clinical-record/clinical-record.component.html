@@ -39,7 +39,13 @@
     </div>
   </div>
 
-  <!-- ── Search ── -->
+  <!-- ── Skeleton ── -->
+  <div class="cr-skeleton" *ngIf="isLoading()">
+    <div class="cr-skel-card" *ngFor="let _ of skeletonRows"></div>
+  </div>
+
+  <!-- ── Search + Sort toolbar ── -->
+  <div class="search-sort-row" *ngIf="!isLoading()">
   <div class="search-bar">
     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -47,15 +53,48 @@
     <input type="text" class="search-input" placeholder="Buscar por nombre, ID, médico…"
            [value]="activeFilter()"
            (input)="setFilter($any($event.target).value)">
-    <button class="search-clear" *ngIf="activeFilter()" (click)="clearFilter()">
+    <button class="search-clear" *ngIf="activeFilter()" (click)="clearFilter()" aria-label="Limpiar búsqueda">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
       </svg>
     </button>
   </div>
 
+  <!-- Sort buttons -->
+  <div class="sort-bar" role="group" aria-label="Ordenar fichas">
+    <span class="sort-label">Ordenar:</span>
+    <button class="sort-btn" [class.active]="sortKey() === 'name'"
+            (click)="setSort('name')"
+            [attr.aria-pressed]="sortKey() === 'name'">
+      Nombre
+      <svg *ngIf="sortKey() === 'name'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"
+           [class.rotated]="sortDir() === 'desc'">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </button>
+    <button class="sort-btn" [class.active]="sortKey() === 'lastVisit'"
+            (click)="setSort('lastVisit')"
+            [attr.aria-pressed]="sortKey() === 'lastVisit'">
+      Última visita
+      <svg *ngIf="sortKey() === 'lastVisit'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"
+           [class.rotated]="sortDir() === 'desc'">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </button>
+    <button class="sort-btn" [class.active]="sortKey() === 'status'"
+            (click)="setSort('status')"
+            [attr.aria-pressed]="sortKey() === 'status'">
+      Estado
+      <svg *ngIf="sortKey() === 'status'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"
+           [class.rotated]="sortDir() === 'desc'">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </button>
+  </div>
+  </div><!-- end search-sort-row -->
+
   <!-- ── Patient cards ── -->
-  <div class="cards-grid" *ngIf="filteredRecords().length > 0">
+  <div class="cards-grid" *ngIf="!isLoading() && filteredRecords().length > 0">
     <a *ngFor="let rec of filteredRecords()"
        [routerLink]="['/app/clinical', entityKey, rec.id]"
        class="patient-card"
@@ -121,16 +160,11 @@
         <span *ngFor="let a of rec.allergies" class="allergy-tag">{{ a }}</span>
       </div>
 
-      <!-- View action -->
-      <div class="card-footer">
-        <span class="view-link">Ver ficha completa →</span>
-      </div>
-
     </a>
   </div>
 
   <!-- Empty state -->
-  <div class="empty-state" *ngIf="filteredRecords().length === 0">
+  <div class="empty-state" *ngIf="!isLoading() && filteredRecords().length === 0">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
       <rect x="9" y="3" width="6" height="4" rx="1" ry="1"/>

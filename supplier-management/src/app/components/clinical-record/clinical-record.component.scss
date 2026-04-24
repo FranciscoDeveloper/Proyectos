@@ -351,3 +351,61 @@
   color: #374151;
   &:hover { background: #f9fafb; }
 }
+
+/* ── Search + sort row ── */
+.search-sort-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+
+.sort-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sort-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  svg { width: 12px; height: 12px; transition: transform 0.2s; }
+  svg.rotated { transform: rotate(180deg); }
+  &:hover { border-color: #6366f1; color: #6366f1; }
+  &.active { border-color: #6366f1; background: #ede9fe; color: #6366f1; font-weight: 600; }
+}
+
+/* ── Skeleton loader ── */
+@keyframes cr-shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+.cr-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.cr-skel-card {
+  height: 220px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 600px 100%;
+  animation: cr-shimmer 1.4s infinite;
+}

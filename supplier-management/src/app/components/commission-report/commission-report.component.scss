@@ -391,3 +391,79 @@
     span:last-child { display: none; }
   }
 }
+
+/* ── Tabular numbers for amounts ── */
+.dc-amount, .dc-comm, .total-val, .total-value, .commission-total {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ── Pay-all confirm modal ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9000;
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 2rem;
+  width: min(420px, 90vw);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+
+  h3 { font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0; }
+  p  { font-size: 0.875rem; color: #475569; line-height: 1.6; margin: 0; }
+}
+
+.modal-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  svg { width: 26px; height: 26px; }
+
+  &.pay-icon { background: #ecfdf5; svg { color: #059669; } }
+}
+
+.pay-amount {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  color: #059669 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  justify-content: center;
+
+  button { flex: 1; padding: 0.625rem 1rem; border-radius: 10px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+}
+
+.btn-ghost {
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  &:hover { border-color: #94a3b8; }
+}
+
+.btn-pay-confirm {
+  border: none;
+  background: #059669;
+  color: #fff;
+  &:hover { background: #047857; }
+}

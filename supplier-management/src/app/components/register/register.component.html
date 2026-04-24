@@ -160,6 +160,18 @@
                   }
                 </button>
               </div>
+              @if (form.get('password')?.value) {
+                <div class="pw-strength">
+                  <div class="pw-strength-bar">
+                    <span class="pw-strength-fill"
+                          [style.width.%]="(passwordStrength().score / 5) * 100"
+                          [style.background]="passwordStrength().color"></span>
+                  </div>
+                  <span class="pw-strength-label" [style.color]="passwordStrength().color">
+                    {{ passwordStrength().label }}
+                  </span>
+                </div>
+              }
               @if (isInvalid('password')) {
                 <span class="rp-error">La contraseña debe tener al menos 8 caracteres</span>
               }

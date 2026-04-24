@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -13,7 +13,7 @@ import { EntitySchema, FieldDefinition } from '../../models/entity-schema.model'
   templateUrl: './generic-list.component.html',
   styleUrl: './generic-list.component.scss'
 })
-export class GenericListComponent implements OnInit {
+export class GenericListComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private schemaService = inject(SchemaService);
@@ -28,6 +28,12 @@ export class GenericListComponent implements OnInit {
   currentPage = signal(1);
   deleteModalId = signal<number | null>(null);
   readonly pageSize = 8;
+
+  isLoading = computed(() => this.crudService.isLoading(this.entityKey())());
+  skeletonRows = Array(6).fill(0);
+
+  @HostListener('document:keydown.escape')
+  onEscape() { this.cancelDelete(); }
 
   listFields = computed(() => this.schema()?.fields.filter(f => f.showInList) ?? []);
   titleField = computed(() => this.schema()?.fields.find(f => f.isTitle));
@@ -126,6 +132,8 @@ export class GenericListComponent implements OnInit {
       this.deleteModalId.set(null);
     }
   }
+
+  ngOnDestroy() {}
 
   prevPage() { this.currentPage.update(p => p - 1); }
   nextPage() { this.currentPage.update(p => p + 1); }

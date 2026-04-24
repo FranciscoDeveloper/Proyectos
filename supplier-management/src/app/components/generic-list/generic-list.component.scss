@@ -375,3 +375,22 @@
     .btn-danger { flex: 1; }
   }
 }
+
+/* ── Skeleton loader ── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+.skel {
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite;
+}
+.skel-title   { height: 28px; width: 200px; }
+.skel-btn     { height: 36px; width: 120px; border-radius: 9px; }
+.skel-th      { height: 12px; width: 80%;  }
+.skel-avatar  { width: 36px; height: 36px; border-radius: 10px; }
+.skel-cell    { height: 14px; width: 85%; }
+.skel-actions { height: 28px; width: 60px; border-radius: 8px; }

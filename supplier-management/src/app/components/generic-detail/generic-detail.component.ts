@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SchemaService } from '../../services/schema.service';
@@ -28,6 +28,15 @@ export class GenericDetailComponent implements OnInit {
 
   titleField = computed(() => this.schema()?.fields.find(f => f.isTitle));
   subtitleField = computed(() => this.schema()?.fields.find(f => f.isSubtitle));
+
+  recordTitle = computed(() => {
+    const tf = this.titleField();
+    const rec = this.record();
+    return tf && rec ? String(rec[tf.name] ?? '') : '';
+  });
+
+  @HostListener('document:keydown.escape')
+  onEscape() { if (this.deleteModal()) this.cancelDelete(); }
   detailFields = computed(() => this.schema()?.fields.filter(f => f.showInDetail && !f.isTitle && !f.isSubtitle) ?? []);
 
   ngOnInit() {

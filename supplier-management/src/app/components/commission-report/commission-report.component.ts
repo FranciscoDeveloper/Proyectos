@@ -36,9 +36,10 @@ function colorForName(name: string): string {
 export class CommissionReportComponent implements OnInit {
   private crud = inject(GenericCrudService);
 
-  filterStatus = signal<FilterStatus>('all');
-  expandedProf = signal<string | null>(null);
-  paying       = signal<Set<number>>(new Set());
+  filterStatus        = signal<FilterStatus>('all');
+  expandedProf        = signal<string | null>(null);
+  paying              = signal<Set<number>>(new Set());
+  confirmPayAllProf   = signal<ProfCommission | null>(null);
 
   private _payments = this.crud.getAll('payments');
 
@@ -139,11 +140,24 @@ export class CommissionReportComponent implements OnInit {
     }, 600);
   }
 
-  markAllPending(prof: ProfCommission): void {
+  askPayAll(prof: ProfCommission): void {
+    this.confirmPayAllProf.set(prof);
+  }
+
+  cancelPayAll(): void {
+    this.confirmPayAllProf.set(null);
+  }
+
+  confirmPayAll(): void {
+    const prof = this.confirmPayAllProf();
+    if (!prof) return;
     const pending = prof.payments.filter(p => p['commissionStatus'] === 'pendiente');
-    for (const p of pending) {
-      this.markPaid(p['id'] as number);
-    }
+    for (const p of pending) this.markPaid(p['id'] as number);
+    this.confirmPayAllProf.set(null);
+  }
+
+  markAllPending(prof: ProfCommission): void {
+    this.askPayAll(prof);
   }
 
   isPaying(id: number): boolean {

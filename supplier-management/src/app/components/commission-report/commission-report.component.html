@@ -85,7 +85,7 @@
         <!-- Pay-all button (only when there are pending) -->
         <button class="btn-pay-all"
                 *ngIf="prof.pendingCommission > 0"
-                (click)="$event.stopPropagation(); markAllPending(prof)"
+                (click)="$event.stopPropagation(); askPayAll(prof)"
                 title="Marcar todas las comisiones pendientes como pagadas">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="20 6 9 17 4 12"/>
@@ -167,5 +167,29 @@
       <p>No hay comisiones para el filtro seleccionado.</p>
     </div>
 
+  </div>
+</div>
+
+<!-- ── Confirm pay-all modal ── -->
+<div class="modal-backdrop" *ngIf="confirmPayAllProf() !== null"
+     (click)="cancelPayAll()"
+     role="dialog" aria-modal="true" aria-labelledby="pay-all-modal-title">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-icon pay-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="1" x2="12" y2="23"/>
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+    </div>
+    <h3 id="pay-all-modal-title">Confirmar pago</h3>
+    <p>
+      ¿Marcar las <strong>{{ pendingCount(confirmPayAllProf()!) }}</strong> comisiones pendientes de
+      <strong>{{ confirmPayAllProf()?.name }}</strong> como pagadas?
+    </p>
+    <p class="pay-amount">Total: {{ fmtFull(confirmPayAllProf()?.pendingCommission ?? 0) }}</p>
+    <div class="modal-actions">
+      <button class="btn-ghost" (click)="cancelPayAll()">Cancelar</button>
+      <button class="btn-pay-confirm" (click)="confirmPayAll()">Confirmar pago</button>
+    </div>
   </div>
 </div>

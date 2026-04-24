@@ -9,14 +9,22 @@ export class GenericCrudService {
   private schemaService = inject(SchemaService);
   private crypto        = inject(CryptoService);
 
-  private stores  = new Map<string, WritableSignal<Record<string, any>[]>>();
-  private loading = new Set<string>();
+  private stores        = new Map<string, WritableSignal<Record<string, any>[]>>();
+  private loading       = new Set<string>();
+  private loadingSignals = new Map<string, WritableSignal<boolean>>();
+
+  isLoading(key: string): Signal<boolean> {
+    if (!this.loadingSignals.has(key)) this.loadingSignals.set(key, signal(false));
+    return this.loadingSignals.get(key)!.asReadonly();
+  }
 
   // ── Initialise / refresh store from the server ─────────────────────────────
 
   initStore(key: string): void {
     if (this.stores.has(key)) return;
     if (this.loading.has(key)) return;
+    if (!this.loadingSignals.has(key)) this.loadingSignals.set(key, signal(false));
+    this.loadingSignals.get(key)!.set(true);
     this.loading.add(key);
     this.stores.set(key, signal([]));
 
@@ -27,11 +35,13 @@ export class GenericCrudService {
         );
         this.stores.get(key)!.set(decrypted);
         this.loading.delete(key);
+        this.loadingSignals.get(key)?.set(false);
       },
       error: _err => {
         const payload = this.schemaService.getEntityPayload(key);
         this.stores.get(key)!.set(payload ? [...payload.data] : []);
         this.loading.delete(key);
+        this.loadingSignals.get(key)?.set(false);
       }
     });
   }
