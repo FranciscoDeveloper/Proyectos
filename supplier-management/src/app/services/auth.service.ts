@@ -1,9 +1,17 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, firstValueFrom, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { LoginCredentials, AuthResponse, AuthState, AuthUser } from '../models/auth.model';
+
+export interface RegisterPayload {
+  nombre:    string;
+  apellidos: string;
+  email:     string;
+  telefono:  string;
+  password:  string;
+}
 import { EntitySchema } from '../models/entity-schema.model';
 import { CryptoService } from './crypto.service';
 
@@ -638,6 +646,19 @@ export class AuthService {
   readonly isAuthenticated = computed(() => this._state().authenticated);
 
   constructor(private router: Router) {}
+
+  /**
+   * POST /api/auth/register — creates account and sends activation email
+   */
+  async register(payload: RegisterPayload): Promise<void> {
+    await firstValueFrom(
+      this.http.post('/api/auth/register', payload).pipe(
+        catchError(err => throwError(() =>
+          new Error(err.error?.message ?? 'No se pudo crear la cuenta. Intenta nuevamente.')
+        ))
+      )
+    );
+  }
 
   /**
    * POST /api/auth/login — real backend (API Gateway → Lambda → RDS PostgreSQL)

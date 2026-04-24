@@ -378,3 +378,10 @@
   font-size: .72rem; font-weight: 600; white-space: nowrap; min-width: 72px; text-align: right;
   transition: color .35s ease;
 }
+
+/* ── Server error alert ───────────────────────────────────────── */
+.rp-server-error {
+  padding: .65rem .9rem; border-radius: 8px;
+  background: #fef2f2; border: 1px solid #fecaca;
+  color: #dc2626; font-size: .82rem; font-weight: 500;
+}

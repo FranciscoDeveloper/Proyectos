@@ -2,6 +2,7 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 function passwordMatch(ctrl: AbstractControl): ValidationErrors | null {
   const pass    = ctrl.get('password')?.value;
@@ -17,13 +18,15 @@ function passwordMatch(ctrl: AbstractControl): ValidationErrors | null {
   styleUrl: './register.component.scss'
 })
 export class RegisterComponent {
-  private fb = inject(FormBuilder);
+  private fb      = inject(FormBuilder);
+  private authSvc = inject(AuthService);
 
   showPass      = signal(false);
   showConfirm   = signal(false);
   showTerms     = signal(false);
   submitted     = signal(false);
   loading       = signal(false);
+  serverError   = signal('');
 
   form = this.fb.group({
     nombre:          ['', [Validators.required, Validators.minLength(2)]],
@@ -41,17 +44,17 @@ export class RegisterComponent {
     const v = this.form.get('password')?.value ?? '';
     if (!v) return { score: 0, label: '', color: '' };
     let score = 0;
-    if (v.length >= 8)                        score++;
-    if (v.length >= 12)                       score++;
-    if (/[A-Z]/.test(v))                      score++;
-    if (/[0-9]/.test(v))                      score++;
-    if (/[^A-Za-z0-9]/.test(v))              score++;
+    if (v.length >= 8)               score++;
+    if (v.length >= 12)              score++;
+    if (/[A-Z]/.test(v))             score++;
+    if (/[0-9]/.test(v))             score++;
+    if (/[^A-Za-z0-9]/.test(v))     score++;
     const map = [
-      { score: 0, label: '',         color: '' },
-      { score: 1, label: 'Muy débil', color: '#ef4444' },
-      { score: 2, label: 'Débil',    color: '#f97316' },
-      { score: 3, label: 'Regular',  color: '#eab308' },
-      { score: 4, label: 'Buena',    color: '#22c55e' },
+      { score: 0, label: '',           color: '' },
+      { score: 1, label: 'Muy débil',  color: '#ef4444' },
+      { score: 2, label: 'Débil',      color: '#f97316' },
+      { score: 3, label: 'Regular',    color: '#eab308' },
+      { score: 4, label: 'Buena',      color: '#22c55e' },
       { score: 5, label: 'Muy fuerte', color: '#10b981' },
     ];
     return map[score] ?? map[4];
@@ -86,14 +89,27 @@ export class RegisterComponent {
     this.showTerms.set(false);
   }
 
-  submit() {
+  async submit(): Promise<void> {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
 
     this.loading.set(true);
-    setTimeout(() => {
-      this.loading.set(false);
+    this.serverError.set('');
+
+    const raw = this.form.getRawValue();
+    try {
+      await this.authSvc.register({
+        nombre:    raw.nombre!,
+        apellidos: raw.apellidos!,
+        email:     raw.email!,
+        telefono:  raw.telefono!,
+        password:  raw.password!,
+      });
       this.submitted.set(true);
-    }, 1400);
+    } catch (e: any) {
+      this.serverError.set(e?.message ?? 'No se pudo crear la cuenta. Intenta nuevamente.');
+    } finally {
+      this.loading.set(false);
+    }
   }
 }
