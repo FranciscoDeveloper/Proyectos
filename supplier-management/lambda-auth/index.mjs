@@ -75,11 +75,11 @@ export const handler = async (event) => {
 
     // 3. Cargar schemas autorizados del usuario
     const schemasResult = await client.query(
-      `SELECT s.schema_key  AS "schemaKey",
+      `SELECT s.schemakey  AS "schemaKey",
               s.singular,
               s.plural,
               s.icon,
-              s.module_type AS "moduleType"
+              s.moduletype AS "moduleType"
        FROM app_schema s
        INNER JOIN user_schema us ON us.schema_id = s.id
        WHERE us.user_id = $1
