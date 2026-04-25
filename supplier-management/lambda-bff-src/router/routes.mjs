@@ -415,7 +415,7 @@ router.add("POST", new RegExp("^/api/admin/setup$"),
       await run(`user ${email}`,
         `INSERT INTO app_user (id, name, email, password, role, avatar)
          VALUES ($1,$2,$3,$4,$5,$6)
-         ON CONFLICT (email) DO UPDATE SET name=$2, password=$4, role=$5, avatar=$6`,
+         ON CONFLICT (id) DO UPDATE SET name=$2, email=$3, password=$4, role=$5, avatar=$6`,
         [id, name, email, hash, role, avatar]);
     }
 
