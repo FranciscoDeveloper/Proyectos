@@ -658,6 +658,76 @@ export const ENTITY_CONFIG = {
     }
   },
 
+  "dental-treatments": {
+    table: "dental_treatment",
+    toDb(d) {
+      const cols = {};
+      if (d.fullName             !== undefined) cols.full_name             = d.fullName;
+      if (d.patientId            !== undefined) cols.patient_id            = d.patientId;
+      if (d.rut                  !== undefined) cols.rut                   = d.rut;
+      if (d.birthDate            !== undefined) cols.birth_date            = d.birthDate;
+      if (d.age                  !== undefined) cols.age                   = d.age;
+      if (d.gender               !== undefined) cols.gender                = d.gender;
+      if (d.insurance            !== undefined) cols.insurance             = d.insurance;
+      if (d.phone                !== undefined) cols.phone                 = d.phone;
+      if (d.email                !== undefined) cols.email                 = d.email;
+      if (d.doctor               !== undefined) cols.doctor                = d.doctor;
+      if (d.lastVisit            !== undefined) cols.last_visit            = d.lastVisit;
+      if (d.status               !== undefined) cols.status                = d.status;
+      if (d.allergies            !== undefined) cols.allergies             = JSON.stringify(d.allergies);
+      if (d.contraindications    !== undefined) cols.contraindications     = d.contraindications;
+      if (d.alertNotes           !== undefined) cols.alert_notes           = d.alertNotes;
+      if (d.bp                   !== undefined) cols.bp                    = d.bp;
+      if (d.heartRate            !== undefined) cols.heart_rate            = d.heartRate;
+      if (d.temperature          !== undefined) cols.temperature           = d.temperature;
+      if (d.o2Saturation         !== undefined) cols.o2_saturation         = d.o2Saturation;
+      if (d.weight               !== undefined) cols.weight                = d.weight;
+      if (d.height               !== undefined) cols.height                = d.height;
+      if (d.bmi                  !== undefined) cols.bmi                   = d.bmi;
+      if (d.respiratoryRate      !== undefined) cols.respiratory_rate      = d.respiratoryRate;
+      if (d.personalHistory      !== undefined) cols.personal_history      = d.personalHistory;
+      if (d.familyHistory        !== undefined) cols.family_history        = d.familyHistory;
+      if (d.habits               !== undefined) cols.habits                = d.habits;
+      if (d.surgicalHistory      !== undefined) cols.surgical_history      = d.surgicalHistory;
+      if (d.plannedInterventions !== undefined) cols.planned_interventions = d.plannedInterventions;
+      if (d.currentMedications   !== undefined) cols.current_medications   = d.currentMedications;
+      if (d.chronicConditions    !== undefined) cols.chronic_conditions    = JSON.stringify(d.chronicConditions);
+      if (d.diagnosisCode        !== undefined) cols.diagnosis_code        = d.diagnosisCode;
+      if (d.diagnosisLabel       !== undefined) cols.diagnosis_label       = d.diagnosisLabel;
+      if (d.differentialDx       !== undefined) cols.differential_dx       = d.differentialDx;
+      if (d.soapSubjective       !== undefined) cols.soap_subjective       = d.soapSubjective;
+      if (d.soapObjective        !== undefined) cols.soap_objective        = d.soapObjective;
+      if (d.soapAssessment       !== undefined) cols.soap_assessment       = d.soapAssessment;
+      if (d.soapPlan             !== undefined) cols.soap_plan             = d.soapPlan;
+      if (d.encounters           !== undefined) cols.encounters            = JSON.stringify(d.encounters);
+      return cols;
+    },
+    fromDb(r) {
+      return {
+        id: r.id, fullName: r.full_name, patientId: r.patient_id, rut: r.rut,
+        birthDate: r.birth_date, age: r.age, gender: r.gender, insurance: r.insurance,
+        phone: r.phone, email: r.email ?? null, doctor: r.doctor,
+        lastVisit: r.last_visit ?? null, status: r.status,
+        allergies: r.allergies ?? [], contraindications: r.contraindications ?? null,
+        alertNotes: r.alert_notes ?? null,
+        bp: r.bp ?? null, heartRate: r.heart_rate ?? null, temperature: r.temperature ?? null,
+        o2Saturation: r.o2_saturation ?? null, weight: r.weight ?? null,
+        height: r.height ?? null, bmi: r.bmi ?? null, respiratoryRate: r.respiratory_rate ?? null,
+        personalHistory: r.personal_history ?? null, familyHistory: r.family_history ?? null,
+        habits: r.habits ?? null, surgicalHistory: r.surgical_history ?? null,
+        plannedInterventions: r.planned_interventions ?? null,
+        currentMedications: r.current_medications ?? null,
+        chronicConditions: r.chronic_conditions ?? [],
+        diagnosisCode: r.diagnosis_code ?? null, diagnosisLabel: r.diagnosis_label ?? null,
+        differentialDx: r.differential_dx ?? null,
+        soapSubjective: r.soap_subjective ?? null, soapObjective: r.soap_objective ?? null,
+        soapAssessment: r.soap_assessment ?? null, soapPlan: r.soap_plan ?? null,
+        encounters: r.encounters ?? [],
+        createdAt: r.created_at, updatedAt: r.updated_at
+      };
+    }
+  },
+
   appSchemas: {
     table: "app_schema",
     hasUpdatedAt: false,

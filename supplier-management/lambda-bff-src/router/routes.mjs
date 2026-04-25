@@ -399,6 +399,51 @@ router.add("POST", new RegExp("^/api/admin/setup$"),
         updated_at            TIMESTAMPTZ DEFAULT NOW()
       )`);
 
+    await run("dental_treatment table", `
+      CREATE TABLE IF NOT EXISTS dental_treatment (
+        id                    SERIAL PRIMARY KEY,
+        full_name             TEXT,
+        patient_id            TEXT UNIQUE,
+        rut                   TEXT,
+        birth_date            DATE,
+        age                   INTEGER,
+        gender                TEXT,
+        insurance             TEXT,
+        phone                 TEXT,
+        email                 TEXT,
+        doctor                TEXT,
+        last_visit            DATE,
+        status                TEXT DEFAULT 'draft',
+        allergies             JSONB DEFAULT '[]',
+        contraindications     TEXT,
+        alert_notes           TEXT,
+        bp                    TEXT,
+        heart_rate            TEXT,
+        temperature           TEXT,
+        o2_saturation         TEXT,
+        weight                TEXT,
+        height                TEXT,
+        bmi                   TEXT,
+        respiratory_rate      TEXT,
+        personal_history      TEXT,
+        family_history        TEXT,
+        habits                TEXT,
+        surgical_history      TEXT,
+        planned_interventions TEXT,
+        current_medications   TEXT,
+        chronic_conditions    JSONB DEFAULT '[]',
+        diagnosis_code        TEXT,
+        diagnosis_label       TEXT,
+        differential_dx       TEXT,
+        soap_subjective       TEXT,
+        soap_objective        TEXT,
+        soap_assessment       TEXT,
+        soap_plan             TEXT,
+        encounters            JSONB DEFAULT '[]',
+        created_at            TIMESTAMPTZ DEFAULT NOW(),
+        updated_at            TIMESTAMPTZ DEFAULT NOW()
+      )`);
+
     await run("paciente rut column", `
       ALTER TABLE paciente ADD COLUMN IF NOT EXISTS rut TEXT`);
 
@@ -430,8 +475,9 @@ router.add("POST", new RegExp("^/api/admin/setup$"),
       ['expenses',         'Gasto',           'Gastos',            'crud',            'trending-down'],
       ['psych-sessions',   'Sesión',          'Sesiones',          'calendar',        'calendar'    ],
       ['psych-records',    'Ficha Psicológica','Fichas Psicológicas','clinical-record','brain'       ],
-      ['dental-sessions',  'Cita Dental',     'Citas Dentales',    'calendar',        'calendar'    ],
-      ['dental-records',   'Ficha Dental',    'Fichas Dentales',   'clinical-record', 'tooth'       ]
+      ['dental-sessions',   'Cita Dental',          'Citas Dentales',       'calendar',        'calendar'  ],
+      ['dental-records',    'Ficha Dental',         'Fichas Dentales',      'clinical-record', 'tooth'     ],
+      ['dental-treatments', 'Plan de Tratamiento',  'Planes de Tratamiento','clinical-record', 'clipboard' ]
     ];
     for (const [key, singular, plural, moduleType, icon] of schemas) {
       await run(`schema ${key}`,
@@ -458,7 +504,7 @@ router.add("POST", new RegExp("^/api/admin/setup$"),
       // psicología
       [5, ['psych-sessions','psych-records']],
       // odontología
-      [6, ['dental-sessions','dental-records']]
+      [6, ['dental-sessions','dental-records','dental-treatments']]
     ];
     for (const [userId, keys] of associations) {
       for (const key of keys) {
