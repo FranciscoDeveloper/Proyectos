@@ -1,0 +1,15 @@
+{
+  "name": "dairi-lambda-entities",
+  "version": "1.0.0",
+  "description": "Lambda handler SOLID-refactored — CRUD /api/entities/{entity} + encounters + /api/suppliers aliases against RDS PostgreSQL",
+  "type": "module",
+  "main": "index.mjs",
+  "scripts": {
+    "build": "npm install --omit=dev",
+    "zip": "zip -r ../lambda-entities.zip index.mjs package.json src/ node_modules/"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.11.3"
+  }
+}

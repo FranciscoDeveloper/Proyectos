@@ -45,7 +45,7 @@
   <!-- ════ PATIENT HEADER ════ -->
   <div class="patient-header card">
     <div class="ph-avatar" [style.background]="patient()!.statusColor + '22'" [style.color]="patient()!.statusColor">
-      {{ patient()!.fullName.charAt(0) }}{{ patient()!.fullName.split(' ')[1]?.charAt(0) ?? '' }}
+      {{ patient()!.fullName.charAt(0) }}{{ (patient()!.fullName.split(' ')[1] || '').charAt(0) }}
     </div>
     <div class="ph-info">
       <div class="ph-name-row">
