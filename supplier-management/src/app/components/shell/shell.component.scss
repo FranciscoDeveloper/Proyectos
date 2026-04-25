@@ -19,6 +19,7 @@
   &.collapsed {
     width: 72px;
     .brand-name, .nav-label, .nav-section-label, .user-details { display: none; }
+    .brand-collapsed { display: inline; }
     .user-info { justify-content: center; }
     .brand { justify-content: center; }
     .toggle-btn { margin-left: 0; }
@@ -42,27 +43,26 @@
   overflow: hidden;
 }
 
-.brand-icon {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-
-  svg { width: 18px; height: 18px; color: white; }
+.brand-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0ea5e9;
+  white-space: nowrap;
+  letter-spacing: -1px;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
-.brand-name {
-  font-size: 18px;
-  font-weight: 700;
-  color: white;
-  white-space: nowrap;
-  background: linear-gradient(135deg, #fff, #c7d2fe);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.brand-dot {
+  color: #06b6d4;
+}
+
+.brand-collapsed {
+  display: none;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0ea5e9;
+  letter-spacing: -1px;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
 .toggle-btn {

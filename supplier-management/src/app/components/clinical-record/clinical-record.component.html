@@ -73,7 +73,7 @@
       <!-- Card header -->
       <div class="card-header">
         <div class="patient-avatar" [style.background]="rec.statusColor + '22'" [style.color]="rec.statusColor">
-          {{ rec.title.charAt(0) }}{{ rec.title.split(' ')[1]?.charAt(0) ?? '' }}
+          {{ rec.title.charAt(0) }}{{ (rec.title.split(' ')[1] || '').charAt(0) }}
         </div>
         <div class="patient-info">
           <span class="patient-name">{{ rec.title }}</span>
