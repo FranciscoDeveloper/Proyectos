@@ -1195,3 +1195,239 @@
   padding: 4px 0;
 }
 
+/* ════════════════════════════════════════════════════════
+   SPECIALTY IMPROVEMENTS
+   ════════════════════════════════════════════════════════ */
+
+/* ── Specialty accent bar on patient header ── */
+.patient-header {
+  position: relative;
+  padding-left: 28px !important;
+}
+
+.ph-spec-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  border-radius: 14px 0 0 14px;
+}
+
+/* ── Specialty badge (inline with status) ── */
+.specialty-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1.5px solid;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+/* ── Quick stats bar ── */
+.quick-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1.5px solid;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.qs-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 16px;
+
+  &--dx { flex: 1; min-width: 0; }
+}
+
+.qs-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.qs-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.qs-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+
+  &--dx {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: normal;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+}
+
+.qs-cie {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: currentColor;
+  color: white;
+  flex-shrink: 0;
+  /* Override color to use a light background trick */
+  filter: none;
+}
+
+.qs-label {
+  font-size: 11px;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.qs-divider {
+  width: 1px;
+  height: 32px;
+  background: #e5e7eb;
+  flex-shrink: 0;
+}
+
+/* ── Tab bar: use CSS var for active color ── */
+.tab-btn {
+  &.active {
+    background: var(--tab-color, #10b981) !important;
+  }
+}
+
+/* ── Section headers: dynamic border-bottom ── */
+.section-header {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* ── Vitals text-grid (Psych EME / Dental exam) ── */
+.vitals-grid--text {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0;
+  background: transparent;
+
+  @media (max-width: 500px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vital-row-text {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 11px 18px;
+  border-bottom: 1px solid #f9fafb;
+  border-right: 1px solid #f9fafb;
+
+  &:nth-child(even) { border-right: none; }
+  &:nth-last-child(-n+2) { border-bottom: none; }
+
+  .vrt-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    min-width: 88px;
+    flex-shrink: 0;
+  }
+
+  .vrt-value {
+    font-size: 13px;
+    color: #111827;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+}
+
+/* ── Psych scales panel ── */
+.psych-scores-card { }
+
+.psych-scores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1px;
+  background: #f3f4f6;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  overflow: hidden;
+}
+
+.psych-score-item {
+  background: white;
+  padding: 14px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.psi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.psi-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.psi-score {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.psi-max {
+  font-size: 11px;
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.psi-track {
+  height: 5px;
+  background: #f3f4f6;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.psi-fill {
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.4s ease;
+}
+
+.psi-level {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* ── Plan/treatment section variant ── */
+.section--plan {
+  border-left: 3px solid var(--spec-color, #6366f1);
+}
+
+/* ── Section header default color fix ── */
+.section-header {
+  svg { width: 16px; height: 16px; }
+}
+
+

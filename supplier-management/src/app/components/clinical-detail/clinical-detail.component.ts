@@ -309,6 +309,66 @@ export class ClinicalDetailComponent {
     return Array.isArray(val);
   }
 
+  // ── Specialty detection & per-specialty config ───────────────────────────
+
+  readonly specialty = computed<'psych' | 'dental' | 'medicine'>(() => {
+    if (this.entityKey === 'psych-records') return 'psych';
+    if (this.entityKey === 'dental-records') return 'dental';
+    return 'medicine';
+  });
+
+  private readonly SPEC_CONFIG = {
+    medicine: {
+      color: '#10b981', bgLight: '#f0fdf4', border: '#86efac',
+      label: 'Medicina', vitalsTitle: 'Signos Vitales',
+      soapTitle: 'Nota Clínica (SOAP)', medsTitle: 'Medicación Actual',
+      surgTitle: 'Intervenciones Quirúrgicas', prescBtn: 'Imprimir Receta',
+      newEncBtn: 'Nueva Atención', encLabel: 'atención', encLabelPlural: 'atenciones'
+    },
+    psych: {
+      color: '#6366f1', bgLight: '#eef2ff', border: '#a5b4fc',
+      label: 'Psicología', vitalsTitle: 'Estado Mental (EME)',
+      soapTitle: 'Nota de Sesión', medsTitle: 'Plan Terapéutico',
+      surgTitle: 'Terapias y Proceso Activo', prescBtn: 'Exportar Plan',
+      newEncBtn: 'Nueva Sesión', encLabel: 'sesión', encLabelPlural: 'sesiones'
+    },
+    dental: {
+      color: '#0891b2', bgLight: '#ecfeff', border: '#67e8f9',
+      label: 'Odontología', vitalsTitle: 'Examen Clínico',
+      soapTitle: 'Nota Clínica', medsTitle: 'Medicación Sistémica',
+      surgTitle: 'Plan de Tratamiento', prescBtn: 'Imprimir Plan',
+      newEncBtn: 'Nueva Atención', encLabel: 'atención', encLabelPlural: 'atenciones'
+    }
+  } as const;
+
+  get cfg() { return this.SPEC_CONFIG[this.specialty()]; }
+
+  readonly visitCount = computed(() => this.encounterHistory().length);
+
+  /** Parses assessment scale scores from the 'habits' field (psychology only). */
+  readonly psychScores = computed(() => {
+    if (this.specialty() !== 'psych') return [];
+    const habits = String(this.record()?.['habits'] ?? '');
+    type Row = { name: string; score: number; max: number; color: string; level: string };
+    const TESTS: Array<{ re: RegExp; name: string; max: number; th: [number, string, string][] }> = [
+      { re: /PHQ-9[:\s]+(\d+)/i,            name: 'PHQ-9',   max: 27,
+        th: [[4,'#10b981','Mínimo'],[9,'#84cc16','Leve'],[14,'#f59e0b','Moderado'],[19,'#f97316','Mod-Severo'],[27,'#ef4444','Severo']] },
+      { re: /GAD-7[:\s]+(\d+)/i,            name: 'GAD-7',   max: 21,
+        th: [[4,'#10b981','Mínima'],[9,'#84cc16','Leve'],[14,'#f59e0b','Moderada'],[21,'#ef4444','Severa']] },
+      { re: /Beck[^:\n]{0,4}[:\s]+(\d+)/i,  name: 'Beck-II', max: 63,
+        th: [[13,'#10b981','Mínima'],[19,'#84cc16','Leve'],[28,'#f59e0b','Moderada'],[63,'#ef4444','Severa']] },
+      { re: /ISI[:\s]+(\d+)/i,              name: 'ISI',     max: 28,
+        th: [[7,'#10b981','Sin clínica'],[14,'#84cc16','Leve'],[21,'#f59e0b','Moderado'],[28,'#ef4444','Severo']] }
+    ];
+    return TESTS.map(t => {
+      const m = habits.match(t.re);
+      if (!m) return null;
+      const score = parseInt(m[1], 10);
+      const entry = t.th.find(([th]) => score <= th) ?? t.th[t.th.length - 1];
+      return { name: t.name, score, max: t.max, color: entry[1], level: entry[2] } as Row;
+    }).filter((x): x is Row => x !== null);
+  });
+
   // ── Prescription print ────────────────────────────────────────────────────
 
   readonly today = new Date();

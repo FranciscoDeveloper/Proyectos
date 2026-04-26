@@ -22,29 +22,32 @@
         <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
         <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
       </svg>
-      <span>ALERTAS CLÍNICAS</span>
+      <span>{{ specialty() === 'psych' ? 'ALERTAS CLÍNICAS / RIESGO' : 'ALERTAS CLÍNICAS' }}</span>
     </div>
     <div class="alert-body">
       <div class="alert-block" *ngIf="alerts().allergies.length > 0">
-        <span class="alert-block-title">Alergias</span>
+        <span class="alert-block-title">
+          {{ specialty() === 'psych' ? 'Factores de Riesgo' : 'Alergias' }}
+        </span>
         <div class="allergy-pills">
           <span *ngFor="let a of alerts().allergies" class="allergy-pill">{{ a }}</span>
         </div>
       </div>
       <div class="alert-block" *ngIf="alerts().contraindications">
-        <span class="alert-block-title">Contraindicaciones</span>
+        <span class="alert-block-title">{{ specialty() === 'psych' ? 'Riesgo Suicida / Autolesión' : 'Contraindicaciones' }}</span>
         <p class="alert-text">{{ alerts().contraindications }}</p>
       </div>
       <div class="alert-block" *ngIf="alerts().alertNotes">
-        <span class="alert-block-title">Notas de alerta</span>
+        <span class="alert-block-title">Notas de Alerta</span>
         <p class="alert-text">{{ alerts().alertNotes }}</p>
       </div>
     </div>
   </div>
 
   <!-- ════ PATIENT HEADER ════ -->
-  <div class="patient-header card">
-    <div class="ph-avatar" [style.background]="patient()!.statusColor + '22'" [style.color]="patient()!.statusColor">
+  <div class="patient-header card" [style.--spec-color]="cfg.color">
+    <div class="ph-spec-bar" [style.background]="cfg.color"></div>
+    <div class="ph-avatar" [style.background]="cfg.color + '22'" [style.color]="cfg.color">
       {{ patient()!.fullName.charAt(0) }}{{ (patient()!.fullName.split(' ')[1] || '').charAt(0) }}
     </div>
     <div class="ph-info">
@@ -53,12 +56,16 @@
         <span class="status-badge" [style.background]="patient()!.statusColor + '22'" [style.color]="patient()!.statusColor">
           {{ patient()!.statusLabel }}
         </span>
+        <span class="specialty-badge" [style.background]="cfg.bgLight" [style.color]="cfg.color" [style.borderColor]="cfg.border">
+          {{ cfg.label }}
+        </span>
       </div>
       <div class="ph-meta-row">
         <span class="ph-meta-chip" *ngIf="patient()!.patientId">{{ patient()!.patientId }}</span>
         <span class="ph-meta-chip">{{ patient()!.rut }}</span>
         <span class="ph-meta-chip">{{ patient()!.age }} años · {{ patient()!.gender }}</span>
-        <span class="blood-chip" [style.background]="patient()!.bloodTypeColor + '22'" [style.color]="patient()!.bloodTypeColor">
+        <span class="blood-chip" *ngIf="patient()!.bloodType"
+              [style.background]="patient()!.bloodTypeColor + '22'" [style.color]="patient()!.bloodTypeColor">
           {{ patient()!.bloodType }}
         </span>
         <span class="ins-chip" [style.background]="patient()!.insuranceColor + '22'" [style.color]="patient()!.insuranceColor">
@@ -79,48 +86,37 @@
           </svg>
           {{ patient()!.doctor }}
         </span>
-        <span *ngIf="patient()!.lastVisit" class="ph-contact">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-            <line x1="3" y1="10" x2="21" y2="10"/>
-          </svg>
-          Última consulta: {{ patient()!.lastVisit | date:'d MMM yyyy' }}
-        </span>
       </div>
     </div>
     <div class="ph-actions">
-      <a [routerLink]="['/app/clinical', entityKey, id, 'encounter']" class="btn btn-primary btn-sm">
+      <a [routerLink]="['/app/clinical', entityKey, id, 'encounter']" class="btn btn-primary btn-sm"
+         [style.background]="cfg.color" [style.borderColor]="cfg.color">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
           <polyline points="14 2 14 8 20 8"/>
           <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
         </svg>
-        Nueva Atención
+        {{ cfg.newEncBtn }}
       </a>
 
-      <!-- ── Audio recorder button ── -->
+      <!-- Audio recorder -->
       <button class="btn btn-sm"
               [class.btn-record]="!recorder.isRecording"
               [class.btn-stop]="recorder.isRecording"
               [disabled]="recorder.state() === 'saving'"
               (click)="toggleRecording()"
               [title]="recorder.isRecording ? 'Detener grabación' : 'Grabar consulta'">
-        <!-- Play icon -->
         <svg *ngIf="!recorder.isRecording && recorder.state() !== 'saving'"
              viewBox="0 0 24 24" fill="currentColor" stroke="none">
           <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
           <polygon points="10,8 16,12 10,16"/>
         </svg>
-        <!-- Stop icon -->
         <svg *ngIf="recorder.isRecording"
              viewBox="0 0 24 24" fill="currentColor" stroke="none">
           <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
           <rect x="9" y="9" width="6" height="6" rx="1"/>
         </svg>
-        <!-- Saving spinner -->
         <span *ngIf="recorder.state() === 'saving'" class="spinner-xs"></span>
-
         <span *ngIf="recorder.isRecording" class="rec-dot"></span>
         <span>
           {{ recorder.state() === 'saving' ? 'Guardando…'
@@ -129,6 +125,7 @@
         </span>
       </button>
       <p *ngIf="recorder.error()" class="rec-error">{{ recorder.error() }}</p>
+
       <button class="btn btn-share btn-sm" (click)="showShare.set(true)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
@@ -147,9 +144,51 @@
     </div>
   </div>
 
+  <!-- ════ QUICK STATS BAR ════ -->
+  <div class="quick-stats-bar" [style.background]="cfg.bgLight" [style.borderColor]="cfg.border">
+    <div class="qs-item">
+      <svg class="qs-icon" [style.color]="cfg.color" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="12 8 12 12 14 14"/>
+        <path d="M3.05 11a9 9 0 1 0 .5-4.5"/><polyline points="3 3 3 7 7 7"/>
+      </svg>
+      <div class="qs-content">
+        <span class="qs-value" [style.color]="cfg.color">{{ visitCount() }}</span>
+        <span class="qs-label">{{ visitCount() === 1 ? cfg.encLabel : cfg.encLabelPlural }} registrada{{ visitCount() !== 1 ? 's' : '' }}</span>
+      </div>
+    </div>
+    <div class="qs-divider" *ngIf="patient()!.lastVisit"></div>
+    <div class="qs-item" *ngIf="patient()!.lastVisit">
+      <svg class="qs-icon" [style.color]="cfg.color" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      <div class="qs-content">
+        <span class="qs-value">{{ patient()!.lastVisit | date:'d MMM yyyy' }}</span>
+        <span class="qs-label">Última {{ cfg.encLabel }}</span>
+      </div>
+    </div>
+    <div class="qs-divider" *ngIf="diagnosisLabel()"></div>
+    <div class="qs-item qs-item--dx" *ngIf="diagnosisLabel()">
+      <svg class="qs-icon" [style.color]="cfg.color" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <div class="qs-content">
+        <span class="qs-value qs-value--dx">
+          <span class="qs-cie" *ngIf="diagnosisCode()" [style.color]="cfg.color">{{ diagnosisCode() }}</span>
+          {{ diagnosisLabel() }}
+        </span>
+        <span class="qs-label">Diagnóstico activo</span>
+      </div>
+    </div>
+  </div>
+
   <!-- ════ TAB BAR ════ -->
   <div class="tab-bar">
-    <button class="tab-btn" [class.active]="activeTab() === 'record'" (click)="activeTab.set('record')">
+    <button class="tab-btn" [class.active]="activeTab() === 'record'"
+            [style.--tab-color]="cfg.color"
+            (click)="activeTab.set('record')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
         <rect x="9" y="3" width="6" height="4" rx="1" ry="1"/>
@@ -157,16 +196,19 @@
       </svg>
       Ficha Clínica
     </button>
-    <button class="tab-btn" [class.active]="activeTab() === 'history'" (click)="activeTab.set('history')">
+    <button class="tab-btn" [class.active]="activeTab() === 'history'"
+            [style.--tab-color]="cfg.color"
+            (click)="activeTab.set('history')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="12 8 12 12 14 14"/>
-        <path d="M3.05 11a9 9 0 1 0 .5-4.5"/>
-        <polyline points="3 3 3 7 7 7"/>
+        <path d="M3.05 11a9 9 0 1 0 .5-4.5"/><polyline points="3 3 3 7 7 7"/>
       </svg>
-      Historial de Atenciones
+      {{ specialty() === 'psych' ? 'Historial de Sesiones' : 'Historial de Atenciones' }}
       <span class="tab-count" *ngIf="encounterHistory().length > 0">{{ encounterHistory().length }}</span>
     </button>
-    <button class="tab-btn" [class.active]="activeTab() === 'documents'" (click)="activeTab.set('documents')">
+    <button class="tab-btn" [class.active]="activeTab() === 'documents'"
+            [style.--tab-color]="cfg.color"
+            (click)="activeTab.set('documents')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
       </svg>
@@ -175,21 +217,33 @@
     </button>
   </div>
 
-  <!-- ════ TWO-COLUMN LAYOUT ════ -->
+  <!-- ════ FICHA CLÍNICA TAB ════ -->
   <div class="cd-layout" *ngIf="activeTab() === 'record'">
 
-    <!-- LEFT COLUMN -->
+    <!-- ── LEFT COLUMN ── -->
     <div class="cd-left">
 
-      <!-- ── Vital Signs ── -->
+      <!-- Signos Vitales / Estado Mental / Examen Clínico -->
       <div class="section card" *ngIf="vitals().length > 0">
-        <div class="section-header section-header--vitals">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="section-header" [style.color]="cfg.color" [style.borderBottomColor]="cfg.border">
+          <!-- Medicine: heartbeat -->
+          <svg *ngIf="specialty() === 'medicine'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
           </svg>
-          <span>Signos Vitales</span>
+          <!-- Psych: brain -->
+          <svg *ngIf="specialty() === 'psych'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+          </svg>
+          <!-- Dental: tooth -->
+          <svg *ngIf="specialty() === 'dental'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2c-2.4 0-4 1.6-4 3 0 1.6-1 2-2 3S4 10 4 12c0 3.5 1.5 10 4 10 1 0 2-1 2-2 0-1 .5-1.5 2-1.5s2 .5 2 1.5c0 1 1 2 2 2 2.5 0 4-6.5 4-10 0-2-1-3-2-4s-2-1.4-2-3c0-1.4-1.6-3-4-3z"/>
+          </svg>
+          <span>{{ cfg.vitalsTitle }}</span>
         </div>
-        <div class="vitals-grid">
+
+        <!-- Medicine: numeric boxes -->
+        <div class="vitals-grid" *ngIf="specialty() === 'medicine'">
           <div *ngFor="let v of vitals()" class="vital-box">
             <span class="vital-lbl">{{ v.label }}</span>
             <span class="vital-val">{{ v.value }}</span>
@@ -197,11 +251,42 @@
             <span class="vital-normal">Normal: {{ v.normal }}</span>
           </div>
         </div>
+
+        <!-- Psych/Dental: text rows (label + value side by side) -->
+        <div class="vitals-grid vitals-grid--text" *ngIf="specialty() !== 'medicine'">
+          <div *ngFor="let v of vitals()" class="vital-row-text">
+            <span class="vrt-label">{{ v.label }}</span>
+            <span class="vrt-value">{{ v.value !== '—' ? v.value : '—' }}</span>
+          </div>
+        </div>
       </div>
 
-      <!-- ── SOAP Note ── -->
+      <!-- Psych Scales Panel (psychology only) -->
+      <div class="section card psych-scores-card" *ngIf="specialty() === 'psych' && psychScores().length > 0">
+        <div class="section-header" [style.color]="cfg.color" [style.borderBottomColor]="cfg.border">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+          <span>Escalas Evaluativas</span>
+        </div>
+        <div class="psych-scores-grid">
+          <div *ngFor="let s of psychScores()" class="psych-score-item">
+            <div class="psi-header">
+              <span class="psi-name">{{ s.name }}</span>
+              <span class="psi-score" [style.color]="s.color">{{ s.score }}<span class="psi-max">/{{ s.max }}</span></span>
+            </div>
+            <div class="psi-track">
+              <div class="psi-fill" [style.width.%]="(s.score / s.max) * 100" [style.background]="s.color"></div>
+            </div>
+            <span class="psi-level" [style.color]="s.color">{{ s.level }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SOAP / Nota de Sesión / Nota Clínica -->
       <div class="section card" *ngIf="soapItems().length > 0">
-        <div class="section-header section-header--soap">
+        <div class="section-header" [style.color]="cfg.color" [style.borderBottomColor]="cfg.border">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
@@ -209,7 +294,7 @@
             <line x1="16" y1="17" x2="8" y2="17"/>
             <polyline points="10 9 9 9 8 9"/>
           </svg>
-          <span>Nota Clínica (SOAP)</span>
+          <span>{{ cfg.soapTitle }}</span>
         </div>
         <div class="soap-list">
           <div *ngFor="let s of soapItems()" class="soap-block">
@@ -222,39 +307,45 @@
         </div>
       </div>
 
-      <!-- ── Diagnosis ── -->
+      <!-- Diagnosis -->
       <div class="section card" *ngIf="diagnosisLabel()">
-        <div class="section-header section-header--dx">
+        <div class="section-header" [style.color]="specialty() === 'psych' ? '#7c3aed' : specialty() === 'dental' ? '#0369a1' : '#d97706'"
+             [style.borderBottomColor]="specialty() === 'psych' ? '#ddd6fe' : specialty() === 'dental' ? '#bae6fd' : '#fde68a'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
             <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
-          <span>Diagnóstico</span>
+          <span>{{ specialty() === 'psych' ? 'Diagnóstico (DSM-5 / CIE-10)' : specialty() === 'dental' ? 'Diagnóstico Dental' : 'Diagnóstico' }}</span>
         </div>
         <div class="dx-body">
           <div class="dx-main">
-            <span class="cie-code" *ngIf="diagnosisCode()">{{ diagnosisCode() }}</span>
+            <span class="cie-code" *ngIf="diagnosisCode()"
+                  [style.background]="specialty() === 'psych' ? '#ede9fe' : specialty() === 'dental' ? '#e0f2fe' : '#fef3c7'"
+                  [style.color]="specialty() === 'psych' ? '#6d28d9' : specialty() === 'dental' ? '#0369a1' : '#92400e'">
+              {{ diagnosisCode() }}
+            </span>
             <span class="dx-label">{{ diagnosisLabel() }}</span>
           </div>
           <p class="dx-diff" *ngIf="differentialDx()">
-            <strong>Diagnóstico diferencial:</strong> {{ differentialDx() }}
+            <strong>{{ specialty() === 'psych' ? 'Diagnóstico diferencial / Hipótesis:' : specialty() === 'dental' ? 'Plan de tratamiento:' : 'Diagnóstico diferencial:' }}</strong>
+            {{ differentialDx() }}
           </p>
         </div>
       </div>
 
-    </div>
+    </div><!-- /cd-left -->
 
-    <!-- RIGHT COLUMN -->
+    <!-- ── RIGHT COLUMN ── -->
     <div class="cd-right">
 
-      <!-- ── Medical History ── -->
+      <!-- Historia / Anamnesis -->
       <div class="section card" *ngIf="historyFields().length > 0">
         <div class="section-header section-header--history">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
-          <span>Antecedentes Médicos</span>
+          <span>{{ specialty() === 'psych' ? 'Historia Psicológica' : specialty() === 'dental' ? 'Anamnesis Dental' : 'Antecedentes Médicos' }}</span>
         </div>
         <div class="field-list">
           <div *ngFor="let f of historyFields()" class="field-item">
@@ -264,54 +355,78 @@
         </div>
       </div>
 
-      <!-- ── Medications ── -->
+      <!-- Medicación / Plan Terapéutico / Medicación Sistémica -->
       <div class="section card" *ngIf="medicationFields().length > 0">
-        <div class="section-header section-header--meds">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="section-header" [style.color]="cfg.color" [style.borderBottomColor]="cfg.border">
+          <!-- Psych: clock/process icon -->
+          <svg *ngIf="specialty() === 'psych'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <!-- Medicine/Dental: pill/heart icon -->
+          <svg *ngIf="specialty() !== 'psych'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7z"/>
           </svg>
-          <span>Medicación Actual</span>
-          <button class="btn-prescription" *ngIf="prescriptionField()" (click)="openPrescriptionTab()" title="Imprimir receta">
+          <span>{{ cfg.medsTitle }}</span>
+          <button class="btn-prescription" *ngIf="prescriptionField()" (click)="openPrescriptionTab()"
+                  [style.borderColor]="cfg.color" [style.color]="cfg.color"
+                  [title]="cfg.prescBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="6 9 6 2 18 2 18 9"/>
               <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
               <rect x="6" y="14" width="12" height="8"/>
             </svg>
-            Imprimir Receta
+            {{ cfg.prescBtn }}
           </button>
         </div>
         <div class="field-list">
           <div *ngFor="let f of medicationFields()" class="field-item">
             <span class="field-label">{{ f.label }}</span>
             <div *ngIf="f.field.type === 'tags'" class="tag-list">
-              <span *ngFor="let t of f.value" class="tag-chip">{{ t }}</span>
+              <span *ngFor="let t of f.value" class="tag-chip"
+                    [style.background]="cfg.color + '18'" [style.color]="cfg.color">{{ t }}</span>
             </div>
             <p *ngIf="f.field.type !== 'tags'" class="field-value field-value--pre">{{ f.value }}</p>
           </div>
         </div>
       </div>
 
-      <!-- ── Surgical Interventions ── -->
-      <div class="section card section--surgical" *ngIf="hasSurgical()">
-        <div class="section-header section-header--surgical">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <!-- Intervenciones / Terapias / Plan de Tratamiento -->
+      <div class="section card"
+           [class.section--surgical]="specialty() === 'medicine'"
+           [class.section--plan]="specialty() !== 'medicine'"
+           *ngIf="hasSurgical()">
+        <div class="section-header"
+             [style.color]="specialty() === 'medicine' ? '#0891b2' : cfg.color"
+             [style.borderBottomColor]="specialty() === 'medicine' ? '#bae6fd' : cfg.border">
+          <svg *ngIf="specialty() === 'medicine'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14.5 2.5c0 1.5-1.5 3-1.5 3s-1.5-1.5-1.5-3a1.5 1.5 0 013 0z"/>
-            <path d="M8 14s-2 2-2 4a4 4 0 008 0c0-2-2-4-2-4"/>
-            <path d="M12 14V8"/>
-            <path d="M9 11l3-3 3 3"/>
-            <line x1="2" y1="22" x2="22" y2="2"/>
+            <path d="M8 14s-2 2-2 4a4 4 0 008 0c0-2-2-4-2-4"/><path d="M12 14V8"/>
+            <path d="M9 11l3-3 3 3"/><line x1="2" y1="22" x2="22" y2="2"/>
           </svg>
-          <span>Intervenciones Quirúrgicas</span>
+          <svg *ngIf="specialty() === 'psych'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+            <line x1="10" y1="9" x2="8" y2="9"/>
+          </svg>
+          <svg *ngIf="specialty() === 'dental'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+            <line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/>
+          </svg>
+          <span>{{ cfg.surgTitle }}</span>
         </div>
         <div class="surgical-body">
           <div class="surgical-block" *ngIf="surgicalFields().history">
             <div class="surgical-block-header">
-              <span class="surgical-badge surgical-badge--past">
+              <span class="surgical-badge surgical-badge--past"
+                    [style.background]="cfg.color + '18'" [style.color]="cfg.color">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="12 8 12 12 14 14"/>
                   <path d="M3.05 11a9 9 0 1 0 .5-4.5"/><polyline points="3 3 3 7 7 7"/>
                 </svg>
-                Antecedentes Quirúrgicos
+                {{ specialty() === 'psych' ? 'Terapias Previas' : specialty() === 'dental' ? 'Tratamientos Previos' : 'Antecedentes Quirúrgicos' }}
               </span>
             </div>
             <p class="surgical-text">{{ surgicalFields().history }}</p>
@@ -324,7 +439,7 @@
                   <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
                   <line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>
-                Intervenciones Programadas / En Evaluación
+                {{ specialty() === 'psych' ? 'Proceso / Intervención Activa' : specialty() === 'dental' ? 'Plan Programado' : 'Intervenciones Programadas' }}
               </span>
             </div>
             <p class="surgical-text">{{ surgicalFields().planned }}</p>
@@ -332,7 +447,7 @@
         </div>
       </div>
 
-      <!-- ── Contact info ── -->
+      <!-- Datos de contacto -->
       <div class="section card">
         <div class="section-header">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -365,38 +480,33 @@
         </div>
       </div>
 
-    </div>
-  </div>
+    </div><!-- /cd-right -->
+  </div><!-- /cd-layout -->
 
   <!-- ════ HISTORY TAB ════ -->
   <div class="encounter-panel" *ngIf="activeTab() === 'history'">
 
-    <!-- Empty state -->
     <div class="enc-empty" *ngIf="encounterHistory().length === 0">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <polyline points="12 8 12 12 14 14"/>
         <path d="M3.05 11a9 9 0 1 0 .5-4.5"/>
         <polyline points="3 3 3 7 7 7"/>
       </svg>
-      <p>No hay atenciones registradas para este paciente.</p>
+      <p>No hay {{ cfg.encLabelPlural }} registradas para este paciente.</p>
     </div>
 
-    <!-- Timeline -->
     <div class="enc-timeline" *ngIf="encounterHistory().length > 0">
       <div class="enc-summary">
-        {{ encounterHistory().length }} atención{{ encounterHistory().length !== 1 ? 'es' : '' }} registrada{{ encounterHistory().length !== 1 ? 's' : '' }}
+        {{ encounterHistory().length }} {{ encounterHistory().length !== 1 ? cfg.encLabelPlural : cfg.encLabel }}
+        registrada{{ encounterHistory().length !== 1 ? 's' : '' }}
       </div>
 
       <div *ngFor="let enc of encounterHistory(); let i = index" class="enc-item">
-        <!-- Timeline connector -->
         <div class="enc-connector">
-          <div class="enc-dot"></div>
+          <div class="enc-dot" [style.background]="cfg.color" [style.boxShadow]="'0 0 0 2px ' + cfg.color"></div>
           <div class="enc-line"></div>
         </div>
-
-        <!-- Encounter card -->
         <div class="enc-card card">
-          <!-- Date header (any key matching date/fecha is promoted) -->
           <div class="enc-header">
             <ng-container *ngFor="let entry of encounterEntries(enc)">
               <span class="enc-date" *ngIf="isDateKey(entry[0])">
@@ -408,19 +518,18 @@
                 {{ entry[1] | date:'d MMMM yyyy' }}
               </span>
             </ng-container>
-            <span class="enc-index">#{{ encounterHistory().length - i }}</span>
+            <span class="enc-index" [style.background]="cfg.color + '18'" [style.color]="cfg.color">
+              #{{ encounterHistory().length - i }}
+            </span>
           </div>
-
-          <!-- All other fields rendered generically -->
           <div class="enc-fields">
             <ng-container *ngFor="let entry of encounterEntries(enc)">
               <div class="enc-field" *ngIf="!isDateKey(entry[0])">
                 <span class="enc-field-label">{{ formatKey(entry[0]) }}</span>
-                <!-- Array value (tags) -->
                 <div *ngIf="isArray(entry[1])" class="tag-list">
-                  <span *ngFor="let t of entry[1]" class="tag-chip">{{ t }}</span>
+                  <span *ngFor="let t of entry[1]" class="tag-chip"
+                        [style.background]="cfg.color + '18'" [style.color]="cfg.color">{{ t }}</span>
                 </div>
-                <!-- Scalar value -->
                 <span *ngIf="!isArray(entry[1])" class="enc-field-value">{{ entry[1] }}</span>
               </div>
             </ng-container>
@@ -429,20 +538,18 @@
       </div>
     </div>
 
-  </div>
+  </div><!-- /encounter-panel -->
 
-</div>
+</div><!-- /cd-page -->
 
 <!-- ════ DOCUMENTS TAB ════ -->
 <div class="docs-panel" *ngIf="activeTab() === 'documents'">
 
-  <!-- Toolbar -->
   <div class="docs-toolbar">
     <div class="docs-filters">
       <button class="doc-filter-btn" [class.active]="docFilter() === ''" (click)="docFilter.set('')">Todos</button>
       <button *ngFor="let cat of DOC_CATEGORIES"
-              class="doc-filter-btn"
-              [class.active]="docFilter() === cat.value"
+              class="doc-filter-btn" [class.active]="docFilter() === cat.value"
               [style.--cat-color]="cat.color"
               (click)="docFilter.set(docFilter() === cat.value ? '' : cat.value)">
         {{ cat.label }}
@@ -456,7 +563,6 @@
     </button>
   </div>
 
-  <!-- Upload form -->
   <div class="docs-upload-form card" *ngIf="showUploadForm()">
     <div class="docs-form-title">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -494,7 +600,6 @@
     </div>
   </div>
 
-  <!-- Empty state -->
   <div class="docs-empty" *ngIf="filteredDocuments().length === 0">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
@@ -502,7 +607,6 @@
     <p>{{ docFilter() ? 'No hay documentos en esta categoría.' : 'No hay documentos adjuntos para este paciente.' }}</p>
   </div>
 
-  <!-- Document list -->
   <div class="docs-list" *ngIf="filteredDocuments().length > 0">
     <div *ngFor="let doc of filteredDocuments()" class="doc-item card">
       <div class="doc-icon" [style.background]="getCategoryMeta(doc.category).color + '18'" [style.color]="getCategoryMeta(doc.category).color">
@@ -519,7 +623,8 @@
           </span>
           <span class="doc-meta-chip">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
             {{ doc.date | date:'d MMM yyyy' }}
           </span>
@@ -531,14 +636,14 @@
       <div class="doc-actions">
         <button class="doc-action-btn doc-action-btn--danger" title="Eliminar documento" (click)="removeDocument(doc.id)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+            <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
           </svg>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Summary -->
   <div class="docs-summary" *ngIf="documents().length > 0">
     {{ documents().length }} documento{{ documents().length !== 1 ? 's' : '' }} adjunto{{ documents().length !== 1 ? 's' : '' }}
     · {{ filteredDocuments().length }} visible{{ filteredDocuments().length !== 1 ? 's' : '' }}
@@ -548,8 +653,6 @@
 <!-- ════ SHARE MODAL ════ -->
 <div class="rx-overlay" *ngIf="showShare()" (click)="showShare.set(false)">
   <div class="share-modal" (click)="$event.stopPropagation()">
-
-    <!-- Header -->
     <div class="rx-modal-header">
       <div class="share-modal-title">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -565,8 +668,6 @@
         </svg>
       </button>
     </div>
-
-    <!-- Record chip -->
     <div class="share-record-chip">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
@@ -575,8 +676,6 @@
       <span class="share-chip-name">{{ patient()!.fullName }}</span>
       <span class="share-chip-id">{{ patient()!.rut }}</span>
     </div>
-
-    <!-- Success state -->
     <div class="share-success" *ngIf="shareSuccess()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
@@ -584,14 +683,11 @@
       </svg>
       <span>¡Ficha compartida con éxito!</span>
     </div>
-
     <ng-container *ngIf="!shareSuccess()">
-      <!-- Contact list -->
       <div class="share-section-label">Selecciona destinatarios</div>
       <ul class="share-user-list">
         <li *ngFor="let u of availableContacts"
-            class="share-user-item"
-            [class.selected]="isShareSelected(u.id)"
+            class="share-user-item" [class.selected]="isShareSelected(u.id)"
             (click)="toggleShareUser(u.id)">
           <div class="share-user-avatar"
                [style.background]="chatSvc.getUserColor(u.id) + '33'"
@@ -610,18 +706,13 @@
           </div>
         </li>
       </ul>
-
-      <!-- Optional message -->
       <div class="share-section-label">Mensaje (opcional)</div>
-      <textarea class="share-msg-input"
-                rows="2"
+      <textarea class="share-msg-input" rows="2"
                 placeholder="Agrega un comentario para los destinatarios…"
                 [value]="shareMessage()"
                 (input)="shareMessage.set($any($event.target).value)">
       </textarea>
     </ng-container>
-
-    <!-- Actions -->
     <div class="rx-modal-actions">
       <button class="btn btn-outline btn-sm" (click)="showShare.set(false)">Cancelar</button>
       <button class="btn btn-primary btn-sm"
@@ -636,7 +727,6 @@
     </div>
   </div>
 </div>
-
 
 <!-- Loading / Not found -->
 <ng-template #loading>
