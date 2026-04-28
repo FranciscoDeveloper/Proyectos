@@ -43,37 +43,95 @@
       </div>
     </aside>
 
-    <!-- ── Right: form / success ────────────────────────────── -->
+    <!-- ── Right: form / verify / done ────────────────────────── -->
     <div class="rp-form-wrap">
 
-      <!-- ── SUCCESS STATE ──────────────────────────────────── -->
-      @if (submitted()) {
+      <!-- ── VERIFY STEP ────────────────────────────────────── -->
+      @if (step() === 'verify') {
+        <div class="rp-card">
+          <div class="rp-verify-header">
+            <div class="rp-verify-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+            </div>
+            <h1>Revisa tu correo</h1>
+            <p>
+              Enviamos un código de 6 caracteres a<br>
+              <strong>{{ registeredEmail }}</strong>
+            </p>
+          </div>
+
+          <div class="rp-otp-row">
+            @for (i of otpIndices; track i) {
+              <input
+                #digitInput
+                type="text"
+                inputmode="text"
+                maxlength="1"
+                class="rp-otp-input"
+                [class.rp-otp-filled]="codeDigits()[i]"
+                [class.rp-otp-error]="!!codeError()"
+                [value]="codeDigits()[i]"
+                (input)="onDigitInput($event, i)"
+                (keydown)="onDigitKeydown($event, i)"
+                (paste)="onCodePaste($event)"
+                autocomplete="one-time-code"
+                spellcheck="false">
+            }
+          </div>
+
+          @if (codeError()) {
+            <p class="rp-code-error">{{ codeError() }}</p>
+          }
+
+          <button type="button" class="rp-btn-primary" (click)="verifyCode()">
+            Verificar y activar cuenta
+          </button>
+
+          <div class="rp-resend-row">
+            ¿No llegó el correo?&nbsp;
+            @if (resendSent()) {
+              <span class="rp-resend-sent">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Código reenviado
+              </span>
+            } @else {
+              <button type="button" class="rp-link-btn"
+                      (click)="resendEmail()" [disabled]="resending()">
+                {{ resending() ? 'Reenviando...' : 'Reenviar código' }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ── DONE / ACTIVATED STEP ─────────────────────────── -->
+      @if (step() === 'done') {
         <div class="rp-card rp-success">
-          <div class="rp-success-icon">
+          <div class="rp-done-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <circle cx="12" cy="12" r="10"/>
               <polyline points="9 12 11.5 14.5 15.5 9.5"/>
             </svg>
           </div>
-          <h2>¡Revisa tu correo!</h2>
-          <p>Hemos enviado un enlace de activación a</p>
+          <h2>¡Cuenta activada!</h2>
+          <p>Bienvenido/a a Dairi, <strong>{{ registeredName }}</strong>.</p>
           <div class="rp-email-pill">{{ registeredEmail }}</div>
           <p class="rp-email-hint">
-            Haz clic en el enlace del correo para activar tu cuenta y comenzar tu prueba gratuita de 14 días.<br>
-            Puede tardar unos minutos. Revisa también tu carpeta de spam.
+            Tu período de prueba gratuito de 14 días ha comenzado. Inicia sesión para explorar todas las funcionalidades de Dairi.
           </p>
           <a routerLink="/login" class="rp-btn-primary" style="margin-top:1.5rem;">
             Ir a iniciar sesión
           </a>
-          <div class="rp-resend">
-            ¿No llegó el correo?
-            <button type="button" class="rp-link-btn">Reenviar activación</button>
-          </div>
         </div>
       }
 
       <!-- ── FORM STATE ─────────────────────────────────────── -->
-      @if (!submitted()) {
+      @if (step() === 'form') {
         <div class="rp-card">
           <div class="rp-card-header">
             <h1>Crear tu cuenta</h1>
@@ -219,11 +277,21 @@
               }
             </div>
 
+            <!-- Email send error -->
+            @if (emailError()) {
+              <div class="rp-email-send-error">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                {{ emailError() }}
+              </div>
+            }
+
             <!-- Submit -->
             <button type="submit" class="rp-btn-primary rp-submit" [disabled]="loading()">
               @if (loading()) {
                 <span class="rp-spinner"></span>
-                Creando tu cuenta...
+                Enviando código...
               } @else {
                 Crear cuenta gratis
               }
