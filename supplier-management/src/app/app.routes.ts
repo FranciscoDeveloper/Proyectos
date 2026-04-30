@@ -18,6 +18,13 @@ export const routes: Routes = [
       import('./components/register/register.component').then(m => m.RegisterComponent)
   },
 
+  // ── Public: docs ─────────────────────────────────────────────────────────────
+  {
+    path: 'docs',
+    loadComponent: () =>
+      import('./components/docs/docs.component').then(m => m.DocsComponent)
+  },
+
   // ── Public: login ────────────────────────────────────────────────────────────
   {
     path: 'login',
