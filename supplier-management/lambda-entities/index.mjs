@@ -369,6 +369,8 @@ const ENTITY_CONFIG = {
       if (d.soapAssessment       !== undefined) cols.soap_assessment        = d.soapAssessment;
       if (d.soapPlan             !== undefined) cols.soap_plan              = d.soapPlan;
       if (d.encounters           !== undefined) cols.encounters             = JSON.stringify(d.encounters);
+      if (d.odontogram          !== undefined) cols.odontogram             = JSON.stringify(d.odontogram);
+      if (d.periodontogram      !== undefined) cols.periodontogram         = JSON.stringify(d.periodontogram);
       return cols;
     },
 
@@ -416,6 +418,8 @@ const ENTITY_CONFIG = {
         soapAssessment:       r.soap_assessment       ?? '',
         soapPlan:             r.soap_plan             ?? '',
         encounters:           r.encounters            ?? [],
+        odontogram:           r.odontogram            ?? null,
+        periodontogram:       r.periodontogram        ?? null,
         createdAt:            r.created_at,
         updatedAt:            r.updated_at
       };

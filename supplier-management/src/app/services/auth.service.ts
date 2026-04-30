@@ -459,7 +459,13 @@ export const SCHEMA_DENTAL_RECORDS: EntitySchema = {
     { name: 'soapPlan',       type: 'textarea', label: 'Procedimiento Realizado (P)', required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Materiales usados, técnica, próxima sesión, indicaciones' },
 
     // ── Encounter history ─────────────────────────────────────────────────
-    { name: 'encounters', type: 'object-list', label: 'Historial de Atenciones', required: false, showInList: false, showInDetail: true, section: 'encounters' }
+    { name: 'encounters', type: 'object-list', label: 'Historial de Atenciones', required: false, showInList: false, showInDetail: true, section: 'encounters' },
+
+    // ── Odontograma interactivo ───────────────────────────────────────────
+    { name: 'odontogram',     type: 'dental-chart',     label: 'Odontograma',     required: false, showInList: false, showInDetail: true, section: 'dental-charts' },
+
+    // ── Periodontograma ───────────────────────────────────────────────────
+    { name: 'periodontogram', type: 'periodontal-chart', label: 'Periodontograma', required: false, showInList: false, showInDetail: true, section: 'dental-charts' }
   ]
 };
 

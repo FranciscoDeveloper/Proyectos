@@ -11,7 +11,9 @@ export type FieldType =
   | 'tel'
   | 'range'
   | 'tags'
-  | 'object-list';
+  | 'object-list'
+  | 'dental-chart'
+  | 'periodontal-chart';
 
 /** Determines which view component renders this entity's overview */
 export type ModuleType = 'crud' | 'list' | 'calendar' | 'clinical-record';
