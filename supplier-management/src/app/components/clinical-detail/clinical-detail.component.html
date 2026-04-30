@@ -173,6 +173,23 @@
       Documentos
       <span class="tab-count" *ngIf="documents().length > 0">{{ documents().length }}</span>
     </button>
+    <!-- Dental-only tabs -->
+    <button *ngIf="isDentalRecord()" class="tab-btn tab-btn--dental"
+            [class.active]="activeTab() === 'odontogram'"
+            (click)="activeTab.set('odontogram')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2C8 2 4 5 4 9c0 2.5 1 4.5 2 6l2 7h8l2-7c1-1.5 2-3.5 2-6 0-4-4-7-8-7z"/>
+      </svg>
+      Odontograma
+    </button>
+    <button *ngIf="isDentalRecord()" class="tab-btn tab-btn--dental"
+            [class.active]="activeTab() === 'periodontogram'"
+            (click)="activeTab.set('periodontogram')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 3v18h18"/><path d="M18 17l-5-8-4 6-3-4"/>
+      </svg>
+      Periodontograma
+    </button>
   </div>
 
   <!-- ════ TWO-COLUMN LAYOUT ════ -->
@@ -543,6 +560,24 @@
     {{ documents().length }} documento{{ documents().length !== 1 ? 's' : '' }} adjunto{{ documents().length !== 1 ? 's' : '' }}
     · {{ filteredDocuments().length }} visible{{ filteredDocuments().length !== 1 ? 's' : '' }}
   </div>
+</div>
+
+<!-- ════ ODONTOGRAMA TAB ════ -->
+<div class="dental-chart-panel card" *ngIf="activeTab() === 'odontogram' && isDentalRecord()">
+  <app-odontogram
+    [data]="odontogramData()"
+    [readonly]="false"
+    (dataChange)="saveOdontogram($event)">
+  </app-odontogram>
+</div>
+
+<!-- ════ PERIODONTOGRAMA TAB ════ -->
+<div class="dental-chart-panel card" *ngIf="activeTab() === 'periodontogram' && isDentalRecord()">
+  <app-periodontogram
+    [data]="periodontogramData()"
+    [readonly]="false"
+    (dataChange)="savePeriodontogram($event)">
+  </app-periodontogram>
 </div>
 
 <!-- ════ SHARE MODAL ════ -->

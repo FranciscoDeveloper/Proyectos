@@ -96,6 +96,9 @@ CREATE TABLE IF NOT EXISTS ficha_clinica (
   soap_plan              TEXT           NOT NULL DEFAULT '',
   -- Encounter history
   encounters             JSONB          NOT NULL DEFAULT '[]',
+  -- Dental charts (dental-records only; NULL for other specialties)
+  odontogram             JSONB,
+  periodontogram         JSONB,
   created_at             TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
   updated_at             TIMESTAMPTZ    NOT NULL DEFAULT NOW()
 );

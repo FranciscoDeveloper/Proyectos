@@ -6,6 +6,8 @@ import { GenericCrudService } from '../../services/generic-crud.service';
 import { FieldDefinition } from '../../models/entity-schema.model';
 import { ChatService, ChatUser } from '../../services/chat.service';
 import { AudioRecorderService } from '../../services/audio-recorder.service';
+import { OdontogramComponent, OdontogramData } from '../odontogram/odontogram.component';
+import { PeriodontogramComponent, PeriodontogramData } from '../periodontogram/periodontogram.component';
 
 interface VitalSign {
   label: string;
@@ -24,7 +26,7 @@ interface SectionField {
 @Component({
   selector: 'app-clinical-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, OdontogramComponent, PeriodontogramComponent],
   templateUrl: './clinical-detail.component.html',
   styleUrl: './clinical-detail.component.scss'
 })
@@ -261,7 +263,35 @@ export class ClinicalDetailComponent {
 
   // ── Encounter history tab ─────────────────────────────────────────────────
 
-  activeTab = signal<'record' | 'history' | 'documents'>('record');
+  activeTab = signal<'record' | 'history' | 'documents' | 'odontogram' | 'periodontogram'>('record');
+
+  // ── Dental chart detection ────────────────────────────────────────────────
+
+  readonly isDentalRecord = computed(() => this.entityKey === 'dental-records');
+
+  readonly odontogramData = computed<OdontogramData | null>(() => {
+    const r = this.record();
+    if (!r) return null;
+    const raw = r['odontogram'];
+    if (!raw || typeof raw !== 'object') return null;
+    return raw as OdontogramData;
+  });
+
+  readonly periodontogramData = computed<PeriodontogramData | null>(() => {
+    const r = this.record();
+    if (!r) return null;
+    const raw = r['periodontogram'];
+    if (!raw || typeof raw !== 'object') return null;
+    return raw as PeriodontogramData;
+  });
+
+  saveOdontogram(data: OdontogramData): void {
+    this.crudSvc.update(this.entityKey, this.id, { odontogram: data });
+  }
+
+  savePeriodontogram(data: PeriodontogramData): void {
+    this.crudSvc.update(this.entityKey, this.id, { periodontogram: data });
+  }
 
   /**
    * Schema-driven: collects all fields with section === 'encounters'.
