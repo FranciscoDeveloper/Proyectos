@@ -79,6 +79,7 @@ export class PatientBookingComponent implements OnInit {
   patientName  = signal('');
   patientEmail = signal('');
   patientPhone = signal('');
+  patientRut   = signal('');
   reason       = signal('');
   modality     = signal<'presencial' | 'video'>('presencial');
   submitting   = signal(false);
@@ -138,7 +139,8 @@ export class PatientBookingComponent implements OnInit {
 
   readonly formValid = computed(() =>
     this.patientName().trim().length >= 3 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.patientEmail().trim())
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.patientEmail().trim()) &&
+    this.patientRut().trim().length >= 9
   );
 
   ngOnInit(): void {
@@ -256,6 +258,7 @@ export class PatientBookingComponent implements OnInit {
       patientName:  this.patientName().trim(),
       patientEmail: this.patientEmail().trim(),
       patientPhone: this.patientPhone().trim(),
+      patientRut:   this.patientRut().trim(),
       reason:       this.reason().trim(),
       modality:     this.modality()
     };
@@ -327,7 +330,7 @@ export class PatientBookingComponent implements OnInit {
       const startMs  = new Date(`${booking.date}T${booking.time}:00`).getTime();
       const endIso   = new Date(startMs + duration * 60_000).toISOString().slice(0, 16);
 
-      const result = await this.gcalSvc.createEvent({
+      const eventParams = {
         summary:       `Cita con ${booking.doctorName} — ${booking.specialty}`,
         description:   `Clínica: ${booking.clinicName}\n` +
                        `Motivo: ${this.reason() || 'Consulta médica'}\n` +
@@ -337,7 +340,17 @@ export class PatientBookingComponent implements OnInit {
         attendeeEmail: this.patientEmail(),
         location:      booking.clinicName,
         withVideo:     isVideo
-      });
+      };
+
+      let result = await this.gcalSvc.createEvent(eventParams);
+
+      // Token expirado o revocado → reconectar y reintentar una vez
+      if (result.error === 'token_expired') {
+        this.gcalStatus.set('connecting');
+        await this.gcalSvc.connect();
+        this.gcalStatus.set('syncing');
+        result = await this.gcalSvc.createEvent(eventParams);
+      }
 
       if (result.success) {
         this.gcalStatus.set('synced');

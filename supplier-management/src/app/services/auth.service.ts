@@ -119,8 +119,9 @@ const SCHEMA_APPOINTMENTS: EntitySchema = {
 const SCHEMA_PACIENTE: EntitySchema = {
   entity: { key: 'paciente', singular: 'Paciente', plural: 'Pacientes', icon: 'heart', description: 'Registro y seguimiento de pacientes' },
   fields: [
-    { name: 'nombre',     type: 'text',     label: 'Nombre',       required: true,  isTitle: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true, filterType: 'search' },
-    { name: 'email',      type: 'email',    label: 'Email',        required: false, isSubtitle: true, showInList: true,  showInDetail: true },
+    { name: 'nombre',     type: 'text',     label: 'Nombre',       required: true,  isTitle: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true, filterType: 'search', minLength: 2 },
+    { name: 'rut',        type: 'text',     label: 'RUT',          required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  filterable: true, filterType: 'search', pattern: '^\\d{1,2}\\.?\\d{3}\\.?\\d{3}-[\\dkK]$', patternMessage: 'Formato: 12.345.678-9' },
+    { name: 'email',      type: 'email',    label: 'Email',        required: true,                    showInList: true,  showInDetail: true },
     { name: 'telefono',   type: 'tel',      label: 'Teléfono',     required: false,                   showInList: true,  showInDetail: true },
     { name: 'diagnostic', type: 'text',     label: 'Diagnóstico',  required: false,                   showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
     { name: 'allergies',  type: 'text',     label: 'Alergias',     required: false,                   showInList: false, showInDetail: true }
@@ -137,12 +138,21 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
     description: 'Fichas clínicas y registros médicos de pacientes'
   },
   fields: [
+    // ── Selector de paciente registrado (solo en creación) ────────────────
+    { name: 'patientId', type: 'entity-select', label: 'Paciente registrado', required: true,
+      showInList: false, showInDetail: false, section: 'demographics', isStable: true,
+      relatedEntity: 'paciente', relatedLabelField: 'nombre',
+      linkedFields: [
+        { from: 'nombre', to: 'fullName' },
+        { from: 'rut',    to: 'rut'      }
+      ]
+    },
     // ── Identificación ────────────────────────────────────────────────────
     { name: 'fullName',    type: 'text',   label: 'Nombre Completo',     required: true,  isTitle: true,    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'search', sortable: true, isStable: true },
-    { name: 'rut',         type: 'text',   label: 'RUT',                 required: false, isSubtitle: true, showInList: true,  showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'birthDate',   type: 'date',   label: 'Fecha de Nacimiento', required: false,                  showInList: false, showInDetail: true,  section: 'demographics', format: 'date', isStable: true },
-    { name: 'age',         type: 'number', label: 'Edad',                required: false,                  showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
-    { name: 'gender',      type: 'select', label: 'Sexo',                required: false,                  showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
+    { name: 'rut',         type: 'text',   label: 'RUT',                 required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  section: 'demographics', isStable: true, pattern: '^\\d{1,2}\\.?\\d{3}\\.?\\d{3}-[\\dkK]$', patternMessage: 'Formato: 12.345.678-9' },
+    { name: 'birthDate',   type: 'date',   label: 'Fecha de Nacimiento', required: true,                   showInList: false, showInDetail: true,  section: 'demographics', format: 'date', isStable: true },
+    { name: 'age',         type: 'number', label: 'Edad',                required: true,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
+    { name: 'gender',      type: 'select', label: 'Sexo',                required: true,                   showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
     { name: 'bloodType',   type: 'select', label: 'Grupo Sanguíneo',     required: false, isBadge: true,   showInList: true,  showInDetail: true,  section: 'demographics', isStable: true, lockWhenHasEncounters: true,
@@ -628,7 +638,7 @@ const SESSION_KEY = 'auth_session';
  * Increment this whenever the schema structure changes so that any cached
  * session in sessionStorage is invalidated and the user must re-login.
  */
-const SESSION_VERSION = 9;
+const SESSION_VERSION = 10;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
