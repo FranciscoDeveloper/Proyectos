@@ -13,7 +13,8 @@ export type FieldType =
   | 'tags'
   | 'object-list'
   | 'dental-chart'
-  | 'periodontal-chart';
+  | 'periodontal-chart'
+  | 'entity-select';
 
 /** Determines which view component renders this entity's overview */
 export type ModuleType = 'crud' | 'list' | 'calendar' | 'clinical-record';
@@ -83,6 +84,12 @@ export interface FieldDefinition {
    * The server only stores ciphertext; only the user's derived key can decrypt it.
    */
   encrypted?: boolean;
+  /** For type='entity-select': which entity key to load options from */
+  relatedEntity?: string;
+  /** Field name in the related entity to use as display label */
+  relatedLabelField?: string;
+  /** Auto-fill other form fields when this entity-select changes */
+  linkedFields?: Array<{ from: string; to: string }>;
 }
 
 export interface EntityMeta {
