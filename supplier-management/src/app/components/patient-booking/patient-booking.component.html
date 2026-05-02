@@ -27,6 +27,133 @@
     <button class="btn-secondary" (click)="error.set(''); loadProfessionals()">Reintentar</button>
   </div>
 
+  <!-- ── STEP -1: SPECIALIST CHAT ── -->
+  <main class="booking-main chat-main" *ngIf="!loading() && !error() && step() === -1">
+    <div class="chat-card">
+
+      <!-- Chat header -->
+      <div class="chat-header">
+        <div class="chat-bot-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>
+          </svg>
+        </div>
+        <div class="chat-header-info">
+          <div class="chat-bot-name">Asistente Dairi</div>
+          <div class="chat-bot-sub">Te orienta hacia el especialista correcto</div>
+        </div>
+        <div class="chat-status-dot"></div>
+      </div>
+
+      <!-- Messages -->
+      <div class="chat-messages" #chatScroll>
+
+        <ng-container *ngFor="let msg of chatMessages()">
+
+          <!-- Bot message -->
+          <div class="chat-bubble bot-bubble" *ngIf="msg.role === 'bot'">
+            <div class="bubble-avatar-sm">D</div>
+            <div class="bubble-body">
+              <p class="bubble-text" *ngIf="msg.text">{{ msg.text }}</p>
+
+              <!-- Detected specialty card -->
+              <div class="specialty-card" *ngIf="msg.specialty">
+                <span class="spec-emoji">{{ msg.specialty.emoji }}</span>
+                <div class="spec-info">
+                  <strong class="spec-name">{{ msg.specialty.name }}</strong>
+                  <span class="spec-desc">{{ msg.specialty.description }}</span>
+                </div>
+              </div>
+
+              <!-- Professional cards inline -->
+              <div class="chat-prof-list" *ngIf="msg.professionals && msg.professionals.length > 0">
+                <p class="prof-list-label">
+                  {{ msg.professionals.length }} profesional{{ msg.professionals.length !== 1 ? 'es' : '' }} disponible{{ msg.professionals.length !== 1 ? 's' : '' }}:
+                </p>
+                <button class="chat-prof-card"
+                        *ngFor="let prof of msg.professionals"
+                        (click)="selectProfessional(prof)">
+                  <div class="cpc-avatar">{{ prof.nombre.charAt(0) }}</div>
+                  <div class="cpc-info">
+                    <div class="cpc-name">{{ prof.nombre }}</div>
+                    <div class="cpc-spec">{{ prof.especialidad }} · {{ prof.duration }} min</div>
+                  </div>
+                  <div class="cpc-actions">
+                    <span class="cpc-video" *ngIf="prof.videoconsulta">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="23 7 16 12 23 17 23 7"/>
+                        <rect x="1" y="5" width="15" height="14" rx="2"/>
+                      </svg>
+                    </span>
+                    <svg class="cpc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                  </div>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- User message -->
+          <div class="chat-bubble user-bubble" *ngIf="msg.role === 'user'">
+            <div class="bubble-body user-body">
+              <p class="bubble-text">{{ msg.text }}</p>
+            </div>
+          </div>
+
+        </ng-container>
+
+        <!-- Typing indicator -->
+        <div class="chat-bubble bot-bubble typing-bubble" *ngIf="chatPhase() === 'typing'">
+          <div class="bubble-avatar-sm">D</div>
+          <div class="typing-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <!-- Loading professionals indicator -->
+        <div class="chat-loading-profs" *ngIf="loadingProfs() && step() === -1">
+          <span class="spinner-sm dark"></span>
+          <span>Cargando profesionales…</span>
+        </div>
+
+      </div>
+
+      <!-- Input area -->
+      <div class="chat-input-area"
+           *ngIf="chatPhase() === 'awaiting' || chatPhase() === 'clarifying'">
+        <textarea
+          class="chat-textarea"
+          [ngModel]="chatInput()"
+          (ngModelChange)="chatInput.set($event)"
+          (keydown)="onChatInputKeydown($event)"
+          placeholder="Describe tus síntomas o molestias…"
+          rows="2">
+        </textarea>
+        <button class="chat-send-btn"
+                (click)="sendChatMessage()"
+                [disabled]="!chatInput().trim()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Footer actions -->
+      <div class="chat-footer-actions">
+        <button class="btn-skip-chat" (click)="skipToAllProfessionals()">
+          Ver todos los profesionales
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </main>
+
   <!-- ── STEP 0: PROFESSIONAL PICKER ── -->
   <main class="booking-main" *ngIf="!loading() && !loadingProfs() && !error() && step() === 0">
     <h2 class="step-title" style="margin-bottom:1.5rem">¿Con quién deseas agendar?</h2>
