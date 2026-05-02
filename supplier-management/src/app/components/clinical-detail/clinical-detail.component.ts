@@ -111,11 +111,14 @@ export class ClinicalDetailComponent {
   readonly vitals = computed<VitalSign[]>(() => {
     const r = this.record();
     if (!r || !this.schema) return [];
+    const isDental = this.isDentalRecord();
     return this.schema.fields
       .filter(f => f.isVitalSign)
       .map(f => {
         const raw = r[f.name];
-        const meta = this.VITAL_META[f.name] ?? { unit: '', normal: '—' };
+        const meta = isDental
+          ? { unit: '', normal: '' }
+          : (this.VITAL_META[f.name] ?? { unit: '', normal: '—' });
         return {
           label: f.label,
           value: raw != null ? String(raw) : '—',
@@ -274,6 +277,42 @@ export class ClinicalDetailComponent {
   // ── Dental chart detection ────────────────────────────────────────────────
 
   readonly isDentalRecord = computed(() => this.entityKey === 'dental-records');
+
+  readonly breadcrumbLabel = computed(() =>
+    this.schema?.entity.plural ?? 'Fichas Clínicas'
+  );
+
+  readonly vitalsSectionTitle = computed(() =>
+    this.isDentalRecord() ? 'Examen Clínico' : 'Signos Vitales'
+  );
+
+  readonly historySectionTitle = computed(() =>
+    this.isDentalRecord() ? 'Anamnesis Dental' : 'Antecedentes Médicos'
+  );
+
+  readonly surgicalSectionTitle = computed(() =>
+    this.isDentalRecord() ? 'Tratamientos Dentales' : 'Intervenciones Quirúrgicas'
+  );
+
+  readonly surgicalHistoryLabel = computed(() =>
+    this.isDentalRecord() ? 'Tratamientos Previos' : 'Antecedentes Quirúrgicos'
+  );
+
+  readonly surgicalPlannedLabel = computed(() =>
+    this.isDentalRecord() ? 'Procedimientos Planificados' : 'Intervenciones Programadas / En Evaluación'
+  );
+
+  readonly soapSectionTitle = computed(() =>
+    this.isDentalRecord() ? 'Nota de Atención Dental' : 'Nota Clínica (SOAP)'
+  );
+
+  readonly newEncounterLabel = computed(() =>
+    this.isDentalRecord() ? 'Nueva Sesión' : 'Nueva Atención'
+  );
+
+  readonly recordTabLabel = computed(() =>
+    this.isDentalRecord() ? 'Ficha Dental' : 'Ficha Clínica'
+  );
 
   readonly odontogramData = computed<OdontogramData | null>(() => {
     const r = this.record();
