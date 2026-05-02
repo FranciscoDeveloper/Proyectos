@@ -240,7 +240,7 @@
       </div>
 
       <!-- ── Diagnosis ── -->
-      <div class="section card" *ngIf="diagnosisLabel()">
+      <div class="section card" *ngIf="diagnosisLabel() || differentialDx()">
         <div class="section-header section-header--dx">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
@@ -249,12 +249,12 @@
           <span>Diagnóstico</span>
         </div>
         <div class="dx-body">
-          <div class="dx-main">
+          <div class="dx-main" *ngIf="diagnosisLabel()">
             <span class="cie-code" *ngIf="diagnosisCode()">{{ diagnosisCode() }}</span>
             <span class="dx-label">{{ diagnosisLabel() }}</span>
           </div>
           <p class="dx-diff" *ngIf="differentialDx()">
-            <strong>Diagnóstico diferencial:</strong> {{ differentialDx() }}
+            <strong>{{ differentialDxLabel() }}:</strong> {{ differentialDx() }}
           </p>
         </div>
       </div>

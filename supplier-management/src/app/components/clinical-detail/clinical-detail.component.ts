@@ -151,6 +151,12 @@ export class ClinicalDetailComponent {
   readonly diagnosisLabel = computed(() => String(this.record()?.['diagnosisLabel'] ?? ''));
   readonly differentialDx = computed(() => String(this.record()?.['differentialDx'] ?? ''));
 
+  /** Uses the schema field label so each specialty shows its own term
+   *  (e.g. "Plan de Tratamiento" for dental, "Diagnóstico diferencial" for others) */
+  readonly differentialDxLabel = computed(() =>
+    this.schema?.fields.find(f => f.name === 'differentialDx')?.label ?? 'Diagnóstico diferencial'
+  );
+
   readonly historyFields = computed<SectionField[]>(() =>
     this.sectionFields('history')
   );
