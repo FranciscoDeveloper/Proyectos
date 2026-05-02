@@ -60,6 +60,15 @@ export class GenericCrudService {
   }
 
   update(key: string, id: number, data: Record<string, any>): void {
+    // Optimistic update: merge immediately so signals (e.g. odontogramData) stay reactive
+    const existing = this.getById(key, id);
+    if (existing) {
+      const merged = { ...existing, ...data };
+      this.stores.get(key)?.update(
+        list => list.map(item => item['id'] === id ? merged : item)
+      );
+    }
+
     this.crypto.encryptRecord(data, key).then(encrypted => {
       this.http.put<Record<string, any>>(`/api/entities/${key}/${id}`, encrypted).subscribe({
         next: async updated => {
