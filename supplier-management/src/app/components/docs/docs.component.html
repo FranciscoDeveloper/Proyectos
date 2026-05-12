@@ -1,0 +1,558 @@
+<!-- NAV -->
+<nav class="docs-nav">
+  <a routerLink="/" class="nav-logo">Dairi<span>.</span></a>
+  <div class="nav-links">
+    <a routerLink="/" class="nav-link">← Volver al inicio</a>
+    <a routerLink="/login" class="nav-cta">Iniciar sesión</a>
+  </div>
+</nav>
+
+<!-- LAYOUT -->
+<div class="docs-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="docs-sidebar">
+    <div class="sidebar-title">Documentación</div>
+    <nav class="sidebar-nav">
+      <button
+        *ngFor="let s of sections"
+        class="sidebar-item"
+        [class.active]="activeSection === s.id"
+        (click)="scrollTo(s.id)">
+        <span class="sidebar-icon">{{ s.icon }}</span>
+        {{ s.label }}
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-version">Dairi v2.0</div>
+      <a href="mailto:admin@dairi.cl" class="sidebar-support">Contactar soporte</a>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="docs-content">
+
+    <!-- HEADER -->
+    <div class="docs-header">
+      <div class="docs-badge">Centro de ayuda · Autosoporte</div>
+      <h1>Documentación de Dairi</h1>
+      <p>Guía completa para que tu equipo aproveche al máximo la plataforma. Encuentra aquí todo lo que necesitas para operar sin depender de soporte técnico.</p>
+    </div>
+
+    <!-- ── 1. INTRODUCCIÓN ───────────────────────────────────────────────── -->
+    <section id="introduccion" class="doc-section">
+      <div class="section-anchor"></div>
+      <div class="section-header">
+        <span class="section-icon">📖</span>
+        <h2>Introducción a Dairi</h2>
+      </div>
+      <p>
+        <strong>Dairi</strong> es una plataforma de gestión clínica y empresarial diseñada para
+        clínicas, consultorios y centros de salud en Latinoamérica. Unifica en un único sistema
+        todos los procesos operativos: pacientes, citas, fichas clínicas, inventario, proveedores
+        y finanzas, eliminando hojas de cálculo, papel y sistemas desconectados.
+      </p>
+      <div class="info-box">
+        <strong>¿Qué puedes hacer con Dairi?</strong>
+        <ul>
+          <li>Gestionar el ciclo completo del paciente: desde el agendamiento hasta la ficha clínica.</li>
+          <li>Controlar el inventario de medicamentos y productos con alertas de stock bajo.</li>
+          <li>Administrar proveedores y registrar gastos de forma centralizada.</li>
+          <li>Comunicar a tu equipo a través del chat interno sin salir de la plataforma.</li>
+          <li>Generar reportes financieros y médicos con un clic.</li>
+        </ul>
+      </div>
+      <div class="highlight-grid">
+        <div class="highlight-card">
+          <div class="highlight-icon">☁️</div>
+          <strong>100% en la nube</strong>
+          <p>Sin instalaciones. Accede desde cualquier dispositivo con internet.</p>
+        </div>
+        <div class="highlight-card">
+          <div class="highlight-icon">⚡</div>
+          <strong>Listo en 24 horas</strong>
+          <p>Tu equipo operativo el mismo día con onboarding guiado.</p>
+        </div>
+        <div class="highlight-card">
+          <div class="highlight-icon">🔒</div>
+          <strong>Seguridad bancaria</strong>
+          <p>JWT, HTTPS forzado y cifrado AES-256 en base de datos.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 2. ACCESO Y ROLES ─────────────────────────────────────────────── -->
+    <section id="acceso" class="doc-section">
+      <div class="section-anchor"></div>
+      <div class="section-header">
+        <span class="section-icon">🔐</span>
+        <h2>Acceso y Roles</h2>
+      </div>
+      <p>Dairi utiliza un sistema de roles que determina qué módulos puede ver y editar cada usuario. El administrador asigna los permisos desde la plataforma.</p>
+
+      <h3>Cómo iniciar sesión</h3>
+      <ol class="steps-list">
+        <li>Ingresa a <strong>app.dairi.cl</strong> o haz clic en «Iniciar sesión» en la página principal.</li>
+        <li>Escribe tu <strong>correo electrónico</strong> y <strong>contraseña</strong> institucional.</li>
+        <li>Haz clic en <strong>Ingresar</strong>. Serás redirigido al Dashboard con los módulos asignados a tu rol.</li>
+      </ol>
+      <div class="warning-box">
+        Si olvidaste tu contraseña, contacta al administrador de tu clínica o escribe a <a href="mailto:admin@dairi.cl">admin@dairi.cl</a>.
+      </div>
+
+      <h3>Roles disponibles</h3>
+      <div class="table-wrapper">
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Rol</th>
+              <th>Descripción</th>
+              <th>Acciones permitidas</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-admin">admin</span></td>
+              <td>Administrador general con acceso total a todos los módulos.</td>
+              <td>Crear, editar, eliminar, ver reportes, gestionar usuarios.</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-manager">manager</span></td>
+              <td>Médico, psicólogo, odontólogo o jefe de área. Accede a los módulos asignados.</td>
+              <td>Crear, editar y ver registros de su área. No gestiona usuarios.</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-viewer">viewer</span></td>
+              <td>Auditor o rol de solo lectura.</td>
+              <td>Solo consulta. No puede crear ni modificar datos.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Cuentas de demostración</h3>
+      <div class="table-wrapper">
+        <table class="doc-table">
+          <thead>
+            <tr><th>Perfil</th><th>Email</th><th>Contraseña</th><th>Módulos</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Admin General</td><td>admin&#64;empresa.com</td><td>admin123</td><td>Todos los módulos</td></tr>
+            <tr><td>Jefe de Compras</td><td>compras&#64;empresa.com</td><td>compras123</td><td>Proveedores, Productos, Pagos, Gastos</td></tr>
+            <tr><td>Dra. Morales</td><td>medico&#64;hospital.com</td><td>medico123</td><td>Pacientes, Citas, Fichas Clínicas, Pagos</td></tr>
+            <tr><td>Ps. Carolina Vega</td><td>psicologia&#64;clinica.com</td><td>psico123</td><td>Sesiones Psicológicas, Fichas Psicológicas</td></tr>
+            <tr><td>Dr. Ramírez</td><td>odontologia&#64;clinica.com</td><td>denti123</td><td>Sesiones Dentales, Fichas Dentales</td></tr>
+            <tr><td>Auditor</td><td>auditor&#64;empresa.com</td><td>viewer123</td><td>Proveedores, Pagos, Gastos (solo lectura)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── 3. DASHBOARD ──────────────────────────────────────────────────── -->
+    <section id="dashboard" class="doc-section">
+      <div class="section-anchor"></div>
+      <div class="section-header">
+        <span class="section-icon">📊</span>
+        <h2>Dashboard</h2>
+      </div>
+      <p>El Dashboard es la pantalla principal al ingresar. Muestra en tiempo real los indicadores más importantes de tu clínica en el día en curso.</p>
+
+      <h3>Indicadores disponibles</h3>
+      <div class="cards-grid">
+        <div class="info-card">
+          <strong>Citas del día</strong>
+          <p>Número total de citas agendadas para la jornada actual.</p>
+        </div>
+        <div class="info-card">
+          <strong>Ingresos del mes</strong>
+          <p>Suma de pagos registrados en el mes en curso.</p>
+        </div>
+        <div class="info-card">
+          <strong>Pacientes activos</strong>
+          <p>Total de pacientes con atenciones registradas en los últimos 30 días.</p>
+        </div>
+        <div class="info-card">
+          <strong>Alertas de stock</strong>
+          <p>Productos con cantidad inferior al mínimo configurado.</p>
+        </div>
+      </div>
+
+      <h3>Tabla de citas del día</h3>
+      <p>Debajo de los indicadores verás la lista de citas agendadas para hoy con el nombre del paciente, hora, profesional asignado y estado actual (Agendada, Completada, En espera, No asistió).</p>
+
+      <div class="info-box">
+        El Dashboard se actualiza automáticamente. Si ves datos desactualizados, recarga la página con <kbd>F5</kbd> o <kbd>Ctrl+R</kbd>.
+      </div>
+    </section>
+
+    <!-- ── 4. PACIENTES ──────────────────────────────────────────────────── -->
+    <section id="pacientes" class="doc-section">
+      <div class="section-anchor"></div>
+      <div class="section-header">
+        <span class="section-icon">🧑‍⚕️</span>
+        <h2>Gestión de Pacientes</h2>
+      </div>
+      <p>El módulo de Pacientes centraliza el expediente digital de cada persona atendida en tu clínica.</p>
+
+      <h3>Ver listado de pacientes</h3>
+      <ol class="steps-list">
+        <li>En el menú lateral, haz clic en <strong>Pacientes</strong>.</li>
+        <li>Verás la tabla con todos los pacientes registrados, con buscador y filtros.</li>
+        <li>Haz clic en el nombre de un paciente para ver su ficha completa.</li>
+      </ol>
+
+      <h3>Crear un nuevo paciente</h3>
+      <ol class="steps-list">
+        <li>En el listado de Pacientes, haz clic en el botón <strong>+ Nuevo</strong>.</li>
+        <li>Completa los campos del formulario: nombre, RUT, fecha de nacimiento, teléfono, email, dirección y previsión.</li>
+        <li>Haz clic en <strong>Guardar</strong>.</li>
+      </ol>
+      <div class="info-box">
+        Los campos marcados con <strong>*</strong> son obligatorios. El RUT debe tener formato válido chileno (ej: 12.345.678-9).
+      </div>
+
+      <h3>Editar o eliminar un paciente</h3>
+      <ul class="ul-list">
+        <li>Abre el detalle del paciente → botón <strong>Editar</strong> para modificar datos.</li>
+        <li>Botón <strong>Eliminar</strong> (solo disponible para admin) para borrar el registro permanentemente.</li>
+      </ul>
+
+      <h3>Historial clínico</h3>
+      <p>Desde el detalle del paciente puedes acceder directamente a sus fichas clínicas, historial de citas y pagos asociados.</p>
+    </section>
+
+    <!-- ── 5. CITAS ──────────────────────────────────────────────────────── -->
+    <section id="citas" class="doc-section">
+      <div class="section-anchor"></div>
+      <div class="section-header">
+        <span class="section-icon">📅</span>
+        <h2>Citas y Calendario</h2>
+      </div>
+      <p>El módulo de Citas ofrece una vista de calendario mensual interactiva para gestionar la agenda de tu clínica.</p>
+
+      <h3>Navegar por el calendario</h3>
+      <ul class="ul-list">
+        <li>Usa las flechas <strong>‹ ›</strong> para cambiar de mes.</li>
+        <li>Cambia entre vistas <strong>Mes / Semana / Día</strong> con los botones en la esquina superior derecha.</li>
+        <li>Haz clic en una cita para ver sus detalles.</li>
+      </ul>
+
+      <h3>Crear una nueva cita</h3>
+      <ol class="steps-list">
+        <li>Haz clic en el botón <strong>+ Nueva Cita</strong> o directamente sobre un día del calendario.</li>
+        <li>Selecciona el <strong>paciente</strong>, <strong>profesional</strong>, <strong>fecha</strong> y <strong>hora</strong>.</li>
+        <li>Elige el tipo de atención y agrega observaciones opcionales.</li>
+        <li>Haz clic en <strong>Guardar</strong>.</li>
+      </ol>
+
+      <h3>Estados de una cita</h3>
+      <div class="table-wrapper">
+        <table class="doc-table">
+          <thead><tr><th>Estado</th><th>Color</th><th>Significado</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge badge-green">Completada</span></td><td>Verde</td><td>La atención fue realizada exitosamente.</td></tr>
+            <tr><td><span class="badge badge-blue">Agendada</span></td><td>Azul</td><td>Cita confirmada, pendiente de atención.</td></tr>
+            <tr><td><span class="badge badge-yellow">En espera</span></td><td>Amarillo</td><td>El paciente llegó y está esperando ser atendido.</td></tr>
+            <tr><td><span class="badge badge-pink">Cancelada</span></td><td>Rosado</td><td>La cita fue cancelada por el paciente o el profesional.</td></tr>
+            <tr><td><span class="badge badge-gray">No asistió</span></td><td>Gris</td><td>El paciente no se presentó.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Modificar o eliminar una cita</h3>
+      <p>Haz clic en la cita en el calendario → selecciona <strong>Editar</strong> para cambiar datos o <strong>Eliminar</strong> para borrarla.</p>
+    </section>
+
+    <!-- ── 6. FICHAS CLÍNICAS ────────────────────────────────────────────── -->
+    <section id="fichas" class="doc-section">
+      <div class="section-anchor"></div>
+      <div class="section-header">
+        <span class="section-icon">📋</span>
+        <h2>Fichas Clínicas</h2>
+      </div>
+      <p>Dairi soporta tres tipos de fichas clínicas especializadas: <strong>Medicina General</strong>, <strong>Psicología</strong> y <strong>Odontología</strong>. Cada ficha queda vinculada al paciente y al profesional que la creó.</p>
+
+      <h3>Acceder a las fichas</h3>
+      <ol class="steps-list">
+        <li>En el menú lateral, haz clic en <strong>Fichas Clínicas</strong> (o Fichas Psicológicas / Fichas Dentales según tu rol).</li>
+        <li>Busca al paciente por nombre o RUT.</li>
+        <li>Selecciona la ficha para ver el historial completo de atenciones.</li>
+      </ol>
+
+      <h3>Crear una nueva ficha</h3>
+      <ol class="steps-list">
+        <li>Desde el detalle del paciente o desde el módulo de Fichas, haz clic en <strong>+ Nueva Ficha</strong>.</li>
+        <li>Completa los datos de la consulta según la especialidad:</li>
+      </ol>
+
+      <div class="specialty-grid">
+        <div class="specialty-card">
+          <div class="specialty-icon">🩺</div>
+          <h4>Medicina General</h4>
+          <ul>
+            <li>Motivo de consulta</li>
+            <li>Signos vitales (presión, temperatura, peso, talla)</li>
+            <li>Diagnóstico principal (código CIE-10)</li>
+            <li>Prescripciones y medicamentos</li>
+            <li>Intervenciones quirúrgicas</li>
+            <li>Documentos adjuntos (exámenes, imágenes)</li>
+          </ul>
+        </div>
+        <div class="specialty-card">
+          <div class="specialty-icon">🧠</div>
+          <h4>Psicología</h4>
+          <ul>
+            <li>Motivo de consulta</li>
+            <li>Evaluación del estado mental</li>
+            <li>Plan terapéutico</li>
+            <li>Escalas de valoración</li>
+            <li>Notas de sesión</li>
+            <li>Tareas asignadas al paciente</li>
+          </ul>
+        </div>
+        <div class="specialty-card">
+          <div class="specialty-icon">🦷</div>
+          <h4>Odontología</h4>
+          <ul>
+            <li>Odontograma interactivo</li>
+            <li>Diagnóstico por pieza dental</li>
+            <li>Plan de tratamiento</li>
+            <li>Procedimientos realizados</li>
+            <li>Materiales utilizados</li>
+            <li>Próxima revisión</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Alertas clínicas</h3>
+      <p>Puedes agregar alertas a la ficha del paciente (alergias, condiciones especiales) que se mostrarán de forma destacada en cada consulta posterior.</p>
+
+      <h3>Grabación de audio</h3>
+      <p>En la ficha clínica puedes grabar audio directamente desde el navegador para registrar observaciones verbales durante la consulta. El audio queda adjunto a la ficha.</p>
+    </section>
+
+    <!-- ── 7. PROVEEDORES ────────────────────────────────────────────────── -->
+    <section id="proveedores" class="doc-section">
+      <div class="section-anchor"></div>
+      <div class="section-header">
+        <span class="section-icon">🤝</span>
+        <h2>Gestión de Proveedores</h2>
+      </div>
+      <p>El módulo de Proveedores permite mantener un catálogo actualizado de todas las empresas y personas que abastecen a tu clínica.</p>
+
+      <h3>Información de un proveedor</h3>
+      <div class="cards-grid">
+        <div class="info-card"><strong>Datos básicos</strong><p>Nombre, RUT/ID fiscal, categoría (laboratorio, insumos, tecnología, etc.).</p></div>
+        <div class="info-card"><strong>Contacto</strong><p>Teléfono, email y dirección del proveedor.</p></div>
+        <div class="info-card"><strong>Estado</strong><p>Activo / Inactivo. Los inactivos no aparecen en formularios de compra.</p></div>
+        <div class="info-card"><strong>Rating</strong><p>Calificación de 1 a 5 estrellas basada en el historial de compras.</p></div>
+      </div>
+
+      <h3>Crear un nuevo proveedor</h3>
+      <ol class="steps-list">
+        <li>Ve a <strong>Proveedores</strong> en el menú lateral → <strong>+ Nuevo</strong>.</li>
+        <li>Completa nombre, RUT, categoría, teléfono, email y estado.</li>
+        <li>Haz clic en <strong>Guardar</strong>.</li>
+      </ol>
+
+      <h3>Historial de compras</h3>
+      <p>Desde el detalle de cada proveedor puedes ver el historial de órdenes y pagos asociados, con el monto total acumulado.</p>
+    </section>
+
+    <!-- ── 8. INVENTARIO ─────────────────────────────────────────────────── -->
+    <section id="productos" class="doc-section">
+      <div class="section-anchor"></div>
+      <div class="section-header">
+        <span class="section-icon">💊</span>
+        <h2>Inventario de Productos</h2>
+      </div>
+      <p>Gestiona el stock de medicamentos, insumos médicos y cualquier producto utilizado en tu clínica.</p>
+
+      <h3>Información de un producto</h3>
+      <div class="cards-grid">
+        <div class="info-card"><strong>Datos del producto</strong><p>Nombre, descripción, categoría (medicamento, insumo, equipo).</p></div>
+        <div class="info-card"><strong>Precios</strong><p>Precio de costo (compra) y precio de venta al paciente.</p></div>
+        <div class="info-card"><strong>Stock</strong><p>Cantidad actual, unidad de medida y stock mínimo para alerta.</p></div>
+        <div class="info-card"><strong>Trazabilidad</strong><p>Proveedor asociado, número de lote y fecha de vencimiento.</p></div>
+      </div>
+
+      <h3>Alertas de stock bajo</h3>
+      <p>Cuando la cantidad de un producto cae por debajo del mínimo configurado, aparece una alerta en el Dashboard. Para configurar el mínimo, edita el producto y ajusta el campo <strong>Stock mínimo</strong>.</p>
+
+      <h3>Registrar entrada de stock</h3>
+      <ol class="steps-list">
+        <li>Ve al detalle del producto → botón <strong>Registrar entrada</strong>.</li>
+        <li>Ingresa la cantidad recibida, el proveedor y la fecha de la compra.</li>
+        <li>El stock se actualiza automáticamente.</li>
+      </ol>
+    </section>
+
+    <!-- ── 9. PAGOS Y GASTOS ─────────────────────────────────────────────── -->
+    <section id="pagos" class="doc-section">
+      <div class="section-anchor"></div>
+      <div class="section-header">
+        <span class="section-icon">💸</span>
+        <h2>Pagos y Control de Gastos</h2>
+      </div>
+      <p>Dairi separa los ingresos (pagos de pacientes) de los egresos (gastos operacionales) para una contabilidad clara.</p>
+
+      <h3>Módulo de Pagos</h3>
+      <p>Registra los cobros realizados a pacientes por atenciones, procedimientos o venta de productos.</p>
+      <ol class="steps-list">
+        <li>Ve a <strong>Pagos</strong> → <strong>+ Nuevo Pago</strong>.</li>
+        <li>Selecciona el paciente, el concepto (consulta, procedimiento, producto) y el monto.</li>
+        <li>Elige el método de pago: efectivo, tarjeta, transferencia.</li>
+        <li>Haz clic en <strong>Guardar</strong>. Puedes emitir boleta electrónica SII desde este formulario.</li>
+      </ol>
+
+      <h3>Boleta Electrónica SII</h3>
+      <div class="info-box">
+        Para emitir boletas electrónicas debes tener configuradas las credenciales SII en la sección de Configuración. Contacta a tu administrador si no ves esta opción.
+      </div>
+
+      <h3>Módulo de Gastos</h3>
+      <p>Registra todos los egresos de la clínica: compras a proveedores, servicios básicos, sueldos, arriendo, etc.</p>
+      <ol class="steps-list">
+        <li>Ve a <strong>Gastos</strong> → <strong>+ Nuevo Gasto</strong>.</li>
+        <li>Ingresa descripción, categoría, monto, fecha y proveedor (opcional).</li>
+        <li>Haz clic en <strong>Guardar</strong>.</li>
+      </ol>
+
+      <h3>Reportes financieros</h3>
+      <p>Desde el módulo <strong>Reportes</strong> puedes filtrar pagos y gastos por período para obtener un resumen de utilidad del negocio.</p>
+    </section>
+
+    <!-- ── 10. CHAT ───────────────────────────────────────────────────────── -->
+    <section id="chat" class="doc-section">
+      <div class="section-anchor"></div>
+      <div class="section-header">
+        <span class="section-icon">💬</span>
+        <h2>Chat Interno del Equipo</h2>
+      </div>
+      <p>El Chat Interno permite la comunicación entre todos los miembros del staff sin salir de Dairi, con historial persistente y mensajes en tiempo real.</p>
+
+      <h3>Cómo usar el chat</h3>
+      <ol class="steps-list">
+        <li>Haz clic en <strong>Chat</strong> en el menú lateral.</li>
+        <li>Verás la lista de conversaciones activas en el panel izquierdo.</li>
+        <li>Selecciona una conversación o inicia una nueva haciendo clic en <strong>+ Nueva conversación</strong>.</li>
+        <li>Escribe tu mensaje en el campo inferior y presiona <kbd>Enter</kbd> o el botón de enviar.</li>
+      </ol>
+
+      <div class="info-box">
+        El chat es exclusivo para el equipo interno. Los pacientes no tienen acceso a esta funcionalidad.
+      </div>
+
+      <h3>Buenas prácticas</h3>
+      <ul class="ul-list">
+        <li>No compartas información clínica sensible por el chat. Usa las fichas clínicas para ese fin.</li>
+        <li>Usa el chat para coordinación operativa: cambios de horario, recordatorios, avisos urgentes.</li>
+      </ul>
+    </section>
+
+    <!-- ── 11. REPORTES ──────────────────────────────────────────────────── -->
+    <section id="reportes" class="doc-section">
+      <div class="section-anchor"></div>
+      <div class="section-header">
+        <span class="section-icon">📈</span>
+        <h2>Reportes y Comisiones</h2>
+      </div>
+      <p>Dairi incluye dos módulos de reportería para el análisis de la operación clínica y financiera.</p>
+
+      <h3>Reportes Médicos</h3>
+      <p>Accede desde el menú lateral en <strong>Reportes</strong>. Permite filtrar atenciones por:</p>
+      <ul class="ul-list">
+        <li>Rango de fechas</li>
+        <li>Profesional</li>
+        <li>Tipo de atención o diagnóstico</li>
+        <li>Paciente específico</li>
+      </ul>
+      <p>Los resultados se pueden exportar a PDF o Excel para su análisis externo.</p>
+
+      <h3>Reporte de Comisiones</h3>
+      <p>Calcula automáticamente las comisiones de cada profesional en función de las atenciones realizadas y el porcentaje configurado. Accede desde <strong>Comisiones</strong> en el menú lateral.</p>
+      <ol class="steps-list">
+        <li>Selecciona el período (mes/año).</li>
+        <li>El sistema calcula el total de atenciones por profesional y el monto de comisión.</li>
+        <li>Descarga el reporte en PDF para la liquidación de sueldos.</li>
+      </ol>
+    </section>
+
+    <!-- ── 12. RESERVA ONLINE ─────────────────────────────────────────────── -->
+    <section id="reserva" class="doc-section">
+      <div class="section-anchor"></div>
+      <div class="section-header">
+        <span class="section-icon">🌐</span>
+        <h2>Reserva Online para Pacientes</h2>
+      </div>
+      <p>Dairi incluye una página pública de reserva que permite a los pacientes agendar citas sin necesidad de llamar a la clínica.</p>
+
+      <h3>Cómo funciona</h3>
+      <ol class="steps-list">
+        <li>Comparte con tus pacientes el enlace: <code>app.dairi.cl/book</code> (o con tu token personalizado <code>/book/[token]</code>).</li>
+        <li>El paciente selecciona el profesional, la fecha y la hora disponible.</li>
+        <li>Ingresa sus datos personales (nombre, teléfono, email).</li>
+        <li>Confirma la reserva. La cita aparece automáticamente en el calendario de la clínica.</li>
+      </ol>
+
+      <h3>Videoconsulta con Google Meet</h3>
+      <p>Las citas pueden incluir un enlace automático a Google Meet para atenciones en modalidad teleconsulta. El enlace se genera al crear la cita y se envía por email al paciente.</p>
+
+      <div class="info-box">
+        Para activar la integración con Google Meet, el administrador debe conectar la cuenta de Google en <strong>Configuración → Integraciones</strong>.
+      </div>
+    </section>
+
+    <!-- ── 13. SEGURIDAD ─────────────────────────────────────────────────── -->
+    <section id="seguridad" class="doc-section">
+      <div class="section-anchor"></div>
+      <div class="section-header">
+        <span class="section-icon">🔒</span>
+        <h2>Seguridad de la Plataforma</h2>
+      </div>
+      <p>Dairi fue diseñado con seguridad de nivel empresarial desde su arquitectura base, cumpliendo los estándares para datos de salud.</p>
+
+      <div class="cards-grid">
+        <div class="info-card">
+          <strong>Autenticación JWT</strong>
+          <p>Tokens de sesión firmados con clave secreta. Las sesiones expiran automáticamente por inactividad.</p>
+        </div>
+        <div class="info-card">
+          <strong>HTTPS forzado</strong>
+          <p>Todo el tráfico viaja cifrado. Ninguna petición se acepta por HTTP plano.</p>
+        </div>
+        <div class="info-card">
+          <strong>Cifrado AES-256</strong>
+          <p>Los datos sensibles (fichas clínicas, contraseñas) se almacenan cifrados en la base de datos.</p>
+        </div>
+        <div class="info-card">
+          <strong>Arquitectura serverless</strong>
+          <p>Infraestructura AWS Lambda sin servidores expuestos, eliminando los vectores de ataque tradicionales.</p>
+        </div>
+      </div>
+
+      <h3>Recomendaciones para el equipo</h3>
+      <ul class="ul-list">
+        <li>Usa contraseñas de al menos 10 caracteres con letras, números y símbolos.</li>
+        <li>No compartas tus credenciales con otros usuarios. Cada persona debe tener su propia cuenta.</li>
+        <li>Cierra sesión al terminar tu jornada, especialmente en computadores compartidos.</li>
+        <li>Reporta cualquier actividad sospechosa al administrador de inmediato.</li>
+        <li>No accedas a Dairi desde redes WiFi públicas sin VPN.</li>
+      </ul>
+
+      <h3>Soporte y contacto</h3>
+      <p>Para problemas de acceso, seguridad o cualquier duda técnica, contacta a:</p>
+      <div class="contact-box">
+        <div class="contact-item-doc">📧 <a href="mailto:admin@dairi.cl">admin&#64;dairi.cl</a></div>
+        <div class="contact-item-doc">🌐 <a href="https://dairi.cl" target="_blank">www.dairi.cl</a></div>
+      </div>
+    </section>
+
+    <!-- FOOTER DOCS -->
+    <div class="docs-footer">
+      <p>¿No encontraste lo que buscabas? Escríbenos a <a href="mailto:admin@dairi.cl">admin&#64;dairi.cl</a></p>
+      <a routerLink="/" class="btn-back">← Volver a la página principal</a>
+    </div>
+
+  </main>
+</div>
