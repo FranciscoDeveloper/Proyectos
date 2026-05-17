@@ -87,6 +87,34 @@
       </div>
     </div>
 
+    <!-- ── Patient selector (entity-select, solo en creación) ── -->
+    <div class="patient-selector-block" *ngIf="entitySelectFields().length > 0">
+      <div class="patient-selector-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        Selecciona el paciente registrado
+      </div>
+      <div *ngFor="let field of entitySelectFields()" class="field-group full-width">
+        <label class="field-label">
+          {{ field.label }} <span class="required">*</span>
+        </label>
+        <select class="field-input field-select"
+                [class.invalid]="isInvalid(field.name)"
+                (change)="onEntitySelect(field, $any($event.target).value)">
+          <option value="">— Seleccionar paciente —</option>
+          <option *ngFor="let opt of getEntityOptions(field)" [value]="opt.id">
+            {{ opt.label }}
+          </option>
+        </select>
+        <span class="field-error" *ngIf="isInvalid(field.name)">Debes seleccionar un paciente registrado.</span>
+        <span class="field-hint" *ngIf="getEntityOptions(field).length === 0">
+          Cargando pacientes…
+        </span>
+      </div>
+    </div>
+
     <!-- ── Editable fields ── -->
     <div class="form-section-title" *ngIf="isEncounterMode()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

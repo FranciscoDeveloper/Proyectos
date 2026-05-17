@@ -6,6 +6,8 @@ import { GenericCrudService } from '../../services/generic-crud.service';
 import { FieldDefinition } from '../../models/entity-schema.model';
 import { ChatService, ChatUser } from '../../services/chat.service';
 import { AudioRecorderService } from '../../services/audio-recorder.service';
+import { OdontogramComponent, OdontogramData } from '../odontogram/odontogram.component';
+import { PeriodontogramComponent, PeriodontogramData } from '../periodontogram/periodontogram.component';
 
 interface VitalSign {
   label: string;
@@ -24,7 +26,7 @@ interface SectionField {
 @Component({
   selector: 'app-clinical-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, OdontogramComponent, PeriodontogramComponent],
   templateUrl: './clinical-detail.component.html',
   styleUrl: './clinical-detail.component.scss'
 })
@@ -109,11 +111,14 @@ export class ClinicalDetailComponent {
   readonly vitals = computed<VitalSign[]>(() => {
     const r = this.record();
     if (!r || !this.schema) return [];
+    const isDental = this.isDentalRecord();
     return this.schema.fields
       .filter(f => f.isVitalSign)
       .map(f => {
         const raw = r[f.name];
-        const meta = this.VITAL_META[f.name] ?? { unit: '', normal: '—' };
+        const meta = isDental
+          ? { unit: '', normal: '' }
+          : (this.VITAL_META[f.name] ?? { unit: '', normal: '—' });
         return {
           label: f.label,
           value: raw != null ? String(raw) : '—',
@@ -148,6 +153,12 @@ export class ClinicalDetailComponent {
   readonly diagnosisCode  = computed(() => String(this.record()?.['diagnosisCode']  ?? ''));
   readonly diagnosisLabel = computed(() => String(this.record()?.['diagnosisLabel'] ?? ''));
   readonly differentialDx = computed(() => String(this.record()?.['differentialDx'] ?? ''));
+
+  /** Uses the schema field label so each specialty shows its own term
+   *  (e.g. "Plan de Tratamiento" for dental, "Diagnóstico diferencial" for others) */
+  readonly differentialDxLabel = computed(() =>
+    this.schema?.fields.find(f => f.name === 'differentialDx')?.label ?? 'Diagnóstico diferencial'
+  );
 
   readonly historyFields = computed<SectionField[]>(() =>
     this.sectionFields('history')
@@ -261,7 +272,71 @@ export class ClinicalDetailComponent {
 
   // ── Encounter history tab ─────────────────────────────────────────────────
 
-  activeTab = signal<'record' | 'history' | 'documents'>('record');
+  activeTab = signal<'record' | 'history' | 'documents' | 'odontogram' | 'periodontogram'>('record');
+
+  // ── Dental chart detection ────────────────────────────────────────────────
+
+  readonly isDentalRecord = computed(() => this.entityKey === 'dental-records');
+
+  readonly breadcrumbLabel = computed(() =>
+    this.schema?.entity.plural ?? 'Fichas Clínicas'
+  );
+
+  readonly vitalsSectionTitle = computed(() =>
+    this.isDentalRecord() ? 'Examen Clínico' : 'Signos Vitales'
+  );
+
+  readonly historySectionTitle = computed(() =>
+    this.isDentalRecord() ? 'Anamnesis Dental' : 'Antecedentes Médicos'
+  );
+
+  readonly surgicalSectionTitle = computed(() =>
+    this.isDentalRecord() ? 'Tratamientos Dentales' : 'Intervenciones Quirúrgicas'
+  );
+
+  readonly surgicalHistoryLabel = computed(() =>
+    this.isDentalRecord() ? 'Tratamientos Previos' : 'Antecedentes Quirúrgicos'
+  );
+
+  readonly surgicalPlannedLabel = computed(() =>
+    this.isDentalRecord() ? 'Procedimientos Planificados' : 'Intervenciones Programadas / En Evaluación'
+  );
+
+  readonly soapSectionTitle = computed(() =>
+    this.isDentalRecord() ? 'Nota de Atención Dental' : 'Nota Clínica (SOAP)'
+  );
+
+  readonly newEncounterLabel = computed(() =>
+    this.isDentalRecord() ? 'Nueva Sesión' : 'Nueva Atención'
+  );
+
+  readonly recordTabLabel = computed(() =>
+    this.isDentalRecord() ? 'Ficha Dental' : 'Ficha Clínica'
+  );
+
+  readonly odontogramData = computed<OdontogramData | null>(() => {
+    const r = this.record();
+    if (!r) return null;
+    const raw = r['odontogram'];
+    if (!raw || typeof raw !== 'object') return null;
+    return raw as OdontogramData;
+  });
+
+  readonly periodontogramData = computed<PeriodontogramData | null>(() => {
+    const r = this.record();
+    if (!r) return null;
+    const raw = r['periodontogram'];
+    if (!raw || typeof raw !== 'object') return null;
+    return raw as PeriodontogramData;
+  });
+
+  saveOdontogram(data: OdontogramData): void {
+    this.crudSvc.update(this.entityKey, this.id, { odontogram: data });
+  }
+
+  savePeriodontogram(data: PeriodontogramData): void {
+    this.crudSvc.update(this.entityKey, this.id, { periodontogram: data });
+  }
 
   /**
    * Schema-driven: collects all fields with section === 'encounters'.

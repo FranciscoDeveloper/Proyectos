@@ -1,0 +1,554 @@
+:host { display: block; }
+
+// ── Wrapper & toolbar ─────────────────────────────────────────────────────────
+
+.odontogram-wrap {
+  position: relative;
+  font-size: 13px;
+}
+
+.odo-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.odo-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  svg { width: 16px; height: 16px; color: #10b981; }
+}
+
+.odo-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-legend {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  &:hover { background: #f3f4f6; }
+}
+
+.odo-version {
+  font-size: 11px;
+  color: #9ca3af;
+  background: #f3f4f6;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+// ── Legend ────────────────────────────────────────────────────────────────────
+
+.odo-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #374151;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+// ── Arch layout ───────────────────────────────────────────────────────────────
+
+.odo-arches {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 8px;
+  overflow-x: auto;
+}
+
+.arch-label {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  &--top { margin-bottom: 6px; }
+  &--bottom { margin-top: 6px; }
+}
+
+.arch {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  flex-wrap: nowrap;
+  min-width: 600px;
+}
+
+.midline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  position: relative;
+  margin: 4px 0;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    border-top: 1.5px dashed #d1d5db;
+  }
+}
+
+.midline-label {
+  position: relative;
+  background: #f9fafb;
+  padding: 0 8px;
+  font-size: 10px;
+  color: #9ca3af;
+  letter-spacing: 0.3px;
+}
+
+// ── Tooth cell ────────────────────────────────────────────────────────────────
+
+.tooth-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  transition: border-color 0.15s, background 0.15s;
+
+  &:hover { background: #e5e7eb; }
+
+  &--selected {
+    border-color: #10b981 !important;
+    background: #ecfdf5;
+  }
+
+  &--marked .tooth-svg .tooth-border {
+    stroke: #6b7280;
+  }
+}
+
+.tooth-number {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6b7280;
+  line-height: 1;
+}
+
+// ── Tooth SVG ─────────────────────────────────────────────────────────────────
+
+.tooth-svg {
+  width: 36px;
+  height: 44px;
+  display: block;
+
+  &--lower {
+    transform: rotate(180deg);
+  }
+}
+
+.tooth-surface {
+  stroke: #d1d5db;
+  stroke-width: 0.5;
+  transition: fill 0.15s;
+
+  &[fill="transparent"] { fill: white; }
+}
+
+.tooth-border {
+  fill: none;
+  stroke: #9ca3af;
+  stroke-width: 1;
+}
+
+.tooth-symbol {
+  font-size: 10px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+// ── Selected tooth panel ──────────────────────────────────────────────────────
+
+.tooth-panel {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: white;
+}
+
+.tooth-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.tooth-panel-id {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tooth-fdi-badge {
+  background: #10b981;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+
+.tooth-panel-title {
+  font-size: 13px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.tooth-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-dx {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: #1f2937;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  svg { width: 14px; height: 14px; }
+  &:hover { background: #374151; }
+}
+
+.btn-close-panel {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  &:hover { color: #374151; background: #f3f4f6; }
+}
+
+// ── Condition list ────────────────────────────────────────────────────────────
+
+.condition-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.no-conditions {
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
+  padding: 6px 0;
+}
+
+.condition-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 10px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+
+  &--annulled {
+    opacity: 0.45;
+    background: #f3f4f6;
+  }
+}
+
+.cond-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.cond-info {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.cond-label { font-size: 12px; font-weight: 600; color: #374151; }
+.cond-surfaces { font-size: 11px; color: #6b7280; font-family: monospace; }
+.cond-conv { font-size: 11px; font-weight: 500; }
+.cond-notes { font-size: 11px; color: #6b7280; font-style: italic; width: 100%; margin-top: 2px; }
+
+.btn-annul {
+  font-size: 11px;
+  padding: 2px 8px;
+  border: 1px solid #fca5a5;
+  color: #ef4444;
+  background: transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover { background: #fef2f2; }
+}
+
+.annulled-badge {
+  font-size: 10px;
+  color: #9ca3af;
+  background: #e5e7eb;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.readonly-hint {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 11px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+// ── Add Condition Modal ───────────────────────────────────────────────────────
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-box {
+  background: white;
+  border-radius: 14px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-footer {
+  padding: 12px 18px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  resize: vertical;
+  font-family: inherit;
+  &:focus { outline: none; border-color: #10b981; }
+}
+
+// ── Convention pills ──────────────────────────────────────────────────────────
+
+.convention-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.conv-pill {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 2px solid var(--c, #d1d5db);
+  background: transparent;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+
+  &.active {
+    background: var(--c, #d1d5db);
+    color: white;
+  }
+  &:hover:not(.active) { background: #f3f4f6; }
+}
+
+// ── Condition groups ──────────────────────────────────────────────────────────
+
+.condition-groups {
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cond-group-title {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+.cond-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.cond-option {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #374151;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.12s;
+
+  &.active {
+    background: #1f2937;
+    color: white;
+    border-color: #1f2937;
+  }
+  &:hover:not(.active) { background: #f3f4f6; }
+}
+
+// ── Surface selector ──────────────────────────────────────────────────────────
+
+.surface-selector {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.surf-btn {
+  padding: 5px 12px;
+  border-radius: 7px;
+  border: 1.5px solid #d1d5db;
+  background: white;
+  color: #374151;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.12s;
+
+  &.active {
+    background: #10b981;
+    border-color: #10b981;
+    color: white;
+  }
+  &:hover:not(.active) { background: #f3f4f6; }
+}
+
+// ── Shared buttons (reuse from global if available) ───────────────────────────
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+
+  &-sm { padding: 6px 14px; }
+
+  &-primary {
+    background: #10b981;
+    color: white;
+    &:hover { background: #059669; }
+  }
+
+  &-outline {
+    background: transparent;
+    border: 1px solid #d1d5db;
+    color: #374151;
+    &:hover { background: #f3f4f6; }
+  }
+}

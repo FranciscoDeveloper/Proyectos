@@ -592,6 +592,21 @@
   }
 }
 
+/* ── Dental tabs ── */
+.tab-btn--dental {
+  &.active {
+    background: #1d4ed8;
+  }
+}
+
+.dental-chart-panel {
+  padding: 20px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: white;
+}
+
 /* ════ Encounter History Panel ════ */
 .encounter-panel {
   min-height: 200px;

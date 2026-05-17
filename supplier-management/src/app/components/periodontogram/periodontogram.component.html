@@ -1,0 +1,438 @@
+<div class="perio-wrap">
+
+  <!-- ── Header & indices ── -->
+  <div class="perio-header">
+    <div class="perio-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 3v18h18"/>
+        <path d="M18 17l-5-8-4 6-3-4"/>
+      </svg>
+      Periodontograma
+      <span class="perio-version">v{{ _data().version }}</span>
+    </div>
+  </div>
+
+  <!-- Indices row -->
+  <div class="perio-indices" *ngIf="indices() as idx">
+    <div *ngFor="let item of idx" class="index-card" [style.--ic]="item.color">
+      <span class="idx-label">{{ item.label }}</span>
+      <span class="idx-value" [style.color]="item.color">{{ item.value }}</span>
+      <span class="idx-desc">{{ item.desc }}</span>
+    </div>
+  </div>
+
+  <!-- ── Upper arch table ── -->
+  <div class="arch-section">
+    <div class="arch-section-label">Superior — Vestibular</div>
+    <div class="perio-scroll">
+      <table class="perio-table">
+        <thead>
+          <tr class="tr-header">
+            <td class="row-label">FDI</td>
+            <td *ngFor="let fdi of upperTeeth" class="cell-th"
+                [class.cell-th--data]="hasDentalData(fdi)"
+                (click)="selectTooth(fdi)">
+              {{ fdi }}
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Mobility -->
+          <tr class="tr-mob">
+            <td class="row-label">Mov</td>
+            <td *ngFor="let fdi of upperTeeth" class="cell-val"
+                [class.val-warn]="mobility(fdi) > 0"
+                (click)="selectTooth(fdi)">
+              {{ mobility(fdi) || '—' }}
+            </td>
+          </tr>
+
+          <!-- Furcation (upper only on buccal row) -->
+          <tr class="tr-fur">
+            <td class="row-label">Fur</td>
+            <td *ngFor="let fdi of upperTeeth" class="cell-val"
+                [class.val-warn]="furcation(fdi) > 0"
+                (click)="selectTooth(fdi)">
+              <ng-container *ngIf="isMultiRooted(fdi)">{{ furcLabel(furcation(fdi)) }}</ng-container>
+              <ng-container *ngIf="!isMultiRooted(fdi)">—</ng-container>
+            </td>
+          </tr>
+
+          <!-- Buccal BOP / Plaque -->
+          <tr class="tr-bop">
+            <td class="row-label">BOP</td>
+            <td *ngFor="let fdi of upperTeeth" class="cell-dots" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of range(3)"
+                    class="dot" [class.dot--bleed]="bleeding(fdi, i)">●</span>
+            </td>
+          </tr>
+          <tr class="tr-plaque">
+            <td class="row-label">Placa</td>
+            <td *ngFor="let fdi of upperTeeth" class="cell-dots" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of range(3)"
+                    class="dot" [class.dot--plaque]="plaque(fdi, i)">■</span>
+            </td>
+          </tr>
+
+          <!-- Probing depth — buccal [MV, V, DV] -->
+          <tr class="tr-pd tr-pd--buccal">
+            <td class="row-label">PS</td>
+            <td *ngFor="let fdi of upperTeeth" class="cell-pd" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of range(3)"
+                    class="pd-val"
+                    [style.color]="pdColorOf(pd(fdi, i))"
+                    [style.background]="pdColorOf(pd(fdi, i)) + '18'">
+                {{ pd(fdi, i) || '·' }}
+              </span>
+            </td>
+          </tr>
+
+          <!-- Bar graph row — buccal -->
+          <tr class="tr-graph tr-graph--buccal">
+            <td class="row-label">↓</td>
+            <td *ngFor="let fdi of upperTeeth" class="cell-graph" (click)="selectTooth(fdi)">
+              <div class="bar-group">
+                <div *ngFor="let i of range(3)"
+                     class="bar"
+                     [style.height.px]="barHeight(pd(fdi, i))"
+                     [style.background]="pdColorOf(pd(fdi, i))"></div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- NIC row — buccal -->
+          <tr class="tr-nic">
+            <td class="row-label">NIC</td>
+            <td *ngFor="let fdi of upperTeeth" class="cell-pd" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of range(3)"
+                    class="pd-val nic-val"
+                    [style.color]="nicColor(nic(fdi, i))"
+                    [style.background]="nicColor(nic(fdi, i)) + '18'">
+                {{ nic(fdi, i) || '·' }}
+              </span>
+            </td>
+          </tr>
+
+          <!-- Gingival margin — buccal -->
+          <tr class="tr-gm">
+            <td class="row-label">MG</td>
+            <td *ngFor="let fdi of upperTeeth" class="cell-pd" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of range(3)" class="pd-val gm-val">
+                {{ gm(fdi, i) !== 0 ? gm(fdi, i) : '·' }}
+              </span>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Lingual section (reversed sites 5→3) -->
+    <div class="arch-section-label arch-section-label--lingual">Superior — Lingual / Palatino</div>
+    <div class="perio-scroll">
+      <table class="perio-table">
+        <tbody>
+          <tr class="tr-gm">
+            <td class="row-label">MG</td>
+            <td *ngFor="let fdi of upperTeeth" class="cell-pd" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of [3,4,5]" class="pd-val gm-val">
+                {{ gm(fdi, i) !== 0 ? gm(fdi, i) : '·' }}
+              </span>
+            </td>
+          </tr>
+          <tr class="tr-nic">
+            <td class="row-label">NIC</td>
+            <td *ngFor="let fdi of upperTeeth" class="cell-pd" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of [3,4,5]"
+                    class="pd-val nic-val"
+                    [style.color]="nicColor(nic(fdi, i))"
+                    [style.background]="nicColor(nic(fdi, i)) + '18'">
+                {{ nic(fdi, i) || '·' }}
+              </span>
+            </td>
+          </tr>
+          <tr class="tr-graph tr-graph--lingual">
+            <td class="row-label">↑</td>
+            <td *ngFor="let fdi of upperTeeth" class="cell-graph cell-graph--lingual" (click)="selectTooth(fdi)">
+              <div class="bar-group">
+                <div *ngFor="let i of [3,4,5]"
+                     class="bar bar--up"
+                     [style.height.px]="barHeight(pd(fdi, i))"
+                     [style.background]="pdColorOf(pd(fdi, i))"></div>
+              </div>
+            </td>
+          </tr>
+          <tr class="tr-pd tr-pd--lingual">
+            <td class="row-label">PS</td>
+            <td *ngFor="let fdi of upperTeeth" class="cell-pd" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of [3,4,5]"
+                    class="pd-val"
+                    [style.color]="pdColorOf(pd(fdi, i))"
+                    [style.background]="pdColorOf(pd(fdi, i)) + '18'">
+                {{ pd(fdi, i) || '·' }}
+              </span>
+            </td>
+          </tr>
+          <tr class="tr-bop">
+            <td class="row-label">BOP</td>
+            <td *ngFor="let fdi of upperTeeth" class="cell-dots" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of [3,4,5]"
+                    class="dot" [class.dot--bleed]="bleeding(fdi, i)">●</span>
+            </td>
+          </tr>
+          <tr class="tr-plaque">
+            <td class="row-label">Placa</td>
+            <td *ngFor="let fdi of upperTeeth" class="cell-dots" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of [3,4,5]"
+                    class="dot" [class.dot--plaque]="plaque(fdi, i)">■</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Arch separator -->
+  <div class="arch-divider">
+    <span>Arco Superior ↑ &nbsp;|&nbsp; ↓ Arco Inferior</span>
+  </div>
+
+  <!-- ── Lower arch table ── -->
+  <div class="arch-section">
+    <div class="arch-section-label">Inferior — Vestibular</div>
+    <div class="perio-scroll">
+      <table class="perio-table">
+        <thead>
+          <tr class="tr-header">
+            <td class="row-label">FDI</td>
+            <td *ngFor="let fdi of lowerTeeth" class="cell-th"
+                [class.cell-th--data]="hasDentalData(fdi)"
+                (click)="selectTooth(fdi)">
+              {{ fdi }}
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="tr-mob">
+            <td class="row-label">Mov</td>
+            <td *ngFor="let fdi of lowerTeeth" class="cell-val"
+                [class.val-warn]="mobility(fdi) > 0" (click)="selectTooth(fdi)">
+              {{ mobility(fdi) || '—' }}
+            </td>
+          </tr>
+          <tr class="tr-fur">
+            <td class="row-label">Fur</td>
+            <td *ngFor="let fdi of lowerTeeth" class="cell-val"
+                [class.val-warn]="furcation(fdi) > 0" (click)="selectTooth(fdi)">
+              <ng-container *ngIf="isMultiRooted(fdi)">{{ furcLabel(furcation(fdi)) }}</ng-container>
+              <ng-container *ngIf="!isMultiRooted(fdi)">—</ng-container>
+            </td>
+          </tr>
+          <tr class="tr-bop">
+            <td class="row-label">BOP</td>
+            <td *ngFor="let fdi of lowerTeeth" class="cell-dots" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of range(3)" class="dot" [class.dot--bleed]="bleeding(fdi, i)">●</span>
+            </td>
+          </tr>
+          <tr class="tr-plaque">
+            <td class="row-label">Placa</td>
+            <td *ngFor="let fdi of lowerTeeth" class="cell-dots" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of range(3)" class="dot" [class.dot--plaque]="plaque(fdi, i)">■</span>
+            </td>
+          </tr>
+          <tr class="tr-pd tr-pd--buccal">
+            <td class="row-label">PS</td>
+            <td *ngFor="let fdi of lowerTeeth" class="cell-pd" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of range(3)"
+                    class="pd-val"
+                    [style.color]="pdColorOf(pd(fdi, i))"
+                    [style.background]="pdColorOf(pd(fdi, i)) + '18'">
+                {{ pd(fdi, i) || '·' }}
+              </span>
+            </td>
+          </tr>
+          <tr class="tr-graph tr-graph--buccal">
+            <td class="row-label">↓</td>
+            <td *ngFor="let fdi of lowerTeeth" class="cell-graph" (click)="selectTooth(fdi)">
+              <div class="bar-group">
+                <div *ngFor="let i of range(3)"
+                     class="bar"
+                     [style.height.px]="barHeight(pd(fdi, i))"
+                     [style.background]="pdColorOf(pd(fdi, i))"></div>
+              </div>
+            </td>
+          </tr>
+          <tr class="tr-nic">
+            <td class="row-label">NIC</td>
+            <td *ngFor="let fdi of lowerTeeth" class="cell-pd" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of range(3)"
+                    class="pd-val nic-val"
+                    [style.color]="nicColor(nic(fdi, i))"
+                    [style.background]="nicColor(nic(fdi, i)) + '18'">
+                {{ nic(fdi, i) || '·' }}
+              </span>
+            </td>
+          </tr>
+          <tr class="tr-gm">
+            <td class="row-label">MG</td>
+            <td *ngFor="let fdi of lowerTeeth" class="cell-pd" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of range(3)" class="pd-val gm-val">
+                {{ gm(fdi, i) !== 0 ? gm(fdi, i) : '·' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="arch-section-label arch-section-label--lingual">Inferior — Lingual</div>
+    <div class="perio-scroll">
+      <table class="perio-table">
+        <tbody>
+          <tr class="tr-gm">
+            <td class="row-label">MG</td>
+            <td *ngFor="let fdi of lowerTeeth" class="cell-pd" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of [3,4,5]" class="pd-val gm-val">
+                {{ gm(fdi, i) !== 0 ? gm(fdi, i) : '·' }}
+              </span>
+            </td>
+          </tr>
+          <tr class="tr-nic">
+            <td class="row-label">NIC</td>
+            <td *ngFor="let fdi of lowerTeeth" class="cell-pd" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of [3,4,5]"
+                    class="pd-val nic-val"
+                    [style.color]="nicColor(nic(fdi, i))"
+                    [style.background]="nicColor(nic(fdi, i)) + '18'">
+                {{ nic(fdi, i) || '·' }}
+              </span>
+            </td>
+          </tr>
+          <tr class="tr-graph tr-graph--lingual">
+            <td class="row-label">↑</td>
+            <td *ngFor="let fdi of lowerTeeth" class="cell-graph cell-graph--lingual" (click)="selectTooth(fdi)">
+              <div class="bar-group">
+                <div *ngFor="let i of [3,4,5]"
+                     class="bar bar--up"
+                     [style.height.px]="barHeight(pd(fdi, i))"
+                     [style.background]="pdColorOf(pd(fdi, i))"></div>
+              </div>
+            </td>
+          </tr>
+          <tr class="tr-pd tr-pd--lingual">
+            <td class="row-label">PS</td>
+            <td *ngFor="let fdi of lowerTeeth" class="cell-pd" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of [3,4,5]"
+                    class="pd-val"
+                    [style.color]="pdColorOf(pd(fdi, i))"
+                    [style.background]="pdColorOf(pd(fdi, i)) + '18'">
+                {{ pd(fdi, i) || '·' }}
+              </span>
+            </td>
+          </tr>
+          <tr class="tr-bop">
+            <td class="row-label">BOP</td>
+            <td *ngFor="let fdi of lowerTeeth" class="cell-dots" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of [3,4,5]" class="dot" [class.dot--bleed]="bleeding(fdi, i)">●</span>
+            </td>
+          </tr>
+          <tr class="tr-plaque">
+            <td class="row-label">Placa</td>
+            <td *ngFor="let fdi of lowerTeeth" class="cell-dots" (click)="selectTooth(fdi)">
+              <span *ngFor="let i of [3,4,5]" class="dot" [class.dot--plaque]="plaque(fdi, i)">■</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Color reference ── -->
+  <div class="perio-color-ref">
+    <span class="ref-item ref--green">1–3 mm Sano</span>
+    <span class="ref-item ref--amber">4–5 mm Vigilar</span>
+    <span class="ref-item ref--red">≥ 6 mm Bolsa profunda</span>
+    <span class="ref-item ref--bleed">● Sangrado</span>
+    <span class="ref-item ref--plaque">■ Placa</span>
+  </div>
+
+  <!-- ── Tooth edit modal ── -->
+  <div class="modal-overlay" *ngIf="editingTooth() && !readonly" (click)="closeEdit()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <span>Sondaje — Diente {{ editingTooth() }}</span>
+        <button class="btn-close" (click)="closeEdit()">✕</button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- Site labels reference -->
+        <div class="site-legend">
+          <span class="site-label--buccal">Vestibular: MV · V · DV</span>
+          <span class="site-label--lingual">Lingual/Palatino: DL · L · ML</span>
+        </div>
+
+        <!-- 6 site grid: buccal 0–2, lingual 3–5 -->
+        <div class="site-grid">
+          <div *ngFor="let i of range(6)" class="site-col">
+            <span class="site-name">{{ ['MV','V','DV','DL','L','ML'][i] }}</span>
+
+            <label class="site-sub">PS (mm)</label>
+            <input class="site-input" type="number" min="0" max="15"
+                   [value]="bufferPD(i)"
+                   (change)="setPD(i, $any($event.target).value)"
+                   [style.color]="pdColorOf(bufferPD(i))">
+
+            <label class="site-sub">MG</label>
+            <input class="site-input" type="number" min="-5" max="10"
+                   [value]="bufferGM(i)"
+                   (change)="setGM(i, $any($event.target).value)">
+
+            <label class="site-sub">NIC</label>
+            <span class="site-nic" [style.color]="nicColor(bufferNIC(i))">{{ bufferNIC(i) }}</span>
+
+            <div class="site-toggles">
+              <button class="toggle-btn" [class.toggle--bleed]="bufferBL(i)"
+                      (click)="toggleBleeding(i)" title="Sangrado">●</button>
+              <button class="toggle-btn" [class.toggle--sup]="bufferSUP(i)"
+                      (click)="toggleSuppuration(i)" title="Supuración">▲</button>
+              <button class="toggle-btn" [class.toggle--plaque]="bufferPL(i)"
+                      (click)="togglePlaque(i)" title="Placa">■</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tooth-level values -->
+        <div class="tooth-level-row">
+
+          <div class="tooth-level-item">
+            <label class="site-sub">Movilidad</label>
+            <div class="grade-btns">
+              <button *ngFor="let g of range(4)" class="grade-btn"
+                      [class.active]="bufferMOB() === g"
+                      (click)="setMobility(g)">{{ g }}</button>
+            </div>
+          </div>
+
+          <div class="tooth-level-item" *ngIf="isMultiRooted(editingTooth()!)">
+            <label class="site-sub">Furcación</label>
+            <div class="grade-btns">
+              <button *ngFor="let g of range(4)" class="grade-btn"
+                      [class.active]="bufferFUR() === g"
+                      (click)="setFurcation(g)">{{ furcLabel(g) }}</button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" (click)="closeEdit()">Cancelar</button>
+        <button class="btn btn-primary btn-sm" (click)="saveEdit()">Guardar Sondaje</button>
+      </div>
+    </div>
+  </div>
+
+</div>

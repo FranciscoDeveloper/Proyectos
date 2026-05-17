@@ -1,0 +1,266 @@
+<div class="odontogram-wrap">
+
+  <!-- ── Toolbar ── -->
+  <div class="odo-toolbar">
+    <span class="odo-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2C8 2 4 5 4 9c0 2.5 1 4.5 2 6l2 7h8l2-7c1-1.5 2-3.5 2-6 0-4-4-7-8-7z"/>
+      </svg>
+      Odontograma
+    </span>
+    <div class="odo-toolbar-actions">
+      <button class="btn-legend" (click)="showLegend.set(!showLegend())">
+        {{ showLegend() ? 'Ocultar' : 'Ver' }} leyenda
+      </button>
+      <span class="odo-version">v{{ _data().version }}</span>
+    </div>
+  </div>
+
+  <!-- ── Legend ── -->
+  <div class="odo-legend" *ngIf="showLegend()">
+    <div class="legend-item" *ngFor="let conv of ['lesion','preexistencia','healthy','other']">
+      <span class="legend-dot" [style.background]="conventionColor($any(conv))"></span>
+      {{ conventionLabel($any(conv)) }}
+    </div>
+  </div>
+
+  <!-- ── Arch layout ── -->
+  <div class="odo-arches">
+
+    <!-- UPPER ARCH -->
+    <div class="arch-label arch-label--top">
+      <span>Superior</span>
+    </div>
+    <div class="arch arch--upper">
+      <div *ngFor="let fdi of upperTeeth"
+           class="tooth-cell"
+           [class.tooth-cell--selected]="isSelected(fdi)"
+           [class.tooth-cell--marked]="hasAnyCondition(fdi)"
+           (click)="selectTooth(fdi)">
+        <span class="tooth-number">{{ fdi }}</span>
+        <!-- SVG tooth cross-section -->
+        <svg class="tooth-svg" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
+          <!-- Vestibular (top) -->
+          <polygon class="tooth-surface"
+            [attr.fill]="surfaceColor(fdi, 'V')"
+            points="0,0 36,0 27,12 9,12"
+            data-surface="V"/>
+          <!-- Lingual (bottom) -->
+          <polygon class="tooth-surface"
+            [attr.fill]="surfaceColor(fdi, 'L')"
+            points="9,32 27,32 36,44 0,44"
+            data-surface="L"/>
+          <!-- Mesial (left for Q2/Q3, right for Q1/Q4) -->
+          <polygon class="tooth-surface"
+            [attr.fill]="surfaceColor(fdi, 'M')"
+            [class.surface-right]="mesialOnRight(fdi)"
+            points="0,0 9,12 9,32 0,44"
+            data-surface="M"/>
+          <!-- Distal -->
+          <polygon class="tooth-surface"
+            [attr.fill]="surfaceColor(fdi, 'D')"
+            points="27,12 36,0 36,44 27,32"
+            data-surface="D"/>
+          <!-- Occlusal / Incisal (center) -->
+          <polygon class="tooth-surface"
+            [attr.fill]="surfaceColor(fdi, centerLabel(fdi))"
+            points="9,12 27,12 27,32 9,32"
+            data-surface="O"/>
+          <!-- Outer border -->
+          <rect class="tooth-border" x="0.5" y="0.5" width="35" height="43" rx="3"/>
+          <!-- Whole-tooth symbol overlay -->
+          <text *ngIf="toothSymbol(fdi) as sym"
+                class="tooth-symbol"
+                x="18" y="24"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                [attr.fill]="sym.color">{{ sym.symbol }}</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Midline separator -->
+    <div class="midline">
+      <span class="midline-label">Línea media</span>
+    </div>
+
+    <!-- LOWER ARCH -->
+    <div class="arch arch--lower">
+      <div *ngFor="let fdi of lowerTeeth"
+           class="tooth-cell"
+           [class.tooth-cell--selected]="isSelected(fdi)"
+           [class.tooth-cell--marked]="hasAnyCondition(fdi)"
+           (click)="selectTooth(fdi)">
+        <!-- SVG tooth (lower arch is rotated 180°) -->
+        <svg class="tooth-svg tooth-svg--lower" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
+          <polygon class="tooth-surface"
+            [attr.fill]="surfaceColor(fdi, 'V')"
+            points="0,0 36,0 27,12 9,12"/>
+          <polygon class="tooth-surface"
+            [attr.fill]="surfaceColor(fdi, 'L')"
+            points="9,32 27,32 36,44 0,44"/>
+          <polygon class="tooth-surface"
+            [attr.fill]="surfaceColor(fdi, 'M')"
+            points="0,0 9,12 9,32 0,44"/>
+          <polygon class="tooth-surface"
+            [attr.fill]="surfaceColor(fdi, 'D')"
+            points="27,12 36,0 36,44 27,32"/>
+          <polygon class="tooth-surface"
+            [attr.fill]="surfaceColor(fdi, centerLabel(fdi))"
+            points="9,12 27,12 27,32 9,32"/>
+          <rect class="tooth-border" x="0.5" y="0.5" width="35" height="43" rx="3"/>
+          <text *ngIf="toothSymbol(fdi) as sym"
+                class="tooth-symbol" x="18" y="24"
+                text-anchor="middle" dominant-baseline="middle"
+                [attr.fill]="sym.color">{{ sym.symbol }}</text>
+        </svg>
+        <span class="tooth-number">{{ fdi }}</span>
+      </div>
+    </div>
+    <div class="arch-label arch-label--bottom">
+      <span>Inferior</span>
+    </div>
+
+  </div>
+
+  <!-- ── Selected tooth panel ── -->
+  <div class="tooth-panel card" *ngIf="selectedTooth() && !readonly">
+
+    <div class="tooth-panel-header">
+      <div class="tooth-panel-id">
+        <span class="tooth-fdi-badge">{{ selectedTooth() }}</span>
+        <span class="tooth-panel-title">
+          {{ isAnterior(selectedTooth()!) ? 'Diente Anterior' : 'Diente Posterior' }}
+        </span>
+      </div>
+      <div class="tooth-panel-actions">
+        <button class="btn-dx" (click)="openDiagnosis()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="16"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+          Diagnóstico
+        </button>
+        <button class="btn-close-panel" (click)="selectedTooth.set(null)">✕</button>
+      </div>
+    </div>
+
+    <!-- Active conditions list -->
+    <div class="condition-list" *ngIf="selectedToothData()">
+      <div *ngIf="selectedToothData()!.conditions.length === 0" class="no-conditions">
+        Sin condiciones registradas
+      </div>
+      <div *ngFor="let c of selectedToothData()!.conditions"
+           class="condition-item"
+           [class.condition-item--annulled]="c.isAnnulled">
+        <span class="cond-dot" [style.background]="conventionColor(c.convention)"></span>
+        <div class="cond-info">
+          <span class="cond-label">{{ getConditionLabel(c.type) }}</span>
+          <span class="cond-surfaces" *ngIf="c.surfaces.length > 0">
+            [{{ c.surfaces.join(' · ') }}]
+          </span>
+          <span class="cond-conv" [style.color]="conventionColor(c.convention)">
+            {{ conventionLabel(c.convention) }}
+          </span>
+          <span class="cond-notes" *ngIf="c.notes">{{ c.notes }}</span>
+        </div>
+        <button *ngIf="!c.isAnnulled" class="btn-annul"
+                (click)="annulCondition(selectedTooth()!, c.id)"
+                title="Anular (no elimina, preserva historial)">
+          Anular
+        </button>
+        <span *ngIf="c.isAnnulled" class="annulled-badge">Anulado</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Read-only legend for readonly mode -->
+  <div class="readonly-hint" *ngIf="readonly">
+    <span>Vista de solo lectura — haga clic en "Editar Ficha" para modificar el odontograma</span>
+  </div>
+
+  <!-- ── Add Condition Modal ── -->
+  <div class="modal-overlay" *ngIf="panelOpen()" (click)="closePanel()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <span>Agregar Condición — Diente {{ selectedTooth() }}</span>
+        <button class="btn-close-panel" (click)="closePanel()">✕</button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- Convention -->
+        <div class="form-row">
+          <label class="form-label">Tipo de Convención</label>
+          <div class="convention-pills">
+            <button *ngFor="let conv of ['lesion','preexistencia','healthy','other']"
+                    class="conv-pill"
+                    [class.active]="newConvention() === conv"
+                    [style.--c]="conventionColor($any(conv))"
+                    (click)="newConvention.set($any(conv))">
+              {{ conventionLabel($any(conv)) }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Condition type -->
+        <div class="form-row">
+          <label class="form-label">Condición</label>
+          <div class="condition-groups">
+            <div *ngFor="let g of groupEntries()" class="cond-group">
+              <span class="cond-group-title">{{ g.group }}</span>
+              <div class="cond-options">
+                <button *ngFor="let item of g.items"
+                        class="cond-option"
+                        [class.active]="newType() === item.type"
+                        (click)="newType.set(item.type)">
+                  {{ item.label }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Surfaces (only for surface-type conditions) -->
+        <div class="form-row" *ngIf="isSurfaceType()">
+          <label class="form-label">Superficies Afectadas</label>
+          <div class="surface-selector">
+            <button *ngFor="let s of allSurfaces(selectedTooth()!)"
+                    class="surf-btn"
+                    [class.active]="surfaceSelected(s)"
+                    (click)="toggleSurface(s)">
+              {{ s === 'V' ? 'Vestibular' :
+                 s === 'L' ? 'Lingual/Palatino' :
+                 s === 'M' ? 'Mesial' :
+                 s === 'D' ? 'Distal' :
+                 s === 'O' ? 'Oclusal' : 'Incisal' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-row">
+          <label class="form-label">Nota (opcional)</label>
+          <textarea class="form-textarea"
+                    [value]="newNotes()"
+                    (input)="newNotes.set($any($event.target).value)"
+                    placeholder="Observaciones adicionales..."
+                    rows="2"></textarea>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" (click)="closePanel()">Cancelar</button>
+        <button class="btn btn-primary btn-sm" (click)="addCondition()">
+          Agregar Condición
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

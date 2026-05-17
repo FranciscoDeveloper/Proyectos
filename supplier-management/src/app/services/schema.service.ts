@@ -40,6 +40,15 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
             badgeColors: { AGENDADA: '#3b82f6', COMPLETADA: '#10b981', CANCELADA: '#ef4444', NO_ASISTIO: '#f59e0b' }
           },
           { name: 'professionalName', type: 'text',     label: 'Profesional',     required: false,                        showInList: true,  showInDetail: true  },
+          { name: 'modality',         type: 'select',   label: 'Modalidad',       required: false, isBadge: true,          showInList: true,  showInDetail: true,
+            options: [{ value: 'presencial', label: 'Presencial' }, { value: 'video', label: 'Videoconsulta' }],
+            badgeColors: { presencial: '#6366f1', video: '#0891b2' }
+          },
+          { name: 'patientEmail',     type: 'email',    label: 'Email paciente',  required: false,                        showInList: false, showInDetail: true  },
+          { name: 'patientPhone',     type: 'tel',      label: 'Teléfono',        required: false,                        showInList: false, showInDetail: true  },
+          { name: 'reason',           type: 'textarea', label: 'Motivo',          required: false,                        showInList: false, showInDetail: true  },
+          { name: 'confirmCode',      type: 'text',     label: 'Código de cita',  required: false,                        showInList: false, showInDetail: true  },
+          { name: 'meetLink',         type: 'url',      label: 'Enlace Meet',     required: false,                        showInList: false, showInDetail: true  },
           { name: 'notes',            type: 'textarea', label: 'Notas',           required: false,                        showInList: false, showInDetail: true  }
         ]
       },
