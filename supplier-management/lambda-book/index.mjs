@@ -42,6 +42,7 @@ async function ensureSchema(client) {
     CREATE TABLE IF NOT EXISTS appointment_payment (
       id              SERIAL PRIMARY KEY,
       appointment_id  INTEGER REFERENCES appointment(id) ON DELETE CASCADE,
+      payment_id      INTEGER REFERENCES payment(id),
       flow_token      TEXT UNIQUE,
       flow_order      BIGINT,
       commerce_order  TEXT,
@@ -51,6 +52,11 @@ async function ensureSchema(client) {
       created_at      TIMESTAMPTZ DEFAULT NOW(),
       updated_at      TIMESTAMPTZ DEFAULT NOW()
     )
+  `);
+  // Idempotent migration for existing deployments that predate payment_id
+  await client.query(`
+    ALTER TABLE appointment_payment
+    ADD COLUMN IF NOT EXISTS payment_id INTEGER REFERENCES payment(id)
   `);
   schemaReady = true;
   log("INFO", "DB schema ready");
@@ -162,17 +168,34 @@ async function route(client, method, rawPath, body, qs) {
                       : flowStatus.status === 4 ? "cancelled"
                       : "pending";
 
-      // Update appointment_payment record
+      // Resolve the appointment_payment row to get linked IDs
+      const apRec = await client.query(
+        `SELECT appointment_id, payment_id FROM appointment_payment WHERE flow_token = $1`,
+        [token]
+      );
+
+      // Update appointment_payment status
       await client.query(
         `UPDATE appointment_payment SET status = $1, updated_at = NOW() WHERE flow_token = $2`,
         [payStatus, token]
       );
 
-      // When paid, promote appointment to 'confirmed'
-      if (payStatus === "paid") {
-        const commerceOrder = flowStatus.commerceOrder ?? "";
-        const apptId = parseInt(commerceOrder.split("-")[1]);
-        if (!isNaN(apptId)) {
+      if (apRec.rowCount > 0) {
+        const { appointment_id: apptId, payment_id: paymentId } = apRec.rows[0];
+
+        // Mirror status to the ledger payment row
+        if (paymentId) {
+          const ledgerStatus = payStatus === "paid" ? "paid"
+                             : payStatus === "cancelled" ? "cancelled"
+                             : "pending";
+          await client.query(
+            `UPDATE payment SET status = $1 WHERE id = $2`,
+            [ledgerStatus, paymentId]
+          );
+        }
+
+        // When paid, promote appointment to 'confirmed'
+        if (payStatus === "paid" && apptId) {
           await client.query(
             `UPDATE appointment SET status = 'confirmed' WHERE id = $1 AND status = 'scheduled'`,
             [apptId]
@@ -323,6 +346,35 @@ async function route(client, method, rawPath, body, qs) {
       const row    = appt.rows[0];
       const apptId = row.id;
 
+      // ── Ledger payment row (always created, regardless of Flow) ───────────
+      const invoiceNumber = `RCV-${apptId}`;
+      const concept       = `Consulta ${prof.specialty} - ${prof.name}`;
+
+      let paymentId = null;
+      try {
+        const payRec = await client.query(
+          `INSERT INTO payment
+             (patient_name, invoice_number, date, concept, amount, payment_method, status,
+              professional_name, notes)
+           VALUES ($1, $2, $3, $4, $5, NULL, 'pending', $6, $7)
+           RETURNING id`,
+          [
+            patientName,
+            invoiceNumber,
+            date,
+            concept,
+            amount,
+            prof.name,
+            `Cita agendada online. Código: ${confirmCode}`,
+          ]
+        );
+        paymentId = payRec.rows[0].id;
+        log("INFO", "Ledger payment created", { paymentId, apptId });
+      } catch (err) {
+        // Non-fatal: log and continue (appointment already committed)
+        log("ERROR", "Ledger payment insert error", { message: err.message, apptId });
+      }
+
       // ── Flow payment order ─────────────────────────────────────────────────
       let paymentLink = null;
       if (FLOW_API_KEY && FLOW_SECRET_KEY) {
@@ -345,12 +397,11 @@ async function route(client, method, rawPath, body, qs) {
 
           paymentLink = `${flowResp.url}?token=${flowResp.token}`;
 
-          // Persist payment record (no new schema modification to existing tables)
           await client.query(
             `INSERT INTO appointment_payment
-               (appointment_id, flow_token, flow_order, commerce_order, amount, currency, status)
-             VALUES ($1, $2, $3, $4, $5, 'CLP', 'pending')`,
-            [apptId, flowResp.token, flowResp.flowOrder ?? null, commerceOrder, amount]
+               (appointment_id, payment_id, flow_token, flow_order, commerce_order, amount, currency, status)
+             VALUES ($1, $2, $3, $4, $5, $6, 'CLP', 'pending')`,
+            [apptId, paymentId, flowResp.token, flowResp.flowOrder ?? null, commerceOrder, amount]
           );
 
           log("INFO", "Flow payment created", { apptId, commerceOrder, flowOrder: flowResp.flowOrder });
@@ -359,7 +410,20 @@ async function route(client, method, rawPath, body, qs) {
           log("ERROR", "Flow payment error", { message: err.message, apptId });
         }
       } else {
-        log("WARN", "Flow not configured — booking saved without payment link");
+        // No Flow: still persist the appointment_payment row for tracking
+        if (paymentId) {
+          try {
+            await client.query(
+              `INSERT INTO appointment_payment
+                 (appointment_id, payment_id, amount, currency, status)
+               VALUES ($1, $2, $3, 'CLP', 'pending')`,
+              [apptId, paymentId, amount]
+            );
+          } catch (err) {
+            log("ERROR", "appointment_payment insert error (no Flow)", { message: err.message });
+          }
+        }
+        log("WARN", "Flow not configured — ledger payment created, no payment link sent");
       }
 
       return resp(201, {
