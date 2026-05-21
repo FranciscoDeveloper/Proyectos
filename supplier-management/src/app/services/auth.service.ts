@@ -13,39 +13,31 @@ import { CryptoService } from './crypto.service';
 const SCHEMA_SUPPLIERS: EntitySchema = {
   entity: { key: 'suppliers', singular: 'Proveedor', plural: 'Proveedores', icon: 'users', description: 'Gestión de proveedores y socios comerciales' },
   fields: [
-    { name: 'name',          type: 'text',     label: 'Nombre',            required: true,  isTitle: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true,  filterType: 'search', minLength: 2, maxLength: 100 },
-    { name: 'code',          type: 'text',     label: 'Código',            required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  sortable: true,  pattern: '^[A-Z]{2}-\\d{3,}$', patternMessage: 'Formato: XX-000' },
-    { name: 'email',         type: 'email',    label: 'Email',             required: true,                   showInList: false, showInDetail: true },
-    { name: 'phone',         type: 'tel',      label: 'Teléfono',          required: true,                   showInList: false, showInDetail: true },
-    { name: 'category',      type: 'select',   label: 'Categoría',         required: true,  isBadge: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true,  filterType: 'select',
-      options: [
-        { value: 'technology',    label: 'Tecnología'      },
-        { value: 'manufacturing', label: 'Manufactura'     },
-        { value: 'logistics',     label: 'Logística'       },
-        { value: 'services',      label: 'Servicios'       },
-        { value: 'raw-materials', label: 'Materias Primas' },
-        { value: 'food-beverage', label: 'Alimentos'       },
-        { value: 'healthcare',    label: 'Salud'           },
-        { value: 'construction',  label: 'Construcción'    },
-        { value: 'office',        label: 'Oficina'         }
-      ],
-      badgeColors: { technology: '#6366f1', manufacturing: '#f59e0b', logistics: '#3b82f6', services: '#10b981', 'raw-materials': '#8b5cf6', 'food-beverage': '#ec4899', healthcare: '#14b8a6', construction: '#f97316', office: '#64748b' }
+    { name: 'name',          type: 'text',          label: 'Nombre',            required: true,  isTitle: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true,  filterType: 'search', minLength: 2, maxLength: 100 },
+    { name: 'code',          type: 'text',          label: 'Código',            required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  sortable: true,  pattern: '^[A-Z]{2}-\\d{3,}$', patternMessage: 'Formato: XX-000' },
+    { name: 'email',         type: 'email',         label: 'Email',             required: true,                   showInList: false, showInDetail: true },
+    { name: 'phone',         type: 'tel',           label: 'Teléfono',          required: true,                   showInList: false, showInDetail: true },
+    { name: 'categoryId',    type: 'entity-select', label: 'Categoría',         required: true,                   showInList: false, showInDetail: false,
+      relatedEntity: 'categories', relatedLabelField: 'name',
+      relatedFilterField: 'type', relatedFilterValue: 'supplier' },
+    { name: 'categoryName',  type: 'text',          label: 'Categoría',         isBadge: true,    showInList: true,  showInDetail: true,  displayOnly: true,
+      badgeColors: { 'Laboratorio': '#14b8a6', 'Distribuidores': '#6366f1', 'Insumos': '#8b5cf6', 'Servicios': '#10b981' }
     },
-    { name: 'status',        type: 'select',   label: 'Estado',            required: true,  isBadge: true,    showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
-      options: [{ value: 'active', label: 'Activo' }, { value: 'inactive', label: 'Inactivo' }, { value: 'pending', label: 'Pendiente' }, { value: 'blacklisted', label: 'Bloqueado' }],
-      badgeColors: { active: '#10b981', inactive: '#6b7280', pending: '#f59e0b', blacklisted: '#ef4444' }
+    { name: 'status',        type: 'select',        label: 'Estado',            required: true,  isBadge: true,    showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
+      options: [{ value: 'active', label: 'Activo' }, { value: 'inactive', label: 'Inactivo' }, { value: 'blocked', label: 'Bloqueado' }],
+      badgeColors: { active: '#10b981', inactive: '#6b7280', blocked: '#ef4444' }
     },
-    { name: 'country',       type: 'text',     label: 'País',              required: true,                   showInList: true,  showInDetail: true,  sortable: true,  filterable: true,  filterType: 'select' },
-    { name: 'city',          type: 'text',     label: 'Ciudad',            required: true,                   showInList: false, showInDetail: true },
-    { name: 'address',       type: 'text',     label: 'Dirección',         required: true,                   showInList: false, showInDetail: true },
-    { name: 'website',       type: 'url',      label: 'Sitio Web',                                           showInList: false, showInDetail: true },
-    { name: 'taxId',         type: 'text',     label: 'ID Fiscal',         required: true,                   showInList: false, showInDetail: true },
-    { name: 'contactPerson', type: 'text',     label: 'Contacto',          required: true,                   showInList: true,  showInDetail: true },
-    { name: 'rating',        type: 'range',    label: 'Calificación',      required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 1, max: 5, step: 0.1, format: 'stars' },
-    { name: 'totalOrders',   type: 'number',   label: 'Total Órdenes',     required: true,                   showInList: false, showInDetail: true,  min: 0 },
-    { name: 'totalSpent',    type: 'number',   label: 'Total Gastado',     required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 0, format: 'currency' },
-    { name: 'notes',         type: 'textarea', label: 'Notas',                                               showInList: false, showInDetail: true },
-    { name: 'tags',          type: 'tags',     label: 'Etiquetas',                                           showInList: false, showInDetail: true }
+    { name: 'country',       type: 'text',          label: 'País',              required: true,                   showInList: true,  showInDetail: true,  sortable: true,  filterable: true,  filterType: 'select' },
+    { name: 'city',          type: 'text',          label: 'Ciudad',            required: true,                   showInList: false, showInDetail: true },
+    { name: 'address',       type: 'text',          label: 'Dirección',         required: true,                   showInList: false, showInDetail: true },
+    { name: 'website',       type: 'url',           label: 'Sitio Web',                                           showInList: false, showInDetail: true },
+    { name: 'taxId',         type: 'text',          label: 'ID Fiscal',         required: true,                   showInList: false, showInDetail: true },
+    { name: 'contactPerson', type: 'text',          label: 'Contacto',          required: true,                   showInList: true,  showInDetail: true },
+    { name: 'rating',        type: 'range',         label: 'Calificación',      required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 1, max: 5, step: 0.1, format: 'stars' },
+    { name: 'totalOrders',   type: 'number',        label: 'Total Órdenes',     required: true,                   showInList: false, showInDetail: true,  min: 0 },
+    { name: 'totalSpent',    type: 'number',        label: 'Total Gastado',     required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 0, format: 'currency' },
+    { name: 'notes',         type: 'textarea',      label: 'Notas',                                               showInList: false, showInDetail: true },
+    { name: 'tags',          type: 'tags',          label: 'Etiquetas',                                           showInList: false, showInDetail: true }
   ]
 };
 
@@ -552,43 +544,37 @@ export const SCHEMA_EXPENSES: EntitySchema = {
     description: 'Control de gastos y egresos operacionales'
   },
   fields: [
-    { name: 'description',   type: 'text',   label: 'Descripción',       required: true,  isTitle: true,    showInList: true,  showInDetail: true,  filterable: true, filterType: 'search', sortable: true },
-    { name: 'supplier',      type: 'text',   label: 'Proveedor / Origen', required: false, isSubtitle: true, showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
-    { name: 'date',          type: 'date',   label: 'Fecha',             required: true,                   showInList: true,  showInDetail: true,  sortable: true },
-    { name: 'category',      type: 'select', label: 'Categoría',         required: true,  isBadge: true,    showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
-      options: [
-        { value: 'insumos',        label: 'Insumos médicos'    },
-        { value: 'remuneraciones', label: 'Remuneraciones'     },
-        { value: 'arriendo',       label: 'Arriendo'           },
-        { value: 'servicios',      label: 'Servicios básicos'  },
-        { value: 'equipamiento',   label: 'Equipamiento'       },
-        { value: 'marketing',      label: 'Marketing'          },
-        { value: 'capacitacion',   label: 'Capacitación'       },
-        { value: 'maintenance',    label: 'Mantenimiento'      },
-        { value: 'otro',           label: 'Otro'               }
-      ],
-      badgeColors: { insumos: '#6366f1', remuneraciones: '#ec4899', arriendo: '#f59e0b', servicios: '#3b82f6', equipamiento: '#8b5cf6', marketing: '#10b981', capacitacion: '#14b8a6', maintenance: '#06b6d4', otro: '#6b7280' }
+    { name: 'description',  type: 'text',          label: 'Descripción',        required: true,  isTitle: true,    showInList: true,  showInDetail: true,  filterable: true, filterType: 'search', sortable: true },
+    { name: 'supplierId',   type: 'entity-select', label: 'Proveedor',          required: false,                  showInList: false, showInDetail: false,
+      relatedEntity: 'suppliers', relatedLabelField: 'name' },
+    { name: 'supplierName', type: 'text',          label: 'Proveedor / Origen', isSubtitle: true, showInList: true,  showInDetail: true,  displayOnly: true },
+    { name: 'date',         type: 'date',          label: 'Fecha',              required: true,                   showInList: true,  showInDetail: true,  sortable: true },
+    { name: 'categoryId',   type: 'entity-select', label: 'Categoría',          required: true,                   showInList: false, showInDetail: false,
+      relatedEntity: 'categories', relatedLabelField: 'name',
+      relatedFilterField: 'type', relatedFilterValue: 'expense' },
+    { name: 'categoryName', type: 'text',          label: 'Categoría',          isBadge: true,    showInList: true,  showInDetail: true,  displayOnly: true,
+      badgeColors: { 'Arriendo': '#f59e0b', 'Servicios Básicos': '#3b82f6', 'Insumos': '#6366f1', 'Equipamiento': '#8b5cf6' }
     },
-    { name: 'amount',        type: 'number', label: 'Monto (CLP)',       required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 0, format: 'currency' },
-    { name: 'paymentMethod', type: 'select', label: 'Medio de pago',     required: true,  isBadge: true,    showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
+    { name: 'amount',        type: 'number', label: 'Monto (CLP)',      required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 0, format: 'currency' },
+    { name: 'paymentMethod', type: 'select', label: 'Medio de pago',    required: true,  isBadge: true,    showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
       options: [
-        { value: 'efectivo',      label: 'Efectivo'      },
-        { value: 'transferencia', label: 'Transferencia' },
-        { value: 'cheque',        label: 'Cheque'        },
-        { value: 'tarjeta',       label: 'Tarjeta'       }
+        { value: 'cash',     label: 'Efectivo'      },
+        { value: 'transfer', label: 'Transferencia' },
+        { value: 'card',     label: 'Tarjeta'       },
+        { value: 'other',    label: 'Otro'          }
       ],
-      badgeColors: { efectivo: '#10b981', transferencia: '#6366f1', cheque: '#f59e0b', tarjeta: '#3b82f6' }
+      badgeColors: { cash: '#10b981', transfer: '#6366f1', card: '#3b82f6', other: '#6b7280' }
     },
     { name: 'status', type: 'select', label: 'Estado', required: true, isBadge: true, showInList: true, showInDetail: true, filterable: true, filterType: 'select',
       options: [
-        { value: 'pagado',   label: 'Pagado'   },
-        { value: 'pendiente', label: 'Pendiente' },
-        { value: 'rechazado', label: 'Rechazado' }
+        { value: 'pending',   label: 'Pendiente' },
+        { value: 'paid',      label: 'Pagado'    },
+        { value: 'cancelled', label: 'Rechazado' }
       ],
-      badgeColors: { pagado: '#10b981', pendiente: '#f59e0b', rechazado: '#ef4444' }
+      badgeColors: { pending: '#f59e0b', paid: '#10b981', cancelled: '#ef4444' }
     },
-    { name: 'receiptNumber', type: 'text',     label: 'N° Documento',    required: false, showInList: false, showInDetail: true },
-    { name: 'notes',         type: 'textarea', label: 'Observaciones',   required: false, showInList: false, showInDetail: true }
+    { name: 'receiptNumber', type: 'text',     label: 'N° Documento',   required: false, showInList: false, showInDetail: true },
+    { name: 'notes',         type: 'textarea', label: 'Observaciones',  required: false, showInList: false, showInDetail: true }
   ]
 };
 
@@ -638,7 +624,7 @@ const SESSION_KEY = 'auth_session';
  * Increment this whenever the schema structure changes so that any cached
  * session in sessionStorage is invalidated and the user must re-login.
  */
-const SESSION_VERSION = 10;
+const SESSION_VERSION = 11;
 
 // ─────────────────────────────────────────────────────────────────────────────
 

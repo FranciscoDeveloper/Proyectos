@@ -90,6 +90,15 @@ export interface FieldDefinition {
   relatedLabelField?: string;
   /** Auto-fill other form fields when this entity-select changes */
   linkedFields?: Array<{ from: string; to: string }>;
+  /**
+   * When true, this field is computed by the backend (e.g. JOIN alias) and is
+   * never included in create/edit forms. Shown only in list and detail views.
+   */
+  displayOnly?: boolean;
+  /** Filter entity-select options to rows where this field equals relatedFilterValue */
+  relatedFilterField?: string;
+  /** The value to match against relatedFilterField */
+  relatedFilterValue?: string;
 }
 
 export interface EntityMeta {

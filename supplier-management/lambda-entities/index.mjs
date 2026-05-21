@@ -45,15 +45,65 @@ const JWT_SECRET = process.env.JWT_SECRET || "changeme-use-secrets-manager";
 
 const ENTITY_CONFIG = {
 
+  categories: {
+    table: "category",
+    toDb(d) {
+      const cols = {};
+      if (d.name        !== undefined) cols.name        = d.name;
+      if (d.type        !== undefined) cols.type        = d.type;
+      if (d.description !== undefined) cols.description = d.description;
+      return cols;
+    },
+    fromDb(r) {
+      return {
+        id:          r.id,
+        name:        r.name,
+        type:        r.type        ?? null,
+        description: r.description ?? null,
+        createdAt:   r.created_at,
+        updatedAt:   r.updated_at
+      };
+    }
+  },
+
   suppliers: {
     table: "supplier",
+
+    joinSelect: `
+      SELECT
+        c.id,
+        c.name,
+        c.code,
+        c.email,
+        c.phone,
+        c.status,
+        c.country,
+        c.city,
+        c.address,
+        c.website,
+        c.tax_id         AS "taxId",
+        c.contact_person AS "contactPerson",
+        c.rating,
+        c.total_orders   AS "totalOrders",
+        c.total_spent    AS "totalSpent",
+        c.notes,
+        c.tags,
+        c.category_id    AS "categoryId",
+        cat.name         AS "categoryName",
+        cat.type         AS "categoryType",
+        c.created_at     AS "createdAt",
+        c.updated_at     AS "updatedAt"
+      FROM supplier c
+      LEFT JOIN category cat ON cat.id = c.category_id
+    `,
+
     toDb(d) {
       const cols = {};
       if (d.name          !== undefined) cols.name           = d.name;
       if (d.code          !== undefined) cols.code           = d.code;
       if (d.email         !== undefined) cols.email          = d.email;
       if (d.phone         !== undefined) cols.phone          = d.phone;
-      if (d.category      !== undefined) cols.category       = d.category;
+      if (d.categoryId    !== undefined) cols.category_id    = d.categoryId;
       if (d.status        !== undefined) cols.status         = d.status;
       if (d.country       !== undefined) cols.country        = d.country;
       if (d.city          !== undefined) cols.city           = d.city;
@@ -68,6 +118,7 @@ const ENTITY_CONFIG = {
       if (d.tags          !== undefined) cols.tags           = JSON.stringify(d.tags);
       return cols;
     },
+
     fromDb(r) {
       return {
         id:            r.id,
@@ -75,21 +126,23 @@ const ENTITY_CONFIG = {
         code:          r.code,
         email:         r.email,
         phone:         r.phone,
-        category:      r.category,
+        categoryId:    r.categoryId    ?? r.category_id  ?? null,
+        categoryName:  r.categoryName  ?? null,
+        categoryType:  r.categoryType  ?? null,
         status:        r.status,
         country:       r.country,
         city:          r.city,
         address:       r.address,
         website:       r.website,
-        taxId:         r.tax_id,
-        contactPerson: r.contact_person,
-        rating:        r.rating        !== null ? parseFloat(r.rating)      : null,
-        totalOrders:   r.total_orders  !== null ? parseInt(r.total_orders)  : null,
-        totalSpent:    r.total_spent   !== null ? parseFloat(r.total_spent) : null,
+        taxId:         r.taxId        ?? r.tax_id        ?? null,
+        contactPerson: r.contactPerson ?? r.contact_person ?? null,
+        rating:        r.rating        != null ? parseFloat(r.rating)     : null,
+        totalOrders:   r.totalOrders   != null ? parseInt(r.totalOrders)  : (r.total_orders != null ? parseInt(r.total_orders) : null),
+        totalSpent:    r.totalSpent    != null ? parseFloat(r.totalSpent) : (r.total_spent  != null ? parseFloat(r.total_spent)  : null),
         notes:         r.notes,
         tags:          r.tags ?? [],
-        createdAt:     r.created_at,
-        updatedAt:     r.updated_at
+        createdAt:     r.createdAt    ?? r.created_at,
+        updatedAt:     r.updatedAt    ?? r.updated_at
       };
     }
   },
@@ -131,12 +184,34 @@ const ENTITY_CONFIG = {
 
   expenses: {
     table: "expense",
+
+    joinSelect: `
+      SELECT
+        c.id,
+        c.description,
+        c.date,
+        c.amount,
+        c.payment_method  AS "paymentMethod",
+        c.status,
+        c.receipt_number  AS "receiptNumber",
+        c.notes,
+        c.category_id     AS "categoryId",
+        cat.name          AS "categoryName",
+        c.supplier_id     AS "supplierId",
+        sup.name          AS "supplierName",
+        c.created_at      AS "createdAt",
+        c.updated_at      AS "updatedAt"
+      FROM expense c
+      LEFT JOIN category cat ON cat.id  = c.category_id
+      LEFT JOIN supplier sup ON sup.id  = c.supplier_id
+    `,
+
     toDb(d) {
       const cols = {};
       if (d.description   !== undefined) cols.description    = d.description;
-      if (d.supplier      !== undefined) cols.supplier       = d.supplier;
+      if (d.supplierId    !== undefined) cols.supplier_id    = d.supplierId;
       if (d.date          !== undefined) cols.date           = d.date;
-      if (d.category      !== undefined) cols.category       = d.category;
+      if (d.categoryId    !== undefined) cols.category_id    = d.categoryId;
       if (d.amount        !== undefined) cols.amount         = d.amount;
       if (d.paymentMethod !== undefined) cols.payment_method = d.paymentMethod;
       if (d.status        !== undefined) cols.status         = d.status;
@@ -144,20 +219,23 @@ const ENTITY_CONFIG = {
       if (d.notes         !== undefined) cols.notes          = d.notes;
       return cols;
     },
+
     fromDb(r) {
       return {
         id:            r.id,
         description:   r.description,
-        supplier:      r.supplier,
+        supplierId:    r.supplierId   ?? r.supplier_id  ?? null,
+        supplierName:  r.supplierName ?? null,
         date:          r.date,
-        category:      r.category,
-        amount:        r.amount        !== null ? parseFloat(r.amount) : null,
-        paymentMethod: r.payment_method,
+        categoryId:    r.categoryId   ?? r.category_id  ?? null,
+        categoryName:  r.categoryName ?? null,
+        amount:        r.amount       != null ? parseFloat(r.amount) : null,
+        paymentMethod: r.paymentMethod ?? r.payment_method ?? null,
         status:        r.status,
-        receiptNumber: r.receipt_number,
+        receiptNumber: r.receiptNumber ?? r.receipt_number ?? null,
         notes:         r.notes,
-        createdAt:     r.created_at,
-        updatedAt:     r.updated_at
+        createdAt:     r.createdAt    ?? r.created_at,
+        updatedAt:     r.updatedAt    ?? r.updated_at
       };
     }
   },
