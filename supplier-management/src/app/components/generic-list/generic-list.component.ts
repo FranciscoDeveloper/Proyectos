@@ -4,7 +4,7 @@ import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
-import { EntitySchema, FieldDefinition } from '../../models/entity-schema.model';
+import { EntitySchema, FieldDefinition, SelectOption } from '../../models/entity-schema.model';
 
 @Component({
   selector: 'app-generic-list',
@@ -89,6 +89,9 @@ export class GenericListComponent implements OnInit {
       const schema = this.schemaService.getSchema(key);
       this.schema.set(schema);
       this.crudService.initStore(key);
+      schema?.fields
+        .filter(f => f.type === 'select' && f.lookupEntity)
+        .forEach(f => this.crudService.initStore(f.lookupEntity!));
       this.sortField.set(this.schema()?.fields.find(f => f.isTitle)?.name ?? '');
       this.selectFilters.set({});
       this.searchQuery.set('');
@@ -145,6 +148,14 @@ export class GenericListComponent implements OnInit {
 
   // ─── Display helpers ───
 
+  getFieldOptions(field: FieldDefinition): SelectOption[] {
+    if (!field.lookupEntity) return field.options ?? [];
+    return this.crudService.getAll(field.lookupEntity)().map(item => ({
+      value: String(item['id']),
+      label: String(item['label'])
+    }));
+  }
+
   getCellValue(item: Record<string, any>, field: FieldDefinition): string {
     const raw = item[field.name];
     if (raw == null || raw === '') return '—';
@@ -152,9 +163,8 @@ export class GenericListComponent implements OnInit {
     if (field.format === 'date') return this.formatDate(raw);
     if (field.format === 'stars') return raw.toString();
     if (field.type === 'tags' && Array.isArray(raw)) return raw.join(', ');
-    if (field.options) {
-      return field.options.find(o => o.value === raw)?.label ?? String(raw);
-    }
+    const opts = this.getFieldOptions(field);
+    if (opts.length > 0) return opts.find(o => o.value === String(raw))?.label ?? String(raw);
     return String(raw);
   }
 

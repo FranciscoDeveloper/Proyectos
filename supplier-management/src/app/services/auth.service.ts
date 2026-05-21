@@ -24,6 +24,7 @@ const SCHEMA_SUPPLIERS: EntitySchema = {
       badgeColors: { 'Laboratorio': '#14b8a6', 'Distribuidores': '#6366f1', 'Insumos': '#8b5cf6', 'Servicios': '#10b981' }
     },
     { name: 'status',        type: 'select',        label: 'Estado',            required: true,  isBadge: true,    showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
+      lookupEntity: 'supplier-statuses',
       options: [{ value: 'active', label: 'Activo' }, { value: 'inactive', label: 'Inactivo' }, { value: 'blocked', label: 'Bloqueado' }],
       badgeColors: { active: '#10b981', inactive: '#6b7280', blocked: '#ef4444' }
     },
@@ -96,12 +97,24 @@ const SCHEMA_APPOINTMENTS: EntitySchema = {
     { name: 'dateTime',         type: 'datetime', label: 'Fecha y hora',     required: true,  isCalendarStart: true, showInList: true,  showInDetail: true,  sortable: true },
     { name: 'durationMinutes',  type: 'number',   label: 'Duración (min)',   required: false,                        showInList: true,  showInDetail: true,  min: 0 },
     { name: 'status',           type: 'select',   label: 'Estado',           required: true,  isBadge: true,         showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
+      lookupEntity: 'appointment-statuses',
       options: [
-        { value: 'AGENDADA',   label: 'Agendada'   },
-        { value: 'COMPLETADA', label: 'Completada' },
-        { value: 'CANCELADA',  label: 'Cancelada'  }
+        { value: 'scheduled',  label: 'Agendada'    },
+        { value: 'confirmed',  label: 'Confirmada'  },
+        { value: 'completed',  label: 'Completada'  },
+        { value: 'cancelled',  label: 'Cancelada'   },
+        { value: 'no_show',    label: 'No asistió'  }
       ],
-      badgeColors: { AGENDADA: '#3b82f6', COMPLETADA: '#10b981', CANCELADA: '#ef4444' }
+      badgeColors: { scheduled: '#3b82f6', confirmed: '#8b5cf6', completed: '#10b981', cancelled: '#ef4444', no_show: '#f59e0b' }
+    },
+    { name: 'modality',         type: 'select',   label: 'Modalidad',        required: false, isBadge: true,         showInList: true,  showInDetail: true,
+      lookupEntity: 'appointment-modalities',
+      options: [
+        { value: 'in_person', label: 'Presencial'    },
+        { value: 'video',     label: 'Videoconsulta' },
+        { value: 'phone',     label: 'Teléfono'      }
+      ],
+      badgeColors: { in_person: '#6366f1', video: '#0891b2', phone: '#10b981' }
     },
     { name: 'professionalName', type: 'text',     label: 'Profesional',      required: false,                        showInList: true,  showInDetail: true },
     { name: 'notes',            type: 'textarea', label: 'Notas',            required: false,                        showInList: false, showInDetail: true }
@@ -557,6 +570,7 @@ export const SCHEMA_EXPENSES: EntitySchema = {
     },
     { name: 'amount',        type: 'number', label: 'Monto (CLP)',      required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 0, format: 'currency' },
     { name: 'paymentMethod', type: 'select', label: 'Medio de pago',    required: true,  isBadge: true,    showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
+      lookupEntity: 'expense-payment-methods',
       options: [
         { value: 'cash',     label: 'Efectivo'      },
         { value: 'transfer', label: 'Transferencia' },
@@ -566,10 +580,11 @@ export const SCHEMA_EXPENSES: EntitySchema = {
       badgeColors: { cash: '#10b981', transfer: '#6366f1', card: '#3b82f6', other: '#6b7280' }
     },
     { name: 'status', type: 'select', label: 'Estado', required: true, isBadge: true, showInList: true, showInDetail: true, filterable: true, filterType: 'select',
+      lookupEntity: 'expense-statuses',
       options: [
         { value: 'pending',   label: 'Pendiente' },
         { value: 'paid',      label: 'Pagado'    },
-        { value: 'cancelled', label: 'Rechazado' }
+        { value: 'cancelled', label: 'Cancelado' }
       ],
       badgeColors: { pending: '#f59e0b', paid: '#10b981', cancelled: '#ef4444' }
     },
@@ -624,7 +639,7 @@ const SESSION_KEY = 'auth_session';
  * Increment this whenever the schema structure changes so that any cached
  * session in sessionStorage is invalidated and the user must re-login.
  */
-const SESSION_VERSION = 11;
+const SESSION_VERSION = 12;
 
 // ─────────────────────────────────────────────────────────────────────────────
 

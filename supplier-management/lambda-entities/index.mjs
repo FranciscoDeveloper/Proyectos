@@ -371,6 +371,101 @@ const ENTITY_CONFIG = {
     }
   },
 
+  // ── lookup: supplier_status ──────────────────────────────────────────────────
+  'supplier-statuses': {
+    table:       'supplier_status',
+    pkCol:       'value',
+    orderBy:     'sort_order ASC',
+    noTimestamp: true,
+    toDb(d) {
+      const cols = {};
+      if (d.value     !== undefined) cols.value      = d.value;
+      if (d.label     !== undefined) cols.label      = d.label;
+      if (d.color     !== undefined) cols.color      = d.color;
+      if (d.sortOrder !== undefined) cols.sort_order = d.sortOrder;
+      return cols;
+    },
+    fromDb(r) {
+      return { id: r.value, value: r.value, label: r.label, color: r.color ?? null, sortOrder: r.sort_order ?? 0 };
+    }
+  },
+
+  // ── lookup: expense_status ───────────────────────────────────────────────────
+  'expense-statuses': {
+    table:       'expense_status',
+    pkCol:       'value',
+    orderBy:     'sort_order ASC',
+    noTimestamp: true,
+    toDb(d) {
+      const cols = {};
+      if (d.value     !== undefined) cols.value      = d.value;
+      if (d.label     !== undefined) cols.label      = d.label;
+      if (d.color     !== undefined) cols.color      = d.color;
+      if (d.sortOrder !== undefined) cols.sort_order = d.sortOrder;
+      return cols;
+    },
+    fromDb(r) {
+      return { id: r.value, value: r.value, label: r.label, color: r.color ?? null, sortOrder: r.sort_order ?? 0 };
+    }
+  },
+
+  // ── lookup: expense_payment_method ───────────────────────────────────────────
+  'expense-payment-methods': {
+    table:       'expense_payment_method',
+    pkCol:       'value',
+    orderBy:     'sort_order ASC',
+    noTimestamp: true,
+    toDb(d) {
+      const cols = {};
+      if (d.value     !== undefined) cols.value      = d.value;
+      if (d.label     !== undefined) cols.label      = d.label;
+      if (d.color     !== undefined) cols.color      = d.color;
+      if (d.sortOrder !== undefined) cols.sort_order = d.sortOrder;
+      return cols;
+    },
+    fromDb(r) {
+      return { id: r.value, value: r.value, label: r.label, color: r.color ?? null, sortOrder: r.sort_order ?? 0 };
+    }
+  },
+
+  // ── lookup: appointment_status ───────────────────────────────────────────────
+  'appointment-statuses': {
+    table:       'appointment_status',
+    pkCol:       'value',
+    orderBy:     'sort_order ASC',
+    noTimestamp: true,
+    toDb(d) {
+      const cols = {};
+      if (d.value     !== undefined) cols.value      = d.value;
+      if (d.label     !== undefined) cols.label      = d.label;
+      if (d.color     !== undefined) cols.color      = d.color;
+      if (d.sortOrder !== undefined) cols.sort_order = d.sortOrder;
+      return cols;
+    },
+    fromDb(r) {
+      return { id: r.value, value: r.value, label: r.label, color: r.color ?? null, sortOrder: r.sort_order ?? 0 };
+    }
+  },
+
+  // ── lookup: appointment_modality ─────────────────────────────────────────────
+  'appointment-modalities': {
+    table:       'appointment_modality',
+    pkCol:       'value',
+    orderBy:     'sort_order ASC',
+    noTimestamp: true,
+    toDb(d) {
+      const cols = {};
+      if (d.value     !== undefined) cols.value      = d.value;
+      if (d.label     !== undefined) cols.label      = d.label;
+      if (d.color     !== undefined) cols.color      = d.color;
+      if (d.sortOrder !== undefined) cols.sort_order = d.sortOrder;
+      return cols;
+    },
+    fromDb(r) {
+      return { id: r.value, value: r.value, label: r.label, color: r.color ?? null, sortOrder: r.sort_order ?? 0 };
+    }
+  },
+
   // ── clinical-records ─────────────────────────────────────────────────────────
   'clinical-records': {
     table: "clinical_record",
@@ -523,6 +618,57 @@ const ENTITY_CONFIG = {
   }
 };
 
+// ── Lookup table bootstrap ────────────────────────────────────────────────────
+let lookupTablesReady = false;
+
+async function ensureLookupTables(client) {
+  if (lookupTablesReady) return;
+
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS supplier_status (
+      value TEXT PRIMARY KEY, label TEXT NOT NULL, color TEXT, sort_order INTEGER DEFAULT 0
+    )`);
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS expense_status (
+      value TEXT PRIMARY KEY, label TEXT NOT NULL, color TEXT, sort_order INTEGER DEFAULT 0
+    )`);
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS expense_payment_method (
+      value TEXT PRIMARY KEY, label TEXT NOT NULL, color TEXT, sort_order INTEGER DEFAULT 0
+    )`);
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS appointment_status (
+      value TEXT PRIMARY KEY, label TEXT NOT NULL, color TEXT, sort_order INTEGER DEFAULT 0
+    )`);
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS appointment_modality (
+      value TEXT PRIMARY KEY, label TEXT NOT NULL, color TEXT, sort_order INTEGER DEFAULT 0
+    )`);
+
+  await client.query(`INSERT INTO supplier_status (value,label,color,sort_order) VALUES
+    ('active','Activo','#10b981',1),('inactive','Inactivo','#6b7280',2),('blocked','Bloqueado','#ef4444',3)
+    ON CONFLICT DO NOTHING`);
+  await client.query(`INSERT INTO expense_status (value,label,color,sort_order) VALUES
+    ('pending','Pendiente','#f59e0b',1),('paid','Pagado','#10b981',2),('cancelled','Cancelado','#ef4444',3)
+    ON CONFLICT DO NOTHING`);
+  await client.query(`INSERT INTO expense_payment_method (value,label,color,sort_order) VALUES
+    ('cash','Efectivo','#10b981',1),('card','Tarjeta','#3b82f6',2),
+    ('transfer','Transferencia','#6366f1',3),('other','Otro','#6b7280',4)
+    ON CONFLICT DO NOTHING`);
+  await client.query(`INSERT INTO appointment_status (value,label,color,sort_order) VALUES
+    ('scheduled','Agendada','#3b82f6',1),('confirmed','Confirmada','#8b5cf6',2),
+    ('completed','Completada','#10b981',3),('cancelled','Cancelada','#ef4444',4),
+    ('no_show','No asistió','#f59e0b',5)
+    ON CONFLICT DO NOTHING`);
+  await client.query(`INSERT INTO appointment_modality (value,label,color,sort_order) VALUES
+    ('in_person','Presencial','#6366f1',1),('video','Videoconsulta','#0891b2',2),
+    ('phone','Teléfono','#10b981',3)
+    ON CONFLICT DO NOTHING`);
+
+  lookupTablesReady = true;
+  log("INFO", "Lookup tables ready");
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 export const handler = async (event, context) => {
   // Assign a unique trace ID per invocation (Lambda request ID when available)
@@ -650,6 +796,7 @@ export const handler = async (event, context) => {
     log("INFO", "Acquiring DB connection from pool");
     client = await pool.connect();
     log("INFO", "DB connection acquired");
+    await ensureLookupTables(client);
 
     if (method === "GET" && !id)        return await listEntities(client, config, entityKey);
     if (method === "GET" && id)         return await getEntity(client, config, id, entityKey);
@@ -679,11 +826,12 @@ export const handler = async (event, context) => {
 
 async function listEntities(client, config, entityKey) {
   log("INFO", "listEntities — querying", { table: config.table, hasJoin: !!config.joinSelect });
+  const orderBy = config.orderBy ?? (config.joinSelect ? 'c.created_at DESC' : 'id DESC');
   let result;
   if (config.joinSelect) {
-    result = await client.query(`${config.joinSelect} ORDER BY c.created_at DESC`);
+    result = await client.query(`${config.joinSelect} ORDER BY ${orderBy}`);
   } else {
-    result = await client.query(`SELECT * FROM ${config.table} ORDER BY id DESC`);
+    result = await client.query(`SELECT * FROM ${config.table} ORDER BY ${orderBy}`);
   }
   log("INFO", "listEntities — done", { table: config.table, rowCount: result.rowCount });
   return response(200, result.rows.map(config.fromDb));
@@ -691,11 +839,12 @@ async function listEntities(client, config, entityKey) {
 
 async function getEntity(client, config, id, entityKey) {
   log("INFO", "getEntity — querying", { table: config.table, id, hasJoin: !!config.joinSelect });
+  const pkCol = config.pkCol ?? 'id';
   let result;
   if (config.joinSelect) {
-    result = await client.query(`${config.joinSelect} WHERE c.id = $1 LIMIT 1`, [id]);
+    result = await client.query(`${config.joinSelect} WHERE c.${pkCol} = $1 LIMIT 1`, [id]);
   } else {
-    result = await client.query(`SELECT * FROM ${config.table} WHERE id = $1 LIMIT 1`, [id]);
+    result = await client.query(`SELECT * FROM ${config.table} WHERE ${pkCol} = $1 LIMIT 1`, [id]);
   }
   if (result.rowCount === 0) {
     log("WARN", "getEntity — not found", { table: config.table, id });
@@ -744,14 +893,16 @@ async function updateEntity(client, config, id, data, entityKey) {
     return response(400, { message: "Ningún campo válido proporcionado" });
   }
 
+  const pkCol      = config.pkCol ?? 'id';
+  const tsClause   = config.noTimestamp ? '' : ', updated_at = NOW()';
   const setClauses = keys.map((k, i) => `${k} = $${i + 1}`).join(", ");
   const values     = [...keys.map(k => cols[k]), id];
 
   log("INFO", "updateEntity — updating", { table: config.table, id, columns: keys });
   const result = await client.query(
     `UPDATE ${config.table}
-     SET ${setClauses}, updated_at = NOW()
-     WHERE id = $${keys.length + 1}
+     SET ${setClauses}${tsClause}
+     WHERE ${pkCol} = $${keys.length + 1}
      RETURNING *`,
     values
   );
@@ -766,8 +917,9 @@ async function updateEntity(client, config, id, data, entityKey) {
 
 async function deleteEntity(client, config, id, entityKey) {
   log("INFO", "deleteEntity — deleting", { table: config.table, id });
+  const pkCol  = config.pkCol ?? 'id';
   const result = await client.query(
-    `DELETE FROM ${config.table} WHERE id = $1 RETURNING id`,
+    `DELETE FROM ${config.table} WHERE ${pkCol} = $1 RETURNING ${pkCol}`,
     [id]
   );
   if (result.rowCount === 0) {
@@ -775,7 +927,7 @@ async function deleteEntity(client, config, id, entityKey) {
     return response(404, { message: "Registro no encontrado" });
   }
   log("INFO", "deleteEntity — success", { table: config.table, id });
-  return response(200, { message: "Registro eliminado", id: parseInt(id) });
+  return response(200, { message: "Registro eliminado", id });
 }
 
 // ── Helper ────────────────────────────────────────────────────────────────────

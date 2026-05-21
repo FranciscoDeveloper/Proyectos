@@ -84,6 +84,12 @@ export interface FieldDefinition {
    * The server only stores ciphertext; only the user's derived key can decrypt it.
    */
   encrypted?: boolean;
+  /**
+   * For type='select': load options dynamically from this entity key via the
+   * CRUD service instead of using the hardcoded `options` array.
+   * The entity must return rows with `id` (the stored value) and `label`.
+   */
+  lookupEntity?: string;
   /** For type='entity-select': which entity key to load options from */
   relatedEntity?: string;
   /** Field name in the related entity to use as display label */

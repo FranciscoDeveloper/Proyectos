@@ -31,18 +31,25 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
           { name: 'dateTime',         type: 'datetime', label: 'Fecha y hora',    required: true,  isCalendarStart: true, showInList: true,  showInDetail: true,  sortable: true },
           { name: 'durationMinutes',  type: 'number',   label: 'Duración (min)',  required: false,                        showInList: false, showInDetail: true,  min: 0 },
           { name: 'status',           type: 'select',   label: 'Estado',          required: true,  isBadge: true,         showInList: true,  showInDetail: true,  filterable: true,  filterType: 'select',
+            lookupEntity: 'appointment-statuses',
             options: [
-              { value: 'AGENDADA',    label: 'Agendada'    },
-              { value: 'COMPLETADA',  label: 'Completada'  },
-              { value: 'CANCELADA',   label: 'Cancelada'   },
-              { value: 'NO_ASISTIO',  label: 'No asistió'  }
+              { value: 'scheduled',  label: 'Agendada'    },
+              { value: 'confirmed',  label: 'Confirmada'  },
+              { value: 'completed',  label: 'Completada'  },
+              { value: 'cancelled',  label: 'Cancelada'   },
+              { value: 'no_show',    label: 'No asistió'  }
             ],
-            badgeColors: { AGENDADA: '#3b82f6', COMPLETADA: '#10b981', CANCELADA: '#ef4444', NO_ASISTIO: '#f59e0b' }
+            badgeColors: { scheduled: '#3b82f6', confirmed: '#8b5cf6', completed: '#10b981', cancelled: '#ef4444', no_show: '#f59e0b' }
           },
           { name: 'professionalName', type: 'text',     label: 'Profesional',     required: false,                        showInList: true,  showInDetail: true  },
           { name: 'modality',         type: 'select',   label: 'Modalidad',       required: false, isBadge: true,          showInList: true,  showInDetail: true,
-            options: [{ value: 'presencial', label: 'Presencial' }, { value: 'video', label: 'Videoconsulta' }],
-            badgeColors: { presencial: '#6366f1', video: '#0891b2' }
+            lookupEntity: 'appointment-modalities',
+            options: [
+              { value: 'in_person', label: 'Presencial'    },
+              { value: 'video',     label: 'Videoconsulta' },
+              { value: 'phone',     label: 'Teléfono'      }
+            ],
+            badgeColors: { in_person: '#6366f1', video: '#0891b2', phone: '#10b981' }
           },
           { name: 'patientEmail',     type: 'email',    label: 'Email paciente',  required: false,                        showInList: false, showInDetail: true  },
           { name: 'patientPhone',     type: 'tel',      label: 'Teléfono',        required: false,                        showInList: false, showInDetail: true  },
@@ -54,28 +61,28 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
       },
       data: [
         // ── Semana 1 (2–6 mar) ─────────────────────────────────────────────────
-        { id: 1,  service: 'Control de hipertensión',            patientName: 'María González López',    dateTime: '2026-03-03T09:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Ajuste de dosis antihipertensiva.',          createdAt: '2026-02-20', updatedAt: '2026-03-03' },
-        { id: 2,  service: 'Revisión post-operatoria',           patientName: 'Carlos Fernández Torres', dateTime: '2026-03-03T09:45', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Evolución favorable tras stent coronario.',   createdAt: '2026-02-22', updatedAt: '2026-03-03' },
-        { id: 3,  service: 'Consulta cardiología',               patientName: 'Ana Martínez Soto',       dateTime: '2026-03-05T10:30', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'ECG en rango normal.',                        createdAt: '2026-02-25', updatedAt: '2026-03-05' },
+        { id: 1,  service: 'Control de hipertensión',            patientName: 'María González López',    dateTime: '2026-03-03T09:00', durationMinutes: 45, status: 'completed',  professionalName: 'Dra. Morales', notes: 'Ajuste de dosis antihipertensiva.',          createdAt: '2026-02-20', updatedAt: '2026-03-03' },
+        { id: 2,  service: 'Revisión post-operatoria',           patientName: 'Carlos Fernández Torres', dateTime: '2026-03-03T09:45', durationMinutes: 45, status: 'completed',  professionalName: 'Dra. Morales', notes: 'Evolución favorable tras stent coronario.',   createdAt: '2026-02-22', updatedAt: '2026-03-03' },
+        { id: 3,  service: 'Consulta cardiología',               patientName: 'Ana Martínez Soto',       dateTime: '2026-03-05T10:30', durationMinutes: 45, status: 'completed',  professionalName: 'Dra. Morales', notes: 'ECG en rango normal.',                        createdAt: '2026-02-25', updatedAt: '2026-03-05' },
         // ── Semana 2 (9–13 mar) ────────────────────────────────────────────────
-        { id: 4,  service: 'Seguimiento diabetes',               patientName: 'Sofia Ruiz Castillo',     dateTime: '2026-03-10T09:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'HbA1c 6.8%. Dosis estable.',                  createdAt: '2026-03-01', updatedAt: '2026-03-10' },
-        { id: 5,  service: 'Control respiratorio',               patientName: 'Isabel Díaz Vega',        dateTime: '2026-03-10T09:45', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Espirometría mejorada vs mes anterior.',       createdAt: '2026-03-05', updatedAt: '2026-03-10' },
-        { id: 6,  service: 'Revisión postquirúrgica rodilla',    patientName: 'Ana Martínez Soto',       dateTime: '2026-03-12T14:00', durationMinutes: 45, status: 'NO_ASISTIO',  professionalName: 'Dra. Morales', notes: 'Paciente no se presentó. Reprogramar.',      createdAt: '2026-03-05', updatedAt: '2026-03-12' },
+        { id: 4,  service: 'Seguimiento diabetes',               patientName: 'Sofia Ruiz Castillo',     dateTime: '2026-03-10T09:00', durationMinutes: 45, status: 'completed',  professionalName: 'Dra. Morales', notes: 'HbA1c 6.8%. Dosis estable.',                  createdAt: '2026-03-01', updatedAt: '2026-03-10' },
+        { id: 5,  service: 'Control respiratorio',               patientName: 'Isabel Díaz Vega',        dateTime: '2026-03-10T09:45', durationMinutes: 45, status: 'completed',  professionalName: 'Dra. Morales', notes: 'Espirometría mejorada vs mes anterior.',       createdAt: '2026-03-05', updatedAt: '2026-03-10' },
+        { id: 6,  service: 'Revisión postquirúrgica rodilla',    patientName: 'Ana Martínez Soto',       dateTime: '2026-03-12T14:00', durationMinutes: 45, status: 'no_show',  professionalName: 'Dra. Morales', notes: 'Paciente no se presentó. Reprogramar.',      createdAt: '2026-03-05', updatedAt: '2026-03-12' },
         // ── Semana 3 (16–20 mar) ───────────────────────────────────────────────
-        { id: 7,  service: 'Primera consulta',                   patientName: 'Sofia Ruiz Castillo',     dateTime: '2026-03-17T09:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Derivado por médico de cabecera.',             createdAt: '2026-03-10', updatedAt: '2026-03-17' },
-        { id: 8,  service: 'Control cardiológico',               patientName: 'Carlos Fernández Torres', dateTime: '2026-03-17T10:30', durationMinutes: 45, status: 'CANCELADA',   professionalName: 'Dra. Morales', notes: 'Cancelada por el paciente.',                  createdAt: '2026-03-12', updatedAt: '2026-03-17' },
-        { id: 9,  service: 'Ajuste de tratamiento',              patientName: 'Carlos Fernández Torres', dateTime: '2026-03-19T09:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Reducción dosis anticoagulante.',              createdAt: '2026-03-15', updatedAt: '2026-03-19' },
-        { id: 10, service: 'Evaluación neurológica',             patientName: 'Isabel Díaz Vega',        dateTime: '2026-03-19T14:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Sin nuevos episodios. Control en 3 meses.',   createdAt: '2026-03-10', updatedAt: '2026-03-19' },
+        { id: 7,  service: 'Primera consulta',                   patientName: 'Sofia Ruiz Castillo',     dateTime: '2026-03-17T09:00', durationMinutes: 45, status: 'completed',  professionalName: 'Dra. Morales', notes: 'Derivado por médico de cabecera.',             createdAt: '2026-03-10', updatedAt: '2026-03-17' },
+        { id: 8,  service: 'Control cardiológico',               patientName: 'Carlos Fernández Torres', dateTime: '2026-03-17T10:30', durationMinutes: 45, status: 'cancelled',   professionalName: 'Dra. Morales', notes: 'Cancelada por el paciente.',                  createdAt: '2026-03-12', updatedAt: '2026-03-17' },
+        { id: 9,  service: 'Ajuste de tratamiento',              patientName: 'Carlos Fernández Torres', dateTime: '2026-03-19T09:00', durationMinutes: 45, status: 'completed',  professionalName: 'Dra. Morales', notes: 'Reducción dosis anticoagulante.',              createdAt: '2026-03-15', updatedAt: '2026-03-19' },
+        { id: 10, service: 'Evaluación neurológica',             patientName: 'Isabel Díaz Vega',        dateTime: '2026-03-19T14:00', durationMinutes: 45, status: 'completed',  professionalName: 'Dra. Morales', notes: 'Sin nuevos episodios. Control en 3 meses.',   createdAt: '2026-03-10', updatedAt: '2026-03-19' },
         // ── Semana 4 (23–27 mar) ───────────────────────────────────────────────
-        { id: 11, service: 'Control mensual',                    patientName: 'María González López',    dateTime: '2026-03-24T09:00', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Presión arterial estabilizada 120/80.',        createdAt: '2026-03-17', updatedAt: '2026-03-24' },
-        { id: 12, service: 'Revisión de exámenes',               patientName: 'Luis Hernández Pérez',    dateTime: '2026-03-24T10:30', durationMinutes: 45, status: 'COMPLETADA',  professionalName: 'Dra. Morales', notes: 'Resultados de lab normales.',                  createdAt: '2026-03-20', updatedAt: '2026-03-24' },
-        { id: 13, service: 'Seguimiento postquirúrgico',         patientName: 'Luis Hernández Pérez',    dateTime: '2026-03-26T09:00', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Seguimiento a 4 meses de la operación.',      createdAt: '2026-03-20', updatedAt: '2026-03-20' },
-        { id: 14, service: 'Control diabetes',                   patientName: 'Sofia Ruiz Castillo',     dateTime: '2026-03-26T10:30', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Control mensual glucemia.',                    createdAt: '2026-03-21', updatedAt: '2026-03-21' },
-        { id: 15, service: 'Urgencia — dolor torácico',          patientName: 'Carlos Fernández Torres', dateTime: '2026-03-27T09:00', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Derivación por dolor torácico recurrente.',   createdAt: '2026-03-25', updatedAt: '2026-03-25' },
-        { id: 16, service: 'Control postquirúrgico rodilla',     patientName: 'Ana Martínez Soto',       dateTime: '2026-03-27T14:00', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Reprogramada de id-6.',                        createdAt: '2026-03-25', updatedAt: '2026-03-25' },
+        { id: 11, service: 'Control mensual',                    patientName: 'María González López',    dateTime: '2026-03-24T09:00', durationMinutes: 45, status: 'completed',  professionalName: 'Dra. Morales', notes: 'Presión arterial estabilizada 120/80.',        createdAt: '2026-03-17', updatedAt: '2026-03-24' },
+        { id: 12, service: 'Revisión de exámenes',               patientName: 'Luis Hernández Pérez',    dateTime: '2026-03-24T10:30', durationMinutes: 45, status: 'completed',  professionalName: 'Dra. Morales', notes: 'Resultados de lab normales.',                  createdAt: '2026-03-20', updatedAt: '2026-03-24' },
+        { id: 13, service: 'Seguimiento postquirúrgico',         patientName: 'Luis Hernández Pérez',    dateTime: '2026-03-26T09:00', durationMinutes: 45, status: 'scheduled',    professionalName: 'Dra. Morales', notes: 'Seguimiento a 4 meses de la operación.',      createdAt: '2026-03-20', updatedAt: '2026-03-20' },
+        { id: 14, service: 'Control diabetes',                   patientName: 'Sofia Ruiz Castillo',     dateTime: '2026-03-26T10:30', durationMinutes: 45, status: 'scheduled',    professionalName: 'Dra. Morales', notes: 'Control mensual glucemia.',                    createdAt: '2026-03-21', updatedAt: '2026-03-21' },
+        { id: 15, service: 'Urgencia — dolor torácico',          patientName: 'Carlos Fernández Torres', dateTime: '2026-03-27T09:00', durationMinutes: 45, status: 'scheduled',    professionalName: 'Dra. Morales', notes: 'Derivación por dolor torácico recurrente.',   createdAt: '2026-03-25', updatedAt: '2026-03-25' },
+        { id: 16, service: 'Control postquirúrgico rodilla',     patientName: 'Ana Martínez Soto',       dateTime: '2026-03-27T14:00', durationMinutes: 45, status: 'scheduled',    professionalName: 'Dra. Morales', notes: 'Reprogramada de id-6.',                        createdAt: '2026-03-25', updatedAt: '2026-03-25' },
         // ── Semanas futuras ─────────────────────────────────────────────────────
-        { id: 17, service: 'Revisión eco-cardiograma',           patientName: 'Ana Martínez Soto',       dateTime: '2026-03-31T14:00', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Seguimiento post cirugía de rodilla.',         createdAt: '2026-03-20', updatedAt: '2026-03-20' },
-        { id: 18, service: 'Control respiratorio trimestral',    patientName: 'Isabel Díaz Vega',        dateTime: '2026-04-07T09:00', durationMinutes: 45, status: 'AGENDADA',    professionalName: 'Dra. Morales', notes: 'Revisión trimestral EPOC.',                    createdAt: '2026-03-22', updatedAt: '2026-03-22' }
+        { id: 17, service: 'Revisión eco-cardiograma',           patientName: 'Ana Martínez Soto',       dateTime: '2026-03-31T14:00', durationMinutes: 45, status: 'scheduled',    professionalName: 'Dra. Morales', notes: 'Seguimiento post cirugía de rodilla.',         createdAt: '2026-03-20', updatedAt: '2026-03-20' },
+        { id: 18, service: 'Control respiratorio trimestral',    patientName: 'Isabel Díaz Vega',        dateTime: '2026-04-07T09:00', durationMinutes: 45, status: 'scheduled',    professionalName: 'Dra. Morales', notes: 'Revisión trimestral EPOC.',                    createdAt: '2026-03-22', updatedAt: '2026-03-22' }
       ]
     },
 
@@ -117,13 +124,13 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
             }
           },
           { name: 'status',        type: 'select', label: 'Estado',            required: true,  isBadge: true,    showInList: true,  showInDetail: true,  sortable: true, filterable: true, filterType: 'select',
+            lookupEntity: 'supplier-statuses',
             options: [
-              { value: 'active',      label: 'Activo'       },
-              { value: 'inactive',    label: 'Inactivo'     },
-              { value: 'pending',     label: 'Pendiente'    },
-              { value: 'blacklisted', label: 'Bloqueado'    }
+              { value: 'active',   label: 'Activo'    },
+              { value: 'inactive', label: 'Inactivo'  },
+              { value: 'blocked',  label: 'Bloqueado' }
             ],
-            badgeColors: { 'active': '#10b981', 'inactive': '#6b7280', 'pending': '#f59e0b', 'blacklisted': '#ef4444' }
+            badgeColors: { 'active': '#10b981', 'inactive': '#6b7280', 'blocked': '#ef4444' }
           },
           { name: 'country',       type: 'text',   label: 'País',              required: true,                   showInList: true,  showInDetail: true,  sortable: true, filterable: true, filterType: 'select' },
           { name: 'city',          type: 'text',   label: 'Ciudad',            required: true,                   showInList: false, showInDetail: true  },
@@ -145,7 +152,7 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
         { id: 4, name: 'FoodBev International',  code: 'FB-004', email: 'supply@foodbev.int',        phone: '+49 30 12345678',   category: 'food-beverage', status: 'pending',     country: 'Alemania',       city: 'Berlín',        address: 'Industriestraße 55, 10115',   website: 'https://foodbev.int',           taxId: 'DE-234567890',             contactPerson: 'Monika Braun',   rating: 3.9, totalOrders: 45,  totalSpent: 120000,  createdAt: '2024-08-01', updatedAt: '2024-12-10', tags: ['organic', 'HACCP'],               notes: 'Nuevo proveedor en evaluación.' },
         { id: 5, name: 'BuildRight Construcción',code: 'BR-005', email: 'info@buildright.mx',        phone: '+52 55 9876 5432',  category: 'construction',  status: 'inactive',    country: 'México',         city: 'CDMX',          address: 'Blvd. Insurgentes 1200',      website: null,                            taxId: 'MX-RFC123456',             contactPerson: 'Roberto Méndez', rating: 3.5, totalOrders: 32,  totalSpent: 430000,  createdAt: '2020-11-05', updatedAt: '2024-07-20', tags: ['construction', 'cement'],         notes: 'Contrato pausado.' },
         { id: 6, name: 'HealthPlus Supplies',    code: 'HP-006', email: 'procurement@healthplus.ca', phone: '+1 416 555 0199',   category: 'healthcare',    status: 'active',      country: 'Canadá',         city: 'Toronto',       address: '789 Medical Drive, ON M5H',   website: 'https://healthplus.ca',         taxId: 'CA-BN123456789',           contactPerson: 'Sarah Mitchell', rating: 4.9, totalOrders: 390, totalSpent: 2100000, createdAt: '2019-05-12', updatedAt: '2024-12-15', tags: ['FDA-approved', 'medical'],        notes: 'Socio crítico en salud.' },
-        { id: 7, name: 'ManufacturePro Asia',    code: 'MA-007', email: 'b2b@manufacturepro.cn',     phone: '+86 21 5555 8888',  category: 'manufacturing', status: 'blacklisted', country: 'China',          city: 'Shanghái',      address: '88 Factory Road, Pudong',     website: null,                            taxId: 'CN-91310000MA1FL1A12',     contactPerson: 'Wei Zhang',      rating: 2.1, totalOrders: 12,  totalSpent: 75000,   createdAt: '2023-02-28', updatedAt: '2024-09-05', tags: ['components'],                     notes: 'BLOQUEADO: Fallos repetidos de calidad.' },
+        { id: 7, name: 'ManufacturePro Asia',    code: 'MA-007', email: 'b2b@manufacturepro.cn',     phone: '+86 21 5555 8888',  category: 'manufacturing', status: 'blocked', country: 'China',          city: 'Shanghái',      address: '88 Factory Road, Pudong',     website: null,                            taxId: 'CN-91310000MA1FL1A12',     contactPerson: 'Wei Zhang',      rating: 2.1, totalOrders: 12,  totalSpent: 75000,   createdAt: '2023-02-28', updatedAt: '2024-09-05', tags: ['components'],                     notes: 'BLOQUEADO: Fallos repetidos de calidad.' },
         { id: 8, name: 'ProServices Group',      code: 'PS-008', email: 'hello@proservices.com.au',  phone: '+61 2 9876 5432',   category: 'services',      status: 'active',      country: 'Australia',      city: 'Sídney',        address: '321 Business Park, NSW 2000', website: 'https://proservices.com.au',    taxId: 'AU-ABN12345678',           contactPerson: 'Emma Thompson',  rating: 4.6, totalOrders: 156, totalSpent: 540000,  createdAt: '2021-09-18', updatedAt: '2024-11-30', tags: ['consulting', 'SLA'],              notes: 'Excelente cumplimiento de SLA.' }
       ]
     },

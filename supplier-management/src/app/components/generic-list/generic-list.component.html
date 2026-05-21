@@ -31,7 +31,7 @@
       [ngModel]="getSelectFilter(f.name)"
       (ngModelChange)="setSelectFilter(f.name, $event)">
       <option value="">Todos ({{ f.label }})</option>
-      <option *ngFor="let opt of f.options" [value]="opt.value">{{ opt.label }}</option>
+      <option *ngFor="let opt of getFieldOptions(f)" [value]="opt.value">{{ opt.label }}</option>
     </select>
 
     <button class="btn-ghost" *ngIf="hasFilters()" (click)="clearFilters()">

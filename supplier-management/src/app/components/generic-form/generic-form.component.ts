@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
-import { EntitySchema, FieldDefinition } from '../../models/entity-schema.model';
+import { EntitySchema, FieldDefinition, SelectOption } from '../../models/entity-schema.model';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
 
 @Component({
@@ -72,10 +72,13 @@ export class GenericFormComponent implements OnInit {
 
     this.buildForm();
 
-    // Pre-load options for entity-select fields
+    // Pre-load options for entity-select and lookup-select fields
     this.schema()?.fields
       .filter(f => f.type === 'entity-select' && f.relatedEntity)
       .forEach(f => this.crudService.initStore(f.relatedEntity!));
+    this.schema()?.fields
+      .filter(f => f.type === 'select' && f.lookupEntity)
+      .forEach(f => this.crudService.initStore(f.lookupEntity!));
 
     if (this.recordId() !== null) {
       const record = this.crudService.getById(key, this.recordId()!);
@@ -158,6 +161,14 @@ export class GenericFormComponent implements OnInit {
       );
     }
     return options;
+  }
+
+  getFieldOptions(field: FieldDefinition): SelectOption[] {
+    if (!field.lookupEntity) return field.options ?? [];
+    return this.crudService.getAll(field.lookupEntity)().map(item => ({
+      value: String(item['id']),
+      label: String(item['label'])
+    }));
   }
 
   onEntitySelect(field: FieldDefinition, selectedId: string): void {
