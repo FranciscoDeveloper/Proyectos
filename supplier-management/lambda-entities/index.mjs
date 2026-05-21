@@ -301,30 +301,49 @@ const ENTITY_CONFIG = {
     joinSelect: `
       SELECT
         c.id,
-        c.patient_id          AS "patientId",
-        p.name                AS "fullName",
+        c.patient_id              AS "patientId",
+        p.name                    AS "fullName",
         p.rut,
-        p.birth_date          AS "birthDate",
+        p.birth_date              AS "birthDate",
         p.gender,
-        p.blood_type          AS "bloodType",
+        p.blood_type              AS "bloodType",
         p.phone,
         p.email,
         p.address,
-        p.emergency_contact   AS "emergencyContact",
+        p.emergency_contact       AS "emergencyContact",
         c.insurance,
         c.allergies,
         c.contraindications,
-        c.alert_notes         AS "alertNotes",
-        c.personal_history    AS "personalHistory",
-        c.family_history      AS "familyHistory",
+        c.alert_notes             AS "alertNotes",
+        c.personal_history        AS "personalHistory",
+        c.family_history          AS "familyHistory",
         c.habits,
-        c.surgical_history    AS "surgicalHistory",
-        c.planned_interventions AS "plannedInterventions",
-        c.chronic_conditions  AS "chronicConditions",
+        c.surgical_history        AS "surgicalHistory",
+        c.planned_interventions   AS "plannedInterventions",
+        c.chronic_conditions      AS "chronicConditions",
         c.odontogram,
         c.periodontogram,
-        c.created_at          AS "createdAt",
-        c.updated_at          AS "updatedAt"
+        c.bp,
+        c.heart_rate              AS "heartRate",
+        c.temperature,
+        c.o2_saturation           AS "o2Saturation",
+        c.weight,
+        c.height,
+        c.bmi,
+        c.respiratory_rate        AS "respiratoryRate",
+        c.current_medications     AS "currentMedications",
+        c.diagnosis_code          AS "diagnosisCode",
+        c.diagnosis_label         AS "diagnosisLabel",
+        c.differential_dx         AS "differentialDx",
+        c.soap_subjective         AS "soapSubjective",
+        c.soap_objective          AS "soapObjective",
+        c.soap_assessment         AS "soapAssessment",
+        c.soap_plan               AS "soapPlan",
+        c.doctor,
+        c.last_visit              AS "lastVisit",
+        c.status,
+        c.created_at              AS "createdAt",
+        c.updated_at              AS "updatedAt"
       FROM clinical_record c
       LEFT JOIN patient p ON p.id = c.patient_id
     `,
@@ -344,6 +363,25 @@ const ENTITY_CONFIG = {
       if (d.chronicConditions    !== undefined) cols.chronic_conditions     = JSON.stringify(d.chronicConditions);
       if (d.odontogram           !== undefined) cols.odontogram             = JSON.stringify(d.odontogram);
       if (d.periodontogram       !== undefined) cols.periodontogram         = JSON.stringify(d.periodontogram);
+      if (d.bp                   !== undefined) cols.bp                     = d.bp;
+      if (d.heartRate            !== undefined) cols.heart_rate             = d.heartRate;
+      if (d.temperature          !== undefined) cols.temperature            = d.temperature;
+      if (d.o2Saturation         !== undefined) cols.o2_saturation          = d.o2Saturation;
+      if (d.weight               !== undefined) cols.weight                 = d.weight;
+      if (d.height               !== undefined) cols.height                 = d.height;
+      if (d.bmi                  !== undefined) cols.bmi                    = d.bmi;
+      if (d.respiratoryRate      !== undefined) cols.respiratory_rate       = d.respiratoryRate;
+      if (d.currentMedications   !== undefined) cols.current_medications    = d.currentMedications;
+      if (d.diagnosisCode        !== undefined) cols.diagnosis_code         = d.diagnosisCode;
+      if (d.diagnosisLabel       !== undefined) cols.diagnosis_label        = d.diagnosisLabel;
+      if (d.differentialDx       !== undefined) cols.differential_dx        = d.differentialDx;
+      if (d.soapSubjective       !== undefined) cols.soap_subjective        = d.soapSubjective;
+      if (d.soapObjective        !== undefined) cols.soap_objective         = d.soapObjective;
+      if (d.soapAssessment       !== undefined) cols.soap_assessment        = d.soapAssessment;
+      if (d.soapPlan             !== undefined) cols.soap_plan              = d.soapPlan;
+      if (d.doctorName           !== undefined) cols.doctor                 = d.doctorName;
+      if (d.lastVisit            !== undefined) cols.last_visit             = d.lastVisit;
+      if (d.status               !== undefined) cols.status                 = d.status;
       return cols;
     },
 
@@ -368,25 +406,25 @@ const ENTITY_CONFIG = {
         email:                r.email              ?? null,
         address:              r.address            ?? null,
         emergencyContact:     r.emergencyContact   ?? r.emergency_contact ?? null,
-        doctorName:           null,
-        lastVisit:            null,
-        status:               null,
-        bp:                   null,
-        heartRate:            null,
-        temperature:          null,
-        o2Saturation:         null,
-        weight:               null,
-        height:               null,
-        bmi:                  null,
-        respiratoryRate:      null,
-        currentMedications:   null,
-        diagnosisCode:        null,
-        diagnosisLabel:       null,
-        differentialDx:       null,
-        soapSubjective:       null,
-        soapObjective:        null,
-        soapAssessment:       null,
-        soapPlan:             null,
+        doctorName:           r.doctor              ?? null,
+        lastVisit:            r.lastVisit           ?? r.last_visit      ?? null,
+        status:               r.status              ?? null,
+        bp:                   r.bp                  ?? null,
+        heartRate:            r.heartRate           != null ? parseInt(r.heartRate)           : null,
+        temperature:          r.temperature         != null ? parseFloat(r.temperature)       : null,
+        o2Saturation:         r.o2Saturation        != null ? parseFloat(r.o2Saturation)      : null,
+        weight:               r.weight              != null ? parseFloat(r.weight)            : null,
+        height:               r.height              != null ? parseFloat(r.height)            : null,
+        bmi:                  r.bmi                 != null ? parseFloat(r.bmi)               : null,
+        respiratoryRate:      r.respiratoryRate     != null ? parseInt(r.respiratoryRate)     : null,
+        currentMedications:   r.currentMedications  ?? null,
+        diagnosisCode:        r.diagnosisCode        ?? null,
+        diagnosisLabel:       r.diagnosisLabel       ?? null,
+        differentialDx:       r.differentialDx       ?? null,
+        soapSubjective:       r.soapSubjective       ?? null,
+        soapObjective:        r.soapObjective        ?? null,
+        soapAssessment:       r.soapAssessment       ?? null,
+        soapPlan:             r.soapPlan             ?? null,
         encounters:           [],
         insurance:            r.insurance            ?? '',
         allergies:            r.allergies            ?? [],

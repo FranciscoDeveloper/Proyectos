@@ -1,65 +1,39 @@
-import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Signal } from '@angular/core';
 import { Supplier, SupplierFilter, SupplierStats } from '../models/supplier.model';
-import { CryptoService, SUPPLIER_ENCRYPTED_FIELDS } from './crypto.service';
+import { GenericCrudService } from './generic-crud.service';
 
 @Injectable({ providedIn: 'root' })
 export class SupplierService {
-  private http   = inject(HttpClient);
-  private crypto = inject(CryptoService);
-  private _suppliers = signal<Supplier[]>([]);
+  private crud = inject(GenericCrudService);
+  private readonly entityKey = 'suppliers';
 
   constructor() {
-    this.http.get<Supplier[]>('/api/suppliers').subscribe({
-      next: async data => {
-        const decrypted = await Promise.all(
-          data.map(s => this.crypto.decryptFields(s as any, SUPPLIER_ENCRYPTED_FIELDS))
-        );
-        this._suppliers.set(decrypted as Supplier[]);
-      }
-    });
+    this.crud.initStore(this.entityKey);
   }
 
-  getAll() {
-    return this._suppliers.asReadonly();
+  getAll(): Signal<Supplier[]> {
+    return this.crud.getAll(this.entityKey) as Signal<Supplier[]>;
   }
 
   getById(id: number): Supplier | undefined {
-    return this._suppliers().find(s => s.id === id);
+    return this.crud.getById(this.entityKey, id) as Supplier | undefined;
   }
 
   create(data: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>): void {
-    this.crypto.encryptFields(data as any, SUPPLIER_ENCRYPTED_FIELDS).then(encrypted => {
-      this.http.post<Supplier>('/api/suppliers', encrypted).subscribe({
-        next: async created => {
-          const decrypted = await this.crypto.decryptFields(created as any, SUPPLIER_ENCRYPTED_FIELDS);
-          this._suppliers.update(list => [...list, decrypted as Supplier]);
-        }
-      });
-    });
+    this.crud.create(this.entityKey, data as Record<string, any>);
   }
 
   update(id: number, data: Partial<Supplier>): void {
-    this.crypto.encryptFields(data as any, SUPPLIER_ENCRYPTED_FIELDS).then(encrypted => {
-      this.http.put<Supplier>(`/api/suppliers/${id}`, encrypted).subscribe({
-        next: async updated => {
-          const decrypted = await this.crypto.decryptFields(updated as any, SUPPLIER_ENCRYPTED_FIELDS);
-          this._suppliers.update(
-            list => list.map(s => s.id === id ? decrypted as Supplier : s)
-          );
-        }
-      });
-    });
+    this.crud.update(this.entityKey, id, data as Record<string, any>);
   }
 
   delete(id: number): void {
-    this.http.delete(`/api/suppliers/${id}`).subscribe({
-      next: () => this._suppliers.update(list => list.filter(s => s.id !== id))
-    });
+    this.crud.delete(this.entityKey, id);
   }
 
   getStats(): SupplierStats {
-    const list = this._suppliers();
+    const list = this.getAll()();
     return {
       total:       list.length,
       active:      list.filter(s => s.status === 'active').length,
@@ -72,7 +46,7 @@ export class SupplierService {
   }
 
   filter(filters: SupplierFilter): Supplier[] {
-    return this._suppliers().filter(s => {
+    return this.getAll()().filter(s => {
       const matchSearch = !filters.search ||
         s.name.toLowerCase().includes(filters.search.toLowerCase()) ||
         s.code.toLowerCase().includes(filters.search.toLowerCase()) ||
