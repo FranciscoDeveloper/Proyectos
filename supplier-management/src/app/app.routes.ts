@@ -117,6 +117,12 @@ export const routes: Routes = [
       import('./components/patient-booking/patient-booking.component').then(m => m.PatientBookingComponent)
   },
   {
+    // Payment return: Flow redirects here with ?token=xxx after checkout
+    path: 'book/payment-result',
+    loadComponent: () =>
+      import('./components/patient-booking/patient-booking.component').then(m => m.PatientBookingComponent)
+  },
+  {
     path: 'book/:token',
     loadComponent: () =>
       import('./components/patient-booking/patient-booking.component').then(m => m.PatientBookingComponent)

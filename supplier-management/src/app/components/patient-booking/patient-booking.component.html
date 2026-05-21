@@ -392,10 +392,84 @@
 
       </div>
 
+      <!-- ── Payment link ── -->
+      <div class="payment-section" *ngIf="bookingResult()?.paymentLink">
+        <div class="payment-card">
+          <div class="payment-card-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+            <span>Pago de consulta</span>
+          </div>
+          <p class="payment-amount" *ngIf="bookingResult()?.paymentAmount">
+            Monto: <strong>{{ bookingResult()!.paymentAmount! | currency:'CLP':'symbol':'1.0-0':'es-CL' }}</strong>
+          </p>
+          <p class="payment-hint">
+            Te enviamos el enlace de pago a tu correo electrónico.<br>
+            También puedes pagar directamente desde aquí:
+          </p>
+          <a class="btn-payment" [href]="bookingResult()!.paymentLink" target="_blank" rel="noopener">
+            Pagar ahora →
+          </a>
+        </div>
+      </div>
+
       <p class="confirm-note">
         Se enviará un recordatorio a tu email antes de la cita.<br>
         Si necesitas cancelar, comunícate con la clínica directamente.
       </p>
+    </div>
+
+    <!-- ── STEP 5: PAYMENT RESULT ── -->
+    <div class="step-panel confirm-panel" *ngIf="step() === 5">
+      <!-- Loading -->
+      <div class="centered-state" *ngIf="checkingPayment()">
+        <div class="spinner"></div>
+        <p>Verificando estado del pago…</p>
+      </div>
+
+      <!-- Error checking -->
+      <div *ngIf="!checkingPayment() && paymentError()">
+        <div class="error-icon">⚠️</div>
+        <h2>No se pudo verificar el pago</h2>
+        <p>Por favor contacta a la clínica con tu código de confirmación.</p>
+      </div>
+
+      <!-- Paid -->
+      <div *ngIf="!checkingPayment() && !paymentError() && paymentStatus()?.status === 'paid'">
+        <div class="confirm-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <h2 class="confirm-title">¡Pago realizado!</h2>
+        <p>Tu cita ha sido confirmada y el pago fue procesado exitosamente.</p>
+        <p *ngIf="paymentStatus()?.amount" class="payment-amount">
+          Monto pagado: <strong>{{ paymentStatus()!.amount! | currency:'CLP':'symbol':'1.0-0':'es-CL' }}</strong>
+        </p>
+      </div>
+
+      <!-- Rejected -->
+      <div *ngIf="!checkingPayment() && !paymentError() && paymentStatus()?.status === 'rejected'">
+        <div class="error-icon">✕</div>
+        <h2>Pago rechazado</h2>
+        <p>Tu pago fue rechazado. Por favor intenta nuevamente o usa otro método de pago.</p>
+        <a class="btn-secondary" href="/book">Volver a la agenda</a>
+      </div>
+
+      <!-- Cancelled -->
+      <div *ngIf="!checkingPayment() && !paymentError() && paymentStatus()?.status === 'cancelled'">
+        <div class="error-icon">✕</div>
+        <h2>Pago cancelado</h2>
+        <p>Cancelaste el proceso de pago. Tu cita quedó reservada pero pendiente de pago.</p>
+        <a class="btn-secondary" href="/book">Volver a la agenda</a>
+      </div>
+
+      <!-- Pending -->
+      <div *ngIf="!checkingPayment() && !paymentError() && paymentStatus()?.status === 'pending'">
+        <h2>Pago pendiente</h2>
+        <p>Tu pago aún está siendo procesado. Recibirás un correo cuando sea confirmado.</p>
+      </div>
     </div>
 
   </main>

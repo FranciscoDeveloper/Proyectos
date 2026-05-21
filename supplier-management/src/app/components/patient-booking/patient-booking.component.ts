@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -44,12 +44,20 @@ interface BookingResult {
   patientName:   string;
   modality:      string;
   meetLink?:     string;
+  paymentLink?:  string;
+  paymentAmount?: number;
+}
+
+interface PaymentStatus {
+  status:    'pending' | 'paid' | 'rejected' | 'cancelled';
+  amount?:   number;
+  currency?: string;
 }
 
 @Component({
   selector: 'app-patient-booking',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CurrencyPipe],
   templateUrl: './patient-booking.component.html',
   styleUrl: './patient-booking.component.scss'
 })
@@ -90,6 +98,11 @@ export class PatientBookingComponent implements OnInit {
   gcalStatus = signal<GcalStatus>('idle');
   gcalLink   = signal('');
   meetLink   = signal('');
+
+  // Payment return state (step 5 — user lands after Flow redirect)
+  paymentStatus    = signal<PaymentStatus | null>(null);
+  checkingPayment  = signal(false);
+  paymentError     = signal(false);
 
   readonly DOW_LABELS   = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   readonly MONTH_NAMES  = [
@@ -144,6 +157,14 @@ export class PatientBookingComponent implements OnInit {
   );
 
   ngOnInit(): void {
+    // Payment return from Flow: /book/payment-result?token=xxx
+    const flowToken = this.route.snapshot.queryParamMap.get('token');
+    if (flowToken && this.route.snapshot.url.some(s => s.path === 'payment-result')) {
+      this.step.set(5);
+      this.verifyPayment(flowToken);
+      return;
+    }
+
     const idParam = this.route.snapshot.paramMap.get('token') ?? '';
     if (idParam) {
       this.professionalId.set(idParam);
@@ -151,6 +172,20 @@ export class PatientBookingComponent implements OnInit {
     } else {
       this.loadProfessionals();
     }
+  }
+
+  private verifyPayment(token: string): void {
+    this.checkingPayment.set(true);
+    this.http.get<PaymentStatus>(`/api/book/payment/status?token=${encodeURIComponent(token)}`).subscribe({
+      next: status => {
+        this.paymentStatus.set(status);
+        this.checkingPayment.set(false);
+      },
+      error: () => {
+        this.paymentError.set(true);
+        this.checkingPayment.set(false);
+      }
+    });
   }
 
   // ── Step 0 ─────────────────────────────────────────────────────────────────

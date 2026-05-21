@@ -548,23 +548,30 @@ export const handler = async (event, context) => {
     return response(204, null);
   }
 
-  // ── Public booking routes (no JWT) ────────────────────────────────────────
+  // ── Public booking routes → proxy to dairi-book Lambda ───────────────────
   const rawPathEarly = event.rawPath || event.path || "";
   if (rawPathEarly.startsWith("/api/book")) {
-    log("INFO", "Book public route", { method, path: rawPathEarly });
-    let bookClient;
+    const bookFnUrl = process.env.BOOK_FUNCTION_URL;
+    if (!bookFnUrl) return response(503, { message: "Servicio de agenda no configurado" });
+    log("INFO", "Book proxy", { method, path: rawPathEarly });
     try {
-      bookClient = await pool.connect();
-      let bookBody = null;
-      if (event.body) {
-        try { bookBody = typeof event.body === "string" ? JSON.parse(event.body) : event.body; } catch { /* ignore */ }
+      const methodEarly = (event.requestContext?.http?.method || event.httpMethod || "GET").toUpperCase();
+      const qs      = event.queryStringParameters ?? {};
+      const qsStr   = Object.keys(qs).length > 0 ? "?" + new URLSearchParams(qs).toString() : "";
+      let bodyFwd   = undefined;
+      if (methodEarly !== "GET" && methodEarly !== "OPTIONS" && event.body) {
+        bodyFwd = typeof event.body === "string" ? event.body : JSON.stringify(event.body);
       }
-      return await handleBook(bookClient, method, rawPathEarly, bookBody, event.queryStringParameters ?? {});
+      const bookRes  = await fetch(bookFnUrl + rawPathEarly + qsStr, {
+        method:  methodEarly,
+        headers: { "Content-Type": "application/json" },
+        body:    bodyFwd,
+      });
+      const bookData = await bookRes.json();
+      return response(bookRes.status, bookData);
     } catch (err) {
-      log("ERROR", "Book route unhandled", { message: err.message, stack: err.stack });
-      return response(500, { message: "Error interno del servidor", error: err.message });
-    } finally {
-      if (bookClient) bookClient.release();
+      log("ERROR", "Book proxy error", { message: err.message });
+      return response(502, { message: "Error en servicio de agendamiento" });
     }
   }
 
@@ -769,161 +776,6 @@ async function deleteEntity(client, config, id, entityKey) {
   }
   log("INFO", "deleteEntity — success", { table: config.table, id });
   return response(200, { message: "Registro eliminado", id: parseInt(id) });
-}
-
-// ── Book helpers ─────────────────────────────────────────────────────────────
-
-async function findProfessional(client, idOrToken) {
-  const numId = parseInt(idOrToken);
-  const result = !isNaN(numId)
-    ? await client.query("SELECT * FROM professional WHERE id = $1 AND active = true LIMIT 1", [numId])
-    : await client.query("SELECT * FROM professional WHERE booking_token = $1 AND active = true LIMIT 1", [idOrToken]);
-  return result.rowCount > 0 ? result.rows[0] : null;
-}
-
-function generateConfirmCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
-}
-
-async function handleBook(client, method, rawPath, body, qs) {
-
-  // ── GET /api/book → list active professionals ─────────────────────────────
-  if (rawPath === "/api/book" && method === "GET") {
-    const r = await client.query(
-      `SELECT id, name, specialty, consultation_duration, working_days, video_consultation
-       FROM professional WHERE active = true ORDER BY name`
-    );
-    return response(200, r.rows.map(p => ({
-      id:           String(p.id),
-      nombre:       p.name,
-      especialidad: p.specialty,
-      duration:     p.consultation_duration,
-      workDays:     p.working_days,
-      videoconsulta: p.video_consultation
-    })));
-  }
-
-  // ── PUT /api/book/appointment/{id}/meet-link ──────────────────────────────
-  const meetMatch = rawPath.match(/^\/api\/book\/appointment\/(\d+)\/meet-link$/);
-  if (meetMatch) {
-    if (method !== "PUT") return response(405, { message: "Método no permitido" });
-    await client.query(
-      "UPDATE appointment SET meet_link = $1, updated_at = NOW() WHERE id = $2",
-      [body?.meetLink ?? null, parseInt(meetMatch[1])]
-    );
-    return response(200, { success: true });
-  }
-
-  // ── GET /api/book/{id}/slots?date=YYYY-MM-DD ──────────────────────────────
-  const slotsMatch = rawPath.match(/^\/api\/book\/([^/]+)\/slots$/);
-  if (slotsMatch) {
-    if (method !== "GET") return response(405, { message: "Método no permitido" });
-    const date = qs.date;
-    if (!date) return response(400, { message: "Parámetro date requerido" });
-
-    const prof = await findProfessional(client, slotsMatch[1]);
-    if (!prof) return response(404, { message: "Profesional no encontrado" });
-
-    const booked = await client.query(
-      `SELECT to_char(datetime AT TIME ZONE 'America/Santiago', 'HH24:MI') AS t
-       FROM appointment
-       WHERE professional_id = $1
-         AND (datetime AT TIME ZONE 'America/Santiago')::date = $2::date
-         AND status NOT IN ('cancelled', 'no_show')`,
-      [prof.id, date]
-    );
-    const bookedSet = new Set(booked.rows.map(r => r.t));
-
-    const dur = prof.consultation_duration || 45;
-    const slots = [];
-    for (let mins = 9 * 60; mins + dur <= 18 * 60; mins += dur) {
-      const t = `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
-      if (!bookedSet.has(t)) slots.push(t);
-    }
-    return response(200, slots);
-  }
-
-  // ── /api/book/{id} → GET booking info | POST create appointment ───────────
-  const profMatch = rawPath.match(/^\/api\/book\/([^/]+)$/);
-  if (profMatch) {
-    const prof = await findProfessional(client, profMatch[1]);
-    if (!prof) return response(404, { message: "Profesional no encontrado" });
-
-    // GET → return booking info
-    if (method === "GET") {
-      return response(200, {
-        professionalId: String(prof.id),
-        doctorName:     prof.name,
-        specialty:      prof.specialty,
-        clinicName:     "Dairi Clínica",
-        duration:       prof.consultation_duration,
-        workDays:       prof.working_days,
-        videoconsulta:  prof.video_consultation
-      });
-    }
-
-    // POST → create appointment
-    if (method === "POST") {
-      const { date, time, patientName, patientEmail, patientPhone, patientRut, reason, modality } = body ?? {};
-      if (!date || !time || !patientName || !patientEmail || !patientRut) {
-        return response(400, { message: "Faltan campos obligatorios: date, time, patientName, patientEmail, patientRut" });
-      }
-
-      // Find or create patient by RUT
-      let patientId = null;
-      const patientLookup = await client.query(
-        "SELECT id FROM patient WHERE rut = $1 LIMIT 1", [patientRut]
-      );
-      if (patientLookup.rowCount > 0) {
-        patientId = patientLookup.rows[0].id;
-      } else {
-        const newPatient = await client.query(
-          "INSERT INTO patient (name, email, phone, rut) VALUES ($1, $2, $3, $4) RETURNING id",
-          [patientName, patientEmail, patientPhone || null, patientRut]
-        );
-        patientId = newPatient.rows[0].id;
-      }
-
-      // Build datetime in Santiago timezone
-      const datetimeStr = `${date}T${time}:00`;
-      const confirmCode = generateConfirmCode();
-
-      const appt = await client.query(
-        `INSERT INTO appointment
-           (patient_id, professional_id, datetime, duration_minutes, service, modality, status, reason, confirm_code)
-         VALUES ($1, $2, $3 AT TIME ZONE 'America/Santiago', $4, $5, $6, $7, $8, $9)
-         RETURNING id, confirm_code, datetime, modality`,
-        [
-          patientId, prof.id, datetimeStr,
-          prof.consultation_duration,
-          prof.specialty,
-          modality === "video" ? "video" : modality === "phone" ? "phone" : "in_person",
-          "scheduled",
-          reason || null,
-          confirmCode
-        ]
-      );
-      const row = appt.rows[0];
-
-      return response(201, {
-        appointmentId: String(row.id),
-        confirmCode:   row.confirm_code,
-        doctorName:    prof.name,
-        clinicName:    "Dairi Clínica",
-        specialty:     prof.specialty,
-        date,
-        time,
-        patientName,
-        modality:      row.modality,
-        meetLink:      null
-      });
-    }
-
-    return response(405, { message: "Método no permitido" });
-  }
-
-  return response(404, { message: "Ruta book no encontrada" });
 }
 
 // ── Helper ────────────────────────────────────────────────────────────────────
