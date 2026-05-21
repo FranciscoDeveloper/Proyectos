@@ -129,45 +129,6 @@ const ENTITY_CONFIG = {
     }
   },
 
-  payments: {
-    table: "payment",
-    toDb(d) {
-      const cols = {};
-      if (d.patientName       !== undefined) cols.patient_name       = d.patientName;
-      if (d.invoiceNumber     !== undefined) cols.invoice_number     = d.invoiceNumber;
-      if (d.date              !== undefined) cols.date               = d.date;
-      if (d.concept           !== undefined) cols.concept            = d.concept;
-      if (d.amount            !== undefined) cols.amount             = d.amount;
-      if (d.paymentMethod     !== undefined) cols.payment_method     = d.paymentMethod;
-      if (d.status            !== undefined) cols.status             = d.status;
-      if (d.notes             !== undefined) cols.notes              = d.notes;
-      if (d.professionalName  !== undefined) cols.professional_name  = d.professionalName;
-      if (d.commissionRate    !== undefined) cols.commission_rate    = d.commissionRate;
-      if (d.commissionAmount  !== undefined) cols.commission_amount  = d.commissionAmount;
-      if (d.commissionStatus  !== undefined) cols.commission_status  = d.commissionStatus;
-      return cols;
-    },
-    fromDb(r) {
-      return {
-        id:               r.id,
-        patientName:      r.patient_name,
-        invoiceNumber:    r.invoice_number,
-        date:             r.date,
-        concept:          r.concept,
-        amount:           r.amount           !== null ? parseFloat(r.amount)           : null,
-        paymentMethod:    r.payment_method,
-        status:           r.status,
-        notes:            r.notes,
-        professionalName: r.professional_name ?? null,
-        commissionRate:   r.commission_rate   !== null ? parseFloat(r.commission_rate)  : null,
-        commissionAmount: r.commission_amount !== null ? parseFloat(r.commission_amount): null,
-        commissionStatus: r.commission_status ?? null,
-        createdAt:        r.created_at,
-        updatedAt:        r.updated_at
-      };
-    }
-  },
-
   expenses: {
     table: "expense",
     toDb(d) {
@@ -201,7 +162,6 @@ const ENTITY_CONFIG = {
     }
   },
 
-  // ── payments ─────────────────────────────────────────────────────────────────
   payments: {
     table: "payment",
     toDb(d) {
@@ -242,26 +202,25 @@ const ENTITY_CONFIG = {
   },
 
   // ── patients ─────────────────────────────────────────────────────────────────
-  // Maps the 'paciente' DB table to the 'patients' entity key used by the frontend.
   patients: {
-    table: "paciente",
+    table: "patient",
     toDb(d) {
       const cols = {};
-      if (d.nombre     !== undefined) cols.nombre     = d.nombre;
-      if (d.email      !== undefined) cols.email      = d.email;
-      if (d.telefono   !== undefined) cols.telefono   = d.telefono;
-      if (d.diagnostic !== undefined) cols.diagnostic = d.diagnostic;
-      if (d.allergies  !== undefined) cols.allergies  = JSON.stringify(d.allergies);
+      if (d.nombre    !== undefined) cols.name  = d.nombre;
+      if (d.email     !== undefined) cols.email = d.email;
+      if (d.telefono  !== undefined) cols.phone = d.telefono;
+      if (d.rut       !== undefined) cols.rut   = d.rut;
       return cols;
     },
     fromDb(r) {
       return {
         id:         r.id,
-        nombre:     r.nombre,
+        nombre:     r.name,
         email:      r.email,
-        telefono:   r.telefono,
-        diagnostic: r.diagnostic ?? null,
-        allergies:  r.allergies  ?? [],
+        telefono:   r.phone,
+        rut:        r.rut       ?? null,
+        diagnostic: null,
+        allergies:  [],
         createdAt:  r.created_at,
         updatedAt:  r.updated_at
       };
@@ -269,159 +228,180 @@ const ENTITY_CONFIG = {
   },
 
   // ── appointments ─────────────────────────────────────────────────────────────
-  // Resolves patient name and professional name via LEFT JOINs so the frontend
-  // receives patientName / professionalName instead of raw foreign key IDs.
   appointments: {
-    table: "cita",
+    table: "appointment",
 
-    // JOIN query used by listEntities and getEntity instead of plain SELECT *
     joinSelect: `
       SELECT
         c.id,
+        c.patient_id       AS "patientId",
+        c.professional_id  AS "professionalId",
         c.status,
         c.service,
-        c.date_time          AS "dateTime",
-        c.duration_minutes   AS "durationMinutes",
+        c.modality,
+        c.datetime         AS "dateTime",
+        c.duration_minutes AS "durationMinutes",
+        c.reason,
         c.notes,
-        c.google_event_id    AS "googleEventId",
-        c.created_at         AS "createdAt",
-        c.updated_at         AS "updatedAt",
-        p.nombre             AS "patientName",
-        pr.nombre            AS "professionalName"
-      FROM cita c
-      LEFT JOIN paciente    p  ON p.id::text  = c.patient_id
-      LEFT JOIN profesional pr ON pr.id::text = c.professional_id
+        c.meet_link        AS "meetLink",
+        c.google_event_id  AS "googleEventId",
+        c.confirm_code     AS "confirmCode",
+        c.created_at       AS "createdAt",
+        c.updated_at       AS "updatedAt",
+        p.name             AS "patientName",
+        pr.name            AS "professionalName"
+      FROM appointment c
+      LEFT JOIN patient      p  ON p.id = c.patient_id
+      LEFT JOIN professional pr ON pr.id = c.professional_id
     `,
 
     toDb(d) {
       const cols = {};
-      if (d.status            !== undefined) cols.status              = d.status;
-      if (d.service           !== undefined) cols.service             = d.service;
-      if (d.dateTime          !== undefined) cols.date_time           = d.dateTime;
-      if (d.durationMinutes   !== undefined) cols.duration_minutes    = d.durationMinutes;
-      if (d.notes             !== undefined) cols.notes               = d.notes;
-      if (d.patientId         !== undefined) cols.patient_id          = d.patientId;
-      if (d.professionalId    !== undefined) cols.professional_id     = d.professionalId;
+      if (d.status           !== undefined) cols.status           = d.status;
+      if (d.service          !== undefined) cols.service          = d.service;
+      if (d.modality         !== undefined) cols.modality         = d.modality;
+      if (d.dateTime         !== undefined) cols.datetime         = d.dateTime;
+      if (d.durationMinutes  !== undefined) cols.duration_minutes = d.durationMinutes;
+      if (d.reason           !== undefined) cols.reason           = d.reason;
+      if (d.notes            !== undefined) cols.notes            = d.notes;
+      if (d.meetLink         !== undefined) cols.meet_link        = d.meetLink;
+      if (d.patientId        !== undefined) cols.patient_id       = d.patientId;
+      if (d.professionalId   !== undefined) cols.professional_id  = d.professionalId;
       return cols;
     },
 
     fromDb(r) {
       return {
         id:               r.id,
+        patientId:        r.patientId       ?? r.patient_id       ?? null,
+        professionalId:   r.professionalId  ?? r.professional_id  ?? null,
         status:           r.status,
         service:          r.service,
-        dateTime:         r.dateTime   ?? r.date_time,
-        durationMinutes:  r.durationMinutes !== null ? parseInt(r.durationMinutes ?? r.duration_minutes) : null,
-        notes:            r.notes,
-        googleEventId:    r.googleEventId ?? r.google_event_id,
-        patientName:      r.patientName  ?? r.patient_name  ?? null,
-        professionalName: r.professionalName ?? r.professional_name ?? null,
-        createdAt:        r.createdAt   ?? r.created_at,
-        updatedAt:        r.updatedAt   ?? r.updated_at
+        modality:         r.modality        ?? null,
+        dateTime:         r.dateTime        ?? r.datetime         ?? null,
+        durationMinutes:  r.durationMinutes != null ? parseInt(r.durationMinutes ?? r.duration_minutes) : null,
+        reason:           r.reason          ?? null,
+        notes:            r.notes           ?? null,
+        meetLink:         r.meetLink        ?? r.meet_link        ?? null,
+        googleEventId:    r.googleEventId   ?? r.google_event_id  ?? null,
+        confirmCode:      r.confirmCode     ?? r.confirm_code     ?? null,
+        patientName:      r.patientName     ?? null,
+        professionalName: r.professionalName ?? null,
+        createdAt:        r.createdAt       ?? r.created_at,
+        updatedAt:        r.updatedAt       ?? r.updated_at
       };
     }
   },
 
   // ── clinical-records ─────────────────────────────────────────────────────────
   'clinical-records': {
-    table: "ficha_clinica",
+    table: "clinical_record",
+
+    // JOIN with patient to populate demographic fields (fullName, rut, etc.)
+    joinSelect: `
+      SELECT
+        c.id,
+        c.patient_id          AS "patientId",
+        p.name                AS "fullName",
+        p.rut,
+        p.birth_date          AS "birthDate",
+        p.gender,
+        p.blood_type          AS "bloodType",
+        p.phone,
+        p.email,
+        p.address,
+        p.emergency_contact   AS "emergencyContact",
+        c.insurance,
+        c.allergies,
+        c.contraindications,
+        c.alert_notes         AS "alertNotes",
+        c.personal_history    AS "personalHistory",
+        c.family_history      AS "familyHistory",
+        c.habits,
+        c.surgical_history    AS "surgicalHistory",
+        c.planned_interventions AS "plannedInterventions",
+        c.chronic_conditions  AS "chronicConditions",
+        c.odontogram,
+        c.periodontogram,
+        c.created_at          AS "createdAt",
+        c.updated_at          AS "updatedAt"
+      FROM clinical_record c
+      LEFT JOIN patient p ON p.id = c.patient_id
+    `,
 
     toDb(d) {
       const cols = {};
-      if (d.fullName             !== undefined) cols.full_name              = d.fullName;
-      if (d.patientId            !== undefined) cols.patient_code           = d.patientId;
-      if (d.rut                  !== undefined) cols.rut                    = d.rut;
-      if (d.birthDate            !== undefined) cols.birth_date             = d.birthDate;
-      if (d.age                  !== undefined) cols.age                    = d.age;
-      if (d.gender               !== undefined) cols.gender                 = d.gender;
-      if (d.bloodType            !== undefined) cols.blood_type             = d.bloodType;
+      if (d.patientId            !== undefined) cols.patient_id             = d.patientId;
       if (d.insurance            !== undefined) cols.insurance              = d.insurance;
-      if (d.phone                !== undefined) cols.phone                  = d.phone;
-      if (d.email                !== undefined) cols.email                  = d.email;
-      if (d.address              !== undefined) cols.address                = d.address;
-      if (d.emergencyContact     !== undefined) cols.emergency_contact      = d.emergencyContact;
-      if (d.doctor               !== undefined) cols.doctor                 = d.doctor;
-      if (d.lastVisit            !== undefined) cols.last_visit             = d.lastVisit;
-      if (d.status               !== undefined) cols.status                 = d.status;
       if (d.allergies            !== undefined) cols.allergies              = JSON.stringify(d.allergies);
       if (d.contraindications    !== undefined) cols.contraindications      = d.contraindications;
       if (d.alertNotes           !== undefined) cols.alert_notes            = d.alertNotes;
-      if (d.bp                   !== undefined) cols.bp                     = d.bp;
-      if (d.heartRate            !== undefined) cols.heart_rate             = d.heartRate;
-      if (d.temperature          !== undefined) cols.temperature            = d.temperature;
-      if (d.o2Saturation         !== undefined) cols.o2_saturation          = d.o2Saturation;
-      if (d.weight               !== undefined) cols.weight                 = d.weight;
-      if (d.height               !== undefined) cols.height                 = d.height;
-      if (d.bmi                  !== undefined) cols.bmi                    = d.bmi;
-      if (d.respiratoryRate      !== undefined) cols.respiratory_rate       = d.respiratoryRate;
       if (d.personalHistory      !== undefined) cols.personal_history       = d.personalHistory;
       if (d.familyHistory        !== undefined) cols.family_history         = d.familyHistory;
       if (d.habits               !== undefined) cols.habits                 = d.habits;
       if (d.surgicalHistory      !== undefined) cols.surgical_history       = d.surgicalHistory;
       if (d.plannedInterventions !== undefined) cols.planned_interventions  = d.plannedInterventions;
-      if (d.currentMedications   !== undefined) cols.current_medications    = d.currentMedications;
       if (d.chronicConditions    !== undefined) cols.chronic_conditions     = JSON.stringify(d.chronicConditions);
-      if (d.diagnosisCode        !== undefined) cols.diagnosis_code         = d.diagnosisCode;
-      if (d.diagnosisLabel       !== undefined) cols.diagnosis_label        = d.diagnosisLabel;
-      if (d.differentialDx       !== undefined) cols.differential_dx        = d.differentialDx;
-      if (d.soapSubjective       !== undefined) cols.soap_subjective        = d.soapSubjective;
-      if (d.soapObjective        !== undefined) cols.soap_objective         = d.soapObjective;
-      if (d.soapAssessment       !== undefined) cols.soap_assessment        = d.soapAssessment;
-      if (d.soapPlan             !== undefined) cols.soap_plan              = d.soapPlan;
-      if (d.encounters           !== undefined) cols.encounters             = JSON.stringify(d.encounters);
-      if (d.odontogram          !== undefined) cols.odontogram             = JSON.stringify(d.odontogram);
-      if (d.periodontogram      !== undefined) cols.periodontogram         = JSON.stringify(d.periodontogram);
+      if (d.odontogram           !== undefined) cols.odontogram             = JSON.stringify(d.odontogram);
+      if (d.periodontogram       !== undefined) cols.periodontogram         = JSON.stringify(d.periodontogram);
       return cols;
     },
 
     fromDb(r) {
+      // Calculate age from birth_date when available
+      let age = null;
+      const bd = r.birthDate ?? r.birth_date;
+      if (bd) {
+        const diff = Date.now() - new Date(bd).getTime();
+        age = Math.floor(diff / (365.25 * 24 * 3600 * 1000));
+      }
       return {
         id:                   r.id,
-        fullName:             r.full_name,
-        patientId:            r.patient_code,
-        rut:                  r.rut,
-        birthDate:            r.birth_date,
-        age:                  r.age    !== null ? parseInt(r.age)     : null,
-        gender:               r.gender,
-        bloodType:            r.blood_type,
-        insurance:            r.insurance,
-        phone:                r.phone,
-        email:                r.email,
-        address:              r.address,
-        emergencyContact:     r.emergency_contact,
-        doctor:               r.doctor,
-        lastVisit:            r.last_visit,
-        status:               r.status,
-        allergies:            r.allergies         ?? [],
-        contraindications:    r.contraindications ?? '',
-        alertNotes:           r.alert_notes       ?? '',
-        bp:                   r.bp,
-        heartRate:            r.heart_rate        !== null ? parseFloat(r.heart_rate)        : null,
-        temperature:          r.temperature       !== null ? parseFloat(r.temperature)       : null,
-        o2Saturation:         r.o2_saturation     !== null ? parseFloat(r.o2_saturation)     : null,
-        weight:               r.weight            !== null ? parseFloat(r.weight)            : null,
-        height:               r.height            !== null ? parseFloat(r.height)            : null,
-        bmi:                  r.bmi               !== null ? parseFloat(r.bmi)               : null,
-        respiratoryRate:      r.respiratory_rate  !== null ? parseFloat(r.respiratory_rate)  : null,
-        personalHistory:      r.personal_history      ?? '',
-        familyHistory:        r.family_history        ?? '',
-        habits:               r.habits                ?? '',
-        surgicalHistory:      r.surgical_history      ?? '',
-        plannedInterventions: r.planned_interventions ?? '',
-        currentMedications:   r.current_medications   ?? '',
-        chronicConditions:    r.chronic_conditions    ?? [],
-        diagnosisCode:        r.diagnosis_code        ?? '',
-        diagnosisLabel:       r.diagnosis_label       ?? '',
-        differentialDx:       r.differential_dx       ?? '',
-        soapSubjective:       r.soap_subjective       ?? '',
-        soapObjective:        r.soap_objective        ?? '',
-        soapAssessment:       r.soap_assessment       ?? '',
-        soapPlan:             r.soap_plan             ?? '',
-        encounters:           r.encounters            ?? [],
-        odontogram:           r.odontogram            ?? null,
-        periodontogram:       r.periodontogram        ?? null,
-        createdAt:            r.created_at,
-        updatedAt:            r.updated_at
+        patientId:            r.patientId          ?? r.patient_id,
+        fullName:             r.fullName            ?? null,
+        rut:                  r.rut                ?? null,
+        birthDate:            r.birthDate          ?? r.birth_date ?? null,
+        age,
+        gender:               r.gender             ?? null,
+        bloodType:            r.bloodType          ?? r.blood_type ?? null,
+        phone:                r.phone              ?? null,
+        email:                r.email              ?? null,
+        address:              r.address            ?? null,
+        emergencyContact:     r.emergencyContact   ?? r.emergency_contact ?? null,
+        doctorName:           null,
+        lastVisit:            null,
+        status:               null,
+        bp:                   null,
+        heartRate:            null,
+        temperature:          null,
+        o2Saturation:         null,
+        weight:               null,
+        height:               null,
+        bmi:                  null,
+        respiratoryRate:      null,
+        currentMedications:   null,
+        diagnosisCode:        null,
+        diagnosisLabel:       null,
+        differentialDx:       null,
+        soapSubjective:       null,
+        soapObjective:        null,
+        soapAssessment:       null,
+        soapPlan:             null,
+        encounters:           [],
+        insurance:            r.insurance            ?? '',
+        allergies:            r.allergies            ?? [],
+        contraindications:    r.contraindications    ?? '',
+        alertNotes:           r.alertNotes           ?? r.alert_notes ?? '',
+        personalHistory:      r.personalHistory      ?? r.personal_history      ?? '',
+        familyHistory:        r.familyHistory        ?? r.family_history        ?? '',
+        habits:               r.habits               ?? '',
+        surgicalHistory:      r.surgicalHistory      ?? r.surgical_history      ?? '',
+        plannedInterventions: r.plannedInterventions ?? r.planned_interventions ?? '',
+        chronicConditions:    r.chronicConditions    ?? r.chronic_conditions    ?? [],
+        odontogram:           r.odontogram           ?? null,
+        periodontogram:       r.periodontogram       ?? null,
+        createdAt:            r.createdAt            ?? r.created_at,
+        updatedAt:            r.updatedAt            ?? r.updated_at
       };
     }
   }
@@ -476,19 +456,33 @@ export const handler = async (event, context) => {
   // Supported patterns:
   //   /api/entities/{entity}        → list / create
   //   /api/entities/{entity}/{id}   → get / update / delete
+  //   /api/suppliers                → list / create (typed alias for suppliers)
+  //   /api/suppliers/{id}           → get / update / delete (typed alias for suppliers)
   const rawPath = event.rawPath || event.path || "";
-  const match   = rawPath.match(/\/api\/entities\/([^/]+)(?:\/([^/]+))?/);
+  const entitiesMatch = rawPath.match(/\/api\/entities\/([^/]+)(?:\/([^/]+))?/);
+  const suppliersMatch = rawPath.match(/\/api\/suppliers(?:\/([^/]+))?/);
+  let entityKey;
+  let id = null;
 
-  if (!match) {
+  if (entitiesMatch) {
+    entityKey = entitiesMatch[1];
+    id = entitiesMatch[2] ?? null;
+  } else if (suppliersMatch) {
+    entityKey = 'suppliers';
+    id = suppliersMatch[1] ?? null;
+  }
+
+  if (!entityKey) {
     log("WARN", "Path did not match expected pattern", { rawPath });
     return response(404, { message: "Ruta no encontrada" });
   }
 
-  const entityKey = match[1];
-  const id        = match[2] ?? null;
-  const config    = ENTITY_CONFIG[entityKey];
+  // Normalize camelCase/alternate keys sent by the login Lambda
+  const KEY_ALIASES = { clinicalRecords: 'clinical-records' };
+  const resolvedKey = KEY_ALIASES[entityKey] ?? entityKey;
+  const config = ENTITY_CONFIG[resolvedKey];
 
-  log("INFO", "Path parsed", { entityKey, id });
+  log("INFO", "Path parsed", { entityKey, resolvedKey, id });
 
   if (!config) {
     log("WARN", "Unknown entity key", { entityKey, available: Object.keys(ENTITY_CONFIG) });

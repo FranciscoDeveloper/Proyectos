@@ -883,7 +883,8 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
 
 /** Maps backend entity keys that differ from local catalog keys */
 const KEY_ALIASES: Record<string, string> = {
-  paciente: 'patients'
+  paciente:        'patients',
+  clinicalRecords: 'clinical-records'
 };
 
 @Injectable({ providedIn: 'root' })

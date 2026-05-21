@@ -141,7 +141,7 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
     // ── Selector de paciente registrado (solo en creación) ────────────────
     { name: 'patientId', type: 'entity-select', label: 'Paciente registrado', required: true,
       showInList: false, showInDetail: false, section: 'demographics', isStable: true,
-      relatedEntity: 'paciente', relatedLabelField: 'nombre',
+      relatedEntity: 'patients', relatedLabelField: 'nombre',
       linkedFields: [
         { from: 'nombre', to: 'fullName' },
         { from: 'rut',    to: 'rut'      }
