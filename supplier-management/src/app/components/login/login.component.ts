@@ -1,9 +1,16 @@
-import { Component, inject, signal, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+
+/**
+ * Replace this with the Client ID from Google Cloud Console:
+ * https://console.cloud.google.com/apis/credentials
+ * Authorized origins must include http://localhost:4200 (dev) and your production domain.
+ */
+const GOOGLE_CLIENT_ID = 'REPLACE_WITH_YOUR_GOOGLE_CLIENT_ID';
 
 interface DemoAccount {
   email: string;
@@ -21,16 +28,20 @@ interface DemoAccount {
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent implements OnDestroy {
-  private fb    = inject(FormBuilder);
-  private auth  = inject(AuthService);
-  private route = inject(ActivatedRoute);
+export class LoginComponent implements AfterViewInit, OnDestroy {
+  private fb     = inject(FormBuilder);
+  private auth   = inject(AuthService);
+  private route  = inject(ActivatedRoute);
   private router = inject(Router);
   private sub?: Subscription;
+  private gsiRetries = 0;
 
-  loading  = signal(false);
-  error    = signal('');
-  showPass = signal(false);
+  @ViewChild('googleBtnRef') googleBtnRef!: ElementRef<HTMLDivElement>;
+
+  loading      = signal(false);
+  error        = signal('');
+  showPass     = signal(false);
+  googleReady  = signal(false);
 
   form = this.fb.group({
     email:    ['', [Validators.required, Validators.email]],
@@ -46,16 +57,70 @@ export class LoginComponent implements OnDestroy {
     { email: 'odontologia@clinica.com',  password: 'denti123',   role: 'Manager',       name: 'Dr. Ramírez',         access: 'Citas Dentales · Fichas Dentales',     color: '#14b8a6' }
   ];
 
+  ngAfterViewInit() {
+    this.initGoogleSSO();
+  }
+
+  ngOnDestroy() {
+    this.sub?.unsubscribe();
+  }
+
+  // ── Google SSO ─────────────────────────────────────────────────────────────
+
+  private initGoogleSSO() {
+    const g = (window as any)['google'];
+    if (!g?.accounts?.id) {
+      if (this.gsiRetries < 20) {
+        this.gsiRetries++;
+        setTimeout(() => this.initGoogleSSO(), 300);
+      }
+      return;
+    }
+
+    g.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: (response: { credential: string }) =>
+        this.handleGoogleCredential(response.credential),
+      auto_select: false,
+      cancel_on_tap_outside: true
+    });
+
+    g.accounts.id.renderButton(this.googleBtnRef.nativeElement, {
+      theme: 'outline',
+      size: 'large',
+      width: this.googleBtnRef.nativeElement.offsetWidth || 400,
+      text: 'continue_with',
+      shape: 'rectangular',
+      logo_alignment: 'center'
+    });
+
+    this.googleReady.set(true);
+  }
+
+  private handleGoogleCredential(idToken: string) {
+    this.loading.set(true);
+    this.error.set('');
+
+    this.sub = this.auth.loginWithGoogle(idToken).subscribe({
+      next: response => {
+        this.auth.handleAuthResponse(response);
+        this.redirectAfterLogin();
+      },
+      error: (err: Error) => {
+        this.loading.set(false);
+        this.error.set(err.message);
+      }
+    });
+  }
+
+  // ── Email / password ───────────────────────────────────────────────────────
+
   fill(account: DemoAccount) {
     this.form.patchValue({ email: account.email, password: account.password });
     this.error.set('');
   }
 
   togglePass() { this.showPass.update(v => !v); }
-
-  ngOnDestroy() {
-    this.sub?.unsubscribe();
-  }
 
   submit() {
     this.form.markAllAsTouched();
@@ -65,16 +130,11 @@ export class LoginComponent implements OnDestroy {
     this.error.set('');
 
     const { email, password } = this.form.getRawValue();
-    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/app/dashboard';
 
     this.sub = this.auth.login({ email: email!, password: password! }).subscribe({
-      next: (response) => {
+      next: response => {
         this.auth.handleAuthResponse(response);
-        const raw    = this.route.snapshot.queryParamMap.get('returnUrl') ?? '';
-        const target = (raw && raw.startsWith('/') && !raw.startsWith('//') && raw !== '/')
-          ? raw
-          : '/app/dashboard';
-        window.location.href = '/?_=' + Date.now() + '#' + target;
+        this.redirectAfterLogin();
       },
       error: (err: Error) => {
         this.loading.set(false);
@@ -86,5 +146,13 @@ export class LoginComponent implements OnDestroy {
   isInvalid(field: string): boolean {
     const ctrl = this.form.get(field);
     return !!(ctrl?.invalid && ctrl.touched);
+  }
+
+  private redirectAfterLogin() {
+    const raw    = this.route.snapshot.queryParamMap.get('returnUrl') ?? '';
+    const target = raw && raw.startsWith('/') && !raw.startsWith('//') && raw !== '/'
+      ? raw
+      : '/app/dashboard';
+    window.location.href = '/?_=' + Date.now() + '#' + target;
   }
 }

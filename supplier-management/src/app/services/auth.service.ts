@@ -667,6 +667,21 @@ export class AuthService {
   }
 
   /**
+   * POST /api/auth/google — validates Google ID token server-side and returns the same
+   * AuthResponse format as /api/auth/login (token + user + authorized schemas).
+   *
+   * The backend should verify the idToken using Google's tokeninfo endpoint or
+   * the google-auth-library, then look up or provision the user and return the session.
+   */
+  loginWithGoogle(idToken: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>('/api/auth/google', { idToken }).pipe(
+      catchError(err => throwError(() =>
+        new Error(err.error?.message ?? 'No se pudo iniciar sesión con Google. Intenta de nuevo.')
+      ))
+    );
+  }
+
+  /**
    * Stores the auth response from the backend and updates the reactive state.
    */
   handleAuthResponse(response: AuthResponse): void {
