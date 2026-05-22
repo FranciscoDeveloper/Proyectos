@@ -322,7 +322,7 @@ const ENTITY_CONFIG = {
         c.reason,
         c.notes,
         c.meet_link        AS "meetLink",
-        c.google_event_id  AS "googleEventId",
+        NULL::text         AS "googleEventId",
         c.confirm_code     AS "confirmCode",
         c.created_at       AS "createdAt",
         c.updated_at       AS "updatedAt",
@@ -767,7 +767,7 @@ export const handler = async (event, context) => {
   }
 
   // Normalize camelCase/alternate keys sent by the login Lambda
-  const KEY_ALIASES = { clinicalRecords: 'clinical-records' };
+  const KEY_ALIASES = { clinicalRecords: 'clinical-records', paciente: 'patients' };
   const resolvedKey = KEY_ALIASES[entityKey] ?? entityKey;
   const config = ENTITY_CONFIG[resolvedKey];
 

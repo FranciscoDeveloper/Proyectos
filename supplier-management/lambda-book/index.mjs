@@ -121,7 +121,7 @@ function resp(statusCode, body) {
 // ── Lambda entry point ─────────────────────────────────────────────────────────
 export const handler = async (event) => {
   const method  = (event.requestContext?.http?.method || event.httpMethod || "GET").toUpperCase();
-  const rawPath = event.rawPath || event.path || "/";
+  const rawPath = (event.rawPath || event.path || "/").replace(/\/+$/, "") || "/";
   const qs      = event.queryStringParameters ?? {};
 
   if (method === "OPTIONS") return resp(204, {});
