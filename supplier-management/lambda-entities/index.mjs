@@ -149,35 +149,61 @@ const ENTITY_CONFIG = {
 
   products: {
     table: "product",
+
+    joinSelect: `
+      SELECT
+        c.id,
+        c.name,
+        c.sku,
+        c.status,
+        c.price,
+        c.stock,
+        c.weight,
+        c.description,
+        c.tags,
+        c.category_id   AS "categoryId",
+        cat.name        AS "categoryName",
+        c.supplier_id   AS "supplierId",
+        sup.name        AS "supplierName",
+        c.created_at    AS "createdAt",
+        c.updated_at    AS "updatedAt"
+      FROM product c
+      LEFT JOIN category cat ON cat.id = c.category_id
+      LEFT JOIN supplier sup ON sup.id = c.supplier_id
+    `,
+
     toDb(d) {
       const cols = {};
       if (d.name        !== undefined) cols.name        = d.name;
       if (d.sku         !== undefined) cols.sku         = d.sku;
-      if (d.category    !== undefined) cols.category    = d.category;
+      if (d.categoryId  !== undefined) cols.category_id = d.categoryId;
       if (d.status      !== undefined) cols.status      = d.status;
       if (d.price       !== undefined) cols.price       = d.price;
       if (d.stock       !== undefined) cols.stock       = d.stock;
-      if (d.supplier    !== undefined) cols.supplier    = d.supplier;
+      if (d.supplierId  !== undefined) cols.supplier_id = d.supplierId;
       if (d.weight      !== undefined) cols.weight      = d.weight;
       if (d.description !== undefined) cols.description = d.description;
       if (d.tags        !== undefined) cols.tags        = JSON.stringify(d.tags);
       return cols;
     },
+
     fromDb(r) {
       return {
-        id:          r.id,
-        name:        r.name,
-        sku:         r.sku,
-        category:    r.category,
-        status:      r.status,
-        price:       r.price       !== null ? parseFloat(r.price)  : null,
-        stock:       r.stock       !== null ? parseInt(r.stock)    : null,
-        supplier:    r.supplier,
-        weight:      r.weight      !== null ? parseFloat(r.weight) : null,
-        description: r.description,
-        tags:        r.tags ?? [],
-        createdAt:   r.created_at,
-        updatedAt:   r.updated_at
+        id:           r.id,
+        name:         r.name,
+        sku:          r.sku,
+        categoryId:   r.categoryId   ?? r.category_id  ?? null,
+        categoryName: r.categoryName ?? null,
+        supplierId:   r.supplierId   ?? r.supplier_id  ?? null,
+        supplierName: r.supplierName ?? null,
+        status:       r.status,
+        price:        r.price  != null ? parseFloat(r.price)  : null,
+        stock:        r.stock  != null ? parseInt(r.stock)    : null,
+        weight:       r.weight != null ? parseFloat(r.weight) : null,
+        description:  r.description,
+        tags:         r.tags ?? [],
+        createdAt:    r.createdAt ?? r.created_at,
+        updatedAt:    r.updatedAt ?? r.updated_at
       };
     }
   },
@@ -242,39 +268,67 @@ const ENTITY_CONFIG = {
 
   payments: {
     table: "payment",
+
+    joinSelect: `
+      SELECT
+        c.id,
+        c.invoice_number  AS "invoiceNumber",
+        c.date,
+        c.concept,
+        c.amount,
+        c.payment_method  AS "paymentMethod",
+        c.status,
+        c.notes,
+        c.commission_rate   AS "commissionRate",
+        c.commission_amount AS "commissionAmount",
+        c.commission_status AS "commissionStatus",
+        c.patient_id        AS "patientId",
+        pat.name            AS "patientName",
+        c.professional_id   AS "professionalId",
+        pro.name            AS "professionalName",
+        c.created_at        AS "createdAt",
+        c.updated_at        AS "updatedAt"
+      FROM payment c
+      LEFT JOIN patient      pat ON pat.id = c.patient_id
+      LEFT JOIN professional pro ON pro.id = c.professional_id
+    `,
+
     toDb(d) {
       const cols = {};
-      if (d.patientName      !== undefined) cols.patient_name       = d.patientName;
-      if (d.invoiceNumber    !== undefined) cols.invoice_number     = d.invoiceNumber;
-      if (d.date             !== undefined) cols.date               = d.date;
-      if (d.concept          !== undefined) cols.concept            = d.concept;
-      if (d.amount           !== undefined) cols.amount             = d.amount;
-      if (d.paymentMethod    !== undefined) cols.payment_method     = d.paymentMethod;
-      if (d.status           !== undefined) cols.status             = d.status;
-      if (d.notes            !== undefined) cols.notes              = d.notes;
-      if (d.professionalName !== undefined) cols.professional_name  = d.professionalName;
-      if (d.commissionRate   !== undefined) cols.commission_rate    = d.commissionRate;
-      if (d.commissionAmount !== undefined) cols.commission_amount  = d.commissionAmount;
-      if (d.commissionStatus !== undefined) cols.commission_status  = d.commissionStatus;
+      if (d.patientId      !== undefined) cols.patient_id      = d.patientId;
+      if (d.professionalId !== undefined) cols.professional_id = d.professionalId;
+      if (d.invoiceNumber  !== undefined) cols.invoice_number  = d.invoiceNumber;
+      if (d.date           !== undefined) cols.date            = d.date;
+      if (d.concept        !== undefined) cols.concept         = d.concept;
+      if (d.amount         !== undefined) cols.amount          = d.amount;
+      if (d.paymentMethod  !== undefined) cols.payment_method  = d.paymentMethod;
+      if (d.status         !== undefined) cols.status          = d.status;
+      if (d.notes          !== undefined) cols.notes           = d.notes;
+      if (d.commissionRate   !== undefined) cols.commission_rate   = d.commissionRate;
+      if (d.commissionAmount !== undefined) cols.commission_amount = d.commissionAmount;
+      if (d.commissionStatus !== undefined) cols.commission_status = d.commissionStatus;
       return cols;
     },
+
     fromDb(r) {
       return {
         id:               r.id,
-        patientName:      r.patient_name,
-        invoiceNumber:    r.invoice_number,
+        patientId:        r.patientId        ?? r.patient_id        ?? null,
+        patientName:      r.patientName      ?? null,
+        professionalId:   r.professionalId   ?? r.professional_id   ?? null,
+        professionalName: r.professionalName ?? null,
+        invoiceNumber:    r.invoiceNumber    ?? r.invoice_number    ?? null,
         date:             r.date,
         concept:          r.concept,
-        amount:           r.amount           !== null ? parseFloat(r.amount) : null,
-        paymentMethod:    r.payment_method,
+        amount:           r.amount           != null ? parseFloat(r.amount)           : null,
+        paymentMethod:    r.paymentMethod    ?? r.payment_method    ?? null,
         status:           r.status,
         notes:            r.notes,
-        professionalName: r.professional_name,
-        commissionRate:   r.commission_rate   !== null ? parseFloat(r.commission_rate) : null,
-        commissionAmount: r.commission_amount !== null ? parseFloat(r.commission_amount) : null,
-        commissionStatus: r.commission_status,
-        createdAt:        r.created_at,
-        updatedAt:        r.updated_at
+        commissionRate:   r.commissionRate   != null ? parseFloat(r.commissionRate)   : (r.commission_rate   != null ? parseFloat(r.commission_rate)   : null),
+        commissionAmount: r.commissionAmount != null ? parseFloat(r.commissionAmount) : (r.commission_amount != null ? parseFloat(r.commission_amount) : null),
+        commissionStatus: r.commissionStatus ?? r.commission_status ?? null,
+        createdAt:        r.createdAt        ?? r.created_at,
+        updatedAt:        r.updatedAt        ?? r.updated_at
       };
     }
   },

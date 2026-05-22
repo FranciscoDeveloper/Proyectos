@@ -45,22 +45,13 @@ const SCHEMA_SUPPLIERS: EntitySchema = {
 const SCHEMA_PRODUCTS: EntitySchema = {
   entity: { key: 'products', singular: 'Producto', plural: 'Productos', icon: 'package', description: 'Catálogo de productos e inventario' },
   fields: [
-    { name: 'name',        type: 'text',     label: 'Nombre del Producto', required: true,  isTitle: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true, filterType: 'search', minLength: 2 },
-    { name: 'sku',         type: 'text',     label: 'SKU',                 required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  sortable: true,  pattern: '^[A-Z]{3}-\\d{4}$', patternMessage: 'Formato: ABC-0000' },
-    { name: 'category',    type: 'select',   label: 'Categoría',           required: true,  isBadge: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true, filterType: 'select',
-      options: [
-        { value: 'electronics',     label: 'Electrónica'     },
-        { value: 'clothing',        label: 'Ropa'            },
-        { value: 'food',            label: 'Alimentos'       },
-        { value: 'tools',           label: 'Herramientas'    },
-        { value: 'furniture',       label: 'Muebles'         },
-        { value: 'books',           label: 'Libros'          },
-        { value: 'pharmacy',        label: 'Farmacia'        },
-        { value: 'medical_supplies', label: 'Insumos médicos' }
-      ],
-      badgeColors: { electronics: '#6366f1', clothing: '#ec4899', food: '#10b981', tools: '#f59e0b', furniture: '#8b5cf6', books: '#3b82f6', pharmacy: '#14b8a6', medical_supplies: '#10b981' }
-    },
-    { name: 'status',      type: 'select',   label: 'Estado',              required: true,  isBadge: true,    showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
+    { name: 'name',         type: 'text',          label: 'Nombre del Producto', required: true,  isTitle: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true, filterType: 'search', minLength: 2 },
+    { name: 'sku',          type: 'text',          label: 'SKU',                 required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  sortable: true,  pattern: '^[A-Z]{3}-\\d{4}$', patternMessage: 'Formato: ABC-0000' },
+    { name: 'categoryId',   type: 'entity-select', label: 'Categoría',           required: true,                   showInList: false, showInDetail: false,
+      relatedEntity: 'categories', relatedLabelField: 'name',
+      relatedFilterField: 'type', relatedFilterValue: 'product' },
+    { name: 'categoryName', type: 'text',          label: 'Categoría',           isBadge: true,                    showInList: true,  showInDetail: true,  displayOnly: true },
+    { name: 'status',       type: 'select',        label: 'Estado',              required: true,  isBadge: true,    showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
       options: [
         { value: 'active',        label: 'Activo'        },
         { value: 'available',     label: 'Disponible'    },
@@ -71,12 +62,14 @@ const SCHEMA_PRODUCTS: EntitySchema = {
       ],
       badgeColors: { active: '#10b981', available: '#10b981', low_stock: '#f59e0b', out_of_stock: '#ef4444', discontinued: '#6b7280', inactive: '#6b7280' }
     },
-    { name: 'price',       type: 'number',   label: 'Precio',              required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 0, format: 'currency' },
-    { name: 'stock',       type: 'number',   label: 'Stock',               required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 0 },
-    { name: 'supplier',    type: 'text',     label: 'Proveedor',           required: true,                   showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
-    { name: 'weight',      type: 'number',   label: 'Peso (kg)',                                             showInList: false, showInDetail: true,  min: 0 },
-    { name: 'description', type: 'textarea', label: 'Descripción',                                          showInList: false, showInDetail: true },
-    { name: 'tags',        type: 'tags',     label: 'Etiquetas',                                             showInList: false, showInDetail: true }
+    { name: 'price',        type: 'number',        label: 'Precio',              required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 0, format: 'currency' },
+    { name: 'stock',        type: 'number',        label: 'Stock',               required: true,                   showInList: true,  showInDetail: true,  sortable: true,  min: 0 },
+    { name: 'supplierId',   type: 'entity-select', label: 'Proveedor',           required: false,                  showInList: false, showInDetail: false,
+      relatedEntity: 'suppliers', relatedLabelField: 'name' },
+    { name: 'supplierName', type: 'text',          label: 'Proveedor',           isSubtitle: false,                showInList: true,  showInDetail: true,  displayOnly: true },
+    { name: 'weight',       type: 'number',        label: 'Peso (kg)',                                             showInList: false, showInDetail: true,  min: 0 },
+    { name: 'description',  type: 'textarea',      label: 'Descripción',                                          showInList: false, showInDetail: true },
+    { name: 'tags',         type: 'tags',          label: 'Etiquetas',                                             showInList: false, showInDetail: true }
   ]
 };
 

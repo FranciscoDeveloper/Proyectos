@@ -354,17 +354,16 @@ async function route(client, method, rawPath, body, qs) {
       try {
         const payRec = await client.query(
           `INSERT INTO payment
-             (patient_name, invoice_number, date, concept, amount, payment_method, status,
-              professional_name, notes)
-           VALUES ($1, $2, $3, $4, $5, NULL, 'pending', $6, $7)
+             (patient_id, professional_id, invoice_number, date, concept, amount, payment_method, status, notes)
+           VALUES ($1, $2, $3, $4, $5, $6, NULL, 'pending', $7)
            RETURNING id`,
           [
-            patientName,
+            patientId,
+            prof.id,
             invoiceNumber,
             date,
             concept,
             amount,
-            prof.name,
             `Cita agendada online. Código: ${confirmCode}`,
           ]
         );
