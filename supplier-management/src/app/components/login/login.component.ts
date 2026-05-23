@@ -10,7 +10,7 @@ import { AuthService } from '../../services/auth.service';
  * https://console.cloud.google.com/apis/credentials
  * Authorized origins must include http://localhost:4200 (dev) and your production domain.
  */
-const GOOGLE_CLIENT_ID = 'REPLACE_WITH_YOUR_GOOGLE_CLIENT_ID';
+const GOOGLE_CLIENT_ID = '594136956378-r4ep9hdh9ivn4e72drfel8rmsqp4mrkg.apps.googleusercontent.com';
 
 interface DemoAccount {
   email: string;
