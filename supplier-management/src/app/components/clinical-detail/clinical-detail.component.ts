@@ -472,8 +472,11 @@ export class ClinicalDetailComponent {
     if (this.recorder.isRecording) {
       this.recorder.stop();
     } else {
-      const name = this.patient()?.fullName ?? 'paciente';
-      this.recorder.start(name);
+      this.recorder.start({
+        patientName: this.patient()?.fullName ?? 'paciente',
+        entityKey:   this.entityKey,
+        recordId:    this.id
+      });
     }
   }
 
