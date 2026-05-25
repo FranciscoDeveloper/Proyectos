@@ -106,6 +106,12 @@ export const routes: Routes = [
         // Clinical record module: /app/clinical/:entityKey and sub-routes
         path: 'clinical',
         children: CLINICAL_ROUTES
+      },
+      {
+        path: 'import',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./components/import/import.component').then(m => m.ImportComponent)
       }
     ]
   },

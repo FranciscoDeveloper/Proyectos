@@ -1,0 +1,201 @@
+<div class="import-page">
+
+  <!-- ── Header ── -->
+  <div class="import-header">
+    <h1 class="import-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      Importar desde Excel
+    </h1>
+    <p class="import-subtitle">
+      Sube un archivo .xlsx o .csv para importar registros masivamente. Descarga la plantilla para
+      asegurarte de que las columnas coincidan.
+    </p>
+  </div>
+
+  <!-- ── Tabs ── -->
+  <div class="tabs" *ngIf="availableTabs().length > 1">
+    <button
+      *ngFor="let tab of availableTabs()"
+      class="tab-btn"
+      [class.active]="activeTab() === tab"
+      (click)="switchTab(tab)">
+      {{ tab === 'patients' ? '👤 Pacientes' : '📅 Citas' }}
+    </button>
+  </div>
+
+  <!-- ── No access warning ── -->
+  <div class="empty-state" *ngIf="availableTabs().length === 0">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <p>No tienes acceso a módulos de pacientes ni citas para importar.</p>
+  </div>
+
+  <div *ngIf="availableTabs().length > 0">
+
+    <!-- ── Upload zone ── -->
+    <div class="upload-zone"
+         [class.drag-over]="dragging()"
+         [class.has-file]="parsedRows().length > 0"
+         (dragover)="onDragOver($event)"
+         (dragleave)="onDragLeave()"
+         (drop)="onDrop($event)">
+      <div class="upload-content">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        <div *ngIf="!fileName()" class="upload-text">
+          <span class="upload-main">Arrastra tu archivo aquí</span>
+          <span class="upload-sub">o haz clic para seleccionar</span>
+          <span class="upload-formats">.xlsx · .xls · .csv</span>
+        </div>
+        <div *ngIf="fileName()" class="upload-text">
+          <span class="upload-main">{{ fileName() }}</span>
+          <span class="upload-sub">{{ parsedRows().length }} filas detectadas</span>
+        </div>
+        <label class="upload-btn">
+          {{ fileName() ? 'Cambiar archivo' : 'Seleccionar archivo' }}
+          <input type="file" accept=".xlsx,.xls,.csv" (change)="onFileInput($event)" />
+        </label>
+        <button class="template-btn" (click)="downloadTemplate()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Descargar plantilla
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Parse error ── -->
+    <div class="alert-error" *ngIf="parseError()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      {{ parseError() }}
+    </div>
+
+    <!-- ── Column mapping ── -->
+    <div class="section" *ngIf="parsedRows().length > 0 && !importDone()">
+      <h2 class="section-title">Mapeo de columnas</h2>
+      <p class="section-desc">
+        Verifica que cada columna de tu archivo corresponda al campo correcto. Las columnas marcadas
+        con <span class="req-badge">requerido</span> deben estar mapeadas para importar.
+      </p>
+      <div class="mapping-grid">
+        <div class="mapping-row mapping-header">
+          <span>Columna en tu archivo</span>
+          <span>Campo en Dairi</span>
+        </div>
+        <div class="mapping-row" *ngFor="let col of columnMap()">
+          <span class="excel-col">{{ col.excelCol }}</span>
+          <select class="field-select"
+                  [value]="col.fieldKey"
+                  (change)="updateMapping(col.excelCol, $any($event.target).value)">
+            <option *ngFor="let opt of fieldOptions()" [value]="opt.key">{{ opt.label }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Summary badges ── -->
+    <div class="summary-bar" *ngIf="parsedRows().length > 0 && !importDone()">
+      <span class="badge badge-total">Total: {{ parsedRows().length }}</span>
+      <span class="badge badge-ok">✓ Válidas: {{ validRows().length }}</span>
+      <span class="badge badge-warn" *ngIf="invalidRows().length > 0">
+        ✗ Con errores: {{ invalidRows().length }}
+      </span>
+      <button class="import-btn"
+              [disabled]="validRows().length === 0 || importing()"
+              (click)="startImport()">
+        <span class="spinner-sm" *ngIf="importing()"></span>
+        <svg *ngIf="!importing()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        {{ importing() ? 'Importando…' : 'Importar ' + validRows().length + ' registros' }}
+      </button>
+    </div>
+
+    <!-- ── Progress bar ── -->
+    <div class="progress-wrap" *ngIf="importing() || importDone()">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="progress()"></div>
+      </div>
+      <span class="progress-label">{{ progress() }}%</span>
+    </div>
+
+    <!-- ── Import result ── -->
+    <div class="result-box" *ngIf="importDone()">
+      <div class="result-ok" *ngIf="doneCount() > 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        {{ doneCount() }} registro(s) importados correctamente
+      </div>
+      <div class="result-err" *ngIf="errorCount() > 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+        {{ errorCount() }} registro(s) no se pudieron importar
+      </div>
+      <button class="reset-btn" (click)="reset()">Importar otro archivo</button>
+    </div>
+
+    <!-- ── Preview table ── -->
+    <div class="section preview-section" *ngIf="parsedRows().length > 0">
+      <h2 class="section-title">Vista previa</h2>
+      <div class="table-wrap">
+        <table class="preview-table">
+          <thead>
+            <tr>
+              <th class="col-row">#</th>
+              <th *ngFor="let h of previewHeaders">{{ h }}</th>
+              <th class="col-status">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of parsedRows(); trackBy: trackByIndex"
+                [class.row-error]="row.errors.length > 0 && row.status === 'pending'"
+                [class.row-done]="row.status === 'done'"
+                [class.row-importing]="row.status === 'importing'"
+                [class.row-fail]="row.status === 'error'">
+              <td class="col-row">{{ row.index }}</td>
+              <td *ngFor="let cell of previewCells(row)">{{ cell }}</td>
+              <td class="col-status">
+                <span class="status-chip" *ngIf="row.status === 'pending' && row.errors.length === 0">listo</span>
+                <span class="status-chip chip-warn" *ngIf="row.status === 'pending' && row.errors.length > 0"
+                      [title]="row.errors.join(', ')">
+                  {{ row.errors.length }} error(es)
+                </span>
+                <span class="status-chip chip-spin" *ngIf="row.status === 'importing'">importando…</span>
+                <span class="status-chip chip-ok" *ngIf="row.status === 'done'">✓ guardado</span>
+                <span class="status-chip chip-fail" *ngIf="row.status === 'error'"
+                      [title]="row.serverError">
+                  ✗ error
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
