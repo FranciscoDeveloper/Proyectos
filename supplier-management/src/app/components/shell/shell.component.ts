@@ -61,9 +61,10 @@ export class ShellComponent {
   }
 
   navItems = computed(() => {
-    const schemas     = this.auth.schemas();
-    const hasPayments = schemas.some(s => s.entity.key === 'payments');
-    const hasRecords  = schemas.some(s => s.entity.key === 'clinical-records');
+    const schemas        = this.auth.schemas();
+    const hasPayments    = schemas.some(s => s.entity.key === 'payments');
+    const hasRecords     = schemas.some(s => s.entity.key === 'clinical-records');
+    const hasImportable  = schemas.some(s => /patient|pacient|appointment|cita/i.test(s.entity.key));
     return [
       { label: 'Dashboard', icon: 'grid',      route: '/app/dashboard' },
       ...schemas.map(s => ({
@@ -75,8 +76,9 @@ export class ShellComponent {
             ? '/app/clinical/' + s.entity.key
             : '/app/entity/' + s.entity.key
       })),
-      ...(hasRecords  ? [{ label: 'Reportes',   icon: 'bar-chart',   route: '/app/reports'     }] : []),
-      ...(hasPayments ? [{ label: 'Comisiones', icon: 'dollar-sign', route: '/app/commissions' }] : []),
+      ...(hasRecords     ? [{ label: 'Reportes',   icon: 'bar-chart',   route: '/app/reports'     }] : []),
+      ...(hasPayments    ? [{ label: 'Comisiones', icon: 'dollar-sign', route: '/app/commissions' }] : []),
+      ...(hasImportable  ? [{ label: 'Importar',   icon: 'upload',      route: '/app/import'      }] : []),
       { label: 'Chat',      icon: 'chat',      route: '/app/chat'      }
     ];
   });
