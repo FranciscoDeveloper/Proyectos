@@ -1,0 +1,314 @@
+<div class="ob-shell">
+
+  <!-- ── Top nav ─────────────────────────────────────────────────────────────── -->
+  <nav class="ob-nav">
+    <div class="ob-logo">Dairi<span>.</span></div>
+    <div class="ob-steps">
+      <div class="ob-step ob-step-active">
+        <span class="ob-step-num">1</span>
+        <span class="ob-step-label">Perfil Profesional</span>
+      </div>
+      <div class="ob-step-divider"></div>
+      <div class="ob-step">
+        <span class="ob-step-num">2</span>
+        <span class="ob-step-label">Importar datos</span>
+      </div>
+    </div>
+    <div class="ob-nav-spacer"></div>
+  </nav>
+
+  <!-- ── Main ────────────────────────────────────────────────────────────────── -->
+  <main class="ob-main">
+
+    <!-- ── Welcome headline ─────────────────────────────────────────────────── -->
+    <div class="ob-welcome">
+      <h1 class="ob-title">
+        ¡Bienvenido/a, <span class="ob-name">{{ userName() }}</span>! 👋
+      </h1>
+      <p class="ob-subtitle">
+        Cuéntanos sobre ti como profesional de la salud. Esta información aparecerá en tu página
+        pública de reservas. Todos los campos marcados con <span class="req-star">*</span> son obligatorios.
+      </p>
+    </div>
+
+    <!-- ── Primary professional card ─────────────────────────────────────────── -->
+    <div class="ob-card">
+      <div class="ob-card-header">
+        <div class="ob-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="ob-card-title">Tu perfil profesional</h2>
+          <p class="ob-card-desc">Estos datos son los tuyos como profesional principal.</p>
+        </div>
+      </div>
+
+      <!-- Photo upload -------------------------------------------------------- -->
+      <div class="photo-section">
+        <div class="photo-label">Foto de perfil <span class="optional-tag">Opcional</span></div>
+        <div class="photo-row">
+          <div class="photo-drop-zone"
+               [class.has-photo]="photoPreview()"
+               [class.drag-over]="dragOver()"
+               (dragover)="$event.preventDefault(); dragOver.set(true)"
+               (dragleave)="dragOver.set(false)"
+               (drop)="onPhotoDrop($event)">
+            @if (photoPreview()) {
+              <img [src]="photoPreview()!" class="photo-preview" alt="Foto de perfil">
+              <button class="photo-remove" (click)="removePhoto()" title="Quitar foto">✕</button>
+            } @else {
+              <div class="photo-placeholder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <span>Arrastra o<br>haz clic</span>
+              </div>
+            }
+            <label class="photo-input-overlay">
+              <input type="file" accept="image/*" #photoInputRef (change)="onPhotoChange($event)">
+            </label>
+          </div>
+          <div class="photo-hint">
+            <p>Sube una foto tuya que aparecerá en la lista de profesionales disponibles.</p>
+            <p>Formatos: JPG, PNG, WEBP · Máx. 5 MB</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form grid ----------------------------------------------------------- -->
+      <div class="ob-grid">
+
+        <!-- Nombre -->
+        <div class="ob-field ob-col-2">
+          <label class="ob-label">Nombre completo <span class="req-star">*</span></label>
+          <input class="ob-input" [class.ob-input-err]="errors()['nombre']"
+                 type="text" [value]="nombre()"
+                 (input)="nombre.set($any($event.target).value)"
+                 placeholder="Ej: Dra. María González">
+          @if (errors()['nombre']) {
+            <span class="ob-error">{{ errors()['nombre'] }}</span>
+          }
+        </div>
+
+        <!-- RUT -->
+        <div class="ob-field">
+          <label class="ob-label">RUT <span class="req-star">*</span></label>
+          <input class="ob-input" [class.ob-input-err]="errors()['rut']"
+                 type="text" [value]="rut()"
+                 (input)="rut.set($any($event.target).value)"
+                 (blur)="formatRut($event)"
+                 placeholder="Ej: 12.345.678-9"
+                 maxlength="12">
+          @if (errors()['rut']) {
+            <span class="ob-error">{{ errors()['rut'] }}</span>
+          }
+        </div>
+
+        <!-- Especialidad -->
+        <div class="ob-field">
+          <label class="ob-label">Especialidad <span class="req-star">*</span></label>
+          <select class="ob-select" [class.ob-input-err]="errors()['especialidad']"
+                  [value]="especialidad()"
+                  (change)="especialidad.set($any($event.target).value)">
+            <option value="">Selecciona tu especialidad…</option>
+            @for (esp of especialidades; track esp) {
+              <option [value]="esp">{{ esp }}</option>
+            }
+          </select>
+          @if (errors()['especialidad']) {
+            <span class="ob-error">{{ errors()['especialidad'] }}</span>
+          }
+        </div>
+
+        <!-- Teléfono -->
+        <div class="ob-field">
+          <label class="ob-label">Teléfono profesional <span class="optional-tag">Opcional</span></label>
+          <input class="ob-input" type="tel" [value]="telefono()"
+                 (input)="telefono.set($any($event.target).value)"
+                 placeholder="+56 9 1234 5678">
+        </div>
+
+        <!-- Duración consulta -->
+        <div class="ob-field">
+          <label class="ob-label">Duración de consulta <span class="optional-tag">Opcional</span></label>
+          <select class="ob-select" [value]="duracion()"
+                  (change)="duracion.set(+$any($event.target).value)">
+            <option [value]="20">20 minutos</option>
+            <option [value]="30">30 minutos</option>
+            <option [value]="45">45 minutos</option>
+            <option [value]="60">60 minutos</option>
+            <option [value]="90">90 minutos</option>
+          </select>
+        </div>
+
+        <!-- Videoconsulta -->
+        <div class="ob-field ob-field-check">
+          <label class="ob-label">Opciones</label>
+          <label class="ob-checkbox-label">
+            <input type="checkbox" class="ob-checkbox"
+                   [checked]="videoconsulta()"
+                   (change)="videoconsulta.set($any($event.target).checked)">
+            <span class="ob-checkbox-custom"></span>
+            <span>Ofrezco videoconsulta</span>
+          </label>
+        </div>
+
+        <!-- Días disponibles -->
+        <div class="ob-field ob-col-2">
+          <label class="ob-label">Días de atención <span class="optional-tag">Opcional</span></label>
+          <div class="days-grid">
+            @for (dia of dias; track dia.value) {
+              <button type="button" class="day-chip"
+                      [class.day-selected]="isDiaSelected(dia.value)"
+                      (click)="toggleDia(dia.value)">
+                {{ dia.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+      </div><!-- /ob-grid -->
+    </div><!-- /ob-card -->
+
+    <!-- ── Extra professionals ────────────────────────────────────────────────── -->
+    @for (prof of extraProfs(); track $index) {
+      <div class="ob-card ob-card-extra">
+        <div class="ob-card-header">
+          <div class="ob-card-icon ob-icon-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="ob-card-title">Profesional {{ $index + 2 }}</h2>
+            <p class="ob-card-desc">Datos del profesional adicional</p>
+          </div>
+          <button class="remove-prof-btn" (click)="removeExtraProf($index)" title="Eliminar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Extra photo -->
+        <div class="photo-section">
+          <div class="photo-label">Foto de perfil <span class="optional-tag">Opcional</span></div>
+          <div class="photo-row">
+            <div class="photo-drop-zone photo-drop-sm"
+                 [class.has-photo]="prof.photoPreview"
+                 (dragover)="$event.preventDefault()"
+                 (drop)="onPhotoDrop($event, $index)">
+              @if (prof.photoPreview) {
+                <img [src]="prof.photoPreview!" class="photo-preview" alt="Foto">
+                <button class="photo-remove" (click)="removePhoto($index)" title="Quitar">✕</button>
+              } @else {
+                <div class="photo-placeholder photo-placeholder-sm">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                </div>
+              }
+              <label class="photo-input-overlay">
+                <input type="file" accept="image/*" (change)="onPhotoChange($event, $index)">
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="ob-grid">
+          <div class="ob-field ob-col-2">
+            <label class="ob-label">Nombre completo <span class="req-star">*</span></label>
+            <input class="ob-input" [class.ob-input-err]="prof.errors['nombre']"
+                   type="text" [value]="prof.nombre"
+                   (input)="updateExtraField($index, 'nombre', $any($event.target).value)"
+                   placeholder="Nombre del profesional">
+            @if (prof.errors['nombre']) {
+              <span class="ob-error">{{ prof.errors['nombre'] }}</span>
+            }
+          </div>
+          <div class="ob-field">
+            <label class="ob-label">RUT <span class="req-star">*</span></label>
+            <input class="ob-input" [class.ob-input-err]="prof.errors['rut']"
+                   type="text" [value]="prof.rut"
+                   (input)="updateExtraField($index, 'rut', $any($event.target).value)"
+                   (blur)="formatExtraRut($event, $index)"
+                   placeholder="12.345.678-9" maxlength="12">
+            @if (prof.errors['rut']) {
+              <span class="ob-error">{{ prof.errors['rut'] }}</span>
+            }
+          </div>
+          <div class="ob-field">
+            <label class="ob-label">Especialidad <span class="req-star">*</span></label>
+            <select class="ob-select" [class.ob-input-err]="prof.errors['especialidad']"
+                    [value]="prof.especialidad"
+                    (change)="updateExtraField($index, 'especialidad', $any($event.target).value)">
+              <option value="">Selecciona…</option>
+              @for (esp of especialidades; track esp) {
+                <option [value]="esp">{{ esp }}</option>
+              }
+            </select>
+            @if (prof.errors['especialidad']) {
+              <span class="ob-error">{{ prof.errors['especialidad'] }}</span>
+            }
+          </div>
+          <div class="ob-field">
+            <label class="ob-label">Teléfono <span class="optional-tag">Opcional</span></label>
+            <input class="ob-input" type="tel" [value]="prof.telefono"
+                   (input)="updateExtraField($index, 'telefono', $any($event.target).value)"
+                   placeholder="+56 9 1234 5678">
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ── Add professional button ───────────────────────────────────────────── -->
+    @if (extraProfs().length < MAX_EXTRA) {
+      <button type="button" class="add-prof-btn" (click)="addExtraProf()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        Agregar otro profesional
+        <span class="add-prof-counter">
+          ({{ extraProfs().length + 1 }} / 5)
+        </span>
+      </button>
+    }
+
+    <!-- ── Action buttons ─────────────────────────────────────────────────────── -->
+    <div class="ob-actions">
+      <button type="button" class="ob-skip-btn" (click)="skip()" [disabled]="saving()">
+        Omitir y continuar →
+      </button>
+      <button type="button" class="ob-save-btn" (click)="save()" [disabled]="saving()">
+        @if (saving()) {
+          <span class="ob-spinner"></span>
+          Guardando…
+        } @else {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Guardar y continuar
+        }
+      </button>
+    </div>
+
+    <p class="ob-legal">
+      Tu información se almacena de forma segura con cifrado AES-256-GCM.<br>
+      Puedes actualizar estos datos en cualquier momento desde tu perfil.
+    </p>
+
+  </main>
+</div>

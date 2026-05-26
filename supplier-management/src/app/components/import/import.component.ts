@@ -1,9 +1,11 @@
 import {
-  Component, inject, signal, computed, ChangeDetectionStrategy
+  Component, inject, signal, computed, ChangeDetectionStrategy, OnInit
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
+import { OnboardingService } from '../../services/onboarding.service';
 import * as XLSX from 'xlsx';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -87,9 +89,14 @@ function matchColumn(header: string, aliases: Record<string, string[]>): string 
   styleUrl: './import.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ImportComponent {
-  private auth  = inject(AuthService);
-  private crud  = inject(GenericCrudService);
+export class ImportComponent implements OnInit {
+  private auth         = inject(AuthService);
+  private crud         = inject(GenericCrudService);
+  private route        = inject(ActivatedRoute);
+  private router       = inject(Router);
+  private onboardingSvc = inject(OnboardingService);
+
+  fromOnboarding = signal(false);
 
   // ── Available entity keys ──────────────────────────────────────────────────
   patientKey = computed(() => {
@@ -360,5 +367,17 @@ export class ImportComponent {
     XLSX.utils.book_append_sheet(wb, ws, 'Plantilla');
     const name = this.activeTab() === 'patients' ? 'plantilla_pacientes.xlsx' : 'plantilla_citas.xlsx';
     XLSX.writeFile(wb, name);
+  }
+
+  ngOnInit(): void {
+    if (this.route.snapshot.queryParamMap.get('from') === 'onboarding') {
+      this.fromOnboarding.set(true);
+    }
+  }
+
+  finishOnboarding(): void {
+    const user = this.auth.user();
+    if (user) this.onboardingSvc.markComplete(user.id);
+    this.router.navigate(['/app/dashboard']);
   }
 }

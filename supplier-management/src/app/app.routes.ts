@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './guards/auth.guard';
+import { authGuard, guestGuard, onboardingGuard } from './guards/auth.guard';
 import { CLINICAL_ROUTES } from './components/clinical/clinical.routes';
 
 export const routes: Routes = [
@@ -25,6 +25,14 @@ export const routes: Routes = [
       import('./components/docs/docs.component').then(m => m.DocsComponent)
   },
 
+  // ── Protected: onboarding (post-registration) ─────────────────────────────
+  {
+    path: 'onboarding',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./components/onboarding/onboarding.component').then(m => m.OnboardingComponent)
+  },
+
   // ── Public: login ────────────────────────────────────────────────────────────
   {
     path: 'login',
@@ -39,7 +47,7 @@ export const routes: Routes = [
   // for the child routes. This avoids the double-outlet timing bug.
   {
     path: 'app',
-    canActivate: [authGuard],
+    canActivate: [authGuard, onboardingGuard],
     loadComponent: () =>
       import('./components/shell/shell.component').then(m => m.ShellComponent),
     children: [
