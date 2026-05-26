@@ -3,7 +3,7 @@
   <div class="nav-logo">Dairi<span>.</span></div>
   <div class="nav-links">
     <a href="#features">Funcionalidades</a>
-    <a href="#ai">IA WhatsApp</a>
+    <a href="#por-que">Por qué Dairi</a>
     <a href="#cta">Precios</a>
     <a routerLink="/docs">Documentación</a>
     <a href="#contacto">Contacto</a>
@@ -213,26 +213,8 @@
   </div>
 </div>
 
-<!-- AI / WHATSAPP -->
-<div style="padding: 0 1.5rem; max-width: 1100px; margin: 0 auto;" id="ai">
-  <div class="ai-section">
-    <div class="ai-badge">🤖 Próximamente · IA Conversacional</div>
-    <h2>Tu asistente clínico disponible<br>24/7 por WhatsApp</h2>
-    <p>Pronto los pacientes podrán agendar citas, consultar horarios disponibles, recibir recordatorios y hacer preguntas frecuentes directamente desde WhatsApp, atendidos por un agente de inteligencia artificial conectado a Dairi.</p>
-    <a href="#cta" class="btn-primary" style="margin-top:.5rem;">Quiero ser el primero en probarlo</a>
-    <div class="ai-features">
-      <span class="ai-pill">📲 Agendamiento automático</span>
-      <span class="ai-pill">🔔 Recordatorios inteligentes</span>
-      <span class="ai-pill">📋 Consulta de historial</span>
-      <span class="ai-pill">🏥 Respuestas clínicas básicas</span>
-      <span class="ai-pill">⏰ Disponibilidad 24/7</span>
-      <span class="ai-pill">🌍 Multilingüe</span>
-    </div>
-  </div>
-</div>
-
 <!-- POR QUÉ DAIRI -->
-<section>
+<section id="por-que">
   <div class="section-label">Ventajas competitivas</div>
   <h2 class="section-title">¿Por qué elegir Dairi?</h2>
   <p class="section-sub">Diseñado desde cero para la realidad de las clínicas latinoamericanas. Rápido de implementar, fácil de usar y escalable desde el primer día.</p>
@@ -252,6 +234,58 @@
       <h3>Altamente configurable</h3>
       <p>Motor de entidades basado en schemas: agrega nuevos módulos, campos y flujos de trabajo sin tocar el código fuente.</p>
     </div>
+  </div>
+</section>
+
+<!-- FAQ AEO -->
+<section id="faq" itemscope itemtype="https://schema.org/FAQPage">
+  <div class="section-label">Preguntas frecuentes</div>
+  <h2 class="section-title">Todo lo que necesitas saber sobre Dairi</h2>
+  <p class="section-sub">Resolvemos las dudas más comunes antes de que empieces tu prueba gratuita.</p>
+  <div class="faq-list">
+
+    <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+      <h3 itemprop="name">¿Qué es Dairi y para qué sirve?</h3>
+      <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+        <p itemprop="text">Dairi es un software de gestión clínica en la nube diseñado para clínicas y consultorios en Latinoamérica. Centraliza la administración de pacientes, citas, fichas clínicas, inventario de productos, proveedores y pagos en una sola plataforma accesible desde cualquier dispositivo con internet.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+      <h3 itemprop="name">¿Cuánto cuesta Dairi?</h3>
+      <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+        <p itemprop="text">Dairi tiene tres planes: Starter desde US$9/mes (hasta 5 usuarios), Pro desde US$18/mes (hasta 10 usuarios con inventario, pagos y boleta electrónica) y Enterprise con precio a consultar para organizaciones grandes. Todos los planes incluyen 14 días de prueba gratuita sin tarjeta de crédito.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+      <h3 itemprop="name">¿Dairi es seguro para almacenar fichas clínicas?</h3>
+      <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+        <p itemprop="text">Sí. Dairi utiliza autenticación JWT, HTTPS forzado, cifrado AES-256 en base de datos y arquitectura serverless en AWS. Los datos clínicos están almacenados en servidores en la nube con backups automáticos y acceso restringido por roles.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+      <h3 itemprop="name">¿Cuánto tiempo toma implementar Dairi en mi clínica?</h3>
+      <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+        <p itemprop="text">La implementación toma menos de 24 horas. Al ser una plataforma 100% en la nube, no requiere instalaciones ni servidores propios. El onboarding guiado te permite configurar tu clínica, agregar profesionales y comenzar a registrar pacientes el mismo día.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+      <h3 itemprop="name">¿Dairi emite boletas electrónicas con el SII?</h3>
+      <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+        <p itemprop="text">Sí, el plan Pro incluye emisión de boletas electrónicas con timbre del SII y envío automático por email al paciente al finalizar la atención. Compatible con la normativa tributaria chilena vigente.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+      <h3 itemprop="name">¿Funciona Dairi para clínicas pequeñas o consultorios unipersonales?</h3>
+      <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+        <p itemprop="text">Sí. El plan Starter está diseñado para consultorios y clínicas pequeñas con hasta 5 usuarios. Incluye gestión de pacientes, citas y fichas clínicas a un precio accesible. Puedes escalar al plan Pro en cualquier momento sin perder datos.</p>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -344,7 +378,7 @@
       <h4>Producto</h4>
       <ul>
         <li><a href="#features">Funcionalidades</a></li>
-        <li><a href="#ai">IA WhatsApp</a></li>
+        <li><a href="#por-que">Por qué Dairi</a></li>
         <li><a href="#cta">Precios</a></li>
         <li><a routerLink="/docs">Documentación</a></li>
         <li><a href="#">Novedades</a></li>
