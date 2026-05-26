@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { OnboardingService } from '../services/onboarding.service';
 
 /**
  * Protects all entity routes.
@@ -41,5 +42,22 @@ export const guestGuard: CanActivateFn = () => {
     return false;
   }
 
+  return true;
+};
+
+/**
+ * Redirects to /onboarding when the authenticated user hasn't completed onboarding yet.
+ * Applied to the /app shell so any attempt to enter the app triggers the check.
+ */
+export const onboardingGuard: CanActivateFn = () => {
+  const auth         = inject(AuthService);
+  const onboarding   = inject(OnboardingService);
+  const router       = inject(Router);
+
+  const user = auth.user();
+  if (user && onboarding.needsOnboarding(user.id)) {
+    router.navigate(['/onboarding']);
+    return false;
+  }
   return true;
 };

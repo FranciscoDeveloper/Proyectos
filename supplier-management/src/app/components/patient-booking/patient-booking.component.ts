@@ -14,6 +14,7 @@ interface ProfessionalSummary {
   duration:      number;
   workDays:      number[];
   videoconsulta: boolean;
+  photoUrl?:     string;
 }
 
 interface BookingInfo {

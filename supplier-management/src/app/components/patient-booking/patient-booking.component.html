@@ -33,7 +33,10 @@
     <div class="prof-list">
       <button class="prof-card" *ngFor="let prof of professionals()"
               (click)="selectProfessional(prof)">
-        <div class="prof-avatar">{{ prof.nombre.charAt(0) }}</div>
+        <div class="prof-avatar" [class.prof-avatar-photo]="!!prof.photoUrl">
+          <img *ngIf="prof.photoUrl" [src]="prof.photoUrl" [alt]="prof.nombre" class="prof-photo">
+          <span *ngIf="!prof.photoUrl">{{ prof.nombre.charAt(0) }}</span>
+        </div>
         <div class="prof-info">
           <div class="prof-name">{{ prof.nombre }}</div>
           <div class="prof-spec">{{ prof.especialidad }}</div>

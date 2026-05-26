@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { OnboardingService } from '../../services/onboarding.service';
 
 /**
  * Replace this with the Client ID from Google Cloud Console:
@@ -29,10 +30,11 @@ interface DemoAccount {
   styleUrl: './login.component.scss'
 })
 export class LoginComponent implements AfterViewInit, OnDestroy {
-  private fb     = inject(FormBuilder);
-  private auth   = inject(AuthService);
-  private route  = inject(ActivatedRoute);
-  private router = inject(Router);
+  private fb           = inject(FormBuilder);
+  private auth         = inject(AuthService);
+  private onboarding   = inject(OnboardingService);
+  private route        = inject(ActivatedRoute);
+  private router       = inject(Router);
   private sub?: Subscription;
   private gsiRetries = 0;
 
@@ -149,10 +151,19 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
   }
 
   private redirectAfterLogin() {
-    const raw    = this.route.snapshot.queryParamMap.get('returnUrl') ?? '';
-    const target = raw && raw.startsWith('/') && !raw.startsWith('//') && raw !== '/'
-      ? raw
-      : '/app/dashboard';
+    const raw      = this.route.snapshot.queryParamMap.get('returnUrl') ?? '';
+    const hasReturn = raw && raw.startsWith('/') && !raw.startsWith('//') && raw !== '/';
+    let target: string;
+
+    if (hasReturn) {
+      target = raw;
+    } else {
+      const user = this.auth.user();
+      target = (user && this.onboarding.needsOnboarding(user.id))
+        ? '/onboarding'
+        : '/app/dashboard';
+    }
+
     window.location.href = '/?_=' + Date.now() + '#' + target;
   }
 }

@@ -1,7 +1,30 @@
 <div class="import-page">
 
+  <!-- ── Onboarding progress banner ── -->
+  @if (fromOnboarding()) {
+    <div class="ob-progress-bar">
+      <div class="ob-progress-steps">
+        <div class="ob-progress-step ob-step-done">
+          <span class="ob-step-num">✓</span>
+          <span class="ob-step-label">Perfil Profesional</span>
+        </div>
+        <div class="ob-progress-divider"></div>
+        <div class="ob-progress-step ob-step-active">
+          <span class="ob-step-num">2</span>
+          <span class="ob-step-label">Importar datos</span>
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- ── Header ── -->
   <div class="import-header">
+    @if (fromOnboarding()) {
+      <p class="ob-step-intro">
+        <strong>Paso 2 de 2</strong> — Importa tus pacientes y citas existentes para comenzar a operar de
+        inmediato. Este paso es opcional; puedes hacerlo ahora o más tarde desde el menú lateral.
+      </p>
+    }
     <h1 class="import-title">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -156,6 +179,12 @@
         {{ errorCount() }} registro(s) no se pudieron importar
       </div>
       <button class="reset-btn" (click)="reset()">Importar otro archivo</button>
+      <button class="finish-btn" *ngIf="fromOnboarding()" (click)="finishOnboarding()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Ir al Dashboard →
+      </button>
     </div>
 
     <!-- ── Preview table ── -->
@@ -196,6 +225,16 @@
         </table>
       </div>
     </div>
+
+    <!-- ── Onboarding finish footer ── -->
+    @if (fromOnboarding() && !importDone()) {
+      <div class="ob-finish-bar">
+        <span>¿Ya terminaste? Puedes importar más datos en cualquier momento desde el menú.</span>
+        <button class="finish-btn" (click)="finishOnboarding()">
+          Finalizar e ir al Dashboard →
+        </button>
+      </div>
+    }
 
   </div>
 </div>
