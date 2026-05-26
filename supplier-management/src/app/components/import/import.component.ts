@@ -6,7 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { OnboardingService } from '../../services/onboarding.service';
-import * as XLSX from 'xlsx';
+import { Workbook } from 'exceljs';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -82,11 +82,12 @@ function matchColumn(header: string, aliases: Record<string, string[]>): string 
 }
 
 @Component({
-    selector: 'app-import',
-    imports: [CommonModule],
-    templateUrl: './import.component.html',
-    styleUrl: './import.component.scss',
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-import',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './import.component.html',
+  styleUrl: './import.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ImportComponent implements OnInit {
   private auth         = inject(AuthService);
@@ -203,19 +204,37 @@ export class ImportComponent implements OnInit {
     this.fileName.set(file.name);
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
-        const data = new Uint8Array(e.target!.result as ArrayBuffer);
-        const wb   = XLSX.read(data, { type: 'array', cellDates: true });
-        const ws   = wb.Sheets[wb.SheetNames[0]];
-        const raw  = XLSX.utils.sheet_to_json<Record<string, any>>(ws, { header: 1, defval: '' });
+        const buffer = e.target!.result as ArrayBuffer;
+        let raw: any[][] = [];
+
+        if (file.name.match(/\.csv$/i)) {
+          const text = new TextDecoder('utf-8').decode(buffer);
+          raw = this.parseCSV(text);
+        } else {
+          const wb = new Workbook();
+          await wb.xlsx.load(buffer);
+          const ws = wb.getWorksheet(1);
+          if (!ws) { this.parseError.set('El archivo está vacío.'); return; }
+          ws.eachRow((row) => {
+            const vals = (row.values as any[]).slice(1);
+            raw.push(vals.map((v: any) => {
+              if (v == null) return '';
+              if (v instanceof Date) return v.toISOString().split('T')[0];
+              if (typeof v === 'object' && 'text' in v) return String(v.text);
+              if (typeof v === 'object' && 'result' in v) return String(v.result);
+              return v;
+            }));
+          });
+        }
 
         if (!raw.length) {
           this.parseError.set('El archivo está vacío.');
           return;
         }
 
-        const headers = (raw[0] as any[]).map(h => String(h).trim());
+        const headers = (raw[0] as any[]).map(h => String(h ?? '').trim());
         this.excelHeaders.set(headers);
 
         // Auto-map columns
@@ -234,7 +253,7 @@ export class ImportComponent implements OnInit {
 
         // Parse rows (skip header row)
         const rows: ParsedRow[] = (raw.slice(1) as any[][])
-          .filter(row => row.some(cell => String(cell).trim() !== ''))
+          .filter(row => row.some(cell => String(cell ?? '').trim() !== ''))
           .map((row, i) => {
             const rowData: Record<string, string> = {};
             headers.forEach((h, idx) => {
@@ -253,6 +272,20 @@ export class ImportComponent implements OnInit {
       }
     };
     reader.readAsArrayBuffer(file);
+  }
+
+  private parseCSV(text: string): any[][] {
+    return text.split(/\r?\n/).filter(l => l.trim()).map(line => {
+      const cells: string[] = [];
+      let cell = '', inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        if (line[i] === '"') { inQuotes = !inQuotes; }
+        else if (line[i] === ',' && !inQuotes) { cells.push(cell.trim()); cell = ''; }
+        else { cell += line[i]; }
+      }
+      cells.push(cell.trim());
+      return cells;
+    });
   }
 
   private validateRow(data: Record<string, string>): string[] {
@@ -358,14 +391,20 @@ export class ImportComponent implements OnInit {
       .map(m => row.data[m.fieldKey] ?? '');
   }
 
-  downloadTemplate(): void {
-    const fields = this.currentFields();
+  async downloadTemplate(): Promise<void> {
+    const fields  = this.currentFields();
     const headers = fields.map(f => f.label + (f.required ? ' *' : ''));
-    const wb  = XLSX.utils.book_new();
-    const ws  = XLSX.utils.aoa_to_sheet([headers]);
-    XLSX.utils.book_append_sheet(wb, ws, 'Plantilla');
-    const name = this.activeTab() === 'patients' ? 'plantilla_pacientes.xlsx' : 'plantilla_citas.xlsx';
-    XLSX.writeFile(wb, name);
+    const wb = new Workbook();
+    const ws = wb.addWorksheet('Plantilla');
+    ws.addRow(headers);
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = this.activeTab() === 'patients' ? 'plantilla_pacientes.xlsx' : 'plantilla_citas.xlsx';
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   ngOnInit(): void {
