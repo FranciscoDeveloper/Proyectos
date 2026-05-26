@@ -24,11 +24,10 @@ interface SectionField {
 }
 
 @Component({
-  selector: 'app-clinical-detail',
-  standalone: true,
-  imports: [CommonModule, RouterLink, OdontogramComponent, PeriodontogramComponent],
-  templateUrl: './clinical-detail.component.html',
-  styleUrl: './clinical-detail.component.scss'
+    selector: 'app-clinical-detail',
+    imports: [CommonModule, RouterLink, OdontogramComponent, PeriodontogramComponent],
+    templateUrl: './clinical-detail.component.html',
+    styleUrl: './clinical-detail.component.scss'
 })
 export class ClinicalDetailComponent {
   private route     = inject(ActivatedRoute);

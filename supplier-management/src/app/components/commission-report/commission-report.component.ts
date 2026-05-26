@@ -27,11 +27,10 @@ function colorForName(name: string): string {
 }
 
 @Component({
-  selector: 'app-commission-report',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './commission-report.component.html',
-  styleUrl: './commission-report.component.scss'
+    selector: 'app-commission-report',
+    imports: [CommonModule],
+    templateUrl: './commission-report.component.html',
+    styleUrl: './commission-report.component.scss'
 })
 export class CommissionReportComponent implements OnInit {
   private crud = inject(GenericCrudService);

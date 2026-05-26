@@ -5,11 +5,10 @@ import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 
 @Component({
-  selector: 'app-clinical-record',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
-  templateUrl: './clinical-record.component.html',
-  styleUrl: './clinical-record.component.scss'
+    selector: 'app-clinical-record',
+    imports: [CommonModule, RouterLink],
+    templateUrl: './clinical-record.component.html',
+    styleUrl: './clinical-record.component.scss'
 })
 export class ClinicalRecordComponent {
   private route     = inject(ActivatedRoute);

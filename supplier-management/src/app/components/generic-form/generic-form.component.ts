@@ -8,11 +8,10 @@ import { EntitySchema, FieldDefinition, SelectOption } from '../../models/entity
 import { GoogleCalendarService } from '../../services/google-calendar.service';
 
 @Component({
-  selector: 'app-generic-form',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  templateUrl: './generic-form.component.html',
-  styleUrl: './generic-form.component.scss'
+    selector: 'app-generic-form',
+    imports: [CommonModule, ReactiveFormsModule, RouterLink],
+    templateUrl: './generic-form.component.html',
+    styleUrl: './generic-form.component.scss'
 })
 export class GenericFormComponent implements OnInit {
   private route = inject(ActivatedRoute);

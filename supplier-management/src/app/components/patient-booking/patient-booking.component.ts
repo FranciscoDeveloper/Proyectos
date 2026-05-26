@@ -56,11 +56,10 @@ interface PaymentStatus {
 }
 
 @Component({
-  selector: 'app-patient-booking',
-  standalone: true,
-  imports: [CommonModule, FormsModule, CurrencyPipe],
-  templateUrl: './patient-booking.component.html',
-  styleUrl: './patient-booking.component.scss'
+    selector: 'app-patient-booking',
+    imports: [CommonModule, FormsModule, CurrencyPipe],
+    templateUrl: './patient-booking.component.html',
+    styleUrl: './patient-booking.component.scss'
 })
 export class PatientBookingComponent implements OnInit {
   private route    = inject(ActivatedRoute);

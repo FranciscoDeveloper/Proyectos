@@ -54,11 +54,10 @@ function validateRutFormat(rut: string): boolean {
 }
 
 @Component({
-  selector: 'app-onboarding',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './onboarding.component.html',
-  styleUrl: './onboarding.component.scss'
+    selector: 'app-onboarding',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './onboarding.component.html',
+    styleUrl: './onboarding.component.scss'
 })
 export class OnboardingComponent implements OnInit {
   private auth         = inject(AuthService);

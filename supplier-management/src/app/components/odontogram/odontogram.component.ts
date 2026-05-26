@@ -124,12 +124,11 @@ function conditionColor(cond: ToothCondition): string {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 @Component({
-  selector: 'app-odontogram',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './odontogram.component.html',
-  styleUrl: './odontogram.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-odontogram',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './odontogram.component.html',
+    styleUrl: './odontogram.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OdontogramComponent {
 

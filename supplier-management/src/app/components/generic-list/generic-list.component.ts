@@ -7,11 +7,10 @@ import { GenericCrudService } from '../../services/generic-crud.service';
 import { EntitySchema, FieldDefinition, SelectOption } from '../../models/entity-schema.model';
 
 @Component({
-  selector: 'app-generic-list',
-  standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
-  templateUrl: './generic-list.component.html',
-  styleUrl: './generic-list.component.scss'
+    selector: 'app-generic-list',
+    imports: [CommonModule, RouterLink, FormsModule],
+    templateUrl: './generic-list.component.html',
+    styleUrl: './generic-list.component.scss'
 })
 export class GenericListComponent implements OnInit {
   private route = inject(ActivatedRoute);

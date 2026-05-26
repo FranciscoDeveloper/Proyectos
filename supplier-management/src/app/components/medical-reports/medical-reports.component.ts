@@ -49,11 +49,10 @@ function buildDonut(
 }
 
 @Component({
-  selector: 'app-medical-reports',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
-  templateUrl: './medical-reports.component.html',
-  styleUrl:    './medical-reports.component.scss',
+    selector: 'app-medical-reports',
+    imports: [CommonModule, RouterLink],
+    templateUrl: './medical-reports.component.html',
+    styleUrl: './medical-reports.component.scss'
 })
 export class MedicalReportsComponent {
   private crud = inject(GenericCrudService);

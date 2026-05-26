@@ -6,11 +6,10 @@ import { GenericCrudService } from '../../services/generic-crud.service';
 import { EntitySchema, FieldDefinition } from '../../models/entity-schema.model';
 
 @Component({
-  selector: 'app-generic-detail',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
-  templateUrl: './generic-detail.component.html',
-  styleUrl: './generic-detail.component.scss'
+    selector: 'app-generic-detail',
+    imports: [CommonModule, RouterLink],
+    templateUrl: './generic-detail.component.html',
+    styleUrl: './generic-detail.component.scss'
 })
 export class GenericDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);

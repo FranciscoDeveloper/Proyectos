@@ -5,11 +5,10 @@ import { AuthService } from '../../services/auth.service';
 import { CryptoService } from '../../services/crypto.service';
 
 @Component({
-  selector: 'app-shell',
-  standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
-  templateUrl: './shell.component.html',
-  styleUrl: './shell.component.scss'
+    selector: 'app-shell',
+    imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
+    templateUrl: './shell.component.html',
+    styleUrl: './shell.component.scss'
 })
 export class ShellComponent {
   readonly auth      = inject(AuthService);

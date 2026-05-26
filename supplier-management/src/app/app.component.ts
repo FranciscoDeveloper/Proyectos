@@ -3,10 +3,9 @@ import { Router, RouterOutlet, NavigationError } from '@angular/router';
 import { AuthService } from './services/auth.service';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [RouterOutlet],
-  template: '<router-outlet/>'
+    selector: 'app-root',
+    imports: [RouterOutlet],
+    template: '<router-outlet/>'
 })
 export class AppComponent implements OnInit {
   private router = inject(Router);

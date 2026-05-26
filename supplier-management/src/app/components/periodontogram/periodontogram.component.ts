@@ -77,12 +77,11 @@ function emptyData(): PeriodontogramData {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 @Component({
-  selector: 'app-periodontogram',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './periodontogram.component.html',
-  styleUrl: './periodontogram.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-periodontogram',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './periodontogram.component.html',
+    styleUrl: './periodontogram.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PeriodontogramComponent implements OnChanges {
 

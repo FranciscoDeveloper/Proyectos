@@ -3,12 +3,11 @@ import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-docs',
-  standalone: true,
-  imports: [RouterLink, CommonModule],
-  templateUrl: './docs.component.html',
-  styleUrl: './docs.component.scss',
-  encapsulation: ViewEncapsulation.None
+    selector: 'app-docs',
+    imports: [RouterLink, CommonModule],
+    templateUrl: './docs.component.html',
+    styleUrl: './docs.component.scss',
+    encapsulation: ViewEncapsulation.None
 })
 export class DocsComponent implements OnInit {
   activeSection = 'introduccion';

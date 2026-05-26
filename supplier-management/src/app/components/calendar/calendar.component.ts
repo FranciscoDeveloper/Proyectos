@@ -48,11 +48,10 @@ const GRID_START  = 7;    // 07:00
 const GRID_END    = 20;   // 20:00 (exclusive)
 
 @Component({
-  selector: 'app-calendar',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
-  templateUrl: './calendar.component.html',
-  styleUrl: './calendar.component.scss'
+    selector: 'app-calendar',
+    imports: [CommonModule, RouterLink],
+    templateUrl: './calendar.component.html',
+    styleUrl: './calendar.component.scss'
 })
 export class CalendarComponent {
   private route     = inject(ActivatedRoute);

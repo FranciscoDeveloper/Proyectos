@@ -82,12 +82,11 @@ function matchColumn(header: string, aliases: Record<string, string[]>): string 
 }
 
 @Component({
-  selector: 'app-import',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './import.component.html',
-  styleUrl: './import.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-import',
+    imports: [CommonModule],
+    templateUrl: './import.component.html',
+    styleUrl: './import.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ImportComponent implements OnInit {
   private auth         = inject(AuthService);
