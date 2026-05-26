@@ -1,0 +1,96 @@
+<div class="result-page">
+
+  <header class="result-header">
+    <div class="header-inner">
+      <div class="brand">Dairi<span>.</span></div>
+    </div>
+  </header>
+
+  <main class="result-main">
+
+    <!-- ── Verificando ── -->
+    <div class="state-card" *ngIf="checking()">
+      <div class="spinner"></div>
+      <p class="state-msg">Verificando estado del pago…</p>
+    </div>
+
+    <!-- ── Error de red ── -->
+    <div class="state-card" *ngIf="!checking() && hasError()">
+      <div class="state-icon error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <h2 class="state-title">No se pudo verificar el pago</h2>
+      <p class="state-sub">Por favor contacta a la clínica con tu código de confirmación.</p>
+      <a class="btn-secondary" href="/book">Volver a la agenda</a>
+    </div>
+
+    <!-- ── Pagado ── -->
+    <div class="state-card" *ngIf="!checking() && !hasError() && status()?.status === 'paid'">
+      <div class="state-icon success">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <h2 class="state-title">¡Pago realizado!</h2>
+      <p class="state-sub">Tu cita ha sido confirmada y el pago fue procesado exitosamente.</p>
+      <div class="amount-pill" *ngIf="status()?.amount">
+        {{ status()!.amount! | currency:'CLP':'symbol':'1.0-0':'es-CL' }}
+      </div>
+      <p class="state-note">Recibirás un recordatorio por email antes de tu consulta.</p>
+      <a class="btn-secondary" href="/book">Ir a la agenda</a>
+    </div>
+
+    <!-- ── Rechazado ── -->
+    <div class="state-card" *ngIf="!checking() && !hasError() && status()?.status === 'rejected'">
+      <div class="state-icon rejected">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <h2 class="state-title">Pago rechazado</h2>
+      <p class="state-sub">Tu pago fue rechazado por el banco. Por favor intenta con otro método de pago.</p>
+      <a class="btn-secondary" href="/book">Volver a la agenda</a>
+    </div>
+
+    <!-- ── Cancelado ── -->
+    <div class="state-card" *ngIf="!checking() && !hasError() && status()?.status === 'cancelled'">
+      <div class="state-icon cancelled">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <h2 class="state-title">Pago cancelado</h2>
+      <p class="state-sub">Cancelaste el proceso de pago. Tu cita quedó reservada pero <strong>pendiente de pago</strong>.</p>
+      <p class="state-note">Puedes pagar usando el enlace que te enviamos por email, o contactar a la clínica.</p>
+      <a class="btn-secondary" href="/book">Volver a la agenda</a>
+    </div>
+
+    <!-- ── Pendiente ── -->
+    <div class="state-card" *ngIf="!checking() && !hasError() && status()?.status === 'pending'">
+      <div class="state-icon pending">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <h2 class="state-title">Pago en proceso</h2>
+      <p class="state-sub">Tu pago está siendo procesado. Recibirás un correo de confirmación en breve.</p>
+      <p class="state-note">Si el problema persiste, contacta a la clínica con tu código de confirmación.</p>
+    </div>
+
+  </main>
+
+  <footer class="result-footer">
+    <span>Powered by <strong>Dairi.</strong> · Plataforma clínica inteligente</span>
+  </footer>
+
+</div>
