@@ -255,6 +255,8 @@ export class OnboardingComponent implements OnInit {
   }
 
   private proceed(): void {
+    const user = this.auth.user();
+    if (user) this.onboardingSvc.markComplete(user.id);
     this.router.navigate(['/app/import'], { queryParams: { from: 'onboarding' } });
   }
 
