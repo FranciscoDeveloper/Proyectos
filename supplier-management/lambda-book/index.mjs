@@ -31,7 +31,7 @@ const FLOW_BASE_URL        = process.env.FLOW_BASE_URL        || "https://sandbo
 const FLOW_API_KEY         = process.env.FLOW_API_KEY         || "";
 const FLOW_SECRET_KEY      = process.env.FLOW_SECRET_KEY      || "";
 const BOOK_FUNCTION_URL    = process.env.BOOK_FUNCTION_URL    || "";
-const APP_URL              = process.env.APP_URL              || "http://friquelme-firstpage.s3-website-sa-east-1.amazonaws.com";
+const APP_URL              = process.env.APP_URL              || "https://dairi.cl";
 const CONSULTATION_AMOUNT  = parseInt(process.env.CONSULTATION_AMOUNT || "25000");
 
 // ── DB: ensure appointment_payment table exists ────────────────────────────────
@@ -168,17 +168,38 @@ async function route(client, method, rawPath, body, qs) {
                       : flowStatus.status === 4 ? "cancelled"
                       : "pending";
 
-      // Resolve the appointment_payment row to get linked IDs
-      const apRec = await client.query(
-        `SELECT appointment_id, payment_id FROM appointment_payment WHERE flow_token = $1`,
+      // Primary lookup: by flow_token (token stored when payment was created inline)
+      let apRec = await client.query(
+        `SELECT id, appointment_id, payment_id FROM appointment_payment WHERE flow_token = $1`,
         [token]
       );
 
-      // Update appointment_payment status
-      await client.query(
-        `UPDATE appointment_payment SET status = $1, updated_at = NOW() WHERE flow_token = $2`,
-        [payStatus, token]
-      );
+      if (apRec.rowCount > 0) {
+        // Token already known — update status
+        await client.query(
+          `UPDATE appointment_payment SET status = $1, updated_at = NOW() WHERE flow_token = $2`,
+          [payStatus, token]
+        );
+      } else {
+        // Fallback: dairi-payment created the Flow order — parse appointmentId from commerceOrder
+        const match = flowStatus.commerceOrder?.match(/^APPT-(\d+)-/);
+        if (match) {
+          const apptId = parseInt(match[1]);
+          apRec = await client.query(
+            `SELECT id, appointment_id, payment_id FROM appointment_payment
+             WHERE appointment_id = $1 ORDER BY created_at DESC LIMIT 1`,
+            [apptId]
+          );
+          if (apRec.rowCount > 0) {
+            await client.query(
+              `UPDATE appointment_payment
+               SET flow_token = $1, commerce_order = $2, flow_order = $3, status = $4, updated_at = NOW()
+               WHERE id = $5`,
+              [token, flowStatus.commerceOrder, flowStatus.flowOrder ?? null, payStatus, apRec.rows[0].id]
+            );
+          }
+        }
+      }
 
       if (apRec.rowCount > 0) {
         const { appointment_id: apptId, payment_id: paymentId } = apRec.rows[0];
@@ -203,7 +224,7 @@ async function route(client, method, rawPath, body, qs) {
         }
       }
 
-      log("INFO", "Payment webhook handled", { token, payStatus });
+      log("INFO", "Payment webhook handled", { token, payStatus, commerceOrder: flowStatus.commerceOrder });
     } catch (err) {
       log("ERROR", "Webhook processing error", { message: err.message, token });
     }
@@ -339,7 +360,7 @@ async function route(client, method, rawPath, body, qs) {
       const appt = await client.query(
         `INSERT INTO appointment
            (patient_id, professional_id, datetime, duration_minutes, service, modality, status, reason, confirm_code)
-         VALUES ($1, $2, $3 AT TIME ZONE 'America/Santiago', $4, $5, $6, 'scheduled', $7, $8)
+         VALUES ($1, $2, $3::timestamp AT TIME ZONE 'America/Santiago', $4, $5, $6, 'scheduled', $7, $8)
          RETURNING id, confirm_code, modality`,
         [patientId, prof.id, datetimeStr, prof.consultation_duration, prof.specialty, dbModality, reason || null, confirmCode]
       );
@@ -374,55 +395,15 @@ async function route(client, method, rawPath, body, qs) {
         log("ERROR", "Ledger payment insert error", { message: err.message, apptId });
       }
 
-      // ── Flow payment order ─────────────────────────────────────────────────
-      let paymentLink = null;
-      if (FLOW_API_KEY && FLOW_SECRET_KEY) {
-        try {
-          const commerceOrder    = `APPT-${apptId}-${Date.now()}`;
-          const urlConfirmation  = `${BOOK_FUNCTION_URL}/payment/confirm`;
-          const urlReturn        = `${APP_URL}/book/payment-result`;
-
-          // payment/createEmail: creates the order AND sends payment email to the customer
-          const flowResp = await flowPost("payment/createEmail", {
-            commerceOrder,
-            subject:       `Pago de consulta con ${prof.name} — ${date} ${time}`,
-            currency:      "CLP",
-            amount:        String(amount),
-            email:         patientEmail,
-            paymentMethod: "9",
-            urlConfirmation,
-            urlReturn,
-          });
-
-          paymentLink = `${flowResp.url}?token=${flowResp.token}`;
-
-          await client.query(
-            `INSERT INTO appointment_payment
-               (appointment_id, payment_id, flow_token, flow_order, commerce_order, amount, currency, status)
-             VALUES ($1, $2, $3, $4, $5, $6, 'CLP', 'pending')`,
-            [apptId, paymentId, flowResp.token, flowResp.flowOrder ?? null, commerceOrder, amount]
-          );
-
-          log("INFO", "Flow payment created", { apptId, commerceOrder, flowOrder: flowResp.flowOrder });
-        } catch (err) {
-          // Payment failure must NOT cancel the booking — degrade gracefully
-          log("ERROR", "Flow payment error", { message: err.message, apptId });
-        }
-      } else {
-        // No Flow: still persist the appointment_payment row for tracking
-        if (paymentId) {
-          try {
-            await client.query(
-              `INSERT INTO appointment_payment
-                 (appointment_id, payment_id, amount, currency, status)
-               VALUES ($1, $2, $3, 'CLP', 'pending')`,
-              [apptId, paymentId, amount]
-            );
-          } catch (err) {
-            log("ERROR", "appointment_payment insert error (no Flow)", { message: err.message });
-          }
-        }
-        log("WARN", "Flow not configured — ledger payment created, no payment link sent");
+      // ── appointment_payment row (token added later by dairi-payment + webhook) ─
+      try {
+        await client.query(
+          `INSERT INTO appointment_payment (appointment_id, payment_id, amount, currency, status)
+           VALUES ($1, $2, $3, 'CLP', 'pending')`,
+          [apptId, paymentId, amount]
+        );
+      } catch (err) {
+        log("ERROR", "appointment_payment insert error", { message: err.message, apptId });
       }
 
       return resp(201, {
@@ -436,7 +417,7 @@ async function route(client, method, rawPath, body, qs) {
         patientName,
         modality:      row.modality,
         meetLink:      null,
-        paymentLink,
+        paymentLink:   null,
         paymentAmount: amount,
       });
     }

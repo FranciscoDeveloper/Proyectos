@@ -3,7 +3,10 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { switchMap, of, map, catchError } from 'rxjs';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
+
+const PAYMENT_LAMBDA_URL = 'https://koxzbg6zrjrlfvx2j2kqrlokv40jkzzp.lambda-url.us-east-1.on.aws/';
 
 type GcalStatus = 'idle' | 'connecting' | 'syncing' | 'synced' | 'error' | 'url_opened';
 
@@ -298,7 +301,22 @@ export class PatientBookingComponent implements OnInit {
       modality:     this.modality()
     };
 
-    this.http.post<BookingResult>(`/api/book/${this.professionalId()}`, payload).subscribe({
+    const info = this.bookingInfo();
+
+    this.http.post<BookingResult>(`/api/book/${this.professionalId()}`, payload).pipe(
+      switchMap(result => {
+        if (!result.paymentAmount) return of(result);
+        return this.http.post<{ paymentLink: string }>(PAYMENT_LAMBDA_URL, {
+          appointmentId: result.appointmentId,
+          amount:        result.paymentAmount,
+          patientEmail:  this.patientEmail().trim(),
+          subject:       `Cita con ${info?.doctorName ?? 'médico'} — ${info?.specialty ?? ''}`
+        }).pipe(
+          map(payment => ({ ...result, paymentLink: payment.paymentLink })),
+          catchError(() => of(result))
+        );
+      })
+    ).subscribe({
       next: result => {
         this.bookingResult.set(result);
         this.step.set(4);
