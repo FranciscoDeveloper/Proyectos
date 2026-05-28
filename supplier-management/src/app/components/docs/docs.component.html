@@ -263,7 +263,127 @@
       <p>Haz clic en la cita en el calendario → selecciona <strong>Editar</strong> para cambiar datos o <strong>Eliminar</strong> para borrarla.</p>
     </section>
 
-    <!-- ── 6. FICHAS CLÍNICAS ────────────────────────────────────────────── -->
+    <!-- ── 6. IMPORTACIÓN MASIVA ───────────────────────────────────────── -->
+    <section id="importacion" class="doc-section">
+      <div class="section-anchor"></div>
+      <div class="section-header">
+        <span class="section-icon">📥</span>
+        <h2>Importación masiva de Pacientes y Citas</h2>
+      </div>
+      <p>
+        El módulo de importación te permite cargar cientos de pacientes o citas de forma masiva desde una hoja de cálculo (<strong>.xlsx</strong>, <strong>.xls</strong>) o un archivo de texto delimitado (<strong>.csv</strong>), sin necesidad de ingresarlos uno a uno.
+      </p>
+
+      <h3>Cómo acceder</h3>
+      <ol class="steps-list">
+        <li>En el menú lateral, haz clic en <strong>Importar</strong>.</li>
+        <li>También aparece automáticamente al finalizar el <strong>Asistente de bienvenida (Onboarding)</strong> cuando configuras tu clínica por primera vez.</li>
+      </ol>
+
+      <h3>Paso 1 — Seleccionar el tipo de datos</h3>
+      <p>En la parte superior del módulo encontrarás dos pestañas:</p>
+      <div class="cards-grid">
+        <div class="info-card">
+          <strong>🧑‍⚕️ Pacientes</strong>
+          <p>Importa el listado completo de pacientes con sus datos de contacto e identificación.</p>
+        </div>
+        <div class="info-card">
+          <strong>📅 Citas</strong>
+          <p>Importa un historial de citas o agenda futura vinculando cada cita a su paciente.</p>
+        </div>
+      </div>
+
+      <h3>Paso 2 — Descargar la plantilla (recomendado)</h3>
+      <p>Para evitar errores de formato, descarga la plantilla oficial de Dairi:</p>
+      <ol class="steps-list">
+        <li>Haz clic en el botón <strong>Descargar plantilla</strong> dentro de la pestaña correspondiente.</li>
+        <li>Se descargará un archivo <code>plantilla_pacientes.xlsx</code> o <code>plantilla_citas.xlsx</code> con las columnas correctas ya configuradas.</li>
+        <li>Rellena la plantilla con tus datos y guárdala.</li>
+      </ol>
+      <div class="info-box">
+        También puedes usar tu propio archivo. Dairi detecta automáticamente las columnas por su nombre, incluso si están en otro idioma o con variaciones ortográficas.
+      </div>
+
+      <h3>Paso 3 — Cargar el archivo</h3>
+      <ol class="steps-list">
+        <li>Arrastra el archivo sobre la zona punteada o haz clic en ella para abrirlo desde tu equipo.</li>
+        <li>Formatos admitidos: <code>.xlsx</code>, <code>.xls</code> y <code>.csv</code>.</li>
+        <li>El sistema leerá el archivo y mostrará una vista previa de los datos detectados.</li>
+      </ol>
+
+      <h3>Paso 4 — Revisar el mapeo de columnas</h3>
+      <p>
+        Dairi mapea automáticamente las columnas de tu archivo a los campos del sistema usando una lista interna de nombres reconocidos. Si alguna columna no fue reconocida, aparecerá un selector desplegable para que la asignes manualmente.
+      </p>
+      <div class="warning-box">
+        Asegúrate de que los campos obligatorios estén correctamente asignados antes de continuar. Las filas con el campo obligatorio vacío serán descartadas durante la importación.
+      </div>
+
+      <h3>Campos de Pacientes</h3>
+      <div class="table-wrapper">
+        <table class="doc-table">
+          <thead>
+            <tr><th>Campo</th><th>Obligatorio</th><th>Descripción</th><th>Ejemplo</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Nombre Completo</strong></td><td><span class="badge badge-admin">Sí</span></td><td>Nombre y apellido del paciente.</td><td>María González</td></tr>
+            <tr><td>RUT / ID</td><td>No</td><td>RUT u otro identificador único.</td><td>12.345.678-9</td></tr>
+            <tr><td>Email</td><td>No</td><td>Correo electrónico de contacto.</td><td>maria&#64;correo.com</td></tr>
+            <tr><td>Teléfono</td><td>No</td><td>Número de contacto.</td><td>+56 9 1234 5678</td></tr>
+            <tr><td>Fecha Nacimiento</td><td>No</td><td>Formato DD/MM/AAAA o AAAA-MM-DD.</td><td>15/03/1985</td></tr>
+            <tr><td>Dirección</td><td>No</td><td>Dirección postal del paciente.</td><td>Av. Providencia 123</td></tr>
+            <tr><td>Notas</td><td>No</td><td>Observaciones adicionales.</td><td>Paciente con alergia a penicilina</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Campos de Citas</h3>
+      <div class="table-wrapper">
+        <table class="doc-table">
+          <thead>
+            <tr><th>Campo</th><th>Obligatorio</th><th>Descripción</th><th>Ejemplo</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Paciente</strong></td><td><span class="badge badge-admin">Sí</span></td><td>Nombre completo del paciente de la cita.</td><td>María González</td></tr>
+            <tr><td><strong>Fecha</strong></td><td><span class="badge badge-admin">Sí</span></td><td>Fecha de la cita (DD/MM/AAAA o AAAA-MM-DD).</td><td>22/06/2025</td></tr>
+            <tr><td>Hora</td><td>No</td><td>Hora de inicio (HH:MM en formato 24 h).</td><td>09:30</td></tr>
+            <tr><td>Duración</td><td>No</td><td>Duración en minutos.</td><td>45</td></tr>
+            <tr><td>Doctor</td><td>No</td><td>Nombre del profesional a cargo.</td><td>Dr. Ramírez</td></tr>
+            <tr><td>Especialidad</td><td>No</td><td>Área médica de la atención.</td><td>Medicina General</td></tr>
+            <tr><td>Motivo</td><td>No</td><td>Motivo o tipo de consulta.</td><td>Control rutinario</td></tr>
+            <tr><td>Estado</td><td>No</td><td>Estado inicial de la cita.</td><td>Agendada</td></tr>
+            <tr><td>Notas</td><td>No</td><td>Observaciones adicionales.</td><td>Requiere ayuno previo</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Paso 5 — Vista previa y validación</h3>
+      <p>Antes de importar, el módulo muestra una tabla con los primeros registros detectados. Las filas con errores de validación aparecen marcadas en rojo con el motivo del error.</p>
+      <ul class="ul-list">
+        <li>Filas con campos obligatorios vacíos serán descartadas.</li>
+        <li>Puedes corregir los datos directamente en tu archivo de origen, resubirlo y revisar nuevamente.</li>
+      </ul>
+
+      <h3>Paso 6 — Ejecutar la importación</h3>
+      <ol class="steps-list">
+        <li>Haz clic en <strong>Importar</strong> para iniciar el proceso.</li>
+        <li>Una barra de progreso mostrará el avance fila a fila en tiempo real.</li>
+        <li>Al finalizar, verás un resumen con el número de registros importados correctamente y los que fallaron.</li>
+      </ol>
+      <div class="info-box">
+        La importación procesa los registros de forma individual. Si un registro falla (ej. paciente duplicado), los demás continúan importándose sin interrupciones.
+      </div>
+
+      <h3>Buenas prácticas</h3>
+      <ul class="ul-list">
+        <li>Utiliza la plantilla oficial para asegurarte de que todas las columnas estén en el orden correcto.</li>
+        <li>Verifica que no haya filas en blanco en medio del archivo, ya que pueden confundir la detección automática.</li>
+        <li>Para archivos .csv, usa codificación <strong>UTF-8</strong> para evitar problemas con tildes y caracteres especiales.</li>
+        <li>Haz una importación de prueba con 5–10 registros antes de cargar el archivo completo.</li>
+      </ul>
+    </section>
+
+    <!-- ── 7. FICHAS CLÍNICAS ─────────────────────────────────────────── -->
     <section id="fichas" class="doc-section">
       <div class="section-anchor"></div>
       <div class="section-header">

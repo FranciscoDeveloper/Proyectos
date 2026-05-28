@@ -18,6 +18,7 @@ export class DocsComponent implements OnInit {
     { id: 'dashboard',     label: 'Dashboard',              icon: '📊' },
     { id: 'pacientes',     label: 'Pacientes',              icon: '🧑‍⚕️' },
     { id: 'citas',         label: 'Citas y Calendario',     icon: '📅' },
+    { id: 'importacion',   label: 'Importación masiva',     icon: '📥' },
     { id: 'fichas',        label: 'Fichas Clínicas',        icon: '📋' },
     { id: 'proveedores',   label: 'Proveedores',            icon: '🤝' },
     { id: 'productos',     label: 'Inventario',             icon: '💊' },
