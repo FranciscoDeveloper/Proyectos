@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 
 function passwordMatch(ctrl: AbstractControl): ValidationErrors | null {
   const pass    = ctrl.get('password')?.value;
@@ -16,13 +17,15 @@ function passwordMatch(ctrl: AbstractControl): ValidationErrors | null {
     styleUrl: './register.component.scss'
 })
 export class RegisterComponent {
-  private fb = inject(FormBuilder);
+  private fb   = inject(FormBuilder);
+  private http = inject(HttpClient);
 
   showPass      = signal(false);
   showConfirm   = signal(false);
   showTerms     = signal(false);
   submitted     = signal(false);
   loading       = signal(false);
+  serverError   = signal('');
 
   form = this.fb.group({
     nombre:          ['', [Validators.required, Validators.minLength(2)]],
@@ -68,9 +71,26 @@ export class RegisterComponent {
     if (this.form.invalid) return;
 
     this.loading.set(true);
-    setTimeout(() => {
-      this.loading.set(false);
-      this.submitted.set(true);
-    }, 1400);
+    this.serverError.set('');
+
+    const v = this.form.value;
+    this.http.post('/api/auth/register', {
+      nombre:    v.nombre,
+      apellidos: v.apellidos,
+      email:     v.email,
+      telefono:  v.telefono,
+      password:  v.password,
+    }).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.submitted.set(true);
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.serverError.set(
+          err.error?.message ?? 'No se pudo crear la cuenta. Intenta nuevamente.'
+        );
+      },
+    });
   }
 }

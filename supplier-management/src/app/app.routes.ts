@@ -18,6 +18,13 @@ export const routes: Routes = [
       import('./components/register/register.component').then(m => m.RegisterComponent)
   },
 
+  // ── Public: account activation (link from email) ─────────────────────────────
+  {
+    path: 'activate',
+    loadComponent: () =>
+      import('./components/activate/activate.component').then(m => m.ActivateComponent)
+  },
+
   // ── Public: docs ─────────────────────────────────────────────────────────────
   {
     path: 'docs',

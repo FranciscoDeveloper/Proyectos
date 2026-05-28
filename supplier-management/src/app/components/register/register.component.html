@@ -219,6 +219,11 @@
               }
             </div>
 
+            <!-- Server error -->
+            @if (serverError()) {
+              <p class="rp-server-error">{{ serverError() }}</p>
+            }
+
             <!-- Submit -->
             <button type="submit" class="rp-btn-primary rp-submit" [disabled]="loading()">
               @if (loading()) {

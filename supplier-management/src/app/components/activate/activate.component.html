@@ -1,0 +1,52 @@
+<div class="activate-page">
+
+  <header class="activate-header">
+    <div class="header-inner">
+      <div class="brand">Dairi<span>.</span></div>
+    </div>
+  </header>
+
+  <main class="activate-main">
+    <div class="activate-card">
+
+      <!-- Verificando -->
+      <ng-container *ngIf="state() === 'checking'">
+        <div class="spinner"></div>
+        <p class="state-msg">Activando tu cuenta…</p>
+      </ng-container>
+
+      <!-- Éxito -->
+      <ng-container *ngIf="state() === 'success'">
+        <div class="icon-wrap success">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <h2 class="state-title">¡Cuenta activada!</h2>
+        <p class="state-sub">{{ message() }}</p>
+        <a routerLink="/login" class="btn-primary">Iniciar sesión →</a>
+      </ng-container>
+
+      <!-- Error -->
+      <ng-container *ngIf="state() === 'error'">
+        <div class="icon-wrap error">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h2 class="state-title">Enlace inválido</h2>
+        <p class="state-sub">{{ message() }}</p>
+        <a routerLink="/register" class="btn-secondary">Volver al registro</a>
+      </ng-container>
+
+    </div>
+  </main>
+
+  <footer class="activate-footer">
+    <span>Powered by <strong>Dairi.</strong> · Plataforma clínica inteligente</span>
+  </footer>
+
+</div>

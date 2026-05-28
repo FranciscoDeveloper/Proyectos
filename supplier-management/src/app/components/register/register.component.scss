@@ -362,3 +362,14 @@
   .rp-modal-footer { flex-direction: column; .rp-btn-primary { width: 100%; } }
   .rp-card { padding: 1.75rem 1.25rem; }
 }
+
+.rp-server-error {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: .75rem 1rem;
+  font-size: .875rem;
+  font-weight: 500;
+  margin-bottom: .5rem;
+}
