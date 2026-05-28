@@ -26,6 +26,7 @@ export class RegisterComponent {
   submitted     = signal(false);
   loading       = signal(false);
   serverError   = signal('');
+  emailSent     = signal(true);
 
   form = this.fb.group({
     nombre:          ['', [Validators.required, Validators.minLength(2)]],
@@ -81,8 +82,9 @@ export class RegisterComponent {
       telefono:  v.telefono,
       password:  v.password,
     }).subscribe({
-      next: () => {
+      next: (res: any) => {
         this.loading.set(false);
+        this.emailSent.set(res?.emailSent !== false);
         this.submitted.set(true);
       },
       error: (err) => {

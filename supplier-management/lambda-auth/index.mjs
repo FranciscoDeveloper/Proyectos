@@ -167,9 +167,19 @@ async function handleRegister(body) {
       [activationToken, userId]
     );
 
-    await sendActivationEmail({ name, email: emailNorm, token: activationToken });
+    let emailSent = true;
+    try {
+      await sendActivationEmail({ name, email: emailNorm, token: activationToken });
+    } catch (emailErr) {
+      emailSent = false;
+      console.error("SES send error", { message: emailErr.message, userId, email: emailNorm });
+    }
 
-    return response(201, { message: "Cuenta creada. Revisa tu correo para activarla." });
+    const msg = emailSent
+      ? "Cuenta creada. Revisa tu correo para activarla."
+      : "Cuenta creada, pero no pudimos enviar el correo de activación. Contacta al soporte.";
+
+    return response(201, { message: msg, emailSent });
   } catch (err) {
     console.error("Register error:", err);
     return response(500, { message: "Error interno del servidor" });
@@ -220,7 +230,7 @@ async function handleActivate(body) {
 
 // ── SES email ─────────────────────────────────────────────────────────────────
 async function sendActivationEmail({ name, email, token }) {
-  const activationUrl = `${APP_URL}/activate?token=${encodeURIComponent(token)}`;
+  const activationUrl = `${APP_URL}/#/activate?token=${encodeURIComponent(token)}`;
   const firstName     = name.split(" ")[0];
 
   const html = `

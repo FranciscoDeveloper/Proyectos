@@ -55,20 +55,30 @@
               <polyline points="9 12 11.5 14.5 15.5 9.5"/>
             </svg>
           </div>
-          <h2>¡Revisa tu correo!</h2>
-          <p>Hemos enviado un enlace de activación a</p>
-          <div class="rp-email-pill">{{ registeredEmail }}</div>
-          <p class="rp-email-hint">
-            Haz clic en el enlace del correo para activar tu cuenta y comenzar tu prueba gratuita de 14 días.<br>
-            Puede tardar unos minutos. Revisa también tu carpeta de spam.
-          </p>
+          @if (emailSent()) {
+            <h2>¡Revisa tu correo!</h2>
+            <p>Hemos enviado un enlace de activación a</p>
+            <div class="rp-email-pill">{{ registeredEmail }}</div>
+            <p class="rp-email-hint">
+              Haz clic en el enlace del correo para activar tu cuenta y comenzar tu prueba gratuita de 14 días.<br>
+              Puede tardar unos minutos. Revisa también tu carpeta de spam.
+            </p>
+          } @else {
+            <h2>Cuenta creada</h2>
+            <p class="rp-email-hint" style="color:#dc2626;">
+              No pudimos enviar el correo de activación a <strong>{{ registeredEmail }}</strong>.<br>
+              Por favor contacta a soporte para que activen tu cuenta manualmente.
+            </p>
+          }
           <a routerLink="/login" class="rp-btn-primary" style="margin-top:1.5rem;">
             Ir a iniciar sesión
           </a>
-          <div class="rp-resend">
-            ¿No llegó el correo?
-            <button type="button" class="rp-link-btn">Reenviar activación</button>
-          </div>
+          @if (emailSent()) {
+            <div class="rp-resend">
+              ¿No llegó el correo?
+              <button type="button" class="rp-link-btn">Reenviar activación</button>
+            </div>
+          }
         </div>
       }
 
