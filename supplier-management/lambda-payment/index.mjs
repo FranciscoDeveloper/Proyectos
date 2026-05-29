@@ -5,7 +5,7 @@ const FLOW_SECRET_KEY = process.env.FLOW_SECRET_KEY || "";
 const FLOW_BASE_URL   = process.env.FLOW_BASE_URL   || "https://www.flow.cl/api";
 const APP_URL         = process.env.APP_URL         || "https://dairi.cl";
 const BOOK_FUNCTION_URL = process.env.BOOK_FUNCTION_URL || "";
-const JWT_SECRET      = process.env.JWT_SECRET      || "";
+const APP_SECRET      = process.env.APP_SECRET      || "";
 
 const ALLOWED_ORIGINS = ["https://dairi.cl", "https://app.dairi.cl"];
 
@@ -14,7 +14,7 @@ function corsHeaders(origin) {
   return {
     "Access-Control-Allow-Origin":  allowed,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Headers": "Content-Type",
   };
 }
 
@@ -22,23 +22,13 @@ function resp(status, body, origin = "") {
   return { statusCode: status, headers: { "Content-Type": "application/json", ...corsHeaders(origin) }, body: JSON.stringify(body) };
 }
 
-function verifyJwt(authHeader) {
-  if (!authHeader?.startsWith("Bearer ")) return null;
-  if (!JWT_SECRET) return null;
-  const token = authHeader.slice(7);
-  try {
-    const [rawHeader, rawPayload, sig] = token.split(".");
-    if (!rawHeader || !rawPayload || !sig) return null;
-    const expected = createHmac("sha256", JWT_SECRET)
-      .update(`${rawHeader}.${rawPayload}`)
-      .digest("base64url");
-    if (expected !== sig) return null;
-    const payload = JSON.parse(Buffer.from(rawPayload, "base64url").toString());
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null;
-    return payload;
-  } catch {
-    return null;
-  }
+function verifyBookingToken(token, appointmentId, amount) {
+  if (!APP_SECRET || !token) return false;
+  const now  = Math.floor(Date.now() / 600000);
+  const sign = (w) => createHmac("sha256", APP_SECRET)
+    .update(`${appointmentId}:${amount}:${w}`)
+    .digest("hex");
+  return token === sign(now) || token === sign(now - 1);
 }
 
 function log(level, msg, data = {}) {
@@ -98,12 +88,6 @@ export const handler = async (event) => {
     return resp(405, { error: "Method not allowed" }, origin);
   }
 
-  const authHeader = event.headers?.["authorization"] || event.headers?.["Authorization"] || "";
-  if (!verifyJwt(authHeader)) {
-    log("WARN", "JWT verification failed", { origin });
-    return resp(401, { error: "Token de autenticación requerido o inválido" }, origin);
-  }
-
   let body;
   try {
     body = JSON.parse(event.body || "{}");
@@ -111,10 +95,15 @@ export const handler = async (event) => {
     return resp(400, { error: "Invalid JSON body" }, origin);
   }
 
-  const { appointmentId, amount, patientEmail, subject } = body;
+  const { appointmentId, amount, patientEmail, subject, bookingToken } = body;
 
   if (!appointmentId || !amount) {
     return resp(400, { error: "appointmentId and amount are required" }, origin);
+  }
+
+  if (!verifyBookingToken(bookingToken, appointmentId, amount)) {
+    log("WARN", "Booking token verification failed", { appointmentId, origin });
+    return resp(401, { error: "Token de reserva inválido o expirado" }, origin);
   }
 
   if (!FLOW_API_KEY || !FLOW_SECRET_KEY) {

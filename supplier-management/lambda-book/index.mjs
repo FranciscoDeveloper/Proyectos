@@ -33,6 +33,16 @@ const FLOW_SECRET_KEY      = process.env.FLOW_SECRET_KEY      || "";
 const BOOK_FUNCTION_URL    = process.env.BOOK_FUNCTION_URL    || "";
 const APP_URL              = process.env.APP_URL              || "https://dairi.cl";
 const CONSULTATION_AMOUNT  = parseInt(process.env.CONSULTATION_AMOUNT || "25000");
+const APP_SECRET           = process.env.APP_SECRET           || "";
+
+// Generates a short-lived HMAC token (valid 10 min) that proves a booking is legitimate.
+// dairi-payment verifies this token before calling Flow — no user JWT needed.
+function generateBookingToken(appointmentId, amount) {
+  const window = Math.floor(Date.now() / 600000);
+  return createHmac("sha256", APP_SECRET)
+    .update(`${appointmentId}:${amount}:${window}`)
+    .digest("hex");
+}
 
 // ── DB: ensure appointment_payment table exists ────────────────────────────────
 let schemaReady = false;
@@ -406,6 +416,8 @@ async function route(client, method, rawPath, body, qs) {
         log("ERROR", "appointment_payment insert error", { message: err.message, apptId });
       }
 
+      const bookingToken = APP_SECRET ? generateBookingToken(apptId, amount) : undefined;
+
       return resp(201, {
         appointmentId: String(apptId),
         confirmCode:   row.confirm_code,
@@ -419,6 +431,7 @@ async function route(client, method, rawPath, body, qs) {
         meetLink:      null,
         paymentLink:   null,
         paymentAmount: amount,
+        bookingToken,
       });
     }
 

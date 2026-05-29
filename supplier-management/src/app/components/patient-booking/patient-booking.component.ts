@@ -5,7 +5,6 @@ import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { switchMap, of, map, catchError } from 'rxjs';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
-import { AuthService } from '../../services/auth.service';
 
 const PAYMENT_LAMBDA_URL = 'https://koxzbg6zrjrlfvx2j2kqrlokv40jkzzp.lambda-url.us-east-1.on.aws/';
 
@@ -49,8 +48,9 @@ interface BookingResult {
   patientName:   string;
   modality:      string;
   meetLink?:     string;
-  paymentLink?:  string;
+  paymentLink?:   string;
   paymentAmount?: number;
+  bookingToken?:  string;
 }
 
 interface PaymentStatus {
@@ -68,7 +68,6 @@ interface PaymentStatus {
 export class PatientBookingComponent implements OnInit {
   private route    = inject(ActivatedRoute);
   private http     = inject(HttpClient);
-  private authSvc  = inject(AuthService);
   readonly gcalSvc = inject(GoogleCalendarService);
 
   // Step 0: professional list
@@ -311,10 +310,9 @@ export class PatientBookingComponent implements OnInit {
         return this.http.post<{ paymentLink: string }>(PAYMENT_LAMBDA_URL, {
           appointmentId: result.appointmentId,
           amount:        result.paymentAmount,
+          bookingToken:  result.bookingToken,
           patientEmail:  this.patientEmail().trim(),
           subject:       `Cita con ${info?.doctorName ?? 'médico'} — ${info?.specialty ?? ''}`
-        }, {
-          headers: { Authorization: `Bearer ${this.authSvc.token()}` }
         }).pipe(
           map(payment => ({ ...result, paymentLink: payment.paymentLink })),
           catchError(() => of(result))
