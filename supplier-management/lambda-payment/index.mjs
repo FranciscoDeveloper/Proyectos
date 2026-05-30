@@ -1,25 +1,14 @@
 import { createHmac } from "node:crypto";
 
-const FLOW_API_KEY    = process.env.FLOW_API_KEY    || "";
-const FLOW_SECRET_KEY = process.env.FLOW_SECRET_KEY || "";
-const FLOW_BASE_URL   = process.env.FLOW_BASE_URL   || "https://www.flow.cl/api";
-const APP_URL         = process.env.APP_URL         || "https://dairi.cl";
+const FLOW_API_KEY      = process.env.FLOW_API_KEY      || "";
+const FLOW_SECRET_KEY   = process.env.FLOW_SECRET_KEY   || "";
+const FLOW_BASE_URL     = process.env.FLOW_BASE_URL     || "https://www.flow.cl/api";
+const APP_URL           = process.env.APP_URL           || "https://dairi.cl";
 const BOOK_FUNCTION_URL = process.env.BOOK_FUNCTION_URL || "";
-const APP_SECRET      = process.env.APP_SECRET      || "";
+const APP_SECRET        = process.env.APP_SECRET        || "";
 
-const ALLOWED_ORIGINS = ["https://dairi.cl", "https://app.dairi.cl"];
-
-function corsHeaders(origin) {
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    "Access-Control-Allow-Origin":  allowed,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
-}
-
-function resp(status, body, origin = "") {
-  return { statusCode: status, headers: { "Content-Type": "application/json", ...corsHeaders(origin) }, body: JSON.stringify(body) };
+function resp(status, body) {
+  return { statusCode: status, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
 }
 
 function verifyBookingToken(token, appointmentId, amount) {
@@ -77,38 +66,33 @@ async function callFlow(endpoint, params) {
 }
 
 export const handler = async (event) => {
-  const origin = event.headers?.["origin"] || event.headers?.["Origin"] || "";
   const method = event.requestContext?.http?.method;
 
-  if (method === "OPTIONS") {
-    return { statusCode: 204, headers: corsHeaders(origin), body: "" };
-  }
-
   if (method !== "POST") {
-    return resp(405, { error: "Method not allowed" }, origin);
+    return resp(405, { error: "Method not allowed" });
   }
 
   let body;
   try {
     body = JSON.parse(event.body || "{}");
   } catch {
-    return resp(400, { error: "Invalid JSON body" }, origin);
+    return resp(400, { error: "Invalid JSON body" });
   }
 
   const { appointmentId, amount, patientEmail, subject, bookingToken } = body;
 
   if (!appointmentId || !amount) {
-    return resp(400, { error: "appointmentId and amount are required" }, origin);
+    return resp(400, { error: "appointmentId and amount are required" });
   }
 
   if (!verifyBookingToken(bookingToken, appointmentId, amount)) {
-    log("WARN", "Booking token verification failed", { appointmentId, origin });
-    return resp(401, { error: "Token de reserva inválido o expirado" }, origin);
+    log("WARN", "Booking token verification failed", { appointmentId });
+    return resp(401, { error: "Token de reserva inválido o expirado" });
   }
 
   if (!FLOW_API_KEY || !FLOW_SECRET_KEY) {
     log("ERROR", "Missing Flow credentials");
-    return resp(500, { error: "Payment service misconfigured" }, origin);
+    return resp(500, { error: "Payment service misconfigured" });
   }
 
   const commerceOrder = `APPT-${appointmentId}-${Date.now()}`;
@@ -119,9 +103,9 @@ export const handler = async (event) => {
 
   const params = {
     commerceOrder,
-    subject:          subject || `Cita médica #${appointmentId}`,
-    amount:           String(amount),
-    currency:         "CLP",
+    subject:     subject || `Cita médica #${appointmentId}`,
+    amount:      String(amount),
+    currency:    "CLP",
     urlConfirmation,
     urlReturn,
     ...(patientEmail ? { email: patientEmail } : {}),
@@ -136,17 +120,15 @@ export const handler = async (event) => {
       token:     flow.token,
     });
 
-    const paymentLink = `${flow.url}?token=${flow.token}`;
-
     return resp(200, {
-      paymentLink,
+      paymentLink:   `${flow.url}?token=${flow.token}`,
       token:         flow.token,
       flowOrder:     flow.flowOrder,
       commerceOrder,
-    }, origin);
+    });
 
   } catch (err) {
     log("ERROR", "Failed to create Flow payment", { message: err.message });
-    return resp(502, { error: "Failed to create payment", detail: err.message }, origin);
+    return resp(502, { error: "Failed to create payment", detail: err.message });
   }
 };
