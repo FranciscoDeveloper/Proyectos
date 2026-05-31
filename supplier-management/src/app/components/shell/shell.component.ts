@@ -64,21 +64,25 @@ export class ShellComponent {
     const hasPayments    = schemas.some(s => s.entity.key === 'payments');
     const hasRecords     = schemas.some(s => s.entity.key === 'clinical-records');
     const hasImportable  = schemas.some(s => /patient|pacient|appointment|cita/i.test(s.entity.key));
+    const hasBudgets     = schemas.some(s => /patient|pacient|payment/i.test(s.entity.key));
     return [
-      { label: 'Dashboard', icon: 'grid',      route: '/app/dashboard' },
-      ...schemas.map(s => ({
-        label: s.entity.plural,
-        icon: s.entity.icon,
-        route: s.entity.moduleType === 'calendar'
-          ? '/app/module/' + s.entity.key
-          : s.entity.moduleType === 'clinical-record'
-            ? '/app/clinical/' + s.entity.key
-            : '/app/entity/' + s.entity.key
-      })),
-      ...(hasRecords     ? [{ label: 'Reportes',   icon: 'bar-chart',   route: '/app/reports'     }] : []),
-      ...(hasPayments    ? [{ label: 'Comisiones', icon: 'dollar-sign', route: '/app/commissions' }] : []),
-      ...(hasImportable  ? [{ label: 'Importar',   icon: 'upload',      route: '/app/import'      }] : []),
-      { label: 'Chat',      icon: 'chat',      route: '/app/chat'      }
+      { label: 'Dashboard',     icon: 'grid',         route: '/app/dashboard'     },
+      ...schemas
+        .filter(s => s.entity.moduleType !== 'presupuestos')
+        .map(s => ({
+          label: s.entity.plural,
+          icon: s.entity.icon,
+          route: s.entity.moduleType === 'calendar'
+            ? '/app/module/' + s.entity.key
+            : s.entity.moduleType === 'clinical-record'
+              ? '/app/clinical/' + s.entity.key
+              : '/app/entity/' + s.entity.key
+        })),
+      ...(hasRecords     ? [{ label: 'Reportes',      icon: 'bar-chart',    route: '/app/reports'       }] : []),
+      ...(hasPayments    ? [{ label: 'Comisiones',    icon: 'dollar-sign',  route: '/app/commissions'   }] : []),
+      ...(hasBudgets     ? [{ label: 'Presupuestos',  icon: 'file-text',    route: '/app/presupuestos'  }] : []),
+      ...(hasImportable  ? [{ label: 'Importar',      icon: 'upload',       route: '/app/import'        }] : []),
+      { label: 'Chat',          icon: 'chat',         route: '/app/chat'          }
     ];
   });
 }

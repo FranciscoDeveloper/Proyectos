@@ -1,0 +1,562 @@
+<!-- ── Print overlay ─────────────────────────────────────────────────────── -->
+<div class="print-sheet" *ngIf="printMode() && selected()">
+  <ng-container [ngTemplateOutlet]="printTemplate" [ngTemplateOutletContext]="{ p: selected()! }"/>
+</div>
+
+<!-- ── Page layout ────────────────────────────────────────────────────────── -->
+<div class="presup-page" [class.panel-open]="panelMode() !== 'closed'">
+
+  <!-- ══ MAIN AREA ══════════════════════════════════════════════════════════ -->
+  <div class="presup-main">
+
+    <!-- Header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1 class="page-title">
+          <svg class="title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          Presupuestos
+        </h1>
+        <p class="page-subtitle">Cotizaciones y presupuestos para pacientes</p>
+      </div>
+      <button class="btn-primary" (click)="openCreate()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo Presupuesto
+      </button>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="stats-strip">
+      <div class="stat-card">
+        <div class="stat-value">{{ stats().total }}</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat-card stat-sent">
+        <div class="stat-value">{{ stats().sent }}</div>
+        <div class="stat-label">Enviados</div>
+      </div>
+      <div class="stat-card stat-approved">
+        <div class="stat-value">{{ stats().approved }}</div>
+        <div class="stat-label">Aprobados</div>
+      </div>
+      <div class="stat-card stat-draft">
+        <div class="stat-value">{{ stats().draft }}</div>
+        <div class="stat-label">Borradores</div>
+      </div>
+      <div class="stat-card stat-value-card">
+        <div class="stat-value">{{ formatCLP(stats().totalValue) }}</div>
+        <div class="stat-label">Valor activo</div>
+      </div>
+      <div class="stat-card stat-conversion">
+        <div class="stat-value">{{ stats().conversion }}%</div>
+        <div class="stat-label">Tasa aprobación</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-row">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-input" type="text" placeholder="Buscar paciente, número, doctor…"
+               [value]="filterSearch()" (input)="filterSearch.set($any($event.target).value)" />
+      </div>
+      <select class="filter-select" [value]="filterStatus()" (change)="filterStatus.set($any($event.target).value)">
+        <option value="">Todos los estados</option>
+        <option value="draft">Borrador</option>
+        <option value="sent">Enviado</option>
+        <option value="approved">Aprobado</option>
+        <option value="rejected">Rechazado</option>
+        <option value="expired">Vencido</option>
+        <option value="converted">Convertido</option>
+      </select>
+      <input class="filter-date" type="date" [value]="filterFrom()"
+             (change)="filterFrom.set($any($event.target).value)" title="Desde" />
+      <input class="filter-date" type="date" [value]="filterTo()"
+             (change)="filterTo.set($any($event.target).value)" title="Hasta" />
+      <button class="btn-clear" *ngIf="hasActiveFilters()" (click)="clearFilters()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Limpiar
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <div class="table-loading" *ngIf="loading()">
+        <div class="spinner-ring"></div>
+        <span>Cargando presupuestos…</span>
+      </div>
+
+      <div class="empty-state" *ngIf="!loading() && filtered().length === 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        <p>{{ hasActiveFilters() ? 'No hay resultados para los filtros aplicados.' : 'Aún no hay presupuestos. Crea el primero.' }}</p>
+      </div>
+
+      <table class="data-table" *ngIf="!loading() && filtered().length > 0">
+        <thead>
+          <tr>
+            <th>N° Presupuesto</th>
+            <th>Paciente</th>
+            <th>Doctor / Especialidad</th>
+            <th>Fecha</th>
+            <th>Vence</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th class="col-actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of filtered(); trackBy: trackByIdx"
+              [class.row-selected]="selected()?.id === p.id"
+              (click)="openView(p)">
+            <td class="col-numero">{{ p.numero }}</td>
+            <td>
+              <div class="patient-cell">
+                <span class="patient-name">{{ p.patientName }}</span>
+                <span class="patient-rut" *ngIf="p.patientRut">{{ p.patientRut }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="doctor-cell">
+                <span>{{ p.doctorName }}</span>
+                <span class="specialty-tag" *ngIf="p.specialty">{{ p.specialty }}</span>
+              </div>
+            </td>
+            <td class="col-date">{{ p.fechaEmision | date:'dd/MM/yyyy' }}</td>
+            <td class="col-date" [class.expiring]="isExpiringSoon(p)" [class.expired-date]="isExpired(p)">
+              {{ p.fechaVencimiento | date:'dd/MM/yyyy' }}
+            </td>
+            <td class="col-total">{{ formatCLP(calcTotal(p)) }}</td>
+            <td class="col-status" (click)="$event.stopPropagation()">
+              <span class="status-badge" [attr.data-status]="p.status">{{ statusLabel(p.status) }}</span>
+            </td>
+            <td class="col-actions" (click)="$event.stopPropagation()">
+              <button class="action-btn" title="Ver detalle" (click)="openView(p)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+              <button class="action-btn" title="Editar" (click)="openEdit(p)" *ngIf="p.status === 'draft'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="action-btn" title="Imprimir / PDF" (click)="printPresupuesto(p)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              </button>
+              <button class="action-btn action-delete" title="Eliminar" (click)="confirmDelete(p.id!)" *ngIf="p.status === 'draft'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div><!-- /presup-main -->
+
+  <!-- ══ SIDE PANEL ═════════════════════════════════════════════════════════ -->
+  <aside class="side-panel" [class.open]="panelMode() !== 'closed'">
+
+    <!-- VIEW ──────────────────────────────────────────────────────────────── -->
+    <ng-container *ngIf="panelMode() === 'view' && selected() as p">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <span class="status-badge" [attr.data-status]="p.status">{{ statusLabel(p.status) }}</span>
+          <h2 class="panel-title">{{ p.numero }}</h2>
+        </div>
+        <div class="panel-header-actions">
+          <button class="btn-icon" title="Editar" (click)="openEdit(p)" *ngIf="p.status === 'draft'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn-icon" title="Imprimir / PDF" (click)="printPresupuesto(p)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          </button>
+          <button class="btn-icon btn-close" (click)="closePanel()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <!-- Patient + Doctor info -->
+        <div class="info-grid">
+          <div class="info-block">
+            <span class="info-label">Paciente</span>
+            <span class="info-value">{{ p.patientName }}</span>
+            <span class="info-sub" *ngIf="p.patientRut">{{ p.patientRut }}</span>
+            <span class="info-sub" *ngIf="p.patientPhone">{{ p.patientPhone }}</span>
+            <span class="info-sub" *ngIf="p.patientEmail">{{ p.patientEmail }}</span>
+          </div>
+          <div class="info-block">
+            <span class="info-label">Profesional</span>
+            <span class="info-value">{{ p.doctorName }}</span>
+            <span class="info-sub" *ngIf="p.specialty">{{ p.specialty }}</span>
+          </div>
+          <div class="info-block">
+            <span class="info-label">Fechas</span>
+            <span class="info-value">Emisión: {{ p.fechaEmision | date:'dd/MM/yyyy' }}</span>
+            <span class="info-sub" [class.text-danger]="isExpired(p)">Vence: {{ p.fechaVencimiento | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="info-block">
+            <span class="info-label">Previsión</span>
+            <span class="info-value">{{ previsionLabel(p.prevision) }}</span>
+            <span class="info-sub" *ngIf="p.coveragePercent > 0">Cobertura: {{ p.coveragePercent }}%</span>
+          </div>
+        </div>
+
+        <!-- Items table -->
+        <div class="section-title">Ítems del Presupuesto</div>
+        <div class="items-view-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Descripción</th>
+                <th class="num-col">Qty</th>
+                <th class="num-col">P. Unitario</th>
+                <th class="num-col">Dcto.</th>
+                <th class="num-col">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of p.items; trackBy: trackByIdx">
+                <td>{{ item.description }}</td>
+                <td class="num-col">{{ item.quantity }}</td>
+                <td class="num-col">{{ formatCLP(item.unitPrice) }}</td>
+                <td class="num-col">{{ item.discountPct > 0 ? item.discountPct + '%' : '—' }}</td>
+                <td class="num-col">{{ formatCLP(item.subtotal) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Totals -->
+        <div class="totals-block">
+          <div class="total-row" *ngIf="p.discountGlobal > 0">
+            <span>Subtotal</span><span>{{ formatCLP(calcSubtotal(p)) }}</span>
+          </div>
+          <div class="total-row discount-row" *ngIf="p.discountGlobal > 0">
+            <span>Descuento global ({{ p.discountGlobal }}%)</span>
+            <span>- {{ formatCLP(calcDiscount(p)) }}</span>
+          </div>
+          <div class="total-row total-main">
+            <span>Total</span><span>{{ formatCLP(calcTotal(p)) }}</span>
+          </div>
+          <ng-container *ngIf="p.coveragePercent > 0">
+            <div class="total-row coverage-row">
+              <span>Cobertura {{ previsionLabel(p.prevision) }} ({{ p.coveragePercent }}%)</span>
+              <span>- {{ formatCLP(calcCovered(p)) }}</span>
+            </div>
+            <div class="total-row patient-pays">
+              <span>Pago paciente</span><span>{{ formatCLP(calcPatientPays(p)) }}</span>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Notes -->
+        <div class="notes-block" *ngIf="p.notes">
+          <div class="section-title">Observaciones</div>
+          <p class="notes-text">{{ p.notes }}</p>
+        </div>
+
+        <!-- Status workflow -->
+        <div class="workflow-block" *ngIf="nextStatuses(p.status).length > 0">
+          <div class="section-title">Cambiar Estado</div>
+          <div class="workflow-actions">
+            <button *ngFor="let ns of nextStatuses(p.status)"
+                    class="workflow-btn"
+                    [attr.data-action]="ns.value"
+                    (click)="changeStatus(p, ns.value)">
+              {{ ns.label }}
+            </button>
+          </div>
+        </div>
+      </div><!-- /panel-body view -->
+    </ng-container>
+
+    <!-- CREATE / EDIT ─────────────────────────────────────────────────────── -->
+    <ng-container *ngIf="panelMode() === 'create' || panelMode() === 'edit'">
+      <div class="panel-header">
+        <h2 class="panel-title">{{ panelMode() === 'create' ? 'Nuevo Presupuesto' : 'Editar Presupuesto' }}</h2>
+        <button class="btn-icon btn-close" (click)="closePanel()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="panel-body">
+        <div class="error-box" *ngIf="serverError()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          {{ serverError() }}
+        </div>
+
+        <!-- Header fields -->
+        <div class="form-section-title">Identificación</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>N° Presupuesto</label>
+            <input type="text" [value]="form().numero" (input)="updateFormField('numero', $any($event.target).value)" readonly class="input-readonly"/>
+          </div>
+        </div>
+
+        <div class="form-section-title">Datos del Paciente <span class="req">*</span></div>
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label>Nombre completo <span class="req">*</span></label>
+            <input type="text" placeholder="María González" [value]="form().patientName"
+                   (input)="updateFormField('patientName', $any($event.target).value)" />
+          </div>
+          <div class="form-group">
+            <label>RUT / ID</label>
+            <input type="text" placeholder="12.345.678-9" [value]="form().patientRut"
+                   (input)="updateFormField('patientRut', $any($event.target).value)" />
+          </div>
+        </div>
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="tel" placeholder="+56 9 XXXX XXXX" [value]="form().patientPhone"
+                   (input)="updateFormField('patientPhone', $any($event.target).value)" />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" placeholder="correo@ejemplo.com" [value]="form().patientEmail"
+                   (input)="updateFormField('patientEmail', $any($event.target).value)" />
+          </div>
+        </div>
+
+        <div class="form-section-title">Profesional <span class="req">*</span></div>
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label>Doctor / Profesional <span class="req">*</span></label>
+            <input type="text" placeholder="Dr. Apellido" [value]="form().doctorName"
+                   (input)="updateFormField('doctorName', $any($event.target).value)" />
+          </div>
+          <div class="form-group">
+            <label>Especialidad</label>
+            <input type="text" placeholder="Medicina General" [value]="form().specialty"
+                   (input)="updateFormField('specialty', $any($event.target).value)" />
+          </div>
+        </div>
+
+        <div class="form-section-title">Fechas</div>
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label>Fecha de Emisión <span class="req">*</span></label>
+            <input type="date" [value]="form().fechaEmision"
+                   (change)="updateFormField('fechaEmision', $any($event.target).value)" />
+          </div>
+          <div class="form-group">
+            <label>Fecha de Vencimiento <span class="req">*</span></label>
+            <input type="date" [value]="form().fechaVencimiento"
+                   (change)="updateFormField('fechaVencimiento', $any($event.target).value)" />
+          </div>
+        </div>
+
+        <div class="form-section-title">Previsión y Cobertura</div>
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label>Previsión</label>
+            <select [value]="form().prevision" (change)="updateFormField('prevision', $any($event.target).value)">
+              <option value="particular">Particular</option>
+              <option value="fonasa">FONASA</option>
+              <option value="isapre">Isapre</option>
+              <option value="capredena">CAPREDENA</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cobertura (%)</label>
+            <input type="number" min="0" max="100" [value]="form().coveragePercent"
+                   (input)="updateFormField('coveragePercent', +$any($event.target).value)" />
+          </div>
+        </div>
+
+        <!-- Items -->
+        <div class="form-section-title items-title">
+          Ítems del Presupuesto
+          <button class="btn-add-item" (click)="addItem()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Agregar ítem
+          </button>
+        </div>
+
+        <div class="items-form-table">
+          <div class="items-header">
+            <span class="col-desc">Descripción</span>
+            <span class="col-qty">Qty</span>
+            <span class="col-price">P. Unit.</span>
+            <span class="col-disc">Dcto.%</span>
+            <span class="col-sub">Subtotal</span>
+            <span class="col-del"></span>
+          </div>
+          <div class="item-row" *ngFor="let item of form().items; let i = index; trackBy: trackByIdx">
+            <input class="col-desc" type="text" placeholder="Descripción del procedimiento…"
+                   [value]="item.description"
+                   (input)="updateItem(i, 'description', $any($event.target).value)" />
+            <input class="col-qty" type="number" min="1" step="1" [value]="item.quantity"
+                   (input)="updateItem(i, 'quantity', +$any($event.target).value)" />
+            <input class="col-price" type="number" min="0" step="100" [value]="item.unitPrice"
+                   (input)="updateItem(i, 'unitPrice', +$any($event.target).value)" />
+            <input class="col-disc" type="number" min="0" max="100" step="1" [value]="item.discountPct"
+                   (input)="updateItem(i, 'discountPct', +$any($event.target).value)" />
+            <span class="col-sub num-text">{{ formatCLP(item.subtotal) }}</span>
+            <button class="col-del btn-remove-item" (click)="removeItem(i)" [disabled]="form().items.length === 1">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Discount & Totals -->
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label>Descuento Global (%)</label>
+            <input type="number" min="0" max="100" step="1" [value]="form().discountGlobal"
+                   (input)="updateFormField('discountGlobal', +$any($event.target).value)" />
+          </div>
+          <div class="totals-mini">
+            <div class="total-mini-row" *ngIf="form().discountGlobal > 0">
+              <span>Subtotal</span><span>{{ formatCLP(formTotals().subtotal) }}</span>
+            </div>
+            <div class="total-mini-row discount-mini" *ngIf="form().discountGlobal > 0">
+              <span>Descuento</span><span>- {{ formatCLP(formTotals().discount) }}</span>
+            </div>
+            <div class="total-mini-row total-mini-main">
+              <span>Total</span><span>{{ formatCLP(formTotals().total) }}</span>
+            </div>
+            <div class="total-mini-row coverage-mini" *ngIf="form().coveragePercent > 0">
+              <span>{{ previsionLabel(form().prevision) }} cubre</span>
+              <span>- {{ formatCLP(formTotals().covered) }}</span>
+            </div>
+            <div class="total-mini-row patient-mini" *ngIf="form().coveragePercent > 0">
+              <span>Pago paciente</span>
+              <span>{{ formatCLP(formTotals().patientPays) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-section-title">Observaciones</div>
+        <div class="form-group">
+          <textarea rows="3" placeholder="Indicaciones, condiciones del presupuesto…"
+                    [value]="form().notes"
+                    (input)="updateFormField('notes', $any($event.target).value)"></textarea>
+        </div>
+
+        <!-- Actions -->
+        <div class="panel-actions">
+          <button class="btn-secondary" (click)="closePanel()">Cancelar</button>
+          <button class="btn-primary" (click)="save()" [disabled]="saving()">
+            <span class="spinner-sm" *ngIf="saving()"></span>
+            {{ saving() ? 'Guardando…' : (panelMode() === 'create' ? 'Crear Presupuesto' : 'Guardar Cambios') }}
+          </button>
+        </div>
+
+      </div><!-- /panel-body form -->
+    </ng-container>
+
+  </aside><!-- /side-panel -->
+
+</div><!-- /presup-page -->
+
+<!-- ══ DELETE MODAL ═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showDeleteId() !== null" (click)="cancelDelete()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-icon modal-icon-danger">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    </div>
+    <h3>Eliminar presupuesto</h3>
+    <p>Esta acción es permanente y no se puede deshacer. ¿Confirmas que deseas eliminar este presupuesto?</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="cancelDelete()">Cancelar</button>
+      <button class="btn-danger" (click)="doDelete()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PRINT TEMPLATE ══════════════════════════════════════════════════════════ -->
+<ng-template #printTemplate let-p="p">
+  <div class="print-doc">
+    <div class="print-header">
+      <div class="print-brand">
+        <strong>Dairi</strong><span>.</span>
+        <div class="print-brand-sub">Plataforma clínica inteligente</div>
+      </div>
+      <div class="print-doc-info">
+        <h2>PRESUPUESTO</h2>
+        <div class="print-numero">{{ p.numero }}</div>
+        <div class="print-status">Estado: {{ statusLabel(p.status) }}</div>
+      </div>
+    </div>
+    <div class="print-parties">
+      <div class="print-party">
+        <div class="print-party-title">PACIENTE</div>
+        <div><strong>{{ p.patientName }}</strong></div>
+        <div *ngIf="p.patientRut">RUT: {{ p.patientRut }}</div>
+        <div *ngIf="p.patientPhone">Tel: {{ p.patientPhone }}</div>
+        <div *ngIf="p.patientEmail">{{ p.patientEmail }}</div>
+      </div>
+      <div class="print-party">
+        <div class="print-party-title">PROFESIONAL</div>
+        <div><strong>{{ p.doctorName }}</strong></div>
+        <div *ngIf="p.specialty">{{ p.specialty }}</div>
+        <div>Previsión: {{ previsionLabel(p.prevision) }}</div>
+      </div>
+      <div class="print-party">
+        <div class="print-party-title">FECHAS</div>
+        <div>Emisión: {{ p.fechaEmision | date:'dd/MM/yyyy' }}</div>
+        <div>Vencimiento: {{ p.fechaVencimiento | date:'dd/MM/yyyy' }}</div>
+      </div>
+    </div>
+    <table class="print-table">
+      <thead>
+        <tr>
+          <th>Descripción</th>
+          <th>Cant.</th>
+          <th>P. Unitario</th>
+          <th>Dto.%</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of p.items">
+          <td>{{ item.description }}</td>
+          <td style="text-align:center">{{ item.quantity }}</td>
+          <td style="text-align:right">{{ formatCLP(item.unitPrice) }}</td>
+          <td style="text-align:center">{{ item.discountPct > 0 ? item.discountPct + '%' : '—' }}</td>
+          <td style="text-align:right">{{ formatCLP(item.subtotal) }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="print-totals">
+      <div class="print-total-row" *ngIf="p.discountGlobal > 0">
+        <span>Subtotal</span><span>{{ formatCLP(calcSubtotal(p)) }}</span>
+      </div>
+      <div class="print-total-row" *ngIf="p.discountGlobal > 0">
+        <span>Descuento global ({{ p.discountGlobal }}%)</span>
+        <span>-{{ formatCLP(calcDiscount(p)) }}</span>
+      </div>
+      <div class="print-total-row print-total-main">
+        <span><strong>TOTAL</strong></span><span><strong>{{ formatCLP(calcTotal(p)) }}</strong></span>
+      </div>
+      <ng-container *ngIf="p.coveragePercent > 0">
+        <div class="print-total-row">
+          <span>Cobertura {{ previsionLabel(p.prevision) }} ({{ p.coveragePercent }}%)</span>
+          <span>-{{ formatCLP(calcCovered(p)) }}</span>
+        </div>
+        <div class="print-total-row print-patient-pays">
+          <span><strong>Pago Paciente</strong></span>
+          <span><strong>{{ formatCLP(calcPatientPays(p)) }}</strong></span>
+        </div>
+      </ng-container>
+    </div>
+    <div class="print-notes" *ngIf="p.notes">
+      <strong>Observaciones:</strong> {{ p.notes }}
+    </div>
+    <div class="print-footer">
+      Este presupuesto tiene validez hasta el {{ p.fechaVencimiento | date:'dd/MM/yyyy' }}. Dairi © {{ getYear() }}
+    </div>
+  </div>
+</ng-template>

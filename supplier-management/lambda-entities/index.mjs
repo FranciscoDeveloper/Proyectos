@@ -425,6 +425,77 @@ const ENTITY_CONFIG = {
     }
   },
 
+  // ── presupuestos ─────────────────────────────────────────────────────────────
+  presupuestos: {
+    table: "presupuesto",
+
+    joinSelect: `
+      SELECT
+        p.id,
+        p.numero,
+        p.patient_name        AS "patientName",
+        p.patient_rut         AS "patientRut",
+        p.patient_phone       AS "patientPhone",
+        p.patient_email       AS "patientEmail",
+        p.doctor_name         AS "doctorName",
+        p.specialty,
+        p.fecha_emision       AS "fechaEmision",
+        p.fecha_vencimiento   AS "fechaVencimiento",
+        p.prevision,
+        p.coverage_percent    AS "coveragePercent",
+        p.discount_global     AS "discountGlobal",
+        p.items,
+        p.notes,
+        p.status,
+        p.created_at          AS "createdAt",
+        p.updated_at          AS "updatedAt"
+      FROM presupuesto p
+    `,
+
+    toDb(d) {
+      const cols = {};
+      if (d.numero            !== undefined) cols.numero             = d.numero;
+      if (d.patientName       !== undefined) cols.patient_name       = d.patientName;
+      if (d.patientRut        !== undefined) cols.patient_rut        = d.patientRut;
+      if (d.patientPhone      !== undefined) cols.patient_phone      = d.patientPhone;
+      if (d.patientEmail      !== undefined) cols.patient_email      = d.patientEmail;
+      if (d.doctorName        !== undefined) cols.doctor_name        = d.doctorName;
+      if (d.specialty         !== undefined) cols.specialty          = d.specialty;
+      if (d.fechaEmision      !== undefined) cols.fecha_emision      = d.fechaEmision;
+      if (d.fechaVencimiento  !== undefined) cols.fecha_vencimiento  = d.fechaVencimiento;
+      if (d.prevision         !== undefined) cols.prevision          = d.prevision;
+      if (d.coveragePercent   !== undefined) cols.coverage_percent   = d.coveragePercent;
+      if (d.discountGlobal    !== undefined) cols.discount_global    = d.discountGlobal;
+      if (d.items             !== undefined) cols.items              = JSON.stringify(d.items);
+      if (d.notes             !== undefined) cols.notes              = d.notes;
+      if (d.status            !== undefined) cols.status             = d.status;
+      return cols;
+    },
+
+    fromDb(r) {
+      return {
+        id:               r.id,
+        numero:           r.numero,
+        patientName:      r.patientName      ?? r.patient_name      ?? null,
+        patientRut:       r.patientRut       ?? r.patient_rut       ?? null,
+        patientPhone:     r.patientPhone     ?? r.patient_phone     ?? null,
+        patientEmail:     r.patientEmail     ?? r.patient_email     ?? null,
+        doctorName:       r.doctorName       ?? r.doctor_name       ?? null,
+        specialty:        r.specialty        ?? null,
+        fechaEmision:     r.fechaEmision     ?? r.fecha_emision     ?? null,
+        fechaVencimiento: r.fechaVencimiento ?? r.fecha_vencimiento ?? null,
+        prevision:        r.prevision        ?? 'particular',
+        coveragePercent:  r.coveragePercent  != null ? parseFloat(r.coveragePercent)  : (r.coverage_percent  != null ? parseFloat(r.coverage_percent)  : 0),
+        discountGlobal:   r.discountGlobal   != null ? parseFloat(r.discountGlobal)   : (r.discount_global   != null ? parseFloat(r.discount_global)   : 0),
+        items:            r.items            ?? [],
+        notes:            r.notes            ?? null,
+        status:           r.status           ?? 'draft',
+        createdAt:        r.createdAt        ?? r.created_at,
+        updatedAt:        r.updatedAt        ?? r.updated_at
+      };
+    }
+  },
+
   // ── lookup: supplier_status ──────────────────────────────────────────────────
   'supplier-statuses': {
     table:       'supplier_status',

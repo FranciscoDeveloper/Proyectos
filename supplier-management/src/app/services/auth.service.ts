@@ -477,6 +477,20 @@ export const SCHEMA_DENTAL_RECORDS: EntitySchema = {
   ]
 };
 
+// ─── Presupuestos schema ──────────────────────────────────────────────────────
+
+export const SCHEMA_PRESUPUESTOS: EntitySchema = {
+  entity: {
+    key: 'presupuestos',
+    singular: 'Presupuesto',
+    plural: 'Presupuestos',
+    icon: 'file-text',
+    description: 'Cotizaciones y presupuestos para pacientes',
+    moduleType: 'presupuestos'
+  },
+  fields: []
+};
+
 // ─── Financial schemas ────────────────────────────────────────────────────────
 
 export const SCHEMA_PAYMENTS: EntitySchema = {
@@ -598,17 +612,17 @@ export const MOCK_USERS: MockUser[] = [
   {
     password: 'admin123',
     user: { id: 1, name: 'Admin General', email: 'admin@empresa.com', role: 'admin', avatar: 'AG' },
-    schemas: [SCHEMA_SUPPLIERS, SCHEMA_PRODUCTS, SCHEMA_PACIENTE, SCHEMA_APPOINTMENTS, SCHEMA_CLINICAL_RECORDS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES]
+    schemas: [SCHEMA_SUPPLIERS, SCHEMA_PRODUCTS, SCHEMA_PACIENTE, SCHEMA_APPOINTMENTS, SCHEMA_CLINICAL_RECORDS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES, SCHEMA_PRESUPUESTOS]
   },
   {
     password: 'compras123',
     user: { id: 2, name: 'Jefe de Compras', email: 'compras@empresa.com', role: 'manager', avatar: 'JC' },
-    schemas: [SCHEMA_SUPPLIERS, SCHEMA_PRODUCTS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES]
+    schemas: [SCHEMA_SUPPLIERS, SCHEMA_PRODUCTS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES, SCHEMA_PRESUPUESTOS]
   },
   {
     password: 'medico123',
     user: { id: 3, name: 'Dra. Morales', email: 'medico@hospital.com', role: 'manager', avatar: 'DM' },
-    schemas: [SCHEMA_PACIENTE, SCHEMA_APPOINTMENTS, SCHEMA_CLINICAL_RECORDS, SCHEMA_PAYMENTS]
+    schemas: [SCHEMA_PACIENTE, SCHEMA_APPOINTMENTS, SCHEMA_CLINICAL_RECORDS, SCHEMA_PAYMENTS, SCHEMA_PRESUPUESTOS]
   },
   {
     password: 'viewer123',
@@ -632,7 +646,7 @@ const SESSION_KEY = 'auth_session';
  * Increment this whenever the schema structure changes so that any cached
  * session in sessionStorage is invalidated and the user must re-login.
  */
-const SESSION_VERSION = 12;
+const SESSION_VERSION = 13;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
