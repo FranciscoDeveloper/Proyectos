@@ -7,6 +7,12 @@ import { HttpClient } from '@angular/common/http';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
+export interface Professional {
+  id: string;
+  nombre: string;
+  especialidad: string;
+}
+
 export interface PresupuestoItem {
   description: string;
   quantity: number;
@@ -86,6 +92,11 @@ export class PresupuestosComponent implements OnInit {
   showDeleteId = signal<number | null>(null);
   printMode    = signal(false);
 
+  // Professionals list
+  professionals  = signal<Professional[]>([]);
+  loadingProfs   = signal(false);
+  selectedProfId = signal('');
+
   // Send email modal state
   sendModalOpen = signal(false);
   sendTarget    = signal<Presupuesto | null>(null);
@@ -138,7 +149,7 @@ export class PresupuestosComponent implements OnInit {
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
-  ngOnInit() { this.load(); }
+  ngOnInit() { this.load(); this.loadProfessionals(); }
 
   private load() {
     this.loading.set(true);
@@ -148,11 +159,30 @@ export class PresupuestosComponent implements OnInit {
     });
   }
 
+  private loadProfessionals() {
+    this.loadingProfs.set(true);
+    this.http.get<Professional[]>('/api/book').subscribe({
+      next:  list => { this.professionals.set(list); this.loadingProfs.set(false); },
+      error: _    => { this.loadingProfs.set(false); }
+    });
+  }
+
+  selectProfessional(id: string) {
+    this.selectedProfId.set(id);
+    const prof = this.professionals().find(p => p.id === id);
+    if (prof) {
+      this.form.update(f => ({ ...f, doctorName: prof.nombre, specialty: prof.especialidad ?? '' }));
+    } else {
+      this.form.update(f => ({ ...f, doctorName: '', specialty: '' }));
+    }
+  }
+
   // ── Panel ──────────────────────────────────────────────────────────────────
 
   openCreate() {
     this.form.set({ ...EMPTY_FORM(), numero: this.nextNumero() });
     this.selected.set(null);
+    this.selectedProfId.set('');
     this.serverError.set('');
     this.panelMode.set('create');
   }
@@ -174,6 +204,9 @@ export class PresupuestosComponent implements OnInit {
       items: p.items.length ? p.items.map(i => ({ ...i })) : [EMPTY_ITEM()],
       notes: p.notes, status: p.status
     });
+    // Pre-select professional by name match
+    const match = this.professionals().find(pr => pr.nombre === p.doctorName);
+    this.selectedProfId.set(match?.id ?? '');
     this.selected.set(p);
     this.serverError.set('');
     this.panelMode.set('edit');

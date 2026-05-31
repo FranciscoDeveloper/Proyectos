@@ -338,13 +338,19 @@
         <div class="form-row form-row-2">
           <div class="form-group">
             <label>Doctor / Profesional <span class="req">*</span></label>
-            <input type="text" placeholder="Dr. Apellido" [value]="form().doctorName"
-                   (input)="updateFormField('doctorName', $any($event.target).value)" />
+            <select [value]="selectedProfId()"
+                    (change)="selectProfessional($any($event.target).value)"
+                    [attr.disabled]="loadingProfs() ? true : null">
+              <option value="">{{ loadingProfs() ? 'Cargando profesionales…' : '— Seleccionar profesional —' }}</option>
+              <option *ngFor="let prof of professionals()" [value]="prof.id">
+                {{ prof.nombre }}{{ prof.especialidad ? ' — ' + prof.especialidad : '' }}
+              </option>
+            </select>
           </div>
           <div class="form-group">
             <label>Especialidad</label>
-            <input type="text" placeholder="Medicina General" [value]="form().specialty"
-                   (input)="updateFormField('specialty', $any($event.target).value)" />
+            <input type="text" [value]="form().specialty" readonly class="input-readonly"
+                   placeholder="Se completa al seleccionar el profesional" />
           </div>
         </div>
 
