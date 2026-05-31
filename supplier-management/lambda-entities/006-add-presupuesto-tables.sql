@@ -43,6 +43,14 @@ CREATE TRIGGER trg_presupuesto_updated_at
   BEFORE UPDATE ON presupuesto
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+-- FK relations to patient and professional (nullable — presupuesto puede ser para prospecto)
+ALTER TABLE presupuesto
+  ADD COLUMN IF NOT EXISTS patient_id      INTEGER REFERENCES patient(id),
+  ADD COLUMN IF NOT EXISTS professional_id INTEGER REFERENCES professional(id);
+
+CREATE INDEX IF NOT EXISTS idx_presupuesto_patient_id      ON presupuesto (patient_id);
+CREATE INDEX IF NOT EXISTS idx_presupuesto_professional_id ON presupuesto (professional_id);
+
 -- Datos de ejemplo (comentados para producción)
 -- INSERT INTO presupuesto (numero, patient_name, patient_rut, doctor_name, specialty,
 --   fecha_emision, fecha_vencimiento, prevision, coverage_percent, discount_global, items, notes, status)

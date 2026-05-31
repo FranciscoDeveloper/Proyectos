@@ -439,6 +439,8 @@ const ENTITY_CONFIG = {
       SELECT
         p.id,
         p.numero,
+        p.patient_id          AS "patientId",
+        p.professional_id     AS "professionalId",
         p.patient_name        AS "patientName",
         p.patient_rut         AS "patientRut",
         p.patient_phone       AS "patientPhone",
@@ -461,6 +463,8 @@ const ENTITY_CONFIG = {
     toDb(d) {
       const cols = {};
       if (d.numero            !== undefined) cols.numero             = d.numero;
+      if (d.patientId         !== undefined) cols.patient_id         = d.patientId      || null;
+      if (d.professionalId    !== undefined) cols.professional_id    = d.professionalId || null;
       if (d.patientName       !== undefined) cols.patient_name       = d.patientName;
       if (d.patientRut        !== undefined) cols.patient_rut        = d.patientRut;
       if (d.patientPhone      !== undefined) cols.patient_phone      = d.patientPhone;
@@ -482,6 +486,8 @@ const ENTITY_CONFIG = {
       return {
         id:               r.id,
         numero:           r.numero,
+        patientId:        r.patientId        ?? r.patient_id        ?? null,
+        professionalId:   r.professionalId   ?? r.professional_id   ?? null,
         patientName:      r.patientName      ?? r.patient_name      ?? null,
         patientRut:       r.patientRut       ?? r.patient_rut       ?? null,
         patientPhone:     r.patientPhone     ?? r.patient_phone     ?? null,

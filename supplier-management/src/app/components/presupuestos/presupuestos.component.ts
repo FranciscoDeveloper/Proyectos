@@ -13,6 +13,14 @@ export interface Professional {
   especialidad: string;
 }
 
+export interface PatientOption {
+  id: number;
+  name: string;
+  rut: string;
+  phone: string;
+  email: string;
+}
+
 export interface PresupuestoItem {
   description: string;
   quantity: number;
@@ -24,6 +32,8 @@ export interface PresupuestoItem {
 export interface Presupuesto {
   id?: number;
   numero: string;
+  patientId?: number | null;
+  professionalId?: number | null;
   patientName: string;
   patientRut: string;
   patientPhone: string;
@@ -50,6 +60,7 @@ const EMPTY_ITEM = (): PresupuestoItem => ({
 
 const EMPTY_FORM = (): Omit<Presupuesto, 'id' | 'createdAt' | 'updatedAt'> => ({
   numero: '',
+  patientId: null, professionalId: null,
   patientName: '', patientRut: '', patientPhone: '', patientEmail: '',
   doctorName: '', specialty: '',
   fechaEmision: new Date().toISOString().split('T')[0],
@@ -96,6 +107,11 @@ export class PresupuestosComponent implements OnInit {
   professionals  = signal<Professional[]>([]);
   loadingProfs   = signal(false);
   selectedProfId = signal('');
+
+  // Patients list
+  patients         = signal<PatientOption[]>([]);
+  loadingPatients  = signal(false);
+  selectedPatientId = signal<number | null>(null);
 
   // Send email modal state
   sendModalOpen = signal(false);
@@ -149,7 +165,7 @@ export class PresupuestosComponent implements OnInit {
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
-  ngOnInit() { this.load(); this.loadProfessionals(); }
+  ngOnInit() { this.load(); this.loadProfessionals(); this.loadPatients(); }
 
   private load() {
     this.loading.set(true);
@@ -167,13 +183,57 @@ export class PresupuestosComponent implements OnInit {
     });
   }
 
+  private loadPatients() {
+    this.loadingPatients.set(true);
+    this.http.get<any[]>('/api/entities/patient').subscribe({
+      next: list => {
+        this.patients.set(list.map(p => ({
+          id:    p.id,
+          name:  p.name  ?? p.nombre ?? '',
+          rut:   p.rut   ?? '',
+          phone: p.phone ?? p.telefono ?? '',
+          email: p.email ?? ''
+        })));
+        this.loadingPatients.set(false);
+      },
+      error: _ => { this.loadingPatients.set(false); }
+    });
+  }
+
   selectProfessional(id: string) {
     this.selectedProfId.set(id);
     const prof = this.professionals().find(p => p.id === id);
     if (prof) {
-      this.form.update(f => ({ ...f, doctorName: prof.nombre, specialty: prof.especialidad ?? '' }));
+      this.form.update(f => ({
+        ...f,
+        professionalId: parseInt(prof.id) || null,
+        doctorName: prof.nombre,
+        specialty:  prof.especialidad ?? ''
+      }));
     } else {
-      this.form.update(f => ({ ...f, doctorName: '', specialty: '' }));
+      this.form.update(f => ({ ...f, professionalId: null, doctorName: '', specialty: '' }));
+    }
+  }
+
+  selectPatient(idStr: string) {
+    const id = parseInt(idStr);
+    this.selectedPatientId.set(id || null);
+    const pat = this.patients().find(p => p.id === id);
+    if (pat) {
+      this.form.update(f => ({
+        ...f,
+        patientId:    pat.id,
+        patientName:  pat.name,
+        patientRut:   pat.rut,
+        patientPhone: pat.phone,
+        patientEmail: pat.email
+      }));
+    } else {
+      this.form.update(f => ({
+        ...f,
+        patientId: null,
+        patientName: '', patientRut: '', patientPhone: '', patientEmail: ''
+      }));
     }
   }
 
@@ -183,6 +243,7 @@ export class PresupuestosComponent implements OnInit {
     this.form.set({ ...EMPTY_FORM(), numero: this.nextNumero() });
     this.selected.set(null);
     this.selectedProfId.set('');
+    this.selectedPatientId.set(null);
     this.serverError.set('');
     this.panelMode.set('create');
   }
@@ -204,9 +265,15 @@ export class PresupuestosComponent implements OnInit {
       items: p.items.length ? p.items.map(i => ({ ...i })) : [EMPTY_ITEM()],
       notes: p.notes, status: p.status
     });
-    // Pre-select professional by name match
-    const match = this.professionals().find(pr => pr.nombre === p.doctorName);
-    this.selectedProfId.set(match?.id ?? '');
+    const matchProf = p.professionalId
+      ? this.professionals().find(pr => parseInt(pr.id) === p.professionalId)
+      : this.professionals().find(pr => pr.nombre === p.doctorName);
+    this.selectedProfId.set(matchProf?.id ?? '');
+
+    const matchPat = p.patientId
+      ? this.patients().find(pt => pt.id === p.patientId)
+      : null;
+    this.selectedPatientId.set(matchPat?.id ?? null);
     this.selected.set(p);
     this.serverError.set('');
     this.panelMode.set('edit');
