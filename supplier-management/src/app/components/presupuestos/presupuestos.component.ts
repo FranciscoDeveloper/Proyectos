@@ -185,7 +185,7 @@ export class PresupuestosComponent implements OnInit {
 
   private loadPatients() {
     this.loadingPatients.set(true);
-    this.http.get<any[]>('/api/entities/patient').subscribe({
+    this.http.get<any[]>('/api/entities/patients').subscribe({
       next: list => {
         this.patients.set(list.map(p => ({
           id:    p.id,

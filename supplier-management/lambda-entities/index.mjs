@@ -437,27 +437,27 @@ const ENTITY_CONFIG = {
 
     joinSelect: `
       SELECT
-        p.id,
-        p.numero,
-        p.patient_id          AS "patientId",
-        p.professional_id     AS "professionalId",
-        p.patient_name        AS "patientName",
-        p.patient_rut         AS "patientRut",
-        p.patient_phone       AS "patientPhone",
-        p.patient_email       AS "patientEmail",
-        p.doctor_name         AS "doctorName",
-        p.specialty,
-        p.fecha_emision       AS "fechaEmision",
-        p.fecha_vencimiento   AS "fechaVencimiento",
-        p.prevision,
-        p.coverage_percent    AS "coveragePercent",
-        p.discount_global     AS "discountGlobal",
-        p.items,
-        p.notes,
-        p.status,
-        p.created_at          AS "createdAt",
-        p.updated_at          AS "updatedAt"
-      FROM presupuesto p
+        c.id,
+        c.numero,
+        c.patient_id          AS "patientId",
+        c.professional_id     AS "professionalId",
+        c.patient_name        AS "patientName",
+        c.patient_rut         AS "patientRut",
+        c.patient_phone       AS "patientPhone",
+        c.patient_email       AS "patientEmail",
+        c.doctor_name         AS "doctorName",
+        c.specialty,
+        c.fecha_emision       AS "fechaEmision",
+        c.fecha_vencimiento   AS "fechaVencimiento",
+        c.prevision,
+        c.coverage_percent    AS "coveragePercent",
+        c.discount_global     AS "discountGlobal",
+        c.items,
+        c.notes,
+        c.status,
+        c.created_at          AS "createdAt",
+        c.updated_at          AS "updatedAt"
+      FROM presupuesto c
     `,
 
     toDb(d) {
