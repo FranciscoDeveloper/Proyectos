@@ -86,6 +86,15 @@ export class PresupuestosComponent implements OnInit {
   showDeleteId = signal<number | null>(null);
   printMode    = signal(false);
 
+  // Send email modal state
+  sendModalOpen = signal(false);
+  sendTarget    = signal<Presupuesto | null>(null);
+  sendTo        = signal('');
+  sendMode      = signal<'completo' | 'total' | 'minimal'>('completo');
+  sendMessage   = signal('');
+  sending       = signal(false);
+  sendResult    = signal<{ ok: boolean; msg: string } | null>(null);
+
   // ── Computed ───────────────────────────────────────────────────────────────
 
   filtered = computed(() => {
@@ -326,6 +335,59 @@ export class PresupuestosComponent implements OnInit {
         this.presupuestos.update(list => list.filter(p => p.id !== id));
         this.showDeleteId.set(null);
         if (this.selected()?.id === id) this.closePanel();
+      }
+    });
+  }
+
+  // ── Send email ─────────────────────────────────────────────────────────────
+
+  openSendModal(p: Presupuesto) {
+    this.sendTarget.set(p);
+    this.sendTo.set(p.patientEmail ?? '');
+    this.sendMode.set('completo');
+    this.sendMessage.set('');
+    this.sendResult.set(null);
+    this.sendModalOpen.set(true);
+  }
+
+  closeSendModal() {
+    this.sendModalOpen.set(false);
+    this.sendTarget.set(null);
+    this.sendResult.set(null);
+  }
+
+  doSendEmail() {
+    const p = this.sendTarget();
+    if (!p?.id) return;
+
+    const to = this.sendTo().trim();
+    if (!to || !to.includes('@')) {
+      this.sendResult.set({ ok: false, msg: 'Ingresa un email válido.' });
+      return;
+    }
+
+    this.sending.set(true);
+    this.sendResult.set(null);
+
+    this.http.post<{ message: string; emailSent: boolean; newStatus?: string }>(
+      `/api/entities/presupuestos/${p.id}/send`,
+      { to, mode: this.sendMode(), message: this.sendMessage() }
+    ).subscribe({
+      next: res => {
+        this.sending.set(false);
+        this.sendResult.set({ ok: true, msg: res.message ?? 'Email enviado correctamente.' });
+        if (res.newStatus) {
+          this.presupuestos.update(list =>
+            list.map(x => x.id === p.id ? { ...x, status: res.newStatus! } : x)
+          );
+          if (this.selected()?.id === p.id) {
+            this.selected.update(s => s ? { ...s, status: res.newStatus! } : s);
+          }
+        }
+      },
+      error: err => {
+        this.sending.set(false);
+        this.sendResult.set({ ok: false, msg: err.error?.message ?? 'No se pudo enviar el email.' });
       }
     });
   }

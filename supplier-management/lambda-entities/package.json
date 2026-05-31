@@ -9,6 +9,7 @@
     "zip": "zip -r ../lambda-entities.zip index.mjs package.json node_modules/"
   },
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.0.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.11.3"
   }

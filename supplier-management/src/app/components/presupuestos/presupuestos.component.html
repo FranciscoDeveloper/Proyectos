@@ -146,6 +146,9 @@
               <button class="action-btn" title="Editar" (click)="openEdit(p)" *ngIf="p.status === 'draft'">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
+              <button class="action-btn" title="Enviar por email" (click)="openSendModal(p)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
               <button class="action-btn" title="Imprimir / PDF" (click)="printPresupuesto(p)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
               </button>
@@ -172,6 +175,9 @@
         <div class="panel-header-actions">
           <button class="btn-icon" title="Editar" (click)="openEdit(p)" *ngIf="p.status === 'draft'">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn-icon btn-send" title="Enviar por email" (click)="openSendModal(p)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
           <button class="btn-icon" title="Imprimir / PDF" (click)="printPresupuesto(p)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
@@ -460,6 +466,113 @@
   </aside><!-- /side-panel -->
 
 </div><!-- /presup-page -->
+
+<!-- ══ SEND EMAIL MODAL ════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="sendModalOpen()" (click)="closeSendModal()">
+  <div class="modal-card modal-send" (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="modal-send-header">
+      <div class="modal-icon modal-icon-send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </div>
+      <div>
+        <h3>Enviar por Email</h3>
+        <p class="modal-send-sub" *ngIf="sendTarget()">{{ sendTarget()!.numero }} — {{ sendTarget()!.patientName }}</p>
+      </div>
+      <button class="btn-icon btn-close modal-close-btn" (click)="closeSendModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Result feedback -->
+    <div class="send-result send-result-ok" *ngIf="sendResult()?.ok">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      {{ sendResult()!.msg }}
+    </div>
+    <div class="send-result send-result-err" *ngIf="sendResult() && !sendResult()!.ok">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      {{ sendResult()!.msg }}
+    </div>
+
+    <ng-container *ngIf="!sendResult()?.ok">
+      <!-- Recipient -->
+      <div class="send-field">
+        <label class="send-label">Destinatario</label>
+        <input type="email" class="send-input" placeholder="correo@ejemplo.com"
+               [value]="sendTo()" (input)="sendTo.set($any($event.target).value)" />
+      </div>
+
+      <!-- Mode selector -->
+      <div class="send-field">
+        <label class="send-label">Contenido del email</label>
+        <div class="mode-options">
+          <label class="mode-option" [class.mode-selected]="sendMode() === 'completo'">
+            <input type="radio" name="sendMode" value="completo"
+                   [checked]="sendMode() === 'completo'"
+                   (change)="sendMode.set('completo')" />
+            <div class="mode-option-body">
+              <span class="mode-icon">📋</span>
+              <div>
+                <strong>Completo</strong>
+                <span>Con todos los ítems, precios y totales</span>
+              </div>
+            </div>
+          </label>
+          <label class="mode-option" [class.mode-selected]="sendMode() === 'total'">
+            <input type="radio" name="sendMode" value="total"
+                   [checked]="sendMode() === 'total'"
+                   (change)="sendMode.set('total')" />
+            <div class="mode-option-body">
+              <span class="mode-icon">💰</span>
+              <div>
+                <strong>Solo el total</strong>
+                <span>Muestra únicamente el monto final</span>
+              </div>
+            </div>
+          </label>
+          <label class="mode-option" [class.mode-selected]="sendMode() === 'minimal'">
+            <input type="radio" name="sendMode" value="minimal"
+                   [checked]="sendMode() === 'minimal'"
+                   (change)="sendMode.set('minimal')" />
+            <div class="mode-option-body">
+              <span class="mode-icon">✉️</span>
+              <div>
+                <strong>Sin detalle</strong>
+                <span>Solo notifica que el presupuesto está listo</span>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Optional message -->
+      <div class="send-field">
+        <label class="send-label">Mensaje personalizado <span class="send-optional">(opcional)</span></label>
+        <textarea class="send-textarea" rows="3"
+                  placeholder="Estimado/a paciente, le enviamos su presupuesto para el tratamiento indicado…"
+                  [value]="sendMessage()"
+                  (input)="sendMessage.set($any($event.target).value)"></textarea>
+      </div>
+
+      <!-- Actions -->
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeSendModal()">Cancelar</button>
+        <button class="btn-send-action" (click)="doSendEmail()" [disabled]="sending()">
+          <span class="spinner-sm" *ngIf="sending()"></span>
+          <svg *ngIf="!sending()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          {{ sending() ? 'Enviando…' : 'Enviar email' }}
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- After success: close button -->
+    <div class="modal-actions" *ngIf="sendResult()?.ok">
+      <button class="btn-primary" (click)="closeSendModal()">Cerrar</button>
+    </div>
+
+  </div>
+</div>
 
 <!-- ══ DELETE MODAL ═══════════════════════════════════════════════════════════ -->
 <div class="modal-overlay" *ngIf="showDeleteId() !== null" (click)="cancelDelete()">
