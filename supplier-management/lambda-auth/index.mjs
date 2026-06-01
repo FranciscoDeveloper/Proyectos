@@ -1,7 +1,7 @@
 import pg     from "pg";
 import bcrypt from "bcryptjs";
 import jwt    from "jsonwebtoken";
-import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+// Email is delegated to the frontend via /api/send-email (non-VPC path)
 
 const { Pool } = pg;
 
@@ -17,13 +17,9 @@ const pool = new Pool({
   connectionTimeoutMillis: 5000,
 });
 
-const JWT_SECRET        = process.env.JWT_SECRET        || "changeme-use-secrets-manager";
-const JWT_EXPIRES_IN    = process.env.JWT_EXPIRES_IN    || "8h";
-const SES_FROM_EMAIL    = process.env.SES_FROM_EMAIL    || "noreply@dairi.cl";
-const APP_URL           = process.env.APP_URL           || "https://dairi.cl";
-const AWS_SES_REGION    = process.env.AWS_SES_REGION    || "us-east-1";
-
-const ses = new SESClient({ region: AWS_SES_REGION });
+const JWT_SECRET     = process.env.JWT_SECRET     || "changeme-use-secrets-manager";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "8h";
+const APP_URL        = process.env.APP_URL        || "https://dairi.cl";
 
 // ── Idempotent schema migration ───────────────────────────────────────────────
 let schemaReady = false;
@@ -167,19 +163,17 @@ async function handleRegister(body) {
       [activationToken, userId]
     );
 
-    let emailSent = true;
-    try {
-      await sendActivationEmail({ name, email: emailNorm, token: activationToken });
-    } catch (emailErr) {
-      emailSent = false;
-      console.error("SES send error", { message: emailErr.message, userId, email: emailNorm });
-    }
+    const activationUrl = `${APP_URL}/#/activate?token=${encodeURIComponent(activationToken)}`;
 
-    const msg = emailSent
-      ? "Cuenta creada. Revisa tu correo para activarla."
-      : "Cuenta creada, pero no pudimos enviar el correo de activación. Contacta al soporte.";
+    // Build email content — frontend sends it via /api/send-email (internet-accessible)
+    const emailContent = buildActivationEmail({ name, email: emailNorm, activationUrl });
 
-    return response(201, { message: msg, emailSent });
+    return response(201, {
+      message:      "Cuenta creada. Activa tu cuenta usando el enlace de activación.",
+      emailSent:    false,
+      activationUrl,
+      emailPayload: emailContent,   // frontend uses this to call /api/send-email
+    });
   } catch (err) {
     console.error("Register error:", err);
     return response(500, { message: "Error interno del servidor" });
@@ -229,9 +223,8 @@ async function handleActivate(body) {
 }
 
 // ── SES email ─────────────────────────────────────────────────────────────────
-async function sendActivationEmail({ name, email, token }) {
-  const activationUrl = `${APP_URL}/#/activate?token=${encodeURIComponent(token)}`;
-  const firstName     = name.split(" ")[0];
+function buildActivationEmail({ name, email, activationUrl }) {
+  const firstName = name.split(" ")[0];
 
   const html = `
 <!DOCTYPE html>
@@ -287,17 +280,7 @@ async function sendActivationEmail({ name, email, token }) {
 
   const text = `Hola ${firstName},\n\nActiva tu cuenta Dairi haciendo clic en este enlace:\n${activationUrl}\n\nEl enlace es válido por 24 horas.\n\n— Equipo Dairi`;
 
-  await ses.send(new SendEmailCommand({
-    Source:      `Dairi <${SES_FROM_EMAIL}>`,
-    Destination: { ToAddresses: [email] },
-    Message: {
-      Subject: { Data: "Activa tu cuenta Dairi", Charset: "UTF-8" },
-      Body: {
-        Html: { Data: html,  Charset: "UTF-8" },
-        Text: { Data: text,  Charset: "UTF-8" },
-      },
-    },
-  }));
+  return { to: email, subject: "Activa tu cuenta Dairi", html, text };
 }
 
 // ── Helper ────────────────────────────────────────────────────────────────────

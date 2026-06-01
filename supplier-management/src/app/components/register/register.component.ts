@@ -23,10 +23,11 @@ export class RegisterComponent {
   showPass      = signal(false);
   showConfirm   = signal(false);
   showTerms     = signal(false);
-  submitted     = signal(false);
-  loading       = signal(false);
-  serverError   = signal('');
-  emailSent     = signal(true);
+  submitted      = signal(false);
+  loading        = signal(false);
+  serverError    = signal('');
+  emailSent      = signal(true);
+  activationUrl  = signal('');
 
   form = this.fb.group({
     nombre:          ['', [Validators.required, Validators.minLength(2)]],
@@ -84,8 +85,17 @@ export class RegisterComponent {
     }).subscribe({
       next: (res: any) => {
         this.loading.set(false);
-        this.emailSent.set(res?.emailSent !== false);
+        this.activationUrl.set(res?.activationUrl ?? '');
         this.submitted.set(true);
+        // Send email via public send-email Lambda (not blocked by VPC)
+        if (res?.emailPayload) {
+          this.http.post('/api/send-email', res.emailPayload).subscribe({
+            next:  () => this.emailSent.set(true),
+            error: () => this.emailSent.set(false)
+          });
+        } else {
+          this.emailSent.set(res?.emailSent !== false);
+        }
       },
       error: (err) => {
         this.loading.set(false);

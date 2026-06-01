@@ -1,6 +1,6 @@
 import pg  from "pg";
 import jwt from "jsonwebtoken";
-import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 
 const { Pool } = pg;
 
@@ -36,12 +36,11 @@ const pool = new Pool({
 
 pool.on("error", (err) => log("ERROR", "DB pool idle client error", { message: err.message, stack: err.stack }));
 
-const JWT_SECRET        = process.env.JWT_SECRET        || "changeme-use-secrets-manager";
-const SES_FROM_EMAIL    = process.env.SES_FROM_EMAIL    || "noreply@dairi.cl";
-const AWS_SES_REGION    = process.env.AWS_SES_REGION    || "us-east-1";
-const APP_URL           = process.env.APP_URL           || "https://dairi.cl";
+const JWT_SECRET   = process.env.JWT_SECRET   || "changeme-use-secrets-manager";
+const APP_URL      = process.env.APP_URL      || "https://dairi.cl";
+const EMAIL_LAMBDA = process.env.EMAIL_LAMBDA || "send-email";
 
-const ses = new SESClient({ region: AWS_SES_REGION });
+const lambdaClient = new LambdaClient({ region: process.env.AWS_REGION || "us-east-1" });
 
 // ── Entity configuration ──────────────────────────────────────────────────────
 // Each entity defines:
@@ -1099,17 +1098,17 @@ async function sendPresupuestoEmail(client, id, body) {
   const text    = buildPresupuestoText(p, mode, message);
 
   try {
-    await ses.send(new SendEmailCommand({
-      Source:      `Dairi <${SES_FROM_EMAIL}>`,
-      Destination: { ToAddresses: [to] },
-      Message: {
-        Subject: { Data: subject, Charset: "UTF-8" },
-        Body: {
-          Html: { Data: html, Charset: "UTF-8" },
-          Text: { Data: text, Charset: "UTF-8" }
-        }
-      }
+    const emailPayload = JSON.stringify({ to, subject, html, text });
+    const result = await lambdaClient.send(new InvokeCommand({
+      FunctionName:   EMAIL_LAMBDA,
+      InvocationType: "RequestResponse",
+      Payload:        new TextEncoder().encode(emailPayload),
     }));
+
+    if (result.FunctionError) {
+      const body = new TextDecoder().decode(result.Payload);
+      throw new Error(`send-email error: ${body}`);
+    }
 
     // Update status to 'sent' if currently 'draft'
     if (p.status === "draft") {
@@ -1122,7 +1121,7 @@ async function sendPresupuestoEmail(client, id, body) {
     log("INFO", "Presupuesto email sent", { presupuestoId: id, to, mode });
     return response(200, { message: "Presupuesto enviado correctamente", emailSent: true, newStatus: p.status === "draft" ? "sent" : p.status });
   } catch (err) {
-    log("ERROR", "SES send error for presupuesto", { message: err.message, presupuestoId: id, to });
+    log("ERROR", "Email send error for presupuesto", { message: err.message, presupuestoId: id, to });
     return response(500, { message: "No se pudo enviar el email. Intenta nuevamente.", emailSent: false });
   }
 }

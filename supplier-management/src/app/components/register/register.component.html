@@ -65,10 +65,15 @@
             </p>
           } @else {
             <h2>Cuenta creada</h2>
-            <p class="rp-email-hint" style="color:#dc2626;">
+            <p class="rp-email-hint" style="color:#64748b;">
               No pudimos enviar el correo de activación a <strong>{{ registeredEmail }}</strong>.<br>
-              Por favor contacta a soporte para que activen tu cuenta manualmente.
+              Activa tu cuenta haciendo clic en el enlace a continuación:
             </p>
+            @if (activationUrl()) {
+              <a [href]="activationUrl()" class="rp-btn-primary" style="margin-top:.75rem;word-break:break-all;">
+                Activar mi cuenta →
+              </a>
+            }
           }
           <a routerLink="/login" class="rp-btn-primary" style="margin-top:1.5rem;">
             Ir a iniciar sesión
