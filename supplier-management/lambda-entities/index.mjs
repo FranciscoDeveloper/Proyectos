@@ -1097,33 +1097,24 @@ async function sendPresupuestoEmail(client, id, body) {
   const html    = buildPresupuestoHtml(p, mode, message);
   const text    = buildPresupuestoText(p, mode, message);
 
-  try {
-    const emailPayload = JSON.stringify({ to, subject, html, text });
-    const result = await lambdaClient.send(new InvokeCommand({
-      FunctionName:   EMAIL_LAMBDA,
-      InvocationType: "RequestResponse",
-      Payload:        new TextEncoder().encode(emailPayload),
-    }));
-
-    if (result.FunctionError) {
-      const body = new TextDecoder().decode(result.Payload);
-      throw new Error(`send-email error: ${body}`);
-    }
-
-    // Update status to 'sent' if currently 'draft'
-    if (p.status === "draft") {
-      await client.query(
-        `UPDATE presupuesto SET status = 'sent', updated_at = NOW() WHERE id = $1`,
-        [id]
-      );
-    }
-
-    log("INFO", "Presupuesto email sent", { presupuestoId: id, to, mode });
-    return response(200, { message: "Presupuesto enviado correctamente", emailSent: true, newStatus: p.status === "draft" ? "sent" : p.status });
-  } catch (err) {
-    log("ERROR", "Email send error for presupuesto", { message: err.message, presupuestoId: id, to });
-    return response(500, { message: "No se pudo enviar el email. Intenta nuevamente.", emailSent: false });
+  // Update status to 'sent' if currently 'draft' (before returning payload)
+  const newStatus = p.status === "draft" ? "sent" : p.status;
+  if (p.status === "draft") {
+    await client.query(
+      `UPDATE presupuesto SET status = 'sent', updated_at = NOW() WHERE id = $1`,
+      [id]
+    );
   }
+
+  // Return email payload for the frontend to deliver via /api/send-email
+  // (dairi-bff is in VPC and cannot call Lambda/SES directly)
+  log("INFO", "Presupuesto email payload built", { presupuestoId: id, to, mode });
+  return response(200, {
+    message:      "Presupuesto listo para envío.",
+    emailSent:    false,
+    newStatus,
+    emailPayload: { to, subject, html, text },
+  });
 }
 
 function clp(n) {

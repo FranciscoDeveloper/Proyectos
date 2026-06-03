@@ -56,8 +56,10 @@
 }
 
 .brand-name {
+  font-family: var(--font-heading, 'Plus Jakarta Sans', sans-serif);
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   color: white;
   white-space: nowrap;
   background: linear-gradient(135deg, #fff, #c7d2fe);

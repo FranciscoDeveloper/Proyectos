@@ -57,15 +57,49 @@
   --transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ── Font families ── */
+:root {
+  /* Inter: UI body text, labels, tables — optimal for dense clinical data */
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Plus Jakarta Sans: headings, brand, module titles */
+  --font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  /* Inter tabular figures for financial/clinical numbers */
+  --font-numeric: 'Inter', -apple-system, sans-serif;
+  --font-size-base: 14px;
+  --line-height-base: 1.5;
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
   height: 100%;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 14px;
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
   color: var(--gray-800);
   background: var(--gray-50);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+}
+
+/* Headings use Plus Jakarta Sans for brand personality */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Numeric / financial data — tabular-nums ensures column alignment */
+.num-text,
+.currency,
+[class*="amount"],
+[class*="price"],
+[class*="total"],
+[class*="subtotal"] {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
 }
 
 /* ===== STATUS BADGES ===== */

@@ -32,7 +32,14 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <!--
+    Typography strategy — Enterprise clinical UX
+    · Inter            : body, UI controls, tables, forms — gold standard for data-dense clinical UIs
+                         (Veeva, Salesforce Health Cloud, modern EHR inspired)
+    · Plus Jakarta Sans: headings, brand, sidebar labels — geometric warmth for medical B2B
+    · Inter Mono       : numeric values, financial tables — tabular-nums for aligned columns
+  -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Google Identity Services — required for Google SSO -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>

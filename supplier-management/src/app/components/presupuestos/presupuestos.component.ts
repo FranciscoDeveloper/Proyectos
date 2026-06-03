@@ -4,6 +4,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { switchMap, of, catchError } from 'rxjs';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -299,10 +300,14 @@ export class PresupuestosComponent implements OnInit {
       const items = f.items.map((item, idx) => {
         if (idx !== i) return item;
         const updated = { ...item, [field]: value };
-        const qty   = field === 'quantity'    ? +value : updated.quantity;
-        const price = field === 'unitPrice'   ? +value : updated.unitPrice;
-        const disc  = field === 'discountPct' ? +value : updated.discountPct;
-        updated.subtotal = qty * price * (1 - disc / 100);
+        // Clamp numeric fields to valid ranges
+        const qty   = Math.max(0, +(field === 'quantity'    ? value : updated.quantity)  || 0);
+        const price = Math.max(0, +(field === 'unitPrice'   ? value : updated.unitPrice) || 0);
+        const disc  = Math.min(100, Math.max(0, +(field === 'discountPct' ? value : updated.discountPct) || 0));
+        updated.quantity   = qty;
+        updated.unitPrice  = price;
+        updated.discountPct = disc;
+        updated.subtotal   = qty * price * (1 - disc / 100);
         return updated;
       });
       return { ...f, items };
@@ -310,7 +315,11 @@ export class PresupuestosComponent implements OnInit {
   }
 
   updateFormField(field: string, value: string | number) {
-    this.form.update(f => ({ ...f, [field]: value }));
+    let v: string | number = value;
+    if (field === 'discountGlobal' || field === 'coveragePercent') {
+      v = Math.min(100, Math.max(0, +value || 0));
+    }
+    this.form.update(f => ({ ...f, [field]: v }));
   }
 
   private recalcItems() {
@@ -318,9 +327,17 @@ export class PresupuestosComponent implements OnInit {
       ...f,
       items: f.items.map(item => ({
         ...item,
-        subtotal: item.quantity * item.unitPrice * (1 - item.discountPct / 100)
+        subtotal: this.itemSubtotal(item)
       }))
     }));
+  }
+
+  // Safe per-item subtotal recalculated from raw fields (avoids stale cache)
+  private itemSubtotal(item: PresupuestoItem): number {
+    const qty   = Math.max(0, +item.quantity   || 0);
+    const price = Math.max(0, +item.unitPrice  || 0);
+    const disc  = Math.min(100, Math.max(0, +item.discountPct || 0));
+    return qty * price * (1 - disc / 100);
   }
 
   private nextNumero(): string {
@@ -334,32 +351,38 @@ export class PresupuestosComponent implements OnInit {
 
   // ── Calculations ───────────────────────────────────────────────────────────
 
+  // Recalculates each item's subtotal from its raw fields (avoids stale stored value)
   calcSubtotal(p: { items: PresupuestoItem[] }): number {
-    return p.items.reduce((s, i) => s + (i.subtotal || 0), 0);
+    return p.items.reduce((s, i) => s + this.itemSubtotal(i), 0);
   }
 
   calcDiscount(p: { items: PresupuestoItem[]; discountGlobal: number }): number {
-    return this.calcSubtotal(p) * (p.discountGlobal / 100);
+    const sub  = this.calcSubtotal(p);
+    const pct  = Math.min(100, Math.max(0, +p.discountGlobal || 0));
+    return sub * (pct / 100);
   }
 
   calcTotal(p: Presupuesto | Omit<Presupuesto, 'id' | 'createdAt' | 'updatedAt'>): number {
-    return this.calcSubtotal(p) - this.calcDiscount(p);
+    return Math.max(0, this.calcSubtotal(p) - this.calcDiscount(p));
   }
 
   calcCovered(p: Presupuesto | Omit<Presupuesto, 'id' | 'createdAt' | 'updatedAt'>): number {
-    return this.calcTotal(p) * (p.coveragePercent / 100);
+    const pct = Math.min(100, Math.max(0, +p.coveragePercent || 0));
+    return Math.max(0, this.calcTotal(p) * (pct / 100));
   }
 
   calcPatientPays(p: Presupuesto | Omit<Presupuesto, 'id' | 'createdAt' | 'updatedAt'>): number {
-    return this.calcTotal(p) - this.calcCovered(p);
+    return Math.max(0, this.calcTotal(p) - this.calcCovered(p));
   }
 
   private calcTotalsFromForm(f: ReturnType<typeof EMPTY_FORM>) {
-    const subtotal  = this.calcSubtotal(f);
-    const discount  = subtotal * (f.discountGlobal / 100);
-    const total     = subtotal - discount;
-    const covered   = total * (f.coveragePercent / 100);
-    const patientPays = total - covered;
+    const subtotal    = this.calcSubtotal(f);
+    const discPct     = Math.min(100, Math.max(0, +f.discountGlobal || 0));
+    const covPct      = Math.min(100, Math.max(0, +f.coveragePercent || 0));
+    const discount    = subtotal * (discPct / 100);
+    const total       = Math.max(0, subtotal - discount);
+    const covered     = Math.max(0, total * (covPct / 100));
+    const patientPays = Math.max(0, total - covered);
     return { subtotal, discount, total, covered, patientPays };
   }
 
@@ -469,13 +492,24 @@ export class PresupuestosComponent implements OnInit {
     this.sending.set(true);
     this.sendResult.set(null);
 
-    this.http.post<{ message: string; emailSent: boolean; newStatus?: string }>(
+    this.http.post<{ message: string; emailSent: boolean; newStatus?: string; emailPayload?: any }>(
       `/api/entities/presupuestos/${p.id}/send`,
       { to, mode: this.sendMode(), message: this.sendMessage() }
+    ).pipe(
+      switchMap(res => {
+        // Backend returned emailPayload → send via /api/send-email (public endpoint, no VPC)
+        if (res.emailPayload) {
+          return this.http.post('/api/send-email', res.emailPayload).pipe(
+            switchMap(() => of({ ...res, emailSent: true,  message: 'Presupuesto enviado correctamente.' })),
+            catchError(() => of({ ...res, emailSent: false, message: 'Presupuesto guardado pero no se pudo enviar el email.' }))
+          );
+        }
+        return of(res);
+      })
     ).subscribe({
       next: res => {
         this.sending.set(false);
-        this.sendResult.set({ ok: true, msg: res.message ?? 'Email enviado correctamente.' });
+        this.sendResult.set({ ok: res.emailSent, msg: res.message ?? 'Email enviado correctamente.' });
         if (res.newStatus) {
           this.presupuestos.update(list =>
             list.map(x => x.id === p.id ? { ...x, status: res.newStatus! } : x)

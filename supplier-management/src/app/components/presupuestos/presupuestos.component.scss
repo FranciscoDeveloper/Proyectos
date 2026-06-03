@@ -10,6 +10,11 @@ $border:    #e2e8f0;
 $radius:    12px;
 $panel-w:   480px;
 
+// Font variables (enterprise medical UI)
+$font-heading: var(--font-heading, 'Plus Jakarta Sans', sans-serif);
+$font-body:    var(--font-body,    'Inter', sans-serif);
+$font-numeric: var(--font-numeric, 'Inter', sans-serif);
+
 // ── Layout ────────────────────────────────────────────────────────────────────
 .presup-page {
   display: flex;
@@ -41,13 +46,14 @@ $panel-w:   480px;
 }
 
 .page-title {
+  font-family: $font-heading;
   display: flex;
   align-items: center;
   gap: .5rem;
   font-size: 1.5rem;
   font-weight: 800;
   color: $ink;
-  letter-spacing: -.5px;
+  letter-spacing: -.03em;
   margin: 0;
 
   .title-icon {
@@ -451,7 +457,12 @@ $panel-w:   480px;
 
   &:first-child { border-top: none; }
 
-  span:last-child { font-weight: 600; }
+  span:last-child {
+    font-weight: 600;
+    font-family: $font-numeric;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
 
   &.discount-row { color: #f59e0b; }
   &.coverage-row { color: #3b82f6; }
@@ -645,7 +656,14 @@ $panel-w:   480px;
   &.patient-mini    { color: #15803d; font-weight: 700; }
 }
 
-.num-text { text-align: right; }
+// Tabular numbers for price alignment in clinical tables
+.num-text {
+  text-align: right;
+  font-family: $font-numeric;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: 0;
+}
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 .modal-overlay {
