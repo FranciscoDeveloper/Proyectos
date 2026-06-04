@@ -1131,7 +1131,23 @@ function calcPresupuestoTotals(p) {
 }
 
 function previsionLabel(v) {
-  return { particular: "Particular", fonasa: "FONASA", isapre: "Isapre", capredena: "CAPREDENA" }[v] ?? v;
+  const map = {
+    particular:   "Particular",
+    fonasa:       "FONASA",
+    banmedica:    "Banmédica",
+    colmena:      "Colmena",
+    consalud:     "Consalud",
+    cruzblanca:   "Cruz Blanca",
+    esencial:     "Esencial",
+    nuevamasvida: "Nueva Masvida",
+    vidatres:     "Vida Tres",
+    fundacion:    "Isapre Fundación",
+    isalud:       "Isalud",
+    cruzdelnorte: "Cruz del Norte",
+    capredena:    "CAPREDENA",
+    dipreca:      "DIPRECA",
+  };
+  return map[v] ?? v;
 }
 
 function buildPresupuestoHtml(p, mode, customMessage) {

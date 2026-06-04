@@ -544,7 +544,23 @@ export class PresupuestosComponent implements OnInit {
   }
 
   previsionLabel(p: string): string {
-    return { particular: 'Particular', fonasa: 'FONASA', isapre: 'Isapre', capredena: 'CAPREDENA' }[p] ?? p;
+    const map: Record<string, string> = {
+      particular:   'Particular',
+      fonasa:       'FONASA',
+      banmedica:    'Banmédica',
+      colmena:      'Colmena',
+      consalud:     'Consalud',
+      cruzblanca:   'Cruz Blanca',
+      esencial:     'Esencial',
+      nuevamasvida: 'Nueva Masvida',
+      vidatres:     'Vida Tres',
+      fundacion:    'Isapre Fundación',
+      isalud:       'Isalud',
+      cruzdelnorte: 'Cruz del Norte',
+      capredena:    'CAPREDENA',
+      dipreca:      'DIPRECA',
+    };
+    return map[p] ?? p;
   }
 
   nextStatuses(current: string): { value: string; label: string }[] {
