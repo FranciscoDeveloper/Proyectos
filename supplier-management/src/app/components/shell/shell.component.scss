@@ -45,14 +45,14 @@
 .brand-icon {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
 
-  svg { width: 18px; height: 18px; color: white; }
+  svg { width: 36px; height: 36px; }
 }
 
 .brand-name {
@@ -62,7 +62,7 @@
   letter-spacing: -0.03em;
   color: white;
   white-space: nowrap;
-  background: linear-gradient(135deg, #fff, #c7d2fe);
+  background: linear-gradient(135deg, #fff, #bae6fd);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

@@ -8,7 +8,7 @@
 .brand-panel {
   width: 420px;
   flex-shrink: 0;
-  background: linear-gradient(160deg, #4f46e5 0%, #7c3aed 60%, #6d28d9 100%);
+  background: linear-gradient(160deg, #38bdf8 0%, #0ea5e9 45%, #0284c7 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -44,15 +44,10 @@
 .brand-content { position: relative; z-index: 1; color: #fff; }
 
 .brand-logo {
-  width: 64px;
-  height: 64px;
-  background: rgba(255,255,255,0.15);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 72px;
+  height: 72px;
   margin-bottom: 1.5rem;
-  svg { width: 32px; height: 32px; }
+  svg { width: 72px; height: 72px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15)); }
 }
 
 .brand-name {
