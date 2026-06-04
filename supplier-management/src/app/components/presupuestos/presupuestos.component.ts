@@ -554,9 +554,7 @@ export class PresupuestosComponent implements OnInit {
       esencial:     'Esencial',
       nuevamasvida: 'Nueva Masvida',
       vidatres:     'Vida Tres',
-      fundacion:    'Isapre Fundación',
-      isalud:       'Isalud',
-      cruzdelnorte: 'Cruz del Norte',
+
       capredena:    'CAPREDENA',
       dipreca:      'DIPRECA',
     };
