@@ -77,11 +77,11 @@
       {
         "@type": "Offer",
         "name": "Starter",
-        "price": "9",
+        "price": "3",
         "priceCurrency": "USD",
         "priceSpecification": {
           "@type": "UnitPriceSpecification",
-          "price": "9",
+          "price": "3",
           "priceCurrency": "USD",
           "unitCode": "MON"
         }
@@ -89,11 +89,11 @@
       {
         "@type": "Offer",
         "name": "Pro",
-        "price": "18",
+        "price": "12",
         "priceCurrency": "USD",
         "priceSpecification": {
           "@type": "UnitPriceSpecification",
-          "price": "18",
+          "price": "12",
           "priceCurrency": "USD",
           "unitCode": "MON"
         }
@@ -116,63 +116,6 @@
   }
   </script>
 
-  <!-- Structured Data: FAQPage -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "¿Qué es Dairi y para qué sirve?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Dairi es un software de gestión clínica en la nube diseñado para clínicas y consultorios en Latinoamérica. Centraliza la administración de pacientes, citas, fichas clínicas, inventario de productos, proveedores y pagos en una sola plataforma accesible desde cualquier dispositivo con internet."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿Cuánto cuesta Dairi?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Dairi tiene tres planes: Starter desde US$9/mes (hasta 5 usuarios), Pro desde US$18/mes (hasta 10 usuarios con inventario, pagos y boleta electrónica) y Enterprise con precio a consultar para organizaciones grandes. Todos los planes incluyen 14 días de prueba gratuita sin tarjeta de crédito."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿Dairi es seguro para almacenar fichas clínicas?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Sí. Dairi utiliza autenticación JWT, HTTPS forzado, cifrado AES-256 en base de datos y arquitectura serverless en AWS. Los datos clínicos están almacenados en servidores en la nube con backups automáticos y acceso restringido por roles."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿Cuánto tiempo toma implementar Dairi en mi clínica?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "La implementación toma menos de 24 horas. Al ser una plataforma 100% en la nube, no requiere instalaciones ni servidores propios. El onboarding guiado te permite configurar tu clínica, agregar profesionales y comenzar a registrar pacientes el mismo día."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿Dairi emite boletas electrónicas con el SII?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Sí, el plan Pro incluye emisión de boletas electrónicas con timbre del SII y envío automático por email al paciente al finalizar la atención. Compatible con la normativa tributaria chilena vigente."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿Funciona Dairi para clínicas pequeñas o consultorios unipersonales?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Sí. El plan Starter está diseñado para consultorios y clínicas pequeñas con hasta 5 usuarios. Incluye gestión de pacientes, citas y fichas clínicas a un precio accesible. Puedes escalar al plan Pro en cualquier momento sin perder datos."
-        }
-      }
-    ]
-  }
-  </script>
 </head>
 <body>
   <app-root></app-root>
