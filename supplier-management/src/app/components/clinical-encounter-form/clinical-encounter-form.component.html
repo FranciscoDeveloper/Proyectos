@@ -1,88 +1,85 @@
-<div class="form-page" *ngIf="schema(); else notFound">
+<div class="encounter-page" *ngIf="schema(); else notFound">
 
   <!-- ── Header ── -->
   <div class="page-header">
-    <a [routerLink]="['/app/entity', entityKey()]" class="back-link">
+    <a [routerLink]="['/app/clinical', entityKey(), recordId()]" class="back-link">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-      {{ schema()!.entity.plural }}
+      {{ schema()!.entity.singular }}
     </a>
-    <h1 class="page-title">{{ isEdit() ? 'Editar' : 'Nuevo' }} {{ schema()!.entity.singular }}</h1>
+    <h1 class="page-title">Nueva Atención — {{ schema()!.entity.singular }}</h1>
   </div>
 
-  <!-- ── Success banner ── -->
+  <!-- ── Banner informativo ── -->
+  <div class="encounter-banner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+    </svg>
+    Registrando nueva atención. Los datos del paciente están bloqueados. Solo se editan los campos clínicos de esta visita.
+  </div>
+
+  <!-- ── Banner de éxito ── -->
   <div class="success-banner" *ngIf="saved()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
     </svg>
-    {{ isEdit() ? 'Cambios guardados.' : schema()!.entity.singular + ' creado.' }} Redirigiendo...
+    Atención registrada. Redirigiendo a la ficha...
   </div>
 
-  <!-- ── Google Calendar sync status ── -->
-  <div class="gcal-status-banner" *ngIf="gcalStatus() !== 'idle'">
-    <ng-container *ngIf="gcalStatus() === 'syncing'">
-      <span class="gcal-spinner"></span>
-      Sincronizando con Google Calendar...
-    </ng-container>
-    <ng-container *ngIf="gcalStatus() === 'synced'">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-      </svg>
-      Evento creado en Google Calendar
-    </ng-container>
-    <ng-container *ngIf="gcalStatus() === 'not_connected'">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="4" width="18" height="18" rx="2"/>
-        <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-      </svg>
-      Google Calendar no conectado — conéctalo desde la agenda
-    </ng-container>
-    <ng-container *ngIf="gcalStatus() === 'error'">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
-      No se pudo sincronizar con Google Calendar
-    </ng-container>
-  </div>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="encounter-form" *ngIf="!saved()">
 
-  <form [formGroup]="form" (ngSubmit)="submit()" class="entity-form" *ngIf="!saved()">
-
-    <!-- ── Patient selector (entity-select, solo en creación) ── -->
-    <div class="patient-selector-block" *ngIf="entitySelectFields().length > 0">
-      <div class="patient-selector-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-          <circle cx="12" cy="7" r="4"/>
-        </svg>
-        Selecciona el paciente registrado
-      </div>
-      <div *ngFor="let field of entitySelectFields()" class="field-group full-width">
-        <label class="field-label">
-          {{ field.label }} <span class="required">*</span>
+    <!-- ── Fecha de la atención ── -->
+    <div class="form-grid">
+      <div class="field-group encounter-date-field">
+        <label for="encounterDate" class="field-label">
+          Fecha de la Atención <span class="required">*</span>
         </label>
-        <select class="field-input field-select"
-                [class.invalid]="isInvalid(field.name)"
-                (change)="onEntitySelect(field, $any($event.target).value)">
-          <option value="">— Seleccionar paciente —</option>
-          <option *ngFor="let opt of getEntityOptions(field)" [value]="opt.id">
-            {{ opt.label }}
-          </option>
-        </select>
-        <span class="field-error" *ngIf="isInvalid(field.name)">Debes seleccionar un paciente registrado.</span>
-        <span class="field-hint" *ngIf="getEntityOptions(field).length === 0">
-          Cargando pacientes…
-        </span>
+        <input id="encounterDate" type="date" formControlName="encounterDate"
+          class="field-input" [class.invalid]="isInvalid('encounterDate')" />
       </div>
+    </div>
+
+    <!-- ── Datos permanentes del paciente (solo lectura) ── -->
+    <div class="stable-summary" *ngIf="stableFields().length > 0">
+      <div class="stable-summary-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Datos permanentes del paciente (no modificables en esta atención)
+      </div>
+      <div class="stable-grid">
+        <div class="stable-item" *ngFor="let f of stableFields()">
+          <span class="stable-label">{{ f.label }}</span>
+          <span class="stable-value">{{ ctrl(f.name).value || '—' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Título sección campos clínicos ── -->
+    <div class="form-section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+      Campos clínicos de esta atención
     </div>
 
     <!-- ── Campos editables ── -->
     <div class="form-grid">
-      <ng-container *ngFor="let field of editableFields()">
+      <ng-container *ngFor="let field of editableFields(); let i = index">
+
+        <!-- Separador entre obligatorios y opcionales -->
+        <div class="section-divider full-width"
+          *ngIf="i > 0 && !field.requiredInEncounter && editableFields()[i - 1].requiredInEncounter">
+          Campos opcionales
+        </div>
 
         <!-- Textarea -->
         <div class="field-group full-width" *ngIf="field.type === 'textarea'">
           <label [for]="field.name" class="field-label">
             {{ field.label }}
-            <span class="required" *ngIf="field.required">*</span>
+            <span class="required" *ngIf="field.requiredInEncounter">*</span>
           </label>
           <textarea [id]="field.name" [formControlName]="field.name"
             [placeholder]="field.placeholder ?? ''" rows="3"
@@ -93,17 +90,22 @@
 
         <!-- Tags -->
         <div class="field-group full-width" *ngIf="field.type === 'tags'">
-          <label [for]="field.name" class="field-label">{{ field.label }}</label>
+          <label [for]="field.name" class="field-label">
+            {{ field.label }}
+            <span class="required" *ngIf="field.requiredInEncounter">*</span>
+          </label>
           <input [id]="field.name" type="text" [formControlName]="field.name"
-            placeholder="etiqueta1, etiqueta2" class="field-input" />
+            placeholder="etiqueta1, etiqueta2" class="field-input"
+            [class.invalid]="isInvalid(field.name)" />
           <span class="field-hint">Separadas por comas</span>
+          <span class="field-error" *ngIf="isInvalid(field.name)">{{ getError(field.name, field) }}</span>
         </div>
 
         <!-- Range -->
         <div class="field-group" *ngIf="field.type === 'range'">
           <label [for]="field.name" class="field-label">
             {{ field.label }}
-            <span class="required" *ngIf="field.required">*</span>
+            <span class="required" *ngIf="field.requiredInEncounter">*</span>
             <span class="range-value">{{ ctrl(field.name).value }}</span>
           </label>
           <input [id]="field.name" type="range" [formControlName]="field.name"
@@ -116,8 +118,7 @@
         <div class="field-group" *ngIf="field.type === 'select'">
           <label [for]="field.name" class="field-label">
             {{ field.label }}
-            <span class="required" *ngIf="field.required">*</span>
-            <span class="field-locked-hint" *ngIf="field.lockWhenHasEncounters && hasEncounters()" title="No editable con atenciones registradas">🔒</span>
+            <span class="required" *ngIf="field.requiredInEncounter">*</span>
           </label>
           <select [id]="field.name" [formControlName]="field.name"
             class="field-input field-select" [class.invalid]="isInvalid(field.name)">
@@ -135,12 +136,12 @@
           </label>
         </div>
 
-        <!-- Resto de inputs -->
+        <!-- Resto de inputs (text, number, date, tel, email…) -->
         <div class="field-group"
           *ngIf="field.type !== 'textarea' && field.type !== 'tags' && field.type !== 'range' && field.type !== 'select' && field.type !== 'boolean'">
           <label [for]="field.name" class="field-label">
             {{ field.label }}
-            <span class="required" *ngIf="field.required">*</span>
+            <span class="required" *ngIf="field.requiredInEncounter">*</span>
           </label>
           <input [id]="field.name" [type]="getInputType(field)" [formControlName]="field.name"
             [placeholder]="field.placeholder ?? field.patternMessage ?? ''"
@@ -162,14 +163,13 @@
           <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
           <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
         </svg>
-        {{ saving() ? 'Guardando...' : isEdit() ? 'Guardar cambios' : 'Crear ' + schema()!.entity.singular }}
+        {{ saving() ? 'Guardando...' : 'Registrar Atención' }}
       </button>
     </div>
+
   </form>
 </div>
 
 <ng-template #notFound>
-  <div class="empty-state">
-    <p>Entidad no encontrada.</p>
-  </div>
+  <div class="empty-state"><p>Ficha no encontrada.</p></div>
 </ng-template>

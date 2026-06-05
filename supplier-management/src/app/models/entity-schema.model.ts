@@ -105,6 +105,10 @@ export interface FieldDefinition {
   relatedFilterField?: string;
   /** The value to match against relatedFilterField */
   relatedFilterValue?: string;
+  /** When true, this field is hidden in encounter mode (value is set automatically) */
+  hideInEncounterMode?: boolean;
+  /** When true, this field is required when registering a new encounter */
+  requiredInEncounter?: boolean;
 }
 
 export interface EntityMeta {

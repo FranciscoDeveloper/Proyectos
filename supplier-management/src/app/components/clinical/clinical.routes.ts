@@ -21,12 +21,10 @@ export const CLINICAL_ROUTES: Routes = [
       import('../generic-form/generic-form.component').then(m => m.GenericFormComponent)
   },
   {
-    // Encounter mode: same form but only mutable fields enabled
     path: ':entityKey/:id/encounter',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('../generic-form/generic-form.component').then(m => m.GenericFormComponent),
-    data: { encounterMode: true }
+      import('../clinical-encounter-form/clinical-encounter-form.component').then(m => m.ClinicalEncounterFormComponent)
   },
   {
     path: ':entityKey/:id',
