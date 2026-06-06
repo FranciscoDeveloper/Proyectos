@@ -99,24 +99,41 @@ export class AudioRecorderService {
     const safe     = ctx.patientName.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '').trim().replace(/\s+/g, '_');
     const date     = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
     const filename = `atencion_${safe}_${date}.${ext}`;
-
     const blob     = new Blob(this.chunks, { type: mimeType });
-    const form     = new FormData();
-    form.append('file',       blob, filename);
-    form.append('filename',   filename);
-    form.append('entityKey',  ctx.entityKey);
-    form.append('recordId',   String(ctx.recordId));
-    form.append('duration',   String(finalDuration));
-    form.append('mimeType',   mimeType);
 
     try {
-      const result = await firstValueFrom(
-        this.http.post<AudioUploadResult>('/api/audio-recordings', form)
+      // Paso 1: obtener presigned PUT URL (solo metadata, ~200 bytes)
+      const presignRes = await firstValueFrom(
+        this.http.post<{ presignedUrl: string; key: string; id: string }>(
+          '/api/audio-recordings/presign',
+          { filename, mimeType, entityKey: ctx.entityKey, recordId: ctx.recordId, duration: finalDuration }
+        )
       );
+
+      // Paso 2: subir el binario directo a S3 (sin pasar por API Gateway/Lambda)
+      const s3Res = await fetch(presignRes.presignedUrl, {
+        method:  'PUT',
+        body:    blob,
+        headers: { 'Content-Type': mimeType },
+      });
+
+      if (!s3Res.ok) {
+        throw new Error(`Error al subir a S3: ${s3Res.status} ${s3Res.statusText}`);
+      }
+
+      // Paso 3: confirmar subida y obtener URL de reproducción
+      const result = await firstValueFrom(
+        this.http.post<AudioUploadResult>(
+          '/api/audio-recordings/confirm',
+          { key: presignRes.key, id: presignRes.id, filename, entityKey: ctx.entityKey, recordId: ctx.recordId, duration: finalDuration }
+        )
+      );
+
       this.uploadResult.set(result);
       this.state.set('done');
+
     } catch (err: any) {
-      const msg = err?.error?.message ?? 'Error al subir el audio. Intenta de nuevo.';
+      const msg = err?.error?.message ?? err?.message ?? 'Error al subir el audio. Intenta de nuevo.';
       this.error.set(msg);
       this.state.set('error');
     }
