@@ -5,6 +5,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractContro
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { EntitySchema, FieldDefinition, SelectOption } from '../../models/entity-schema.model';
+import { AudioRecorderService } from '../../services/audio-recorder.service';
 
 @Component({
   selector: 'app-clinical-encounter-form',
@@ -18,6 +19,8 @@ export class ClinicalEncounterFormComponent implements OnInit {
   private fb       = inject(FormBuilder);
   private schemaSvc = inject(SchemaService);
   private crudSvc  = inject(GenericCrudService);
+  readonly recorder = inject(AudioRecorderService);
+  readonly AudioRecorderService = AudioRecorderService;
 
   schema    = signal<EntitySchema | null>(null);
   entityKey = signal('');
@@ -164,5 +167,17 @@ export class ClinicalEncounterFormComponent implements OnInit {
 
   cancel() {
     this.router.navigate(['/app/clinical', this.entityKey(), this.recordId()]);
+  }
+
+  toggleRecording(): void {
+    if (this.recorder.isRecording) {
+      this.recorder.stop();
+    } else {
+      this.recorder.start({
+        patientName: this.form.get('fullName')?.value || 'paciente',
+        entityKey:   this.entityKey(),
+        recordId:    this.recordId()!
+      });
+    }
   }
 }

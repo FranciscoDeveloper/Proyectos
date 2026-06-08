@@ -99,38 +99,6 @@
         {{ newEncounterLabel() }}
       </a>
 
-      <!-- ── Audio recorder button ── -->
-      <button class="btn btn-sm"
-              [class.btn-record]="recorder.state() === 'idle' || recorder.state() === 'done' || recorder.state() === 'error'"
-              [class.btn-stop]="recorder.isRecording"
-              [disabled]="recorder.state() === 'saving' || recorder.state() === 'uploading'"
-              (click)="toggleRecording()"
-              [title]="recorder.isRecording ? 'Detener y subir grabación' : 'Grabar consulta'">
-        <!-- Idle / done / error → play icon -->
-        <svg *ngIf="!recorder.isRecording && recorder.state() !== 'saving' && recorder.state() !== 'uploading'"
-             viewBox="0 0 24 24" fill="currentColor" stroke="none">
-          <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
-          <polygon points="10,8 16,12 10,16"/>
-        </svg>
-        <!-- Recording → stop icon -->
-        <svg *ngIf="recorder.isRecording"
-             viewBox="0 0 24 24" fill="currentColor" stroke="none">
-          <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
-          <rect x="9" y="9" width="6" height="6" rx="1"/>
-        </svg>
-        <!-- Saving / uploading → spinner -->
-        <span *ngIf="recorder.state() === 'saving' || recorder.state() === 'uploading'" class="spinner-xs"></span>
-        <span *ngIf="recorder.isRecording" class="rec-dot"></span>
-        <span>
-          {{ recorder.state() === 'saving'    ? 'Procesando…'
-           : recorder.state() === 'uploading' ? 'Subiendo…'
-           : recorder.isRecording             ? AudioRecorderService.formatDuration(recorder.duration())
-           : 'Grabar' }}
-        </span>
-      </button>
-      <p *ngIf="recorder.state() === 'done'" class="rec-success">✓ Audio guardado</p>
-      <p *ngIf="recorder.error()" class="rec-error">{{ recorder.error() }}</p>
-
       <a [routerLink]="['/app/clinical', entityKey, id, 'edit']" class="btn btn-outline btn-sm">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>

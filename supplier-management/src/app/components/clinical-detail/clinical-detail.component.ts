@@ -5,7 +5,6 @@ import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { FieldDefinition } from '../../models/entity-schema.model';
 import { ChatService, ChatUser } from '../../services/chat.service';
-import { AudioRecorderService } from '../../services/audio-recorder.service';
 import { OdontogramComponent, OdontogramData } from '../odontogram/odontogram.component';
 import { PeriodontogramComponent, PeriodontogramData } from '../periodontogram/periodontogram.component';
 
@@ -34,8 +33,6 @@ export class ClinicalDetailComponent {
   private schemaSvc = inject(SchemaService);
   private crudSvc   = inject(GenericCrudService);
   protected chatSvc = inject(ChatService);
-  readonly recorder = inject(AudioRecorderService);
-  readonly AudioRecorderService = AudioRecorderService;
 
   readonly entityKey = this.route.snapshot.paramMap.get('entityKey')!;
   readonly id        = Number(this.route.snapshot.paramMap.get('id')!);
@@ -463,20 +460,6 @@ export class ClinicalDetailComponent {
 
     const tab = window.open('', '_blank');
     if (tab) { tab.document.write(html); tab.document.close(); }
-  }
-
-  // ── Audio recording ───────────────────────────────────────────────────────
-
-  toggleRecording(): void {
-    if (this.recorder.isRecording) {
-      this.recorder.stop();
-    } else {
-      this.recorder.start({
-        patientName: this.patient()?.fullName ?? 'paciente',
-        entityKey:   this.entityKey,
-        recordId:    this.id
-      });
-    }
   }
 
 }
