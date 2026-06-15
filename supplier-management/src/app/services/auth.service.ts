@@ -1132,7 +1132,7 @@ export const MOCK_USERS: MockUser[] = [
   { password: 'kine123',    user: { id: 7,  name: 'Kin. Valeria Torres',    email: 'kine@clinica.com',       role: 'manager', avatar: 'VT' }, schemas: [SCHEMA_KINE_RECORDS,      SCHEMA_PAYMENTS] },
   { password: 'nutri123',   user: { id: 8,  name: 'Nut. Claudia Reyes',    email: 'nutricion@clinica.com',  role: 'manager', avatar: 'CR' }, schemas: [SCHEMA_NUTRITION_RECORDS, SCHEMA_PAYMENTS] },
   { password: 'fono123',    user: { id: 9,  name: 'Fno. Andrés Soto',      email: 'fono@clinica.com',       role: 'manager', avatar: 'AS' }, schemas: [SCHEMA_FONO_RECORDS,      SCHEMA_PAYMENTS] },
-  { password: 'to123',      user: { id: 10, name: 'T.O. Marcela Fuentes',  email: 'to@clinica.com',         role: 'manager', avatar: 'MF' }, schemas: [SCHEMA_OT_RECORDS,        SCHEMA_PAYMENTS] },
+  { password: 'to123456',   user: { id: 10, name: 'T.O. Marcela Fuentes',  email: 'to@clinica.com',         role: 'manager', avatar: 'MF' }, schemas: [SCHEMA_OT_RECORDS,        SCHEMA_PAYMENTS] },
   { password: 'matrona123', user: { id: 11, name: 'Mat. Sofía Herrera',    email: 'matrona@clinica.com',    role: 'manager', avatar: 'SH' }, schemas: [SCHEMA_MATRONA_RECORDS,   SCHEMA_PAYMENTS] },
   { password: 'tecno123',   user: { id: 12, name: 'T.M. Roberto Lagos',    email: 'tecnomed@clinica.com',   role: 'manager', avatar: 'RL' }, schemas: [SCHEMA_TECNOMED_RECORDS,  SCHEMA_PAYMENTS] }
 ];
