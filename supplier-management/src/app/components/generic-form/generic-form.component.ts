@@ -6,6 +6,7 @@ import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { EntitySchema, FieldDefinition, SelectOption } from '../../models/entity-schema.model';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-generic-form',
@@ -20,6 +21,7 @@ export class GenericFormComponent implements OnInit {
   private schemaService = inject(SchemaService);
   private crudService = inject(GenericCrudService);
   readonly gcalSvc = inject(GoogleCalendarService);
+  private auth = inject(AuthService);
 
   schema = signal<EntitySchema | null>(null);
   entityKey = signal('');
@@ -27,6 +29,7 @@ export class GenericFormComponent implements OnInit {
   recordId = signal<number | null>(null);
   saving = signal(false);
   saved = signal(false);
+  isEncounterMode = signal(false);
   /** True when the record being edited already has at least one encounter */
   hasEncounters = signal(false);
   gcalStatus = signal<'idle' | 'syncing' | 'synced' | 'not_connected' | 'error'>('idle');
@@ -42,17 +45,19 @@ export class GenericFormComponent implements OnInit {
 
   /** entity-select fields — shown only in create mode */
   entitySelectFields = computed(() => {
-    if (this.isEdit()) return [];
+    if (this.isEdit() || this.isEncounterMode()) return [];
     return this.schema()?.fields.filter(f => f.type === 'entity-select') ?? [];
   });
 
   ngOnInit() {
     const key = this.route.snapshot.paramMap.get('entityKey') ?? '';
     const idParam = this.route.snapshot.paramMap.get('id');
+    const encounterMode = !!this.route.snapshot.data['encounterMode'];
 
     this.entityKey.set(key);
     this.schema.set(this.schemaService.getSchema(key));
     this.crudService.initStore(key);
+    this.isEncounterMode.set(encounterMode);
 
     if (idParam) {
       this.isEdit.set(true);
@@ -60,6 +65,15 @@ export class GenericFormComponent implements OnInit {
     }
 
     this.buildForm();
+
+    // Auto-fill professional name in create mode
+    if (!idParam && !encounterMode) {
+      const userName = this.auth.user()?.name;
+      if (userName) {
+        const PROF_FIELDS = ['doctor', 'doctorName', 'professionalName', 'professional', 'therapist', 'psychologist', 'dentist'];
+        PROF_FIELDS.forEach(n => { if (this.form.get(n)) this.form.get(n)!.setValue(userName); });
+      }
+    }
 
     // Pre-load options for entity-select and lookup-select fields
     this.schema()?.fields
@@ -215,15 +229,35 @@ export class GenericFormComponent implements OnInit {
 
     setTimeout(() => {
       const processed = processFields();
-      if (this.isEdit() && this.recordId() !== null) {
+      if (this.isEncounterMode() && this.recordId() !== null) {
+        // Build a new encounter object from only the mutable fields + encounter date
+        const profName = this.auth.user()?.name;
+        const encounter: Record<string, any> = {
+          encounterDate: raw['encounterDate'],
+          ...(profName ? { encounterDoctor: profName } : {})
+        };
+        (this.schema()!.fields.filter(f => !f.isStable && f.type !== 'object-list' && f.type !== 'dental-chart' && f.type !== 'periodontal-chart')).forEach(f => {
+          const v = raw[f.name];
+          if (v !== undefined && v !== '' && v !== null) {
+            encounter[f.name] = (f.type === 'number' || f.type === 'range') ? Number(v) : v;
+          }
+        });
+        this.crudService.appendEncounter(this.entityKey(), this.recordId()!, encounter);
+        this.saving.set(false);
+        this.saved.set(true);
+        setTimeout(() => this.router.navigate(['/app/clinical', this.entityKey(), this.recordId()]), 800);
+      } else if (this.isEdit() && this.recordId() !== null) {
         this.crudService.update(this.entityKey(), this.recordId()!, processed);
+        this.saving.set(false);
+        this.saved.set(true);
+        setTimeout(() => this.router.navigate(['/app/entity', this.entityKey()]), 800);
       } else {
         this.crudService.create(this.entityKey(), processed);
         this.syncToGoogleCalendar(processed);
+        this.saving.set(false);
+        this.saved.set(true);
+        setTimeout(() => this.router.navigate(['/app/entity', this.entityKey()]), 800);
       }
-      this.saving.set(false);
-      this.saved.set(true);
-      setTimeout(() => this.router.navigate(['/app/entity', this.entityKey()]), 800);
     }, 400);
   }
 
