@@ -190,6 +190,23 @@
   svg { width: 13px; height: 13px; flex-shrink: 0; }
 }
 
+.prof-label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.my-patient-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  background: #dcfce7;
+  color: #15803d;
+  letter-spacing: 0.3px;
+}
+
 .ph-actions {
   display: flex;
   flex-direction: column;

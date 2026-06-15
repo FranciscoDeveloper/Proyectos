@@ -6,6 +6,7 @@ import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { EntitySchema, FieldDefinition } from '../../models/entity-schema.model';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-generic-form',
@@ -21,6 +22,7 @@ export class GenericFormComponent implements OnInit {
   private schemaService = inject(SchemaService);
   private crudService = inject(GenericCrudService);
   readonly gcalSvc = inject(GoogleCalendarService);
+  private auth = inject(AuthService);
 
   schema = signal<EntitySchema | null>(null);
   entityKey = signal('');
@@ -71,6 +73,15 @@ export class GenericFormComponent implements OnInit {
     }
 
     this.buildForm();
+
+    // Auto-fill professional name in create mode
+    if (!idParam && !encounterMode) {
+      const userName = this.auth.user()?.name;
+      if (userName) {
+        const PROF_FIELDS = ['doctor', 'doctorName', 'professionalName', 'professional', 'therapist', 'psychologist', 'dentist'];
+        PROF_FIELDS.forEach(n => { if (this.form.get(n)) this.form.get(n)!.setValue(userName); });
+      }
+    }
 
     // Pre-load options for entity-select fields
     this.schema()?.fields
@@ -227,7 +238,11 @@ export class GenericFormComponent implements OnInit {
     setTimeout(() => {
       if (this.isEncounterMode() && this.recordId() !== null) {
         // Build a new encounter object from only the mutable fields + encounter date
-        const encounter: Record<string, any> = { encounterDate: raw['encounterDate'] };
+        const profName = this.auth.user()?.name;
+        const encounter: Record<string, any> = {
+          encounterDate: raw['encounterDate'],
+          ...(profName ? { encounterDoctor: profName } : {})
+        };
         (this.schema()!.fields.filter(f => !f.isStable && f.type !== 'object-list' && f.type !== 'dental-chart' && f.type !== 'periodontal-chart')).forEach(f => {
           const v = raw[f.name];
           if (v !== undefined && v !== '' && v !== null) {

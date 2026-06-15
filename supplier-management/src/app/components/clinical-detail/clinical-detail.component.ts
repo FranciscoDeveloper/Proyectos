@@ -6,6 +6,7 @@ import { GenericCrudService } from '../../services/generic-crud.service';
 import { FieldDefinition } from '../../models/entity-schema.model';
 import { ChatService, ChatUser } from '../../services/chat.service';
 import { AudioRecorderService } from '../../services/audio-recorder.service';
+import { AuthService } from '../../services/auth.service';
 import { OdontogramComponent, OdontogramData } from '../odontogram/odontogram.component';
 import { PeriodontogramComponent, PeriodontogramData } from '../periodontogram/periodontogram.component';
 
@@ -37,6 +38,7 @@ export class ClinicalDetailComponent {
   protected chatSvc = inject(ChatService);
   readonly recorder = inject(AudioRecorderService);
   readonly AudioRecorderService = AudioRecorderService;
+  private auth = inject(AuthService);
 
   readonly entityKey = this.route.snapshot.paramMap.get('entityKey')!;
   readonly id        = Number(this.route.snapshot.paramMap.get('id')!);
@@ -81,14 +83,42 @@ export class ClinicalDetailComponent {
     };
   });
 
+  readonly specialty = computed<'medical' | 'psych' | 'dental'>(() => {
+    if (this.entityKey === 'dental-records') return 'dental';
+    if (this.entityKey === 'psych-records')  return 'psych';
+    return 'medical';
+  });
+
+  readonly isPsychRecord = computed(() => this.specialty() === 'psych');
+
+  readonly professionalLabel = computed(() => {
+    switch (this.specialty()) {
+      case 'dental': return 'Odontólogo/a';
+      case 'psych':  return 'Psicólogo/a';
+      default:       return 'Médico Tratante';
+    }
+  });
+
+  readonly isMyPatient = computed(() => {
+    const userName = this.auth.user()?.name;
+    if (!userName) return false;
+    return this.patient()?.doctor === userName;
+  });
+
   readonly alerts = computed(() => {
     const r = this.record();
-    if (!r || !this.schema) return { allergies: [] as string[], contraindications: '', alertNotes: '' };
+    if (!r || !this.schema) return {
+      allergies: [] as string[], contraindications: '', alertNotes: '',
+      allergyLabel: 'Alergias', contraindicationLabel: 'Contraindicaciones', alertNotesLabel: 'Notas de alerta'
+    };
     const allergies = r['allergies'];
     return {
-      allergies:        Array.isArray(allergies) ? allergies as string[] : [],
-      contraindications: String(r['contraindications'] ?? ''),
-      alertNotes:        String(r['alertNotes'] ?? '')
+      allergies:            Array.isArray(allergies) ? allergies as string[] : [],
+      contraindications:    String(r['contraindications'] ?? ''),
+      alertNotes:           String(r['alertNotes'] ?? ''),
+      allergyLabel:         this.schema.fields.find(f => f.name === 'allergies')?.label ?? 'Alergias',
+      contraindicationLabel: this.schema.fields.find(f => f.name === 'contraindications')?.label ?? 'Contraindicaciones',
+      alertNotesLabel:      this.schema.fields.find(f => f.name === 'alertNotes')?.label ?? 'Notas de alerta'
     };
   });
 
@@ -111,12 +141,12 @@ export class ClinicalDetailComponent {
   readonly vitals = computed<VitalSign[]>(() => {
     const r = this.record();
     if (!r || !this.schema) return [];
-    const isDental = this.isDentalRecord();
+    const nonMedical = this.isDentalRecord() || this.isPsychRecord();
     return this.schema.fields
       .filter(f => f.isVitalSign)
       .map(f => {
         const raw = r[f.name];
-        const meta = isDental
+        const meta = nonMedical
           ? { unit: '', normal: '' }
           : (this.VITAL_META[f.name] ?? { unit: '', normal: '—' });
         return {
@@ -165,13 +195,17 @@ export class ClinicalDetailComponent {
   );
 
   readonly medicationFields = computed<SectionField[]>(() => {
+    const bySection = this.sectionFields('medications');
+    if (bySection.length > 0) return bySection;
     const r = this.record();
     if (!r || !this.schema) return [];
+    const result: SectionField[] = [];
+    const medsField = this.schema.fields.find(f => f.name === 'currentMedications');
+    const chronicField = this.schema.fields.find(f => f.name === 'chronicConditions');
     const meds = String(r['currentMedications'] ?? '');
     const chronic = r['chronicConditions'];
-    const result: SectionField[] = [];
-    if (meds) result.push({ label: 'Medicamentos Actuales', value: meds, field: { name: 'currentMedications', type: 'textarea', label: 'Medicamentos Actuales' } });
-    if (Array.isArray(chronic) && chronic.length > 0) result.push({ label: 'Condiciones Crónicas', value: chronic, field: { name: 'chronicConditions', type: 'tags', label: 'Condiciones Crónicas' } });
+    if (meds && medsField) result.push({ label: medsField.label, value: meds, field: medsField });
+    if (Array.isArray(chronic) && chronic.length > 0 && chronicField) result.push({ label: chronicField.label, value: chronic, field: chronicField });
     return result;
   });
 
@@ -252,7 +286,7 @@ export class ClinicalDetailComponent {
       category: this.newDocCategory(),
       date: new Date().toISOString().slice(0, 10),
       size: '—',
-      uploadedBy: this.patient()?.doctor ?? 'Sistema',
+      uploadedBy: this.auth.user()?.name ?? this.patient()?.doctor ?? 'Sistema',
       notes: this.newDocNotes().trim()
     }]);
     this.newDocName.set('');
@@ -276,43 +310,115 @@ export class ClinicalDetailComponent {
 
   // ── Dental chart detection ────────────────────────────────────────────────
 
-  readonly isDentalRecord = computed(() => this.entityKey === 'dental-records');
+  readonly isDentalRecord = computed(() => this.specialty() === 'dental');
 
   readonly breadcrumbLabel = computed(() =>
     this.schema?.entity.plural ?? 'Fichas Clínicas'
   );
 
-  readonly vitalsSectionTitle = computed(() =>
-    this.isDentalRecord() ? 'Examen Clínico' : 'Signos Vitales'
-  );
+  readonly vitalsSectionTitle = computed(() => {
+    switch (this.specialty()) {
+      case 'dental': return 'Examen Clínico';
+      case 'psych':  return 'Estado Mental';
+      default:       return 'Signos Vitales';
+    }
+  });
 
-  readonly historySectionTitle = computed(() =>
-    this.isDentalRecord() ? 'Anamnesis Dental' : 'Antecedentes Médicos'
-  );
+  readonly historySectionTitle = computed(() => {
+    switch (this.specialty()) {
+      case 'dental': return 'Anamnesis Dental';
+      case 'psych':  return 'Antecedentes Psicológicos';
+      default:       return 'Antecedentes Médicos';
+    }
+  });
 
-  readonly surgicalSectionTitle = computed(() =>
-    this.isDentalRecord() ? 'Tratamientos Dentales' : 'Intervenciones Quirúrgicas'
-  );
+  readonly surgicalSectionTitle = computed(() => {
+    switch (this.specialty()) {
+      case 'dental': return 'Tratamientos Dentales';
+      case 'psych':  return 'Terapias e Intervenciones';
+      default:       return 'Intervenciones Quirúrgicas';
+    }
+  });
 
   readonly surgicalHistoryLabel = computed(() =>
-    this.isDentalRecord() ? 'Tratamientos Previos' : 'Antecedentes Quirúrgicos'
+    this.schema?.fields.find(f => f.name === 'surgicalHistory')?.label ?? (
+      this.specialty() === 'dental' ? 'Tratamientos Previos' :
+      this.specialty() === 'psych'  ? 'Historial Terapéutico' :
+      'Antecedentes Quirúrgicos'
+    )
   );
 
   readonly surgicalPlannedLabel = computed(() =>
-    this.isDentalRecord() ? 'Procedimientos Planificados' : 'Intervenciones Programadas / En Evaluación'
+    this.schema?.fields.find(f => f.name === 'plannedInterventions')?.label ?? (
+      this.specialty() === 'dental' ? 'Procedimientos Planificados' :
+      this.specialty() === 'psych'  ? 'Plan Terapéutico' :
+      'Intervenciones Programadas / En Evaluación'
+    )
   );
 
-  readonly soapSectionTitle = computed(() =>
-    this.isDentalRecord() ? 'Nota de Atención Dental' : 'Nota Clínica (SOAP)'
+  readonly soapSectionTitle = computed(() => {
+    switch (this.specialty()) {
+      case 'dental': return 'Nota de Atención Dental';
+      case 'psych':  return 'Nota de Sesión';
+      default:       return 'Nota Clínica (SOAP)';
+    }
+  });
+
+  readonly newEncounterLabel = computed(() => {
+    switch (this.specialty()) {
+      case 'dental': return 'Nueva Sesión Dental';
+      case 'psych':  return 'Nueva Sesión';
+      default:       return 'Nueva Atención';
+    }
+  });
+
+  readonly recordTabLabel = computed(() => {
+    switch (this.specialty()) {
+      case 'dental': return 'Ficha Dental';
+      case 'psych':  return 'Ficha Psicológica';
+      default:       return 'Ficha Clínica';
+    }
+  });
+
+  readonly historyTabLabel = computed(() => {
+    switch (this.specialty()) {
+      case 'dental': return 'Historial Dental';
+      case 'psych':  return 'Historial de Sesiones';
+      default:       return 'Historial de Atenciones';
+    }
+  });
+
+  readonly lastVisitLabel = computed(() =>
+    this.schema?.fields.find(f => f.name === 'lastVisit')?.label ?? 'Última consulta'
   );
 
-  readonly newEncounterLabel = computed(() =>
-    this.isDentalRecord() ? 'Nueva Sesión' : 'Nueva Atención'
+  readonly medicationSectionTitle = computed(() => {
+    const fromSchema = this.schema?.fields.find(f => f.section === 'medications')?.label;
+    if (fromSchema) return fromSchema;
+    switch (this.specialty()) {
+      case 'psych': return 'Medicación y Tratamiento';
+      default:      return 'Medicación Actual';
+    }
+  });
+
+  readonly prescriptionButtonLabel = computed(() =>
+    this.specialty() === 'psych' ? 'Imprimir Plan' : 'Imprimir Receta'
   );
 
-  readonly recordTabLabel = computed(() =>
-    this.isDentalRecord() ? 'Ficha Dental' : 'Ficha Clínica'
-  );
+  readonly encounterCountLabel = computed(() => {
+    const n = this.encounterHistory().length;
+    const noun   = this.specialty() === 'psych' ? 'sesión'   : 'atención';
+    const nounPl = this.specialty() === 'psych' ? 'sesiones' : 'atenciones';
+    return `${n} ${n !== 1 ? nounPl : noun} registrada${n !== 1 ? 's' : ''}`;
+  });
+
+  readonly encounterEmptyMsg = computed(() => {
+    switch (this.specialty()) {
+      case 'psych':  return 'No hay sesiones registradas para este paciente.';
+      case 'dental': return 'No hay atenciones dentales registradas para este paciente.';
+      default:       return 'No hay atenciones registradas para este paciente.';
+    }
+  });
 
   readonly odontogramData = computed<OdontogramData | null>(() => {
     const r = this.record();
@@ -406,13 +512,22 @@ export class ClinicalDetailComponent {
     const rx = this.prescriptionField();
     if (!p || !rx) return;
 
-    const dateStr = new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
+    const sp       = this.specialty();
+    const profLabel = this.professionalLabel();
+    const profName  = this.auth.user()?.name ?? p.doctor;
+    const docTitle  = sp === 'psych'  ? `Plan Terapéutico — ${p.fullName}` :
+                      sp === 'dental' ? `Plan Dental — ${p.fullName}` :
+                      `Receta Médica — ${p.fullName}`;
+    const docType   = sp === 'psych'  ? 'PLAN TERAPÉUTICO' :
+                      sp === 'dental' ? 'PLAN DENTAL' :
+                      'RECETA MÉDICA';
+    const dateStr   = new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
 
     const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Receta Médica — ${p.fullName}</title>
+  <title>${docTitle}</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#1a1a1a;background:#fff;padding:40px;max-width:760px;margin:0 auto}
@@ -437,8 +552,8 @@ export class ClinicalDetailComponent {
 <body>
   <p class="hint">Usa Ctrl+P / Cmd+P para imprimir o guardar como PDF</p>
   <div class="letterhead">
-    <div class="clinic-name">Clínica — Sistema Médico</div>
-    <div class="clinic-sub">${p.doctor}</div>
+    <div class="clinic-name">Dairi Clínica — ${docType}</div>
+    <div class="clinic-sub">${profLabel}: ${profName}</div>
   </div>
   <hr/>
   <div class="section-label">Datos del Paciente</div>
@@ -455,8 +570,8 @@ export class ClinicalDetailComponent {
   <div class="footer">
     <div class="sig-box">
       <div class="sig-line"></div>
-      <div class="sig-name">${p.doctor}</div>
-      <div class="sig-sub">Firma y Timbre</div>
+      <div class="sig-name">${profName}</div>
+      <div class="sig-sub">${profLabel} — Firma y Timbre</div>
     </div>
   </div>
 </body>
