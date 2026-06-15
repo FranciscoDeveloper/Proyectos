@@ -6,15 +6,9 @@ function Boxs(email:any,isSendedMessage: boolean) {
     
    // const intervalId = setInterval(()=>setWebhook(!webhook), 7777);
     useEffect (()=>{
-            fetch("http://localhost:5000/messages/all?email="+email.email)
-            .then((res) => res.json())
-            .then(async (data) =>
-              setMessages(data)
-            );
-        
-       
+
    
-    },[!isSendedMessage])
+    },[])
    
    
   

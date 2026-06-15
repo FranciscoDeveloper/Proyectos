@@ -12,21 +12,7 @@ const Chat: React.FC<Props> = () =>{
   const json= JSON.stringify({email:email})
 
     
-    fetch('http://localhost:5000/messages/init', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: json
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log('Respuesta del servidor:', data);
-    })
-    .catch(error => {
-      console.error('Error al enviar la solicitud:', error);
-    });
-
+ 
 
 
    

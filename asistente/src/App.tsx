@@ -9,7 +9,7 @@ function App() {
 
   return (<> 
     <Routes>
-      <Route path='/Home' Component={Home} />
+      <Route path='/' Component={Home} />
       <Route path={'/Chat/:email'} Component={Chat} />
     </Routes>
 
