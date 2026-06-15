@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { EntityMeta, EntityPayload, EntitySchema } from '../models/entity-schema.model';
-import { AuthService, SCHEMA_CLINICAL_RECORDS, SCHEMA_PSYCH_RECORDS, SCHEMA_DENTAL_RECORDS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES } from './auth.service';
+import { AuthService, SCHEMA_CLINICAL_RECORDS, SCHEMA_PSYCH_RECORDS, SCHEMA_DENTAL_RECORDS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES, SCHEMA_KINE_RECORDS, SCHEMA_NUTRITION_RECORDS, SCHEMA_FONO_RECORDS, SCHEMA_OT_RECORDS, SCHEMA_MATRONA_RECORDS, SCHEMA_TECNOMED_RECORDS } from './auth.service';
 
 /**
  * Provides entity schemas to the rest of the app.
@@ -851,6 +851,24 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
         }
       ]
     },
+
+    // ─────────────────────────── FICHAS KINÉSICAS ────────────────────────
+    'kine-records': { schema: SCHEMA_KINE_RECORDS, data: [] },
+
+    // ─────────────────────────── FICHAS NUTRICIONALES ─────────────────────
+    'nutrition-records': { schema: SCHEMA_NUTRITION_RECORDS, data: [] },
+
+    // ─────────────────────────── FICHAS FONOAUDIOLÓGICAS ──────────────────
+    'fono-records': { schema: SCHEMA_FONO_RECORDS, data: [] },
+
+    // ─────────────────────────── FICHAS T.O. ──────────────────────────────
+    'ot-records': { schema: SCHEMA_OT_RECORDS, data: [] },
+
+    // ─────────────────────────── FICHAS OBSTÉTRICAS ───────────────────────
+    'matrona-records': { schema: SCHEMA_MATRONA_RECORDS, data: [] },
+
+    // ─────────────────────────── FICHAS TECNOMÉDICAS ──────────────────────
+    'tecnomed-records': { schema: SCHEMA_TECNOMED_RECORDS, data: [] },
 
     // ─────────────────────────── COBROS / INGRESOS ───────────────────────────
     payments: {
