@@ -117,12 +117,15 @@ const SCHEMA_APPOINTMENTS: EntitySchema = {
 const SCHEMA_PACIENTE: EntitySchema = {
   entity: { key: 'paciente', singular: 'Paciente', plural: 'Pacientes', icon: 'heart', description: 'Registro y seguimiento de pacientes' },
   fields: [
-    { name: 'nombre',     type: 'text',     label: 'Nombre',       required: true,  isTitle: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true, filterType: 'search', minLength: 2 },
-    { name: 'rut',        type: 'text',     label: 'RUT',          required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  filterable: true, filterType: 'search', pattern: '^\\d{1,2}\\.?\\d{3}\\.?\\d{3}-[\\dkK]$', patternMessage: 'Formato: 12.345.678-9' },
-    { name: 'email',      type: 'email',    label: 'Email',        required: true,                    showInList: true,  showInDetail: true },
-    { name: 'telefono',   type: 'tel',      label: 'Teléfono',     required: false,                   showInList: true,  showInDetail: true },
-    { name: 'diagnostic', type: 'text',     label: 'Diagnóstico',  required: false,                   showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
-    { name: 'allergies',  type: 'text',     label: 'Alergias',     required: false,                   showInList: false, showInDetail: true }
+    { name: 'nombre',   type: 'text',  label: 'Nombre',    required: true,  isTitle: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true, filterType: 'search', minLength: 2 },
+    { name: 'rut',      type: 'text',  label: 'RUT',       required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  filterable: true, filterType: 'search', pattern: '^\\d{1,2}\\.?\\d{3}\\.?\\d{3}-[\\dkK]$', patternMessage: 'Formato: 12.345.678-9' },
+    { name: 'email',    type: 'email', label: 'Email',     required: true,                    showInList: true,  showInDetail: true },
+    { name: 'telefono', type: 'tel',   label: 'Teléfono',  required: false,                   showInList: true,  showInDetail: true },
+    { name: 'birthDate',  type: 'date',  label: 'Fecha de Nacimiento', required: false, showInList: false, showInDetail: true },
+    { name: 'gender',     type: 'text',  label: 'Género',              required: false, showInList: false, showInDetail: true },
+    { name: 'bloodType',  type: 'text',  label: 'Tipo de Sangre',      required: false, showInList: false, showInDetail: true },
+    { name: 'address',    type: 'text',  label: 'Dirección',           required: false, showInList: false, showInDetail: true },
+    { name: 'emergencyContact', type: 'text', label: 'Contacto de Emergencia', required: false, showInList: false, showInDetail: true }
   ]
 };
 
@@ -142,6 +145,7 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
       relatedEntity: 'patients', relatedLabelField: 'nombre',
       linkedFields: [
         { from: 'nombre', to: 'fullName' },
+        { from: 'name',   to: 'fullName' },
         { from: 'rut',    to: 'rut'      }
       ]
     },

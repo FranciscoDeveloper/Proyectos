@@ -10,7 +10,7 @@ const { responseToTurns, turnsToTranscript } = require("./deepgram-turns");
 const s3 = new S3Client({ region: process.env.AWS_REGION ?? "us-east-1" });
 const bedrock = new BedrockRuntimeClient({ region: process.env.AWS_REGION ?? "us-east-1" });
 const deepgram = createClient(process.env.DEEPGRAM_API_KEY);
-const MODEL_ID = process.env.BEDROCK_MODEL_ID ?? "us.anthropic.claude-haiku-4-5-20251001-v1:0";
+const MODEL_ID = process.env.BEDROCK_MODEL_ID ?? "amazon.nova-lite-v1:0";
 
 const SOAP_PROMPT =
   "Convierte la siguiente consulta médica en una nota clínica SOAP en español. " +
@@ -51,7 +51,7 @@ const handler = async (event) => {
         modelId: MODEL_ID,
         system: [{ text: SOAP_PROMPT }],
         messages: [{ role: "user", content: [{ text: transcript }] }],
-        inferenceConfig: { maxTokens: 1024, temperature: 0.2 },
+        inferenceConfig: { maxTokens: 4096, temperature: 0.2 },
       }));
       const soapNote = response.output?.message?.content?.[0]?.text;
       if (!soapNote) throw new Error("Bedrock devolvió respuesta vacía");
