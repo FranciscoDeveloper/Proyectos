@@ -49,6 +49,9 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
 
+  readonly isDev = typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
   readonly demoAccounts: DemoAccount[] = [
     { email: 'admin@empresa.com',        password: 'admin123',   role: 'Administrador', name: 'Admin General',       access: 'Proveedores · Productos · Pacientes', color: '#6366f1' },
     { email: 'compras@empresa.com',      password: 'compras123', role: 'Manager',       name: 'Jefe de Compras',     access: 'Proveedores · Productos',             color: '#10b981' },

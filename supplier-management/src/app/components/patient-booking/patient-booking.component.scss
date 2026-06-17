@@ -949,6 +949,98 @@ textarea {
   &:hover { opacity: .92; transform: translateY(-1px); }
 }
 
+/* ── Professional search & filter (step 0) ── */
+.prof-search-wrap {
+  position: relative;
+  margin-bottom: .875rem;
+}
+
+.prof-search-icon {
+  position: absolute;
+  left: .9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 17px; height: 17px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.prof-search-input {
+  width: 100%;
+  padding: .7rem 2.5rem .7rem 2.6rem;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: .92rem;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+  transition: border-color .18s, box-shadow .18s;
+  box-sizing: border-box;
+  &::placeholder { color: #a5c5d8; }
+  &:focus {
+    border-color: var(--sky-primary);
+    box-shadow: 0 0 0 3px rgba(14,165,233,.12);
+  }
+}
+
+.prof-search-clear {
+  position: absolute;
+  right: .75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  padding: .2rem;
+  display: flex;
+  align-items: center;
+  svg { width: 16px; height: 16px; }
+  &:hover { color: var(--text); }
+}
+
+.specialty-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  margin-bottom: .875rem;
+}
+
+.spec-chip {
+  padding: .3rem .85rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  &:hover { border-color: var(--sky-primary); color: var(--sky-primary); }
+  &.active {
+    background: var(--sky-primary);
+    border-color: var(--sky-primary);
+    color: #fff;
+  }
+}
+
+.prof-count {
+  font-size: .8rem;
+  color: var(--muted);
+  margin-bottom: .75rem;
+}
+
+.prof-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2.5rem 1rem;
+  color: var(--muted);
+  gap: .75rem;
+  svg { width: 40px; height: 40px; opacity: .4; }
+  p { font-size: .9rem; margin: 0; }
+}
+
 /* ── Professional list (step 0) ── */
 .prof-list {
   display: flex;

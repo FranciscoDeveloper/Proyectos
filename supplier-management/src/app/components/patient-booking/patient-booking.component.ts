@@ -1,16 +1,14 @@
-import { Component, inject, signal, computed, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { switchMap, of, map, catchError } from 'rxjs';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
-import { SymptomAnalyzerService } from '../../services/symptom-analyzer.service';
 
 const PAYMENT_LAMBDA_URL = 'https://koxzbg6zrjrlfvx2j2kqrlokv40jkzzp.lambda-url.us-east-1.on.aws/';
 
 type GcalStatus = 'idle' | 'connecting' | 'syncing' | 'synced' | 'error' | 'url_opened';
-type ChatPhase  = 'greeting' | 'awaiting' | 'typing' | 'results' | 'clarifying';
 
 interface ProfessionalSummary {
   id:            string;
@@ -61,13 +59,6 @@ interface PaymentStatus {
   currency?: string;
 }
 
-export interface ChatMsg {
-  role:          'bot' | 'user';
-  text:          string;
-  specialty?:    { name: string; emoji: string; description: string };
-  professionals?: ProfessionalSummary[];
-}
-
 @Component({
     selector: 'app-patient-booking',
     imports: [CommonModule, FormsModule, CurrencyPipe],
@@ -75,16 +66,34 @@ export interface ChatMsg {
     styleUrl: './patient-booking.component.scss'
 })
 export class PatientBookingComponent implements OnInit {
-  private route           = inject(ActivatedRoute);
-  private http            = inject(HttpClient);
-  readonly gcalSvc        = inject(GoogleCalendarService);
-  private symptomAnalyzer = inject(SymptomAnalyzerService);
-
-  @ViewChild('chatScroll') chatScroll?: ElementRef<HTMLDivElement>;
+  private route    = inject(ActivatedRoute);
+  private http     = inject(HttpClient);
+  readonly gcalSvc = inject(GoogleCalendarService);
 
   // Step 0: professional list
   professionals = signal<ProfessionalSummary[]>([]);
   loadingProfs  = signal(false);
+
+  // Search / filter
+  searchQuery     = signal('');
+  specialtyFilter = signal('');
+
+  readonly uniqueSpecialties = computed<string[]>(() => {
+    const specs = this.professionals().map(p => p.especialidad).filter(Boolean);
+    return [...new Set(specs)].sort();
+  });
+
+  readonly filteredProfessionals = computed<ProfessionalSummary[]>(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    const spec  = this.specialtyFilter();
+    let list    = this.professionals();
+    if (spec)  list = list.filter(p => p.especialidad === spec);
+    if (query) list = list.filter(p =>
+      p.nombre.toLowerCase().includes(query) ||
+      p.especialidad.toLowerCase().includes(query)
+    );
+    return list;
+  });
 
   // Selected professional
   professionalId = signal('');
@@ -92,8 +101,8 @@ export class PatientBookingComponent implements OnInit {
   loading        = signal(false);
   error          = signal('');
 
-  // Steps: -1 = specialist chat, 0 = professional picker, 1-4 = booking flow
-  step           = signal(-1);
+  // Steps: 0 = professional picker, 1-4 = booking flow
+  step           = signal(0);
   calendarMonth  = signal(new Date());
   selectedDate   = signal<Date | null>(null);
   selectedTime   = signal('');
@@ -119,12 +128,6 @@ export class PatientBookingComponent implements OnInit {
   paymentStatus    = signal<PaymentStatus | null>(null);
   checkingPayment  = signal(false);
   paymentError     = signal(false);
-
-  // ── Chat state ──────────────────────────────────────────────────────────────
-  chatMessages = signal<ChatMsg[]>([]);
-  chatInput    = signal('');
-  chatPhase    = signal<ChatPhase>('greeting');
-  chatAttempts = signal(0);
 
   readonly DOW_LABELS  = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   readonly MONTH_NAMES = [
@@ -193,7 +196,6 @@ export class PatientBookingComponent implements OnInit {
       this.loadBookingInfo(idParam);
     } else {
       this.loadProfessionals();
-      this.initChat();
     }
   }
 
@@ -209,106 +211,6 @@ export class PatientBookingComponent implements OnInit {
         this.checkingPayment.set(false);
       }
     });
-  }
-
-  // ── Chat ───────────────────────────────────────────────────────────────────
-
-  initChat(): void {
-    this.chatMessages.set([{
-      role: 'bot',
-      text: '¡Hola! Soy el asistente de Dairi.\n\nCuéntame qué síntomas o molestias tienes y te ayudaré a encontrar el especialista adecuado para ti.'
-    }]);
-    this.chatPhase.set('awaiting');
-    this.step.set(-1);
-  }
-
-  sendChatMessage(): void {
-    const text = this.chatInput().trim();
-    if (!text || this.chatPhase() === 'typing') return;
-
-    this.chatMessages.update(msgs => [...msgs, { role: 'user', text }]);
-    this.chatInput.set('');
-    this.chatPhase.set('typing');
-    this.chatAttempts.update(n => n + 1);
-    this.scrollChat();
-
-    setTimeout(() => {
-      const match = this.symptomAnalyzer.analyze(text);
-
-      if (match && match.score > 0) {
-        const filtered = this.filterBySpecialty(match.specialty);
-
-        if (filtered.length > 0) {
-          this.chatMessages.update(msgs => [...msgs, {
-            role:          'bot',
-            text:          `Según lo que describes, te recomiendo consultar con un especialista en:`,
-            specialty:     { name: match.specialty, emoji: match.emoji, description: match.description },
-            professionals: filtered
-          }]);
-        } else {
-          // Specialty found but no professionals registered with that specialty
-          this.chatMessages.update(msgs => [...msgs, {
-            role:          'bot',
-            text:          `Lo que describes sugiere una consulta en ${match.specialty}. En este momento no contamos con ese especialista, pero puedes elegir entre todos nuestros profesionales disponibles:`,
-            professionals: this.professionals()
-          }]);
-        }
-        this.chatPhase.set('results');
-
-      } else if (this.chatAttempts() === 1) {
-        this.chatMessages.update(msgs => [...msgs, {
-          role: 'bot',
-          text: 'Necesito un poco más de información para orientarte mejor.\n\n¿Podrías decirme, por ejemplo:\n• ¿En qué parte del cuerpo sientes la molestia?\n• ¿Tienes dolor, fiebre, inflamación u otro síntoma?\n• ¿Desde cuándo lo tienes?'
-        }]);
-        this.chatPhase.set('clarifying');
-
-      } else {
-        // Two attempts with no match → show all professionals
-        this.chatMessages.update(msgs => [...msgs, {
-          role:          'bot',
-          text:          'No logré identificar una especialidad específica, pero aquí tienes todos nuestros profesionales disponibles:',
-          professionals: this.professionals()
-        }]);
-        this.chatPhase.set('results');
-      }
-
-      this.scrollChat();
-    }, 1400);
-  }
-
-  skipToAllProfessionals(): void {
-    this.step.set(0);
-  }
-
-  onChatInputKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      this.sendChatMessage();
-    }
-  }
-
-  private filterBySpecialty(specialty: string): ProfessionalSummary[] {
-    const profs    = this.professionals();
-    const specNorm = specialty.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-
-    const exact = profs.filter(p => {
-      const pNorm = p.especialidad.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-      return pNorm === specNorm;
-    });
-    if (exact.length > 0) return exact;
-
-    return profs.filter(p => {
-      const pNorm = p.especialidad.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-      return pNorm.includes(specNorm.split(' ')[0]) || specNorm.includes(pNorm.split(' ')[0]);
-    });
-  }
-
-  private scrollChat(): void {
-    setTimeout(() => {
-      if (this.chatScroll?.nativeElement) {
-        this.chatScroll.nativeElement.scrollTop = this.chatScroll.nativeElement.scrollHeight;
-      }
-    }, 60);
   }
 
   // ── Step 0 ─────────────────────────────────────────────────────────────────
@@ -394,6 +296,7 @@ export class PatientBookingComponent implements OnInit {
       this.professionalId.set('');
       this.bookingInfo.set(null);
       this.selectedDate.set(null);
+      this.searchQuery.set('');
       this.step.set(0);
     } else if (this.step() > 0) {
       this.step.update(s => s - 1);

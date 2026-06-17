@@ -17,9 +17,24 @@ const pool = new Pool({
   connectionTimeoutMillis: 5000,
 });
 
-const JWT_SECRET     = process.env.JWT_SECRET     || "changeme-use-secrets-manager";
+if (!process.env.JWT_SECRET) {
+  console.error(JSON.stringify({ level: "ERROR", msg: "JWT_SECRET env var is not set — refusing to start" }));
+  process.exit(1);
+}
+const JWT_SECRET     = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "8h";
 const APP_URL        = process.env.APP_URL        || "https://dairi.cl";
+
+// Parses a JWT duration string (e.g. "8h", "30m", "7d") into milliseconds.
+function parseDurationMs(str) {
+  const match = String(str).match(/^(\d+)([smhd])$/);
+  if (!match) return 8 * 60 * 60 * 1000; // fallback: 8 h
+  const n = parseInt(match[1], 10);
+  const unit = match[2];
+  const factors = { s: 1000, m: 60_000, h: 3_600_000, d: 86_400_000 };
+  return n * factors[unit];
+}
+const JWT_EXPIRES_IN_MS = parseDurationMs(JWT_EXPIRES_IN);
 
 // ── Idempotent schema migration ───────────────────────────────────────────────
 let schemaReady = false;
@@ -65,8 +80,11 @@ async function handleLogin(body) {
     await ensureColumns(client);
 
     const userResult = await client.query(
-      `SELECT id, name, email, password, role, avatar, email_verified
-       FROM app_user WHERE email = $1 LIMIT 1`,
+      `SELECT u.id, u.name, u.email, u.password, u.role, u.avatar, u.email_verified,
+              COALESCE(uc.zk_enabled, false) AS zk_enabled
+       FROM app_user u
+       LEFT JOIN user_config uc ON uc.user_id = u.id
+       WHERE u.email = $1 LIMIT 1`,
       [email.toLowerCase().trim()]
     );
 
@@ -103,8 +121,9 @@ async function handleLogin(body) {
 
     return response(200, {
       token,
-      expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+      expiresAt: new Date(Date.now() + JWT_EXPIRES_IN_MS).toISOString(),
       user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar },
+      zkEnabled: user.zk_enabled,
       schemas,
     });
   } catch (err) {

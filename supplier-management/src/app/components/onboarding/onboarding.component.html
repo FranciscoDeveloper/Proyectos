@@ -4,13 +4,18 @@
   <nav class="ob-nav">
     <div class="ob-logo">Dairi<span>.</span></div>
     <div class="ob-steps">
-      <div class="ob-step ob-step-active">
-        <span class="ob-step-num">1</span>
+      <div class="ob-step" [class.ob-step-active]="step() === 1" [class.ob-step-done]="step() > 1">
+        <span class="ob-step-num">@if (step() > 1) { ✓ } @else { 1 }</span>
         <span class="ob-step-label">Perfil Profesional</span>
       </div>
       <div class="ob-step-divider"></div>
-      <div class="ob-step">
+      <div class="ob-step" [class.ob-step-active]="step() === 2">
         <span class="ob-step-num">2</span>
+        <span class="ob-step-label">Seguridad</span>
+      </div>
+      <div class="ob-step-divider"></div>
+      <div class="ob-step">
+        <span class="ob-step-num">3</span>
         <span class="ob-step-label">Importar datos</span>
       </div>
     </div>
@@ -19,6 +24,9 @@
 
   <!-- ── Main ────────────────────────────────────────────────────────────────── -->
   <main class="ob-main">
+
+  <!-- ════════════════════════ STEP 1: Perfil Profesional ════════════════════ -->
+  @if (step() === 1) {
 
     <!-- ── Welcome headline ─────────────────────────────────────────────────── -->
     <div class="ob-welcome">
@@ -309,6 +317,114 @@
       Tu información se almacena de forma segura con cifrado AES-256-GCM.<br>
       Puedes actualizar estos datos en cualquier momento desde tu perfil.
     </p>
+
+  } <!-- /step 1 -->
+
+  <!-- ════════════════════════ STEP 2: Seguridad ══════════════════════════════ -->
+  @if (step() === 2) {
+
+    <div class="ob-welcome">
+      <h1 class="ob-title">Configura tu seguridad</h1>
+      <p class="ob-subtitle">
+        Decide si deseas activar el cifrado Zero-Knowledge para proteger los datos sensibles
+        de tus pacientes. Esta opción puede cambiarse más adelante en tu perfil.
+      </p>
+    </div>
+
+    <div class="ob-card zk-card">
+      <div class="ob-card-header">
+        <div class="ob-card-icon zk-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="ob-card-title">Cifrado Zero-Knowledge</h2>
+          <p class="ob-card-desc">Cifrado AES-256-GCM gestionado por ti — Dairi nunca ve tus datos en texto plano.</p>
+        </div>
+      </div>
+
+      <div class="zk-toggle-row">
+        <div class="zk-toggle-info">
+          <p class="zk-toggle-label">Activar cifrado Zero-Knowledge</p>
+          <p class="zk-toggle-hint">
+            Tus datos clínicos serán cifrados en tu dispositivo antes de enviarse al servidor.
+            Se generará un <strong>certificado de seguridad</strong> que deberás guardar —
+            es la única forma de recuperar tu información.
+          </p>
+        </div>
+        <label class="zk-switch" [class.zk-switch-on]="zkEnabled()">
+          <input type="checkbox" [checked]="zkEnabled()" (change)="zkEnabled.set($any($event.target).checked)">
+          <span class="zk-slider"></span>
+        </label>
+      </div>
+
+      @if (zkEnabled()) {
+        <div class="zk-warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <div>
+            <strong>Importante:</strong> Al continuar se descargará automáticamente tu certificado de seguridad.
+            Guárdalo en un lugar seguro — sin él no podrás acceder a tus datos cifrados.
+          </div>
+        </div>
+      }
+
+      <div class="zk-features">
+        <div class="zk-feature">
+          <span class="zk-feature-icon">🔒</span>
+          <div>
+            <strong>Cifrado local</strong>
+            <p>Los datos se cifran en tu navegador antes de salir del dispositivo.</p>
+          </div>
+        </div>
+        <div class="zk-feature">
+          <span class="zk-feature-icon">🛡️</span>
+          <div>
+            <strong>Zero-Knowledge</strong>
+            <p>Dairi no tiene acceso a tu clave de cifrado ni a tus datos en texto plano.</p>
+          </div>
+        </div>
+        <div class="zk-feature">
+          <span class="zk-feature-icon">📄</span>
+          <div>
+            <strong>Certificado personal</strong>
+            <p>Tu clave se descarga como archivo .json que solo tú posees.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Step 2 action buttons ──────────────────────────────────────────────── -->
+    <div class="ob-actions">
+      <button type="button" class="ob-back-btn" (click)="step.set(1)" [disabled]="savingZk()">
+        ← Volver
+      </button>
+      <button type="button" class="ob-skip-btn" (click)="skipZk()" [disabled]="savingZk()">
+        Omitir →
+      </button>
+      <button type="button" class="ob-save-btn" (click)="saveZkAndProceed()" [disabled]="savingZk()">
+        @if (savingZk()) {
+          <span class="ob-spinner"></span>
+          Guardando…
+        } @else {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Continuar
+        }
+      </button>
+    </div>
+
+    <p class="ob-legal">
+      Puedes cambiar esta configuración en cualquier momento desde Configuración → Seguridad.
+    </p>
+
+  } <!-- /step 2 -->
 
   </main>
 </div>

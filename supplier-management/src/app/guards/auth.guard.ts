@@ -61,3 +61,20 @@ export const onboardingGuard: CanActivateFn = () => {
   }
   return true;
 };
+
+/**
+ * Prevents a user who has already completed onboarding from accessing /onboarding again.
+ * Redirects to /app/dashboard if onboarding is already complete.
+ */
+export const completedOnboardingGuard: CanActivateFn = () => {
+  const auth         = inject(AuthService);
+  const onboarding   = inject(OnboardingService);
+  const router       = inject(Router);
+
+  const user = auth.user();
+  if (user && !onboarding.needsOnboarding(user.id)) {
+    router.navigate(['/app/dashboard']);
+    return false;
+  }
+  return true;
+};

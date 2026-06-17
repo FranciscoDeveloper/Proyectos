@@ -72,6 +72,7 @@ interface ZkCertificate {
 export class CryptoService {
   private readonly _key      = signal<CryptoKey | null>(null);
   private readonly _hasThumb = signal(!!localStorage.getItem(THUMB_SK));
+  private readonly _zkEnabled = signal(false);
 
   /** True when the AES-256-GCM key is loaded in memory */
   readonly isReady     = computed(() => !!this._key());
@@ -79,12 +80,17 @@ export class CryptoService {
    * True when a certificate thumbprint is registered on this device but the
    * in-memory key was lost (page reload). Shows the upload-certificate banner.
    */
-  readonly needsUnlock = computed(() => this._hasThumb() && !this._key());
+  readonly needsUnlock = computed(() => this._zkEnabled() && this._hasThumb() && !this._key());
   /**
    * True when the user has never generated a ZK certificate on this device.
    * Shows the initial setup banner.
    */
-  readonly needsSetup  = computed(() => !this._hasThumb() && !this._key());
+  readonly needsSetup  = computed(() => this._zkEnabled() && !this._hasThumb() && !this._key());
+
+  /** Called by AuthService after login or onboarding to reflect the user's DB setting. */
+  setZkEnabled(v: boolean): void {
+    this._zkEnabled.set(v);
+  }
 
   // ─── Public API ──────────────────────────────────────────────────────────────
 
@@ -194,7 +200,7 @@ export class CryptoService {
   /** Encrypts a UTF-8 string. Returns a `zk1:<base64>` token. */
   async encrypt(plaintext: string): Promise<string> {
     const key = this._key();
-    if (!key) return plaintext;
+    if (!key || !this._zkEnabled()) return plaintext;
 
     const iv        = crypto.getRandomValues(new Uint8Array(12));
     const enc       = new TextEncoder();

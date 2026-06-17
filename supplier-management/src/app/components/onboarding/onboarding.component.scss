@@ -557,6 +557,146 @@
   line-height: 1.6;
 }
 
+// ── Step indicator: done state ────────────────────────────────────────────
+
+.ob-step-done {
+  opacity: 1;
+
+  .ob-step-num {
+    background: #10b981;
+    color: #fff;
+    font-size: 11px;
+  }
+}
+
+// ── Back button ───────────────────────────────────────────────────────────
+
+.ob-back-btn {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+
+  &:hover:not(:disabled) { background: #f1f5f9; color: #1e293b; }
+  &:disabled { opacity: .55; cursor: not-allowed; }
+}
+
+// ── ZK card ────────────────────────────────────────────────────────────────
+
+.zk-icon {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+}
+
+.zk-toggle-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px 0;
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  margin: 16px 0;
+}
+
+.zk-toggle-info {
+  flex: 1;
+}
+
+.zk-toggle-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 6px;
+}
+
+.zk-toggle-hint {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.zk-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+  cursor: pointer;
+
+  input { opacity: 0; width: 0; height: 0; }
+
+  &.zk-switch-on .zk-slider { background: #6366f1; }
+  &.zk-switch-on .zk-slider::before { transform: translateX(22px); }
+}
+
+.zk-slider {
+  position: absolute;
+  inset: 0;
+  background: #cbd5e1;
+  border-radius: 26px;
+  transition: background .2s;
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    left: 3px;
+    top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform .2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,.2);
+  }
+}
+
+.zk-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fffbeb;
+  border: 1.5px solid #fcd34d;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #78350f;
+  line-height: 1.6;
+
+  svg { width: 18px; height: 18px; flex-shrink: 0; color: #f59e0b; margin-top: 2px; }
+}
+
+.zk-features {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 4px;
+}
+
+.zk-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.6;
+
+  strong { display: block; font-weight: 700; color: #1e293b; margin-bottom: 2px; }
+  p { margin: 0; }
+}
+
+.zk-feature-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  width: 28px;
+  text-align: center;
+}
+
 // ── Responsive ─────────────────────────────────────────────────────────────
 
 @media (max-width: 600px) {

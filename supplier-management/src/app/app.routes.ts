@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard, onboardingGuard } from './guards/auth.guard';
+import { authGuard, guestGuard, onboardingGuard, completedOnboardingGuard } from './guards/auth.guard';
 import { CLINICAL_ROUTES } from './components/clinical/clinical.routes';
 
 export const routes: Routes = [
@@ -35,7 +35,7 @@ export const routes: Routes = [
   // ── Protected: onboarding (post-registration) ─────────────────────────────
   {
     path: 'onboarding',
-    canActivate: [authGuard],
+    canActivate: [authGuard, completedOnboardingGuard],
     loadComponent: () =>
       import('./components/onboarding/onboarding.component').then(m => m.OnboardingComponent)
   },

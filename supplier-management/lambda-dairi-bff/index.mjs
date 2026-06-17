@@ -36,7 +36,11 @@ const pool = new Pool({
 
 pool.on("error", (err) => log("ERROR", "DB pool idle client error", { message: err.message, stack: err.stack }));
 
-const JWT_SECRET   = process.env.JWT_SECRET   || "changeme-use-secrets-manager";
+if (!process.env.JWT_SECRET) {
+  log("ERROR", "JWT_SECRET env var is not set — refusing to start");
+  process.exit(1);
+}
+const JWT_SECRET   = process.env.JWT_SECRET;
 const APP_URL      = process.env.APP_URL      || "https://dairi.cl";
 const EMAIL_LAMBDA = process.env.EMAIL_LAMBDA || "send-email";
 
@@ -819,6 +823,27 @@ async function ensureLookupTables(client) {
   log("INFO", "Lookup tables ready");
 }
 
+// ── User config ───────────────────────────────────────────────────────────────
+async function handleUserConfig(userId, body) {
+  const zkEnabled = typeof body?.zkEnabled === "boolean" ? body.zkEnabled : false;
+  let client;
+  try {
+    client = await pool.connect();
+    await client.query(
+      `INSERT INTO user_config (user_id, zk_enabled, updated_at)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (user_id) DO UPDATE SET zk_enabled = EXCLUDED.zk_enabled, updated_at = NOW()`,
+      [userId, zkEnabled]
+    );
+    return response(200, { zkEnabled });
+  } catch (err) {
+    log("ERROR", "handleUserConfig error", { message: err.message });
+    return response(500, { message: "Error interno del servidor" });
+  } finally {
+    client?.release();
+  }
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 export const handler = async (event, context) => {
   // Assign a unique trace ID per invocation (Lambda request ID when available)
@@ -891,13 +916,24 @@ export const handler = async (event, context) => {
     return response(401, { message: "Token inválido o expirado" });
   }
 
+  // ── PATCH /api/user/config ────────────────────────────────────────────────
+  const rawPath = event.rawPath || event.path || "";
+  if (rawPath === "/api/user/config") {
+    if (method !== "PATCH") return response(405, { message: "Método no permitido" });
+    let cfgBody = null;
+    if (event.body) {
+      try { cfgBody = typeof event.body === "string" ? JSON.parse(event.body) : event.body; }
+      catch { return response(400, { message: "Body inválido" }); }
+    }
+    return handleUserConfig(tokenPayload.sub, cfgBody);
+  }
+
   // ── Path parsing ──────────────────────────────────────────────────────────
   // Supported patterns:
   //   /api/entities/{entity}        → list / create
   //   /api/entities/{entity}/{id}   → get / update / delete
   //   /api/suppliers                → list / create (typed alias for suppliers)
   //   /api/suppliers/{id}           → get / update / delete (typed alias for suppliers)
-  const rawPath = event.rawPath || event.path || "";
   const entitiesMatch = rawPath.match(/\/api\/entities\/([^/]+)(?:\/([^/]+))?/);
   const suppliersMatch = rawPath.match(/\/api\/suppliers(?:\/([^/]+))?/);
   let entityKey;

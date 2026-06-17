@@ -144,7 +144,8 @@
         </button>
       </form>
 
-      <!-- Demo accounts -->
+      <!-- Demo accounts (dev/localhost only) -->
+      @if (isDev) {
       <div class="demo-section">
         <div class="demo-title">
           <span>Cuentas de demostración</span>
@@ -167,6 +168,7 @@
           </button>
         </div>
       </div>
+      }
 
     </div>
   </div>

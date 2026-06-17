@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { CryptoService } from '../../services/crypto.service';
 import { OnboardingService } from '../../services/onboarding.service';
 
 interface ExtraProf {
@@ -64,6 +65,7 @@ export class OnboardingComponent implements OnInit {
   private router       = inject(Router);
   private http         = inject(HttpClient);
   private onboardingSvc = inject(OnboardingService);
+  private cryptoSvc   = inject(CryptoService);
 
   @ViewChild('photoInputRef') photoInputRef!: ElementRef<HTMLInputElement>;
 
@@ -87,8 +89,13 @@ export class OnboardingComponent implements OnInit {
   readonly MAX_EXTRA = 4;
 
   // ── UI ──────────────────────────────────────────────────────────────────────
+  step     = signal<1 | 2>(1);
   saving   = signal(false);
+  savingZk = signal(false);
   dragOver = signal(false);
+
+  // ── Step 2: Security / ZK ──────────────────────────────────────────────────
+  zkEnabled = signal(false);
 
   userName = computed(() => this.auth.user()?.name ?? '');
 
@@ -247,10 +254,31 @@ export class OnboardingComponent implements OnInit {
     }
 
     this.saving.set(false);
-    this.proceed();
+    this.step.set(2);
   }
 
   skip(): void {
+    this.step.set(2);
+  }
+
+  async saveZkAndProceed(): Promise<void> {
+    this.savingZk.set(true);
+    const enabled = this.zkEnabled();
+    try {
+      await firstValueFrom(this.http.patch('/api/user/config', { zkEnabled: enabled }));
+      this.auth.updateZkEnabled(enabled);
+      if (enabled) {
+        const email = this.auth.user()?.email ?? '';
+        await this.cryptoSvc.generateAndDownloadCertificate(email);
+      }
+    } catch {
+      // proceed even if config save fails
+    }
+    this.savingZk.set(false);
+    this.proceed();
+  }
+
+  skipZk(): void {
     this.proceed();
   }
 

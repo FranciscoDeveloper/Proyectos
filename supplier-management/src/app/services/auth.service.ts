@@ -153,7 +153,7 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
     { name: 'fullName',    type: 'text',   label: 'Nombre Completo',     required: true,  isTitle: true,    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'search', sortable: true, isStable: true },
     { name: 'rut',         type: 'text',   label: 'RUT',                 required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  section: 'demographics', isStable: true, pattern: '^\\d{1,2}\\.?\\d{3}\\.?\\d{3}-[\\dkK]$', patternMessage: 'Formato: 12.345.678-9' },
     { name: 'birthDate',   type: 'date',   label: 'Fecha de Nacimiento', required: true,                   showInList: false, showInDetail: true,  section: 'demographics', format: 'date', isStable: true },
-    { name: 'age',         type: 'number', label: 'Edad',                required: true,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
+    { name: 'age',         type: 'number', label: 'Edad',                required: false, displayOnly: true, showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
     { name: 'gender',      type: 'select', label: 'Sexo',                required: true,                   showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
@@ -167,46 +167,46 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
       options: [{ value: 'active', label: 'Activo' }, { value: 'inactive', label: 'Inactivo' }],
       badgeColors: { active: '#10b981', inactive: '#6b7280' }
     },
-    { name: 'phone',       type: 'tel',    label: 'Teléfono',            required: false,                  showInList: false, showInDetail: true,  section: 'demographics' },
-    { name: 'email',       type: 'email',  label: 'Email',               required: false,                  showInList: false, showInDetail: true,  section: 'demographics' },
-    { name: 'doctorName',  type: 'text',   label: 'Médico Tratante',     required: false,                  showInList: true,  showInDetail: true,  section: 'demographics' },
-    { name: 'lastVisit',   type: 'date',   label: 'Última Visita',       required: false,                  showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
+    { name: 'phone',       type: 'tel',    label: 'Teléfono',            required: false, hideInEncounterMode: true, showInList: false, showInDetail: true,  section: 'demographics' },
+    { name: 'email',       type: 'email',  label: 'Email',               required: false, hideInEncounterMode: true, showInList: false, showInDetail: true,  section: 'demographics' },
+    { name: 'doctorName',  type: 'text',   label: 'Médico Tratante',     required: false, hideInEncounterMode: true, showInList: true,  showInDetail: true,  section: 'demographics' },
+    { name: 'lastVisit',   type: 'date',   label: 'Última Visita',       required: false, hideInEncounterMode: true, showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
 
-    { name: 'address',         type: 'text',   label: 'Dirección',           required: false,                  showInList: false, showInDetail: true,  section: 'demographics' },
-    { name: 'emergencyContact', type: 'text',  label: 'Contacto Emergencia', required: false,                  showInList: false, showInDetail: true,  section: 'demographics' },
+    { name: 'address',         type: 'text',   label: 'Dirección',           required: false, hideInEncounterMode: true, showInList: false, showInDetail: true,  section: 'demographics' },
+    { name: 'emergencyContact', type: 'text',  label: 'Contacto Emergencia', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true,  section: 'demographics' },
 
     // ── Alertas ───────────────────────────────────────────────────────────
-    { name: 'allergies',          type: 'tags',     label: 'Alergias',              required: false, requiredInEncounter: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts' },
-    { name: 'contraindications',  type: 'textarea', label: 'Contraindicaciones',    required: false, requiredInEncounter: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts' },
-    { name: 'alertNotes',         type: 'textarea', label: 'Notas de Alerta',       required: false, isAlert: true, showInList: false, showInDetail: true, section: 'alerts' },
+    { name: 'allergies',          type: 'tags',     label: 'Alergias',              required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts' },
+    { name: 'contraindications',  type: 'textarea', label: 'Contraindicaciones',    required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts' },
+    { name: 'alertNotes',         type: 'textarea', label: 'Notas de Alerta',       required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts' },
 
     // ── Signos vitales ────────────────────────────────────────────────────
-    { name: 'bp',              type: 'text',   label: 'Presión Arterial',    required: false, requiredInEncounter: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals' },
-    { name: 'heartRate',       type: 'number', label: 'Frec. Cardíaca',      required: false, requiredInEncounter: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 300 },
-    { name: 'temperature',     type: 'number', label: 'Temperatura',         required: false, requiredInEncounter: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 30, max: 45 },
-    { name: 'o2Saturation',    type: 'number', label: 'Saturación O₂',      required: false, requiredInEncounter: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 100 },
-    { name: 'weight',          type: 'number', label: 'Peso (kg)',           required: false, requiredInEncounter: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0 },
-    { name: 'height',          type: 'number', label: 'Talla (cm)',          required: false, requiredInEncounter: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0 },
-    { name: 'bmi',             type: 'number', label: 'IMC',                 required: false, requiredInEncounter: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0 },
-    { name: 'respiratoryRate', type: 'number', label: 'Frec. Respiratoria',  required: false, requiredInEncounter: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 60 },
+    { name: 'bp',              type: 'text',   label: 'Presión Arterial',    required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals' },
+    { name: 'heartRate',       type: 'number', label: 'Frec. Cardíaca',      required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 300 },
+    { name: 'temperature',     type: 'number', label: 'Temperatura',         required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 30, max: 45 },
+    { name: 'o2Saturation',    type: 'number', label: 'Saturación O₂',      required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 100 },
+    { name: 'weight',          type: 'number', label: 'Peso (kg)',           required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0 },
+    { name: 'height',          type: 'number', label: 'Talla (cm)',          required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0 },
+    { name: 'bmi',             type: 'number', label: 'IMC',                 required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0 },
+    { name: 'respiratoryRate', type: 'number', label: 'Frec. Respiratoria',  required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 60 },
 
     // ── Antecedentes ──────────────────────────────────────────────────────
-    { name: 'personalHistory',  type: 'textarea', label: 'Antecedentes Personales', required: false, requiredInEncounter: true, showInList: false, showInDetail: true, section: 'history' },
-    { name: 'familyHistory',    type: 'textarea', label: 'Antecedentes Familiares', required: false, requiredInEncounter: true, showInList: false, showInDetail: true, section: 'history' },
-    { name: 'habits',           type: 'textarea', label: 'Hábitos',                 required: false, requiredInEncounter: true, showInList: false, showInDetail: true, section: 'history' },
+    { name: 'personalHistory',  type: 'textarea', label: 'Antecedentes Personales', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'history' },
+    { name: 'familyHistory',    type: 'textarea', label: 'Antecedentes Familiares', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'history' },
+    { name: 'habits',           type: 'textarea', label: 'Hábitos',                 required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'history' },
 
     // ── Intervenciones quirúrgicas ────────────────────────────────────────
-    { name: 'surgicalHistory',      type: 'textarea', label: 'Antecedentes Quirúrgicos',   required: false, requiredInEncounter: true, showInList: false, showInDetail: true, section: 'surgical' },
-    { name: 'plannedInterventions', type: 'textarea', label: 'Intervenciones Programadas', required: false, requiredInEncounter: true, showInList: false, showInDetail: true, section: 'surgical' },
+    { name: 'surgicalHistory',      type: 'textarea', label: 'Antecedentes Quirúrgicos',   required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'surgical' },
+    { name: 'plannedInterventions', type: 'textarea', label: 'Intervenciones Programadas', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'surgical' },
 
     // ── Medicación ────────────────────────────────────────────────────────
-    { name: 'currentMedications', type: 'textarea', label: 'Medicación Actual',    required: false, requiredInEncounter: true, showInList: false, showInDetail: true, section: 'medications', isPrescription: true },
-    { name: 'chronicConditions',  type: 'tags',     label: 'Condiciones Crónicas', required: false, requiredInEncounter: true, showInList: false, showInDetail: true, section: 'medications' },
+    { name: 'currentMedications', type: 'textarea', label: 'Medicación Actual',    required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'medications', isPrescription: true },
+    { name: 'chronicConditions',  type: 'tags',     label: 'Condiciones Crónicas', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'medications' },
 
     // ── Diagnóstico ───────────────────────────────────────────────────────
-    { name: 'diagnosisCode',  type: 'text',     label: 'Código CIE-10',            required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
-    { name: 'diagnosisLabel', type: 'text',     label: 'Diagnóstico Principal',    required: false, requiredInEncounter: true, showInList: false, showInDetail: true, section: 'diagnosis' },
-    { name: 'differentialDx', type: 'textarea', label: 'Diagnóstico Diferencial',  required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
+    { name: 'diagnosisCode',  type: 'text',     label: 'Código CIE-10',            required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'diagnosis' },
+    { name: 'diagnosisLabel', type: 'text',     label: 'Diagnóstico Principal',    required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'diagnosis' },
+    { name: 'differentialDx', type: 'textarea', label: 'Diagnóstico Diferencial',  required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'diagnosis' },
 
     // ── Nota SOAP ─────────────────────────────────────────────────────────
     { name: 'soapSubjective', type: 'textarea', label: 'Subjetivo (S)',  required: false, showInList: false, showInDetail: true, section: 'soap' },
@@ -275,7 +275,7 @@ export const SCHEMA_PSYCH_RECORDS: EntitySchema = {
     { name: 'patientId',      type: 'text',   label: 'ID Paciente',         required: false, isSubtitle: true,  showInList: true,  showInDetail: true,  section: 'demographics', pattern: '^PSI-\\d{5}$', patternMessage: 'Formato: PSI-00000', isAutoGenerated: true },
     { name: 'rut',            type: 'text',   label: 'RUT',                 required: true,                    showInList: false, showInDetail: true,  section: 'demographics' },
     { name: 'birthDate',      type: 'date',   label: 'Fecha de Nacimiento', required: true,                    showInList: false, showInDetail: true,  section: 'demographics', format: 'date' },
-    { name: 'age',            type: 'number', label: 'Edad',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150 },
+    { name: 'age',            type: 'number', label: 'Edad',                required: false, displayOnly: true,  showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150 },
     { name: 'gender',         type: 'select', label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
@@ -411,7 +411,7 @@ export const SCHEMA_DENTAL_RECORDS: EntitySchema = {
     { name: 'patientId',      type: 'text',   label: 'ID Paciente',         required: false, isSubtitle: true,  showInList: true,  showInDetail: true,  section: 'demographics', pattern: '^DEN-\\d{5}$', patternMessage: 'Formato: DEN-00000', isStable: true, isAutoGenerated: true },
     { name: 'rut',            type: 'text',   label: 'RUT',                 required: true,                    showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'birthDate',      type: 'date',   label: 'Fecha de Nacimiento', required: true,                    showInList: false, showInDetail: true,  section: 'demographics', format: 'date', isStable: true },
-    { name: 'age',            type: 'number', label: 'Edad',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
+    { name: 'age',            type: 'number', label: 'Edad',                required: false, displayOnly: true,  showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
     { name: 'gender',         type: 'select', label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
@@ -512,7 +512,7 @@ export const SCHEMA_KINE_RECORDS: EntitySchema = {
     { name: 'patientId',      type: 'text',   label: 'ID Paciente',         required: false, isSubtitle: true,  showInList: true,  showInDetail: true,  section: 'demographics', pattern: '^KIN-\\d{5}$', patternMessage: 'Formato: KIN-00000', isStable: true, isAutoGenerated: true },
     { name: 'rut',            type: 'text',   label: 'RUT',                 required: true,                    showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'birthDate',      type: 'date',   label: 'Fecha de Nacimiento', required: true,                    showInList: false, showInDetail: true,  section: 'demographics', format: 'date', isStable: true },
-    { name: 'age',            type: 'number', label: 'Edad',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
+    { name: 'age',            type: 'number', label: 'Edad',                required: false, displayOnly: true,  showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
     { name: 'gender',         type: 'select', label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
@@ -595,7 +595,7 @@ export const SCHEMA_NUTRITION_RECORDS: EntitySchema = {
     { name: 'patientId',      type: 'text',   label: 'ID Paciente',         required: false, isSubtitle: true,  showInList: true,  showInDetail: true,  section: 'demographics', pattern: '^NUT-\\d{5}$', patternMessage: 'Formato: NUT-00000', isStable: true, isAutoGenerated: true },
     { name: 'rut',            type: 'text',   label: 'RUT',                 required: true,                    showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'birthDate',      type: 'date',   label: 'Fecha de Nacimiento', required: true,                    showInList: false, showInDetail: true,  section: 'demographics', format: 'date', isStable: true },
-    { name: 'age',            type: 'number', label: 'Edad',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
+    { name: 'age',            type: 'number', label: 'Edad',                required: false, displayOnly: true,  showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
     { name: 'gender',         type: 'select', label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
@@ -678,7 +678,7 @@ export const SCHEMA_FONO_RECORDS: EntitySchema = {
     { name: 'patientId',      type: 'text',   label: 'ID Paciente',         required: false, isSubtitle: true,  showInList: true,  showInDetail: true,  section: 'demographics', pattern: '^FNO-\\d{5}$', patternMessage: 'Formato: FNO-00000', isStable: true, isAutoGenerated: true },
     { name: 'rut',            type: 'text',   label: 'RUT',                 required: true,                    showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'birthDate',      type: 'date',   label: 'Fecha de Nacimiento', required: true,                    showInList: false, showInDetail: true,  section: 'demographics', format: 'date', isStable: true },
-    { name: 'age',            type: 'number', label: 'Edad',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
+    { name: 'age',            type: 'number', label: 'Edad',                required: false, displayOnly: true,  showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
     { name: 'gender',         type: 'select', label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
@@ -761,7 +761,7 @@ export const SCHEMA_OT_RECORDS: EntitySchema = {
     { name: 'patientId',      type: 'text',   label: 'ID Paciente',         required: false, isSubtitle: true,  showInList: true,  showInDetail: true,  section: 'demographics', pattern: '^TO-\\d{5}$', patternMessage: 'Formato: TO-00000', isStable: true, isAutoGenerated: true },
     { name: 'rut',            type: 'text',   label: 'RUT',                 required: true,                    showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'birthDate',      type: 'date',   label: 'Fecha de Nacimiento', required: true,                    showInList: false, showInDetail: true,  section: 'demographics', format: 'date', isStable: true },
-    { name: 'age',            type: 'number', label: 'Edad',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
+    { name: 'age',            type: 'number', label: 'Edad',                required: false, displayOnly: true,  showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
     { name: 'gender',         type: 'select', label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
@@ -844,7 +844,7 @@ export const SCHEMA_MATRONA_RECORDS: EntitySchema = {
     { name: 'patientId',      type: 'text',   label: 'ID Paciente',         required: false, isSubtitle: true,  showInList: true,  showInDetail: true,  section: 'demographics', pattern: '^MAT-\\d{5}$', patternMessage: 'Formato: MAT-00000', isStable: true, isAutoGenerated: true },
     { name: 'rut',            type: 'text',   label: 'RUT',                 required: true,                    showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'birthDate',      type: 'date',   label: 'Fecha de Nacimiento', required: true,                    showInList: false, showInDetail: true,  section: 'demographics', format: 'date', isStable: true },
-    { name: 'age',            type: 'number', label: 'Edad',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
+    { name: 'age',            type: 'number', label: 'Edad',                required: false, displayOnly: true,  showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
     { name: 'gender',         type: 'select', label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
@@ -927,7 +927,7 @@ export const SCHEMA_TECNOMED_RECORDS: EntitySchema = {
     { name: 'patientId',      type: 'text',   label: 'ID Paciente',         required: false, isSubtitle: true,  showInList: true,  showInDetail: true,  section: 'demographics', pattern: '^TM-\\d{5}$', patternMessage: 'Formato: TM-00000', isStable: true, isAutoGenerated: true },
     { name: 'rut',            type: 'text',   label: 'RUT',                 required: true,                    showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'birthDate',      type: 'date',   label: 'Fecha de Nacimiento', required: true,                    showInList: false, showInDetail: true,  section: 'demographics', format: 'date', isStable: true },
-    { name: 'age',            type: 'number', label: 'Edad',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
+    { name: 'age',            type: 'number', label: 'Edad',                required: false, displayOnly: true,  showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
     { name: 'gender',         type: 'select', label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
@@ -1103,59 +1103,13 @@ export const SCHEMA_EXPENSES: EntitySchema = {
   ]
 };
 
-// ─── Mock users + their authorized schemas ────────────────────────────────────
-
-export interface MockUser {
-  user: AuthUser;
-  password: string;
-  schemas: EntitySchema[];
-}
-
-export const MOCK_USERS: MockUser[] = [
-  {
-    password: 'admin123',
-    user: { id: 1, name: 'Admin General', email: 'admin@empresa.com', role: 'admin', avatar: 'AG' },
-    schemas: [SCHEMA_SUPPLIERS, SCHEMA_PRODUCTS, SCHEMA_PACIENTE, SCHEMA_APPOINTMENTS, SCHEMA_CLINICAL_RECORDS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES, SCHEMA_PRESUPUESTOS]
-  },
-  {
-    password: 'compras123',
-    user: { id: 2, name: 'Jefe de Compras', email: 'compras@empresa.com', role: 'manager', avatar: 'JC' },
-    schemas: [SCHEMA_SUPPLIERS, SCHEMA_PRODUCTS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES, SCHEMA_PRESUPUESTOS]
-  },
-  {
-    password: 'medico123',
-    user: { id: 3, name: 'Dra. Morales', email: 'medico@hospital.com', role: 'manager', avatar: 'DM' },
-    schemas: [SCHEMA_PACIENTE, SCHEMA_APPOINTMENTS, SCHEMA_CLINICAL_RECORDS, SCHEMA_PAYMENTS, SCHEMA_PRESUPUESTOS]
-  },
-  {
-    password: 'viewer123',
-    user: { id: 4, name: 'Auditor', email: 'auditor@empresa.com', role: 'viewer', avatar: 'AU' },
-    schemas: [SCHEMA_SUPPLIERS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES]
-  },
-  {
-    password: 'psico123',
-    user: { id: 5, name: 'Ps. Carolina Vega', email: 'psicologia@clinica.com', role: 'manager', avatar: 'CV' },
-    schemas: [SCHEMA_PSYCH_SESSIONS, SCHEMA_PSYCH_RECORDS]
-  },
-  {
-    password: 'denti123',
-    user: { id: 6, name: 'Dr. Ramírez', email: 'odontologia@clinica.com', role: 'manager', avatar: 'DR' },
-    schemas: [SCHEMA_DENTAL_SESSIONS, SCHEMA_DENTAL_RECORDS]
-  },
-  { password: 'kine123',    user: { id: 7,  name: 'Kin. Valeria Torres',    email: 'kine@clinica.com',       role: 'manager', avatar: 'VT' }, schemas: [SCHEMA_KINE_RECORDS,      SCHEMA_PAYMENTS] },
-  { password: 'nutri123',   user: { id: 8,  name: 'Nut. Claudia Reyes',    email: 'nutricion@clinica.com',  role: 'manager', avatar: 'CR' }, schemas: [SCHEMA_NUTRITION_RECORDS, SCHEMA_PAYMENTS] },
-  { password: 'fono123',    user: { id: 9,  name: 'Fno. Andrés Soto',      email: 'fono@clinica.com',       role: 'manager', avatar: 'AS' }, schemas: [SCHEMA_FONO_RECORDS,      SCHEMA_PAYMENTS] },
-  { password: 'to123456',   user: { id: 10, name: 'T.O. Marcela Fuentes',  email: 'to@clinica.com',         role: 'manager', avatar: 'MF' }, schemas: [SCHEMA_OT_RECORDS,        SCHEMA_PAYMENTS] },
-  { password: 'matrona123', user: { id: 11, name: 'Mat. Sofía Herrera',    email: 'matrona@clinica.com',    role: 'manager', avatar: 'SH' }, schemas: [SCHEMA_MATRONA_RECORDS,   SCHEMA_PAYMENTS] },
-  { password: 'tecno123',   user: { id: 12, name: 'T.M. Roberto Lagos',    email: 'tecnomed@clinica.com',   role: 'manager', avatar: 'RL' }, schemas: [SCHEMA_TECNOMED_RECORDS,  SCHEMA_PAYMENTS] }
-];
 
 const SESSION_KEY = 'auth_session';
 /**
  * Increment this whenever the schema structure changes so that any cached
  * session in sessionStorage is invalidated and the user must re-login.
  */
-const SESSION_VERSION = 13;
+const SESSION_VERSION = 14;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1169,8 +1123,15 @@ export class AuthService {
   readonly token   = computed(() => this._state().token);
   readonly schemas = computed(() => this._state().schemas);
   readonly isAuthenticated = computed(() => this._state().authenticated);
+  readonly zkEnabled = computed(() => this._state().zkEnabled ?? false);
 
-  constructor(private router: Router) {}
+  constructor(private router: Router) {
+    // Restore ZK state from session after all field initializers have run
+    const state = this._state();
+    if (state.authenticated) {
+      this.cryptoSvc.setZkEnabled(state.zkEnabled ?? false);
+    }
+  }
 
   /**
    * POST /api/auth/login — real backend (API Gateway → Lambda → RDS PostgreSQL)
@@ -1206,12 +1167,23 @@ export class AuthService {
       authenticated: true,
       token: response.token,
       user: response.user,
-      schemas: response.schemas
+      schemas: response.schemas,
+      zkEnabled: response.zkEnabled ?? false,
     };
     this._state.set(state);
+    this.cryptoSvc.setZkEnabled(state.zkEnabled ?? false);
     try {
       sessionStorage.setItem(SESSION_KEY, JSON.stringify({ ...state, _v: SESSION_VERSION }));
     } catch { /* storage unavailable (private mode, quota exceeded) */ }
+  }
+
+  /** Updates the ZK encryption flag in session and CryptoService (called after onboarding). */
+  updateZkEnabled(enabled: boolean): void {
+    this._state.update(s => ({ ...s, zkEnabled: enabled }));
+    this.cryptoSvc.setZkEnabled(enabled);
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ ...this._state(), _v: SESSION_VERSION }));
+    } catch { /* storage unavailable */ }
   }
 
   logout(): void {

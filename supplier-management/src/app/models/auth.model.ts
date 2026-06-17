@@ -22,6 +22,8 @@ export interface AuthResponse {
   token: string;
   expiresAt: string;
   user: AuthUser;
+  /** Whether Zero-Knowledge encryption is enabled for this user */
+  zkEnabled?: boolean;
   /** Schemas authorized for this user — drives the entire frontend */
   schemas: EntitySchema[];
 }
@@ -31,4 +33,5 @@ export interface AuthState {
   token: string | null;
   user: AuthUser | null;
   schemas: EntitySchema[];
+  zkEnabled?: boolean;
 }

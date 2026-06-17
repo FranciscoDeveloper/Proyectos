@@ -36,7 +36,11 @@ const pool = new Pool({
 
 pool.on("error", (err) => log("ERROR", "DB pool idle client error", { message: err.message, stack: err.stack }));
 
-const JWT_SECRET   = process.env.JWT_SECRET   || "changeme-use-secrets-manager";
+if (!process.env.JWT_SECRET) {
+  log("ERROR", "JWT_SECRET env var is not set — refusing to start");
+  process.exit(1);
+}
+const JWT_SECRET   = process.env.JWT_SECRET;
 const APP_URL      = process.env.APP_URL      || "https://dairi.cl";
 const EMAIL_LAMBDA = process.env.EMAIL_LAMBDA || "send-email";
 
