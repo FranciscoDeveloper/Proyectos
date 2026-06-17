@@ -844,6 +844,34 @@ async function handleUserConfig(userId, body) {
   }
 }
 
+// ── Request authorization ─────────────────────────────────────────────────────
+// 1. Verifies the user has the requested schema assigned in user_schema.
+// 2. Blocks write operations (POST/PUT/DELETE) for viewer role.
+async function authorizeRequest(client, userId, role, entityKey, method) {
+  const { rows } = await client.query(
+    `SELECT 1
+     FROM   user_schema us
+     JOIN   app_schema  s ON s.id = us.schema_id
+     WHERE  us.user_id   = $1
+       AND  s.schema_key = $2
+     LIMIT  1`,
+    [userId, entityKey]
+  );
+
+  if (rows.length === 0) {
+    log("WARN", "Schema access denied", { userId, entityKey });
+    return { allowed: false, status: 403, message: "No tienes acceso a este módulo" };
+  }
+
+  const WRITE_METHODS = new Set(["POST", "PUT", "DELETE"]);
+  if (role === "viewer" && WRITE_METHODS.has(method)) {
+    log("WARN", "Write access denied — viewer role", { userId, entityKey, method });
+    return { allowed: false, status: 403, message: "Tu rol solo permite consultar registros" };
+  }
+
+  return { allowed: true };
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 export const handler = async (event, context) => {
   // Assign a unique trace ID per invocation (Lambda request ID when available)
@@ -983,6 +1011,10 @@ export const handler = async (event, context) => {
     client = await pool.connect();
     log("INFO", "DB connection acquired");
     await ensureLookupTables(client);
+
+    // ── Authorization: schema access + role write permissions ─────────────────
+    const authz = await authorizeRequest(client, tokenPayload.sub, tokenPayload.role, resolvedKey, method);
+    if (!authz.allowed) return response(authz.status, { message: authz.message });
 
     // ── Special action: POST /api/entities/presupuestos/{id}/send ──────────────
     if (resolvedKey === "presupuestos" && rawPath.endsWith("/send") && method === "POST") {

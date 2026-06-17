@@ -22,7 +22,7 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 const JWT_SECRET     = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "8h";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "2h";
 const APP_URL        = process.env.APP_URL        || "https://dairi.cl";
 
 // Parses a JWT duration string (e.g. "8h", "30m", "7d") into milliseconds.
