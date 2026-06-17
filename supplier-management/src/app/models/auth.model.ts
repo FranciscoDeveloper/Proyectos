@@ -20,6 +20,7 @@ export interface AuthUser {
  */
 export interface AuthResponse {
   token: string;
+  refreshToken?: string;
   expiresAt: string;
   user: AuthUser;
   /** Whether Zero-Knowledge encryption is enabled for this user */

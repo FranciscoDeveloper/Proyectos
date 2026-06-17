@@ -1,6 +1,7 @@
 import pg     from "pg";
 import bcrypt from "bcryptjs";
 import jwt    from "jsonwebtoken";
+import crypto from "crypto";
 // Email is delegated to the frontend via /api/send-email (non-VPC path)
 
 const { Pool } = pg;
@@ -22,7 +23,15 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 const JWT_SECRET     = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "2h";
+const JWT_EXPIRES_IN       = process.env.JWT_EXPIRES_IN       || "2h";
+const REFRESH_EXPIRES_DAYS = parseInt(process.env.REFRESH_EXPIRES_DAYS || "7", 10);
+
+function generateRawToken() {
+  return crypto.randomBytes(48).toString("base64url");
+}
+function hashToken(raw) {
+  return crypto.createHash("sha256").update(raw).digest("hex");
+}
 const APP_URL        = process.env.APP_URL        || "https://dairi.cl";
 
 // Parses a JWT duration string (e.g. "8h", "30m", "7d") into milliseconds.
@@ -45,7 +54,101 @@ async function ensureColumns(client) {
       ADD COLUMN IF NOT EXISTS email_verified  BOOLEAN NOT NULL DEFAULT true,
       ADD COLUMN IF NOT EXISTS activation_token TEXT
   `);
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS refresh_token (
+      id          BIGSERIAL    PRIMARY KEY,
+      user_id     BIGINT       NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
+      token_hash  TEXT         NOT NULL UNIQUE,
+      expires_at  TIMESTAMPTZ  NOT NULL,
+      created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+      revoked_at  TIMESTAMPTZ
+    )
+  `);
+  await client.query(`CREATE INDEX IF NOT EXISTS idx_rt_user   ON refresh_token(user_id)`);
+  await client.query(`CREATE INDEX IF NOT EXISTS idx_rt_lookup ON refresh_token(token_hash) WHERE revoked_at IS NULL`);
   schemaReady = true;
+}
+
+// ── REFRESH ───────────────────────────────────────────────────────────────────
+async function handleRefresh(body) {
+  const rawToken = body?.refreshToken;
+  if (!rawToken) return response(400, { message: "refreshToken requerido" });
+
+  const tokenHash = hashToken(rawToken);
+  let client;
+  try {
+    client = await pool.connect();
+    await ensureColumns(client);
+
+    const result = await client.query(
+      `SELECT rt.id, rt.user_id,
+              u.email, u.role
+       FROM   refresh_token rt
+       JOIN   app_user u ON u.id = rt.user_id
+       WHERE  rt.token_hash = $1
+         AND  rt.expires_at > NOW()
+         AND  rt.revoked_at IS NULL
+       LIMIT 1`,
+      [tokenHash]
+    );
+
+    if (result.rowCount === 0) {
+      return response(401, { message: "Sesión expirada. Por favor inicia sesión nuevamente." });
+    }
+
+    const row = result.rows[0];
+
+    // Rotation: revoke old token, issue new one
+    const newRaw    = generateRawToken();
+    const newHash   = hashToken(newRaw);
+    const newExpiry = new Date(Date.now() + REFRESH_EXPIRES_DAYS * 86_400_000);
+
+    await client.query(`UPDATE refresh_token SET revoked_at = NOW() WHERE id = $1`, [row.id]);
+    await client.query(
+      `INSERT INTO refresh_token (user_id, token_hash, expires_at) VALUES ($1, $2, $3)`,
+      [row.user_id, newHash, newExpiry]
+    );
+
+    const token = jwt.sign(
+      { sub: row.user_id, email: row.email, role: row.role },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
+
+    return response(200, {
+      token,
+      refreshToken: newRaw,
+      expiresAt: new Date(Date.now() + JWT_EXPIRES_IN_MS).toISOString(),
+    });
+  } catch (err) {
+    console.error("Refresh error:", err);
+    return response(500, { message: "Error interno del servidor" });
+  } finally {
+    client?.release();
+  }
+}
+
+// ── LOGOUT ────────────────────────────────────────────────────────────────────
+async function handleLogout(body) {
+  const rawToken = body?.refreshToken;
+  if (!rawToken) return response(200, { message: "Sesión cerrada" });
+
+  const tokenHash = hashToken(rawToken);
+  let client;
+  try {
+    client = await pool.connect();
+    await client.query(
+      `UPDATE refresh_token SET revoked_at = NOW()
+       WHERE  token_hash = $1 AND revoked_at IS NULL`,
+      [tokenHash]
+    );
+    return response(200, { message: "Sesión cerrada correctamente" });
+  } catch (err) {
+    console.error("Logout error:", err);
+    return response(500, { message: "Error interno del servidor" });
+  } finally {
+    client?.release();
+  }
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
@@ -65,6 +168,8 @@ export const handler = async (event) => {
 
   if (rawPath.endsWith("/register")) return handleRegister(body);
   if (rawPath.endsWith("/activate")) return handleActivate(body);
+  if (rawPath.endsWith("/refresh"))  return handleRefresh(body);
+  if (rawPath.endsWith("/logout"))   return handleLogout(body);
   return handleLogin(body);
 };
 
@@ -119,8 +224,18 @@ async function handleLogin(body) {
       { expiresIn: JWT_EXPIRES_IN }
     );
 
+    const rawRefreshToken  = generateRawToken();
+    const refreshHash      = hashToken(rawRefreshToken);
+    const refreshExpiry    = new Date(Date.now() + REFRESH_EXPIRES_DAYS * 86_400_000);
+    await client.query(
+      `INSERT INTO refresh_token (user_id, token_hash, expires_at)
+       VALUES ($1, $2, $3)`,
+      [user.id, refreshHash, refreshExpiry]
+    );
+
     return response(200, {
       token,
+      refreshToken: rawRefreshToken,
       expiresAt: new Date(Date.now() + JWT_EXPIRES_IN_MS).toISOString(),
       user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar },
       zkEnabled: user.zk_enabled,

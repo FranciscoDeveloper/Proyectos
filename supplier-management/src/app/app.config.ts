@@ -3,6 +3,7 @@ import { provideRouter, withHashLocation, withRouterConfig } from '@angular/rout
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { apiInterceptor } from './interceptors/api.interceptor';
+import { tokenRefreshInterceptor } from './interceptors/token-refresh.interceptor';
 
 class GlobalErrorHandler implements ErrorHandler {
   handleError(error: unknown): void {
@@ -13,7 +14,8 @@ class GlobalErrorHandler implements ErrorHandler {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes, withHashLocation(), withRouterConfig({ onSameUrlNavigation: 'reload' })),
-    provideHttpClient(withInterceptors([apiInterceptor])),
+    // tokenRefreshInterceptor must come first so retried requests go through apiInterceptor
+    provideHttpClient(withInterceptors([tokenRefreshInterceptor, apiInterceptor])),
     { provide: ErrorHandler, useClass: GlobalErrorHandler }
   ]
 };

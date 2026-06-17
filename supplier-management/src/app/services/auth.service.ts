@@ -2,7 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { LoginCredentials, AuthResponse, AuthState, AuthUser } from '../models/auth.model';
 import { EntitySchema } from '../models/entity-schema.model';
 import { CryptoService } from './crypto.service';
@@ -1104,12 +1104,13 @@ export const SCHEMA_EXPENSES: EntitySchema = {
 };
 
 
-const SESSION_KEY = 'auth_session';
+const SESSION_KEY  = 'auth_session';
+const REFRESH_KEY  = 'dairi_refresh';
 /**
  * Increment this whenever the schema structure changes so that any cached
  * session in sessionStorage is invalidated and the user must re-login.
  */
-const SESSION_VERSION = 14;
+const SESSION_VERSION = 15;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1161,6 +1162,7 @@ export class AuthService {
 
   /**
    * Stores the auth response from the backend and updates the reactive state.
+   * Also persists the refresh token to localStorage for cross-tab persistence.
    */
   handleAuthResponse(response: AuthResponse): void {
     const state: AuthState = {
@@ -1175,6 +1177,9 @@ export class AuthService {
     try {
       sessionStorage.setItem(SESSION_KEY, JSON.stringify({ ...state, _v: SESSION_VERSION }));
     } catch { /* storage unavailable (private mode, quota exceeded) */ }
+    if (response.refreshToken) {
+      this.saveRefreshToken(response.refreshToken);
+    }
   }
 
   /** Updates the ZK encryption flag in session and CryptoService (called after onboarding). */
@@ -1187,10 +1192,35 @@ export class AuthService {
   }
 
   logout(): void {
+    const refreshToken = this.loadRefreshToken();
+    if (refreshToken) {
+      // Fire-and-forget — revoke server-side without blocking navigation
+      this.http.post('/api/auth/logout', { refreshToken }).subscribe({ error: () => {} });
+    }
     this._state.set({ authenticated: false, token: null, user: null, schemas: [] });
     sessionStorage.removeItem(SESSION_KEY);
-    this.cryptoSvc.clearKey();   // wipe ZK key from memory on logout
+    this.clearRefreshToken();
+    this.cryptoSvc.clearKey();
     this.router.navigate(['/login']);
+  }
+
+  /**
+   * Uses the stored refresh token to obtain a new access token.
+   * Called by the token-refresh interceptor on 401 responses.
+   */
+  refreshAccessToken(): Observable<void> {
+    const refreshToken = this.loadRefreshToken();
+    if (!refreshToken) {
+      return throwError(() => new Error('No refresh token'));
+    }
+    return this.http.post<AuthResponse>('/api/auth/refresh', { refreshToken }).pipe(
+      tap(res => this.handleAuthResponse(res)),
+      map(() => undefined),
+      catchError(err => {
+        this.logout();
+        return throwError(() => err);
+      })
+    );
   }
 
   /** Returns the authorized entity schemas — the backend decides what the user can see */
@@ -1201,6 +1231,18 @@ export class AuthService {
   /** Check if user has access to a specific entity key */
   canAccessEntity(key: string): boolean {
     return this._state().schemas.some(s => s.entity.key === key);
+  }
+
+  private loadRefreshToken(): string | null {
+    try { return localStorage.getItem(REFRESH_KEY); } catch { return null; }
+  }
+
+  private saveRefreshToken(raw: string): void {
+    try { localStorage.setItem(REFRESH_KEY, raw); } catch { /* quota exceeded */ }
+  }
+
+  private clearRefreshToken(): void {
+    try { localStorage.removeItem(REFRESH_KEY); } catch { /* ignore */ }
   }
 
   private loadFromStorage(): AuthState {
