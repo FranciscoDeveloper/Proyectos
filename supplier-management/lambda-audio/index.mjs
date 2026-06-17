@@ -7,8 +7,9 @@ const s3     = new S3Client({ region: process.env.AWS_REGION || "us-east-1" });
 
 const CORS = {
   "Access-Control-Allow-Origin":  "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Methods": "GET,POST,PUT,OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type,Authorization",
+  "Access-Control-Max-Age":       "86400",
 };
 
 function resp(status, body) {
@@ -42,17 +43,17 @@ export const handler = async (event) => {
       const id  = randomUUID();
       const key = `recordings/${filename}`;
 
+      // IMPORTANTE: no firmar Metadata (x-amz-meta-*) en la URL presignada.
+      // El browser sólo envía Content-Type en el PUT; si la firma incluye
+      // headers x-amz-meta-* que el browser no manda, S3 rechaza con 403
+      // SignatureDoesNotMatch y el navegador lo reporta como "0 Unknown Error".
+      // Los metadatos (entityKey, recordId, duration) se persisten en /confirm.
       const presignedUrl = await getSignedUrl(
         s3,
         new PutObjectCommand({
           Bucket:      BUCKET,
           Key:         key,
           ContentType: mimeType,
-          Metadata: {
-            entityKey: String(entityKey || ""),
-            recordId:  String(recordId  || 0),
-            duration:  String(duration  || 0),
-          },
         }),
         { expiresIn: 900 } // válida 15 minutos
       );
