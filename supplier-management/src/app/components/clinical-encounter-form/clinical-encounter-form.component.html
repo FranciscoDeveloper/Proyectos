@@ -69,10 +69,9 @@
     <div class="form-grid">
       <ng-container *ngFor="let field of editableFields(); let i = index">
 
-        <!-- Separador entre obligatorios y opcionales -->
-        <div class="section-divider full-width"
-          *ngIf="i > 0 && !field.requiredInEncounter && editableFields()[i - 1].requiredInEncounter">
-          Campos opcionales
+        <!-- Cabecera de sección (Signos Vitales / Diagnóstico / Nota SOAP) -->
+        <div class="section-heading full-width" *ngIf="sectionHeading(field, i) as heading">
+          {{ heading }}
         </div>
 
         <!-- Textarea -->

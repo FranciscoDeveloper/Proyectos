@@ -245,6 +245,17 @@
   }
 }
 
+.section-heading {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #6366f1;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 0.75rem 0 0.25rem;
+  margin-top: 0.5rem;
+  border-bottom: 2px solid #e0e7ff;
+}
+
 /* ── Acciones ── */
 .form-actions {
   display: flex;

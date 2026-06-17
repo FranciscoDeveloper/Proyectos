@@ -181,14 +181,14 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
     { name: 'alertNotes',         type: 'textarea', label: 'Notas de Alerta',       required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts' },
 
     // ── Signos vitales ────────────────────────────────────────────────────
-    { name: 'bp',              type: 'text',   label: 'Presión Arterial',    required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals' },
-    { name: 'heartRate',       type: 'number', label: 'Frec. Cardíaca',      required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 300 },
-    { name: 'temperature',     type: 'number', label: 'Temperatura',         required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 30, max: 45 },
-    { name: 'o2Saturation',    type: 'number', label: 'Saturación O₂',      required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 100 },
-    { name: 'weight',          type: 'number', label: 'Peso (kg)',           required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0 },
-    { name: 'height',          type: 'number', label: 'Talla (cm)',          required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0 },
-    { name: 'bmi',             type: 'number', label: 'IMC',                 required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0 },
-    { name: 'respiratoryRate', type: 'number', label: 'Frec. Respiratoria',  required: false, hideInEncounterMode: true, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 60 },
+    { name: 'bp',              type: 'text',   label: 'Presión Arterial',    required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals' },
+    { name: 'heartRate',       type: 'number', label: 'Frec. Cardíaca',      required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 300 },
+    { name: 'temperature',     type: 'number', label: 'Temperatura',         required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 30, max: 45 },
+    { name: 'o2Saturation',    type: 'number', label: 'Saturación O₂',      required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 100 },
+    { name: 'weight',          type: 'number', label: 'Peso (kg)',           required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0 },
+    { name: 'height',          type: 'number', label: 'Talla (cm)',          required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0 },
+    { name: 'bmi',             type: 'number', label: 'IMC',                 required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0 },
+    { name: 'respiratoryRate', type: 'number', label: 'Frec. Respiratoria',  required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 60 },
 
     // ── Antecedentes ──────────────────────────────────────────────────────
     { name: 'personalHistory',  type: 'textarea', label: 'Antecedentes Personales', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'history' },
@@ -204,9 +204,9 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
     { name: 'chronicConditions',  type: 'tags',     label: 'Condiciones Crónicas', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'medications' },
 
     // ── Diagnóstico ───────────────────────────────────────────────────────
-    { name: 'diagnosisCode',  type: 'text',     label: 'Código CIE-10',            required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'diagnosis' },
-    { name: 'diagnosisLabel', type: 'text',     label: 'Diagnóstico Principal',    required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'diagnosis' },
-    { name: 'differentialDx', type: 'textarea', label: 'Diagnóstico Diferencial',  required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'diagnosis' },
+    { name: 'diagnosisCode',  type: 'text',     label: 'Código CIE-10',            required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
+    { name: 'diagnosisLabel', type: 'text',     label: 'Diagnóstico Principal',    required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
+    { name: 'differentialDx', type: 'textarea', label: 'Diagnóstico Diferencial',  required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 
     // ── Nota SOAP ─────────────────────────────────────────────────────────
     { name: 'soapSubjective', type: 'textarea', label: 'Subjetivo (S)',  required: false, showInList: false, showInDetail: true, section: 'soap' },
