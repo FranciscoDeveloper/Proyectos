@@ -821,13 +821,6 @@ async function ensureLookupTables(client) {
     ('phone','Teléfono','#10b981',3)
     ON CONFLICT DO NOTHING`);
 
-  // Migration 010: encounters + last_visit on clinical_record (idempotent)
-  await client.query(`
-    ALTER TABLE clinical_record
-      ADD COLUMN IF NOT EXISTS encounters JSONB NOT NULL DEFAULT '[]',
-      ADD COLUMN IF NOT EXISTS last_visit DATE
-  `);
-
   lookupTablesReady = true;
   log("INFO", "Lookup tables ready");
 }
