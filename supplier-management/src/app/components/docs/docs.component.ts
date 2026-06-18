@@ -20,11 +20,12 @@ export class DocsComponent implements OnInit {
     { id: 'citas',         label: 'Citas y Calendario',     icon: '📅' },
     { id: 'importacion',   label: 'Importación masiva',     icon: '📥' },
     { id: 'fichas',        label: 'Fichas Clínicas',        icon: '📋' },
+    { id: 'presupuestos',  label: 'Presupuestos',           icon: '📄' },
     { id: 'proveedores',   label: 'Proveedores',            icon: '🤝' },
     { id: 'productos',     label: 'Inventario',             icon: '💊' },
     { id: 'pagos',         label: 'Pagos y Gastos',         icon: '💸' },
     { id: 'chat',          label: 'Chat Interno',           icon: '💬' },
-    { id: 'reportes',      label: 'Reportes',               icon: '📈' },
+    { id: 'reportes',      label: 'Reportes y Comisiones',  icon: '📈' },
     { id: 'reserva',       label: 'Reserva Online',         icon: '🌐' },
     { id: 'seguridad',     label: 'Seguridad',              icon: '🔒' },
   ];
