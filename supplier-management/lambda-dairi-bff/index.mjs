@@ -668,6 +668,7 @@ const ENTITY_CONFIG = {
         c.soap_plan               AS "soapPlan",
         c.doctor,
         c.last_visit              AS "lastVisit",
+        c.encounters,
         c.status,
         c.created_at              AS "createdAt",
         c.updated_at              AS "updatedAt"
@@ -708,6 +709,7 @@ const ENTITY_CONFIG = {
       if (d.soapPlan             !== undefined) cols.soap_plan              = d.soapPlan;
       if (d.doctorName           !== undefined) cols.doctor                 = d.doctorName;
       if (d.lastVisit            !== undefined) cols.last_visit             = d.lastVisit;
+      if (d.encounters           !== undefined) cols.encounters             = JSON.stringify(d.encounters);
       if (d.status               !== undefined) cols.status                 = d.status;
       return cols;
     },
@@ -752,7 +754,7 @@ const ENTITY_CONFIG = {
         soapObjective:        r.soapObjective        ?? null,
         soapAssessment:       r.soapAssessment       ?? null,
         soapPlan:             r.soapPlan             ?? null,
-        encounters:           [],
+        encounters:           Array.isArray(r.encounters) ? r.encounters : (r.encounters ? JSON.parse(r.encounters) : []),
         insurance:            r.insurance            ?? '',
         allergies:            r.allergies            ?? [],
         contraindications:    r.contraindications    ?? '',
@@ -818,6 +820,13 @@ async function ensureLookupTables(client) {
     ('in_person','Presencial','#6366f1',1),('video','Videoconsulta','#0891b2',2),
     ('phone','Teléfono','#10b981',3)
     ON CONFLICT DO NOTHING`);
+
+  // Migration 010: encounters + last_visit on clinical_record (idempotent)
+  await client.query(`
+    ALTER TABLE clinical_record
+      ADD COLUMN IF NOT EXISTS encounters JSONB NOT NULL DEFAULT '[]',
+      ADD COLUMN IF NOT EXISTS last_visit DATE
+  `);
 
   lookupTablesReady = true;
   log("INFO", "Lookup tables ready");
@@ -980,8 +989,23 @@ export const handler = async (event, context) => {
     return response(404, { message: "Ruta no encontrada" });
   }
 
-  // Normalize camelCase/alternate keys sent by the login Lambda
-  const KEY_ALIASES = { clinicalRecords: 'clinical-records', paciente: 'patients' };
+  // Normalize camelCase/alternate keys sent by the login Lambda.
+  // All clinical specialty types share the clinical_record table.
+  // Calendar specialty types share the appointment table.
+  const KEY_ALIASES = {
+    clinicalRecords:   'clinical-records',
+    paciente:          'patients',
+    'psych-records':   'clinical-records',
+    'dental-records':  'clinical-records',
+    'kine-records':    'clinical-records',
+    'nutrition-records': 'clinical-records',
+    'fono-records':    'clinical-records',
+    'ot-records':      'clinical-records',
+    'matrona-records': 'clinical-records',
+    'tecnomed-records':'clinical-records',
+    'psych-sessions':  'appointments',
+    'dental-sessions': 'appointments',
+  };
   const resolvedKey = KEY_ALIASES[entityKey] ?? entityKey;
   const config = ENTITY_CONFIG[resolvedKey];
 
@@ -1019,6 +1043,11 @@ export const handler = async (event, context) => {
     // ── Special action: POST /api/entities/presupuestos/{id}/send ──────────────
     if (resolvedKey === "presupuestos" && rawPath.endsWith("/send") && method === "POST") {
       return await sendPresupuestoEmail(client, id, body);
+    }
+
+    // ── Special action: POST /api/entities/{clinicalKey}/{id}/encounters ────────
+    if (rawPath.endsWith("/encounters") && method === "POST" && id) {
+      return await appendEncounter(client, config, id, body);
     }
 
     if (method === "GET" && !id)        return await listEntities(client, config, entityKey);
@@ -1136,6 +1165,40 @@ async function updateEntity(client, config, id, data, entityKey) {
   }
   log("INFO", "updateEntity — success", { table: config.table, id });
   return response(200, config.fromDb(result.rows[0]));
+}
+
+async function appendEncounter(client, config, id, encounter) {
+  if (!encounter || typeof encounter !== "object") {
+    return response(400, { message: "Body requerido para registrar atención" });
+  }
+
+  const pkCol = config.pkCol ?? "id";
+
+  // Fetch current record to get existing encounters
+  const current = await client.query(
+    `SELECT encounters FROM ${config.table} WHERE ${pkCol} = $1`,
+    [id]
+  );
+  if (current.rowCount === 0) {
+    return response(404, { message: "Ficha clínica no encontrada" });
+  }
+
+  const raw = current.rows[0].encounters;
+  const existing = Array.isArray(raw) ? raw : (raw ? JSON.parse(raw) : []);
+
+  const newEncounter = { ...encounter, encounterDate: encounter.encounterDate ?? new Date().toISOString() };
+  const updated = [newEncounter, ...existing];
+
+  const result = await client.query(
+    `UPDATE ${config.table}
+     SET encounters = $1, last_visit = NOW(), updated_at = NOW()
+     WHERE ${pkCol} = $2
+     RETURNING *`,
+    [JSON.stringify(updated), id]
+  );
+
+  log("INFO", "appendEncounter — success", { table: config.table, id, totalEncounters: updated.length });
+  return response(201, config.fromDb(result.rows[0]));
 }
 
 async function deleteEntity(client, config, id, entityKey) {
