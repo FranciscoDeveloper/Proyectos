@@ -306,6 +306,21 @@
   margin-top: 2px;
 }
 
+.vital-box--bp {
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  transition: border-color 0.2s;
+}
+
+.bp-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
 /* ── SOAP ── */
 .soap-list {
   padding: 16px 20px;

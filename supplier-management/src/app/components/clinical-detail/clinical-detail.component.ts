@@ -15,6 +15,7 @@ interface VitalSign {
   unit: string;
   normal: string;
   field: FieldDefinition;
+  bpClass?: { label: string; color: string; textColor: string };
 }
 
 interface SectionField {
@@ -138,6 +139,24 @@ export class ClinicalDetailComponent {
     return a.allergies.length > 0 || a.contraindications || a.alertNotes;
   });
 
+  private classifyBP(value: string): { label: string; color: string; textColor: string } | undefined {
+    const parts = value.split('/');
+    if (parts.length !== 2) return undefined;
+    const sys = parseInt(parts[0].trim(), 10);
+    const dia = parseInt(parts[1].trim(), 10);
+    if (isNaN(sys) || isNaN(dia)) return undefined;
+
+    if (sys > 180 || dia > 120)
+      return { label: '⚠ Crisis hipertensiva', color: '#fef2f2', textColor: '#991b1b' };
+    if (sys >= 140 || dia >= 90)
+      return { label: 'Hipertensión Grado I', color: '#fff7ed', textColor: '#c2410c' };
+    if (sys >= 130 || dia >= 85)
+      return { label: 'Normal-Alta', color: '#fefce8', textColor: '#854d0e' };
+    if (sys >= 120 || dia >= 80)
+      return { label: 'Normal', color: '#f0fdf4', textColor: '#15803d' };
+    return { label: 'Óptima', color: '#ecfdf5', textColor: '#065f46' };
+  }
+
   private readonly VITAL_META: Record<string, { unit: string; normal: string }> = {
     bp:             { unit: 'mmHg',   normal: '< 120/80' },
     heartRate:      { unit: 'bpm',    normal: '60–100'   },
@@ -160,12 +179,14 @@ export class ClinicalDetailComponent {
         const meta = nonMedical
           ? { unit: '', normal: '' }
           : (this.VITAL_META[f.name] ?? { unit: '', normal: '—' });
+        const strVal = raw != null ? String(raw) : '—';
         return {
-          label: f.label,
-          value: raw != null ? String(raw) : '—',
-          unit:  meta.unit,
-          normal: meta.normal,
-          field: f
+          label:   f.label,
+          value:   strVal,
+          unit:    meta.unit,
+          normal:  meta.normal,
+          field:   f,
+          bpClass: f.name === 'bp' && strVal !== '—' ? this.classifyBP(strVal) : undefined
         };
       });
   });

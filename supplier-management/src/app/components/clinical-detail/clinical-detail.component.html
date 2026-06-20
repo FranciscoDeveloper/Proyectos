@@ -171,11 +171,20 @@
           <span>{{ vitalsSectionTitle() }}</span>
         </div>
         <div class="vitals-grid">
-          <div *ngFor="let v of vitals()" class="vital-box">
+          <div *ngFor="let v of vitals()"
+               class="vital-box"
+               [class.vital-box--bp]="!!v.bpClass"
+               [style.borderColor]="v.bpClass?.textColor ?? null">
             <span class="vital-lbl">{{ v.label }}</span>
             <span class="vital-val">{{ v.value }}</span>
             <span class="vital-unit">{{ v.unit }}</span>
-            <span class="vital-normal" *ngIf="v.normal">Normal: {{ v.normal }}</span>
+            <span *ngIf="v.bpClass"
+                  class="bp-badge"
+                  [style.background]="v.bpClass.color"
+                  [style.color]="v.bpClass.textColor">
+              {{ v.bpClass.label }}
+            </span>
+            <span class="vital-normal" *ngIf="v.normal && !v.bpClass">Normal: {{ v.normal }}</span>
           </div>
         </div>
       </div>
