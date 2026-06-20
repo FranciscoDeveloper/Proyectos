@@ -204,7 +204,7 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
     { name: 'chronicConditions',  type: 'tags',     label: 'Condiciones Crónicas', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'medications' },
 
     // ── Diagnóstico ───────────────────────────────────────────────────────
-    { name: 'diagnosisCode',  type: 'text',     label: 'Código CIE-10',            required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
+    { name: 'diagnosisCode',  type: 'text',     label: 'Código CIE-10',            required: false, showInList: false, showInDetail: true, section: 'diagnosis', hideInEncounterMode: true },
     { name: 'diagnosisLabel', type: 'text',     label: 'Diagnóstico Principal',    required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
     { name: 'differentialDx', type: 'textarea', label: 'Diagnóstico Diferencial',  required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 
@@ -334,7 +334,7 @@ export const SCHEMA_PSYCH_RECORDS: EntitySchema = {
     { name: 'chronicConditions',  type: 'tags',     label: 'Diagnósticos Activos',  required: false, showInList: false, showInDetail: true, section: 'medications' },
 
     // ── Diagnosis (DSM-5) ────────────────────────────────────────────────
-    { name: 'diagnosisCode',  type: 'text',     label: 'Código DSM-5/CIE-10',      required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
+    { name: 'diagnosisCode',  type: 'text',     label: 'Código DSM-5/CIE-10',      required: false, showInList: false, showInDetail: true, section: 'diagnosis', hideInEncounterMode: true },
     { name: 'diagnosisLabel', type: 'text',     label: 'Diagnóstico Principal',     required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
     { name: 'differentialDx', type: 'textarea', label: 'Diagnóstico Diferencial',   required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 
@@ -461,7 +461,7 @@ export const SCHEMA_DENTAL_RECORDS: EntitySchema = {
     { name: 'chronicConditions',  type: 'tags',     label: 'Condiciones Crónicas',    required: false, showInList: false, showInDetail: true, section: 'medications', isStable: true },
 
     // ── Diagnosis ─────────────────────────────────────────────────────────
-    { name: 'diagnosisCode',  type: 'text',     label: 'Código CIE / ICDAS',    required: false, showInList: false, showInDetail: true, section: 'diagnosis', isStable: true },
+    { name: 'diagnosisCode',  type: 'text',     label: 'Código CIE / ICDAS',    required: false, showInList: false, showInDetail: true, section: 'diagnosis', isStable: true, hideInEncounterMode: true },
     { name: 'diagnosisLabel', type: 'text',     label: 'Diagnóstico Principal', required: false, showInList: false, showInDetail: true, section: 'diagnosis', isStable: true },
     { name: 'differentialDx', type: 'textarea', label: 'Plan de Tratamiento',   required: false, showInList: false, showInDetail: true, section: 'diagnosis', isStable: true },
 
@@ -564,7 +564,7 @@ export const SCHEMA_KINE_RECORDS: EntitySchema = {
     { name: 'chronicConditions',  type: 'tags',     label: 'Diagnósticos Asociados',             required: false, showInList: false, showInDetail: true, section: 'medications' },
 
     // ── Diagnosis ─────────────────────────────────────────────────────────
-    { name: 'diagnosisCode',  type: 'text',     label: 'Código CIE-10',           required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
+    { name: 'diagnosisCode',  type: 'text',     label: 'Código CIE-10',           required: false, showInList: false, showInDetail: true, section: 'diagnosis', hideInEncounterMode: true },
     { name: 'diagnosisLabel', type: 'text',     label: 'Diagnóstico Kinésico',    required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
     { name: 'differentialDx', type: 'textarea', label: 'Objetivos Terapéuticos',  required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 
@@ -647,7 +647,7 @@ export const SCHEMA_NUTRITION_RECORDS: EntitySchema = {
     { name: 'chronicConditions',  type: 'tags',     label: 'Diagnósticos Nutricionales', required: false, showInList: false, showInDetail: true, section: 'medications' },
 
     // ── Diagnosis ─────────────────────────────────────────────────────────
-    { name: 'diagnosisCode',  type: 'text',     label: 'CIE-10',                         required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
+    { name: 'diagnosisCode',  type: 'text',     label: 'CIE-10',                         required: false, showInList: false, showInDetail: true, section: 'diagnosis', hideInEncounterMode: true },
     { name: 'diagnosisLabel', type: 'text',     label: 'Estado Nutricional',             required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
     { name: 'differentialDx', type: 'textarea', label: 'Equivalentes y Recomendaciones', required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 
@@ -730,7 +730,7 @@ export const SCHEMA_FONO_RECORDS: EntitySchema = {
     { name: 'chronicConditions',  type: 'tags',     label: 'Diagnósticos Asociados',   required: false, showInList: false, showInDetail: true, section: 'medications' },
 
     // ── Diagnosis ─────────────────────────────────────────────────────────
-    { name: 'diagnosisCode',  type: 'text',     label: 'CIE-10',                       required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
+    { name: 'diagnosisCode',  type: 'text',     label: 'CIE-10',                       required: false, showInList: false, showInDetail: true, section: 'diagnosis', hideInEncounterMode: true },
     { name: 'diagnosisLabel', type: 'text',     label: 'Diagnóstico Fonoaudiológico',  required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
     { name: 'differentialDx', type: 'textarea', label: 'Objetivos Terapéuticos',       required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 
@@ -813,7 +813,7 @@ export const SCHEMA_OT_RECORDS: EntitySchema = {
     { name: 'chronicConditions',  type: 'tags',     label: 'Diagnósticos Asociados',    required: false, showInList: false, showInDetail: true, section: 'medications' },
 
     // ── Diagnosis ─────────────────────────────────────────────────────────
-    { name: 'diagnosisCode',  type: 'text',     label: 'CIE-10',                    required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
+    { name: 'diagnosisCode',  type: 'text',     label: 'CIE-10',                    required: false, showInList: false, showInDetail: true, section: 'diagnosis', hideInEncounterMode: true },
     { name: 'diagnosisLabel', type: 'text',     label: 'Diagnóstico Ocupacional',   required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
     { name: 'differentialDx', type: 'textarea', label: 'Metas de Intervención',     required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 
@@ -896,7 +896,7 @@ export const SCHEMA_MATRONA_RECORDS: EntitySchema = {
     { name: 'chronicConditions',  type: 'tags',     label: 'Diagnósticos Activos',       required: false, showInList: false, showInDetail: true, section: 'medications' },
 
     // ── Diagnosis ─────────────────────────────────────────────────────────
-    { name: 'diagnosisCode',  type: 'text',     label: 'CIE-10',                                 required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
+    { name: 'diagnosisCode',  type: 'text',     label: 'CIE-10',                                 required: false, showInList: false, showInDetail: true, section: 'diagnosis', hideInEncounterMode: true },
     { name: 'diagnosisLabel', type: 'text',     label: 'Diagnóstico Obstétrico / Ginecológico',  required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
     { name: 'differentialDx', type: 'textarea', label: 'Plan de Tratamiento',                    required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 
@@ -979,7 +979,7 @@ export const SCHEMA_TECNOMED_RECORDS: EntitySchema = {
     { name: 'chronicConditions',  type: 'tags',     label: 'Diagnósticos de Referencia', required: false, showInList: false, showInDetail: true, section: 'medications' },
 
     // ── Diagnosis ─────────────────────────────────────────────────────────
-    { name: 'diagnosisCode',  type: 'text',     label: 'CIE-10 / Código',         required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
+    { name: 'diagnosisCode',  type: 'text',     label: 'CIE-10 / Código',         required: false, showInList: false, showInDetail: true, section: 'diagnosis', hideInEncounterMode: true },
     { name: 'diagnosisLabel', type: 'text',     label: 'Hallazgo Principal',      required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
     { name: 'differentialDx', type: 'textarea', label: 'Observaciones Adicionales', required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 

@@ -64,7 +64,7 @@ export class ShellComponent {
     const hasPayments    = schemas.some(s => s.entity.key === 'payments');
     const hasRecords     = schemas.some(s => s.entity.key === 'clinical-records');
     const hasImportable  = schemas.some(s => /patient|pacient|appointment|cita/i.test(s.entity.key));
-    const hasBudgets     = schemas.some(s => /patient|pacient|payment/i.test(s.entity.key));
+    const hasBudgets     = schemas.some(s => /patient|pacient|payment|appointment/i.test(s.entity.key));
     return [
       { label: 'Dashboard',     icon: 'grid',         route: '/app/dashboard'     },
       ...schemas

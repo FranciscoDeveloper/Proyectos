@@ -48,7 +48,7 @@ export class ClinicalEncounterFormComponent implements OnInit {
 
   /** Campos estables del paciente, para mostrar como resumen de solo lectura */
   stableFields = computed(() =>
-    this.schema()?.fields.filter(f => f.isStable && f.type !== 'entity-select') ?? []
+    this.schema()?.fields.filter(f => f.isStable && f.type !== 'entity-select' && !f.displayOnly) ?? []
   );
 
   ngOnInit() {
