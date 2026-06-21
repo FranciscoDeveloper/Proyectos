@@ -161,7 +161,7 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
       options: [{ value: 'A+', label: 'A+' }, { value: 'A-', label: 'A-' }, { value: 'B+', label: 'B+' }, { value: 'B-', label: 'B-' }, { value: 'O+', label: 'O+' }, { value: 'O-', label: 'O-' }, { value: 'AB+', label: 'AB+' }, { value: 'AB-', label: 'AB-' }],
       badgeColors: { 'A+': '#ef4444', 'A-': '#f97316', 'B+': '#3b82f6', 'B-': '#6366f1', 'O+': '#10b981', 'O-': '#14b8a6', 'AB+': '#8b5cf6', 'AB-': '#ec4899' }
     },
-    { name: 'insurance',   type: 'text',   label: 'Previsión',           required: false,                  showInList: true,  showInDetail: true,  section: 'demographics', isStable: true },
+    { name: 'insurance',   type: 'select', label: 'Previsión',           required: false, lookupEntity: 'previsiones', lookupValueField: 'nombre', lookupLabelField: 'nombre', showInList: true, showInDetail: true, section: 'demographics', isStable: true },
     { name: 'status',      type: 'select', label: 'Estado',              required: false, isBadge: true,   showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       hideInEncounterMode: true,
       options: [{ value: 'active', label: 'Activo' }, { value: 'inactive', label: 'Inactivo' }],
@@ -169,7 +169,7 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
     },
     { name: 'phone',       type: 'tel',    label: 'Teléfono',            required: false, hideInEncounterMode: true, showInList: false, showInDetail: true,  section: 'demographics' },
     { name: 'email',       type: 'email',  label: 'Email',               required: false, hideInEncounterMode: true, showInList: false, showInDetail: true,  section: 'demographics' },
-    { name: 'doctorName',  type: 'text',   label: 'Médico Tratante',     required: false, hideInEncounterMode: true, showInList: true,  showInDetail: true,  section: 'demographics' },
+    { name: 'doctorName',  type: 'select', label: 'Médico Tratante',     required: false, hideInEncounterMode: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre', showInList: true, showInDetail: true, section: 'demographics' },
     { name: 'lastVisit',   type: 'date',   label: 'Última Visita',       required: false, hideInEncounterMode: true, showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
 
     { name: 'address',         type: 'text',   label: 'Dirección',           required: false, hideInEncounterMode: true, showInList: false, showInDetail: true,  section: 'demographics' },
@@ -1110,7 +1110,7 @@ const REFRESH_KEY  = 'dairi_refresh';
  * Increment this whenever the schema structure changes so that any cached
  * session in sessionStorage is invalidated and the user must re-login.
  */
-const SESSION_VERSION = 15;
+const SESSION_VERSION = 16;
 
 // ─────────────────────────────────────────────────────────────────────────────
 

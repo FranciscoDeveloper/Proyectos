@@ -883,6 +883,49 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
       data: []
     },
 
+    // ─────────────────────────── PREVISIONES ─────────────────────────────────
+    previsiones: {
+      schema: {
+        entity: { key: 'previsiones', singular: 'Previsión', plural: 'Previsiones', icon: 'shield' },
+        fields: [
+          { name: 'nombre', type: 'text', label: 'Nombre', required: true, isTitle: true, showInList: true, showInDetail: true }
+        ]
+      },
+      data: [
+        { id: 1,  nombre: 'FONASA A'      },
+        { id: 2,  nombre: 'FONASA B'      },
+        { id: 3,  nombre: 'FONASA C'      },
+        { id: 4,  nombre: 'FONASA D'      },
+        { id: 5,  nombre: 'ISAPRE'        },
+        { id: 6,  nombre: 'Particular'    },
+        { id: 7,  nombre: 'Sin previsión' },
+        { id: 8,  nombre: 'CAPREDENA'     },
+        { id: 9,  nombre: 'DIPRECA'       }
+      ]
+    },
+
+    // ─────────────────────────── MÉDICOS ─────────────────────────────────────
+    medicos: {
+      schema: {
+        entity: { key: 'medicos', singular: 'Médico', plural: 'Médicos', icon: 'user' },
+        fields: [
+          { name: 'nombre',       type: 'text', label: 'Nombre',       required: true,  isTitle: true, showInList: true, showInDetail: true },
+          { name: 'especialidad', type: 'text', label: 'Especialidad', required: false,                showInList: true, showInDetail: true }
+        ]
+      },
+      data: [
+        { id: 1, nombre: 'Dra. Morales',          especialidad: 'Medicina General'  },
+        { id: 2, nombre: 'Ps. Carolina Vega',      especialidad: 'Psicología'        },
+        { id: 3, nombre: 'Dr. Ramírez',            especialidad: 'Odontología'       },
+        { id: 4, nombre: 'Klgo. Fuentes',          especialidad: 'Kinesiología'      },
+        { id: 5, nombre: 'Nut. Castillo',          especialidad: 'Nutrición'         },
+        { id: 6, nombre: 'Fga. Torres',            especialidad: 'Fonoaudiología'    },
+        { id: 7, nombre: 'T.O. Sandoval',          especialidad: 'Terapia Ocupacional' },
+        { id: 8, nombre: 'Matr. Espinoza',         especialidad: 'Matrona'           },
+        { id: 9, nombre: 'T.M. Navarro',           especialidad: 'Tecnología Médica' }
+      ]
+    },
+
     // ─────────────────────────── GASTOS OPERACIONALES ───────────────────────
     expenses: {
       schema: SCHEMA_EXPENSES,

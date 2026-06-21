@@ -155,9 +155,11 @@ export class GenericFormComponent implements OnInit {
 
   getFieldOptions(field: FieldDefinition): SelectOption[] {
     if (!field.lookupEntity) return field.options ?? [];
+    const vf = field.lookupValueField ?? 'id';
+    const lf = field.lookupLabelField ?? 'label';
     return this.crudService.getAll(field.lookupEntity)().map(item => ({
-      value: String(item['id']),
-      label: String(item['label'])
+      value: String(item[vf] ?? item['id']),
+      label: String(item[lf] ?? item['label'] ?? item[vf] ?? item['id'])
     }));
   }
 

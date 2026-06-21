@@ -87,9 +87,14 @@ export interface FieldDefinition {
   /**
    * For type='select': load options dynamically from this entity key via the
    * CRUD service instead of using the hardcoded `options` array.
-   * The entity must return rows with `id` (the stored value) and `label`.
+   * Use lookupValueField / lookupLabelField to specify which row fields to use.
+   * Defaults to 'id' for value and 'label' for label.
    */
   lookupEntity?: string;
+  /** Field name in the lookup entity whose value is stored in the record (default: 'id') */
+  lookupValueField?: string;
+  /** Field name in the lookup entity displayed to the user (default: 'label') */
+  lookupLabelField?: string;
   /** For type='entity-select': which entity key to load options from */
   relatedEntity?: string;
   /** Field name in the related entity to use as display label */
