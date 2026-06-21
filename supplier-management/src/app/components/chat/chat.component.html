@@ -11,14 +11,6 @@
       <span>Chat</span>
     </div>
 
-    <!-- Search -->
-    <div class="sb-search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <span class="sb-search-placeholder">Buscar en Chat</span>
-    </div>
-
     <!-- CHANNELS section -->
     <div class="sb-section">
       <div class="sb-section-header">
@@ -51,15 +43,20 @@
         <li *ngFor="let entry of dmEntries()"
             class="sb-item sb-item--dm"
             [class.active]="activeConvId() === entry.conv.id"
+            [class.sb-item--agent]="entry.otherUser?.isAgent"
             (click)="selectConv(entry.conv.id)">
           <div class="sb-avatar"
-               [style.background]="getUserColor(entry.otherUser!.id) + '33'"
+               [class.sb-avatar--agent]="entry.otherUser?.isAgent"
+               [style.background]="entry.otherUser?.isAgent ? '#6366f122' : (getUserColor(entry.otherUser!.id) + '33')"
                [style.color]="getUserColor(entry.otherUser!.id)">
             {{ entry.otherUser!.avatar }}
             <span class="sb-presence" [class.online]="entry.otherUser!.online"></span>
           </div>
           <div class="sb-dm-info">
-            <span class="sb-item-name">{{ entry.otherUser!.name }}</span>
+            <div class="sb-dm-name-row">
+              <span class="sb-item-name">{{ entry.otherUser!.name }}</span>
+              <span class="sb-agent-badge" *ngIf="entry.otherUser?.isAgent">Soporte</span>
+            </div>
             <span class="sb-preview">{{ formatPreview(entry.lastMessage) }}</span>
           </div>
           <span class="sb-badge" *ngIf="entry.unread > 0">{{ entry.unread }}</span>
@@ -77,11 +74,24 @@
       <div class="ct-title">
         <span class="ct-name">{{ activeConvName() }}</span>
         <span class="ct-type" *ngIf="activeConvType() === 'channel'">canal</span>
-        <span class="ct-type" *ngIf="activeConvType() === 'direct'">mensaje directo</span>
+        <span class="ct-type ct-type--agent" *ngIf="isHelpdeskActive()">Helpdesk</span>
+        <span class="ct-type" *ngIf="activeConvType() === 'direct' && !isHelpdeskActive()">mensaje directo</span>
       </div>
       <div class="ct-meta" *ngIf="activeOtherUser() as other">
         <span class="ct-presence-dot" [class.online]="other.online"></span>
         <span class="ct-presence-label">{{ other.online ? 'En línea' : 'Desconectado' }}</span>
+        <span class="ct-agent-role" *ngIf="other.isAgent">{{ other.role }}</span>
+      </div>
+    </div>
+
+    <!-- Helpdesk banner -->
+    <div class="helpdesk-banner" *ngIf="isHelpdeskActive()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 18.86A3 3 0 0115 22H9a3 3 0 01-3-3.14M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-4v4m0 4h.01"/>
+      </svg>
+      <div>
+        <strong>Canal de soporte técnico</strong>
+        <span>Los mensajes son enviados al equipo de soporte. Máximo {{ HELPDESK_MAX }} caracteres por mensaje.</span>
       </div>
     </div>
 
@@ -105,26 +115,34 @@
         </div>
 
         <!-- Message bubble -->
-        <div class="msg-row" [class.msg-row--own]="isOwn(msg)" [class.msg-row--grouped]="isSameAuthorAsPrev(activeMessages(), i)">
+        <div class="msg-row"
+             [class.msg-row--own]="isOwn(msg)"
+             [class.msg-row--agent]="isAgent(msg.senderId)"
+             [class.msg-row--grouped]="isSameAuthorAsPrev(activeMessages(), i)">
 
-          <!-- Avatar (hidden when grouped) -->
+          <!-- Avatar -->
           <div class="msg-avatar"
-               [style.background]="getUserColor(msg.senderId) + '33'"
+               [class.msg-avatar--agent]="isAgent(msg.senderId)"
+               [style.background]="getUserColor(msg.senderId) + '22'"
                [style.color]="getUserColor(msg.senderId)"
+               [style.fontSize]="isAgent(msg.senderId) ? '18px' : ''"
                *ngIf="!isSameAuthorAsPrev(activeMessages(), i)">
             {{ msg.senderAvatar }}
           </div>
           <div class="msg-avatar msg-avatar--spacer" *ngIf="isSameAuthorAsPrev(activeMessages(), i)"></div>
 
           <div class="msg-content">
-            <!-- Author + time (hidden when grouped) -->
+            <!-- Author + time -->
             <div class="msg-meta" *ngIf="!isSameAuthorAsPrev(activeMessages(), i)">
               <span class="msg-author" [style.color]="getUserColor(msg.senderId)">
                 {{ isOwn(msg) ? 'Tú' : msg.senderName }}
               </span>
+              <span class="msg-agent-tag" *ngIf="isAgent(msg.senderId)">Soporte</span>
               <span class="msg-time">{{ formatTime(msg.timestamp) }}</span>
             </div>
-            <div class="msg-bubble" [class.msg-bubble--own]="isOwn(msg)">
+            <div class="msg-bubble"
+                 [class.msg-bubble--own]="isOwn(msg)"
+                 [class.msg-bubble--agent]="isAgent(msg.senderId)">
               {{ msg.content }}
             </div>
           </div>
@@ -134,21 +152,31 @@
     </div>
 
     <!-- Input area -->
-    <div class="chat-input-bar">
-      <textarea
-        class="chat-input"
-        [placeholder]="'Escribe en ' + activeConvName()"
-        rows="1"
-        [value]="messageText()"
-        (input)="messageText.set($any($event.target).value)"
-        (keydown)="onKeydown($event)">
-      </textarea>
-      <button class="chat-send" [disabled]="!messageText().trim()" (click)="send()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="22" y1="2" x2="11" y2="13"/>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-        </svg>
-      </button>
+    <div class="chat-input-area">
+      <div class="chat-input-bar">
+        <textarea
+          class="chat-input"
+          [placeholder]="isHelpdeskActive() ? 'Describe tu consulta (máx. ' + HELPDESK_MAX + ' chars)' : 'Escribe en ' + activeConvName()"
+          rows="1"
+          [value]="messageText()"
+          (input)="messageText.set($any($event.target).value)"
+          (keydown)="onKeydown($event)">
+        </textarea>
+        <button class="chat-send" [disabled]="!canSend()" (click)="send()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+      <!-- Character counter — only visible in helpdesk conversation -->
+      <div class="char-counter" *ngIf="isHelpdeskActive()">
+        <span [class.char-counter--warn]="charCount() > HELPDESK_MAX * 0.8"
+              [class.char-counter--over]="charLimitExceeded()">
+          {{ charCount() }} / {{ HELPDESK_MAX }}
+        </span>
+        <span *ngIf="charLimitExceeded()" class="char-counter--msg">Supera el límite permitido</span>
+      </div>
     </div>
 
   </div>

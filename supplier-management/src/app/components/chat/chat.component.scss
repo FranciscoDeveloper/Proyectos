@@ -162,6 +162,31 @@
   white-space: nowrap;
 }
 
+.sb-dm-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sb-agent-badge {
+  font-size: 9px;
+  font-weight: 700;
+  background: #6366f133;
+  color: #6366f1;
+  padding: 1px 6px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  flex-shrink: 0;
+}
+
+.sb-item--agent {
+  &.active { background: rgba(99,102,241,.3); }
+  .sb-avatar--agent { font-size: 18px; }
+}
+
+.sb-avatar--agent { border: 2px solid #6366f155; }
+
 /* ════ MAIN PANEL ════ */
 .chat-main {
   display: flex;
@@ -208,12 +233,39 @@
   color: #6b7280;
 }
 
+.ct-type--agent {
+  background: #eef2ff;
+  color: #6366f1;
+}
+
+.ct-agent-role {
+  font-size: 11px;
+  color: #6366f1;
+  font-weight: 600;
+}
+
 .ct-presence-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: #6b7280;
   &.online { background: #22c55e; }
+}
+
+/* ── Helpdesk banner ── */
+.helpdesk-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 20px;
+  background: #eef2ff;
+  border-bottom: 1px solid #c7d2fe;
+  font-size: 12px;
+  flex-shrink: 0;
+  svg { width: 18px; height: 18px; color: #6366f1; flex-shrink: 0; margin-top: 1px; }
+  div { display: flex; flex-direction: column; gap: 2px; }
+  strong { color: #4338ca; font-size: 12px; }
+  span { color: #6366f1; }
 }
 
 /* ── Messages ── */
@@ -309,6 +361,30 @@
   color: #9ca3af;
 }
 
+.msg-avatar--agent {
+  font-size: 18px;
+  border: 2px solid #c7d2fe;
+}
+
+.msg-row--agent {
+  .msg-bubble--agent {
+    background: #f0f4ff;
+    border: 1px solid #c7d2fe;
+    color: #1e1b4b;
+  }
+}
+
+.msg-agent-tag {
+  font-size: 10px;
+  font-weight: 700;
+  background: #eef2ff;
+  color: #6366f1;
+  padding: 1px 6px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+}
+
 .msg-bubble {
   background: #f3f4f6;
   color: #111827;
@@ -329,6 +405,10 @@
 }
 
 /* ── Input ── */
+.chat-input-area {
+  flex-shrink: 0;
+}
+
 .chat-input-bar {
   display: flex;
   align-items: flex-end;
@@ -353,6 +433,20 @@
   transition: border-color .15s;
   &:focus { border-color: #6366f1; }
   &::placeholder { color: #9ca3af; }
+}
+
+.char-counter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 2px 20px 8px;
+  font-size: 11px;
+  color: #9ca3af;
+
+  &--warn { color: #d97706; font-weight: 600; }
+  &--over { color: #ef4444; font-weight: 700; }
+  &--msg  { font-style: italic; }
 }
 
 .chat-send {

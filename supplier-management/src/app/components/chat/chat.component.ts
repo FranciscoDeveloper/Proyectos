@@ -3,60 +3,62 @@ import {
   ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ChatService, ChatMessage, Conversation, ChatUser } from '../../services/chat.service';
+import { ChatService, ChatMessage, Conversation, ChatUser, HELPDESK_CONV_ID, HELPDESK_MAX_CHARS } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
 
 interface ConvEntry {
-  conv: Conversation;
-  lastMessage: ChatMessage | null;
-  unread: number;
+  conv:       Conversation;
+  lastMessage:ChatMessage | null;
+  unread:     number;
   otherUser?: ChatUser;
 }
 
 @Component({
-    selector: 'app-chat',
-    imports: [CommonModule],
-    templateUrl: './chat.component.html',
-    styleUrl: './chat.component.scss'
+  selector: 'app-chat',
+  imports: [CommonModule],
+  templateUrl: './chat.component.html',
+  styleUrl:    './chat.component.scss'
 })
 export class ChatComponent implements AfterViewChecked {
-  readonly chatSvc  = inject(ChatService);
-  readonly auth     = inject(AuthService);
-  private cd        = inject(ChangeDetectorRef);
+  readonly chatSvc = inject(ChatService);
+  readonly auth    = inject(AuthService);
+  private  cd      = inject(ChangeDetectorRef);
 
   @ViewChild('msgContainer') msgContainer?: ElementRef<HTMLElement>;
 
-  // ── State ──────────────────────────────────────────────────────────────────
-  activeConvId  = signal<string>('ch-general');
-  messageText   = signal('');
+  activeConvId   = signal<string>('ch-general');
+  messageText    = signal('');
   sidebarSection = signal<'channels' | 'dm'>('channels');
+  sending        = signal(false);
+
   private _shouldScroll = false;
+
+  readonly HELPDESK_MAX = HELPDESK_MAX_CHARS;
 
   // ── Sidebar lists ──────────────────────────────────────────────────────────
 
   readonly channelEntries = computed<ConvEntry[]>(() =>
     this.chatSvc.channels.map(c => ({
-      conv: c,
+      conv:        c,
       lastMessage: this.chatSvc.getLastMessage(c.id),
-      unread: this.chatSvc.getUnreadCount(c.id)
+      unread:      this.chatSvc.getUnreadCount(c.id),
     }))
   );
 
-  readonly dmEntries = computed<ConvEntry[]>(() => {
-    return this.chatSvc.getContacts().map(u => {
+  readonly dmEntries = computed<ConvEntry[]>(() =>
+    this.chatSvc.getContacts().map(u => {
       const convId = this.chatSvc.getDMId(u.id);
       return {
-        conv: this.chatSvc.getDMConversation(u.id),
+        conv:        this.chatSvc.getDMConversation(u.id),
         lastMessage: this.chatSvc.getLastMessage(convId),
-        unread: this.chatSvc.getUnreadCount(convId),
-        otherUser: u
+        unread:      this.chatSvc.getUnreadCount(convId),
+        otherUser:   u,
       };
-    });
-  });
+    })
+  );
 
   readonly totalUnread = computed(() =>
-    [...this.channelEntries(), ...this.dmEntries()]
-      .reduce((sum, e) => sum + e.unread, 0)
+    [...this.channelEntries(), ...this.dmEntries()].reduce((sum, e) => sum + e.unread, 0)
   );
 
   // ── Active conversation ────────────────────────────────────────────────────
@@ -69,8 +71,7 @@ export class ChatComponent implements AfterViewChecked {
     const id = this.activeConvId();
     const channel = this.chatSvc.channels.find(c => c.id === id);
     if (channel) return (channel.icon ?? '#') + ' ' + channel.name;
-    const contacts = this.chatSvc.getContacts();
-    for (const u of contacts) {
+    for (const u of this.chatSvc.getContacts()) {
       if (this.chatSvc.getDMId(u.id) === id) return u.name;
     }
     return '';
@@ -87,6 +88,18 @@ export class ChatComponent implements AfterViewChecked {
     return this.chatSvc.getContacts().find(u => this.chatSvc.getDMId(u.id) === id) ?? null;
   });
 
+  readonly isHelpdeskActive = computed(() => this.activeConvId() === HELPDESK_CONV_ID);
+
+  readonly charCount = computed(() => this.messageText().length);
+
+  readonly charLimitExceeded = computed(() =>
+    this.isHelpdeskActive() && this.charCount() > HELPDESK_MAX_CHARS
+  );
+
+  readonly canSend = computed(() =>
+    !!this.messageText().trim() && !this.charLimitExceeded() && !this.sending()
+  );
+
   // ── Methods ────────────────────────────────────────────────────────────────
 
   selectConv(id: string): void {
@@ -97,7 +110,7 @@ export class ChatComponent implements AfterViewChecked {
 
   send(): void {
     const text = this.messageText().trim();
-    if (!text) return;
+    if (!text || this.charLimitExceeded()) return;
     this.chatSvc.sendMessage(this.activeConvId(), text);
     this.messageText.set('');
     this._shouldScroll = true;
@@ -115,6 +128,10 @@ export class ChatComponent implements AfterViewChecked {
     return msg.senderId === this.auth.user()?.id;
   }
 
+  isAgent(senderId: number): boolean {
+    return senderId === 0;
+  }
+
   isSameAuthorAsPrev(messages: ChatMessage[], idx: number): boolean {
     if (idx === 0) return false;
     return messages[idx - 1].senderId === messages[idx].senderId &&
@@ -122,9 +139,9 @@ export class ChatComponent implements AfterViewChecked {
   }
 
   formatTime(date: Date): string {
-    const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / 86_400_000);
-    const time = date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+    const now     = new Date();
+    const diffDays= Math.floor((now.getTime() - date.getTime()) / 86_400_000);
+    const time    = date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
     if (diffDays === 0) return time;
     if (diffDays === 1) return `Ayer ${time}`;
     return date.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }) + ' ' + time;
@@ -133,7 +150,7 @@ export class ChatComponent implements AfterViewChecked {
   formatPreview(msg: ChatMessage | null): string {
     if (!msg) return 'Sin mensajes aún';
     const prefix = msg.senderName.split(' ')[0] + ': ';
-    const text = msg.content.length > 35 ? msg.content.slice(0, 35) + '…' : msg.content;
+    const text   = msg.content.length > 35 ? msg.content.slice(0, 35) + '…' : msg.content;
     return prefix + text;
   }
 
@@ -155,7 +172,6 @@ export class ChatComponent implements AfterViewChecked {
     if (el) el.scrollTop = el.scrollHeight;
   }
 
-  // Scroll on first load of each conversation
   constructor() {
     effect(() => {
       this.activeConvId(); // track

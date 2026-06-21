@@ -10,6 +10,7 @@ export interface ChatUser {
   role: string;
   online: boolean;
   color: string;
+  isAgent?: boolean;
 }
 
 export interface ChatMessage {
@@ -20,6 +21,7 @@ export interface ChatMessage {
   senderAvatar: string;
   content: string;
   timestamp: Date;
+  pending?: boolean;
 }
 
 export interface Conversation {
@@ -29,6 +31,24 @@ export interface Conversation {
   icon?: string;
   participants: number[];
 }
+
+export const HELPDESK_AGENT: ChatUser = {
+  id:      0,
+  name:    'Soporte Dairi',
+  avatar:  '🎧',
+  role:    'Agente de Helpdesk',
+  online:  true,
+  color:   '#6366f1',
+  isAgent: true,
+};
+
+export const HELPDESK_CONV_ID = 'dm-helpdesk';
+export const HELPDESK_MAX_CHARS = 500;
+
+const HELPDESK_AUTO_REPLY =
+  '✓ Tu mensaje fue recibido. Un agente de soporte revisará tu consulta y te contactará a la brevedad.\n\nHorario de atención: Lunes a Viernes, 9:00 – 18:00 hrs.';
+
+let _msgSeq = -1;
 
 @Injectable({ providedIn: 'root' })
 export class ChatService {
@@ -48,6 +68,19 @@ export class ChatService {
     this.http.get<ChatUser[]>('/api/chat/users').subscribe({
       next: users => this.allUsers.splice(0, this.allUsers.length, ...users)
     });
+    // Seed helpdesk conversation with welcome message
+    const helpdesk = this._ensureSignal(HELPDESK_CONV_ID);
+    if (helpdesk().length === 0) {
+      helpdesk.set([{
+        id: _msgSeq--,
+        conversationId: HELPDESK_CONV_ID,
+        senderId:    HELPDESK_AGENT.id,
+        senderName:  HELPDESK_AGENT.name,
+        senderAvatar:HELPDESK_AGENT.avatar,
+        content:     '¡Hola! Soy el agente de soporte de Dairi. ¿En qué puedo ayudarte?\n\nPuedes enviarme mensajes de hasta 500 caracteres describiendo tu consulta.',
+        timestamp:   new Date(),
+      }]);
+    }
   }
 
   private _messages = new Map<string, ReturnType<typeof signal<ChatMessage[]>>>();
@@ -55,40 +88,46 @@ export class ChatService {
 
   getContacts(): ChatUser[] {
     const me = this.auth.user();
-    return this.allUsers.filter(u => u.id !== me?.id);
+    const peers = this.allUsers.filter(u => u.id !== me?.id);
+    return [HELPDESK_AGENT, ...peers];
   }
 
   getDMId(otherUserId: number): string {
+    if (otherUserId === HELPDESK_AGENT.id) return HELPDESK_CONV_ID;
     const me = this.auth.user()!;
     return `dm-${Math.min(me.id, otherUserId)}-${Math.max(me.id, otherUserId)}`;
   }
 
   getDMConversation(otherUserId: number): Conversation {
+    if (otherUserId === HELPDESK_AGENT.id) {
+      return { id: HELPDESK_CONV_ID, type: 'direct', name: HELPDESK_AGENT.name, participants: [this.auth.user()?.id ?? 0, 0] };
+    }
     const me    = this.auth.user()!;
     const other = this.allUsers.find(u => u.id === otherUserId);
-    return {
-      id: this.getDMId(otherUserId),
-      type: 'direct',
-      name: other?.name ?? 'Usuario',
-      participants: [me.id, otherUserId]
-    };
+    return { id: this.getDMId(otherUserId), type: 'direct', name: other?.name ?? 'Usuario', participants: [me.id, otherUserId] };
+  }
+
+  isHelpdeskConv(conversationId: string): boolean {
+    return conversationId === HELPDESK_CONV_ID;
   }
 
   private _ensureSignal(conversationId: string): ReturnType<typeof signal<ChatMessage[]>> {
     if (!this._messages.has(conversationId)) {
       const sig = signal<ChatMessage[]>([]);
       this._messages.set(conversationId, sig);
-      this.http.get<ChatMessage[]>(`/api/chat/messages?conversationId=${conversationId}`).subscribe({
-        next: async msgs => {
-          const decrypted = await Promise.all(
-            msgs.map(async m => {
-              const dec = await this.crypto.decryptFields(m as any, CHAT_ENCRYPTED_FIELDS);
-              return { ...dec, timestamp: new Date(m.timestamp) } as ChatMessage;
-            })
-          );
-          sig.set(decrypted);
-        }
-      });
+      if (conversationId !== HELPDESK_CONV_ID) {
+        this.http.get<ChatMessage[]>(`/api/chat/messages?conversationId=${conversationId}`).subscribe({
+          next: async msgs => {
+            const decrypted = await Promise.all(
+              msgs.map(async m => {
+                const dec = await this.crypto.decryptFields(m as any, CHAT_ENCRYPTED_FIELDS);
+                return { ...dec, timestamp: new Date(m.timestamp) } as ChatMessage;
+              })
+            );
+            sig.set(decrypted);
+          }
+        });
+      }
     }
     return this._messages.get(conversationId)!;
   }
@@ -104,13 +143,19 @@ export class ChatService {
   sendMessage(conversationId: string, content: string): void {
     const me = this.auth.user();
     if (!me || !content.trim()) return;
+
+    if (this.isHelpdeskConv(conversationId)) {
+      this._sendHelpdeskMessage(content.trim());
+      return;
+    }
+
     const meUser  = this.allUsers.find(u => u.id === me.id);
     const payload = {
       conversationId,
       senderId:     me.id,
       senderName:   me.name,
       senderAvatar: meUser?.avatar ?? me.name.charAt(0),
-      content: content.trim()
+      content:      content.trim()
     };
     this.crypto.encryptFields(payload as any, CHAT_ENCRYPTED_FIELDS).then(encrypted => {
       this.http.post<ChatMessage>('/api/chat/messages', encrypted).subscribe({
@@ -121,6 +166,58 @@ export class ChatService {
           this.markRead(conversationId);
         }
       });
+    });
+  }
+
+  private _sendHelpdeskMessage(content: string): void {
+    const me = this.auth.user();
+    if (!me) return;
+
+    const userMsg: ChatMessage = {
+      id:              _msgSeq--,
+      conversationId:  HELPDESK_CONV_ID,
+      senderId:        me.id,
+      senderName:      me.name,
+      senderAvatar:    me.name.charAt(0).toUpperCase(),
+      content,
+      timestamp:       new Date(),
+    };
+
+    const sig = this._ensureSignal(HELPDESK_CONV_ID);
+    sig.update(arr => [...arr, userMsg]);
+    this.markRead(HELPDESK_CONV_ID);
+
+    this.http.post('/api/helpdesk/message', { content, userName: me.name, userId: me.id }).subscribe({
+      next: () => {
+        // Auto-reply from agent after a short simulated delay
+        setTimeout(() => {
+          const reply: ChatMessage = {
+            id:              _msgSeq--,
+            conversationId:  HELPDESK_CONV_ID,
+            senderId:        HELPDESK_AGENT.id,
+            senderName:      HELPDESK_AGENT.name,
+            senderAvatar:    HELPDESK_AGENT.avatar,
+            content:         HELPDESK_AUTO_REPLY,
+            timestamp:       new Date(),
+          };
+          sig.update(arr => [...arr, reply]);
+        }, 1200);
+      },
+      error: () => {
+        // Auto-reply even on error so the user knows their message was received locally
+        setTimeout(() => {
+          const reply: ChatMessage = {
+            id:              _msgSeq--,
+            conversationId:  HELPDESK_CONV_ID,
+            senderId:        HELPDESK_AGENT.id,
+            senderName:      HELPDESK_AGENT.name,
+            senderAvatar:    HELPDESK_AGENT.avatar,
+            content:         '⚠️ No pude conectar con el servicio de soporte en este momento. Por favor intenta nuevamente o escríbenos a soporte@dairi.cl',
+            timestamp:       new Date(),
+          };
+          sig.update(arr => [...arr, reply]);
+        }, 800);
+      }
     });
   }
 
@@ -146,6 +243,7 @@ export class ChatService {
   }
 
   getUserColor(userId: number): string {
+    if (userId === HELPDESK_AGENT.id) return HELPDESK_AGENT.color;
     return this.allUsers.find(u => u.id === userId)?.color ?? '#6b7280';
   }
 }
