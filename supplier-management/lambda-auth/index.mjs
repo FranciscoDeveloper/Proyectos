@@ -299,6 +299,14 @@ async function handleRegister(body) {
 
     const activationUrl = `${APP_URL}/#/activate?token=${encodeURIComponent(activationToken)}`;
 
+    // Assign default modules for new users (keys must match app_schema.schema_key in DB)
+    await client.query(
+      `INSERT INTO user_schema (user_id, schema_id)
+       SELECT $1, s.id FROM app_schema s
+       WHERE s.schema_key = ANY($2::text[])`,
+      [userId, ['clinicalRecords', 'appointments']]
+    );
+
     // Build email content — frontend sends it via /api/send-email (internet-accessible)
     const emailContent = buildActivationEmail({ name, email: emailNorm, activationUrl });
 
