@@ -1,6 +1,5 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -35,24 +34,20 @@ const DONUT_C = 2 * Math.PI * DONUT_R;
 function buildDonut(
   items: { label: string; count: number; pct: number; color: string }[]
 ): DonutSegment[] {
-  let accumulated = 0;
+  let offset = 0;
   return items.map(item => {
     const len = (item.pct / 100) * DONUT_C;
-    const seg: DonutSegment = {
-      ...item,
-      dashArray:  `${len} ${DONUT_C - len}`,
-      dashOffset: accumulated,
-    };
-    accumulated += len;
+    const seg: DonutSegment = { ...item, dashArray: `${len} ${DONUT_C - len}`, dashOffset: offset };
+    offset += len;
     return seg;
   });
 }
 
 @Component({
-    selector: 'app-medical-reports',
-    imports: [CommonModule, RouterLink],
-    templateUrl: './medical-reports.component.html',
-    styleUrl: './medical-reports.component.scss'
+  selector: 'app-medical-reports',
+  imports: [CommonModule],
+  templateUrl: './medical-reports.component.html',
+  styleUrl:    './medical-reports.component.scss'
 })
 export class MedicalReportsComponent {
   private crud = inject(GenericCrudService);
@@ -62,9 +57,8 @@ export class MedicalReportsComponent {
   setPeriod(p: Period) { this.period.set(p); }
 
   private _appointments = this.crud.getAll('appointments');
-  private _patients     = this.crud.getAll('patients');
   private _records      = this.crud.getAll('clinical-records');
-  private _payments     = this.crud.getAll('payments');
+  private _presupuestos = this.crud.getAll('presupuestos');
 
   private inPeriod(data: Record<string, any>[], dateField: string): Record<string, any>[] {
     const p = this.period();
@@ -77,7 +71,7 @@ export class MedicalReportsComponent {
     });
   }
 
-  // ── KPIs ─────────────────────────────────────────────────────────────────
+  // ══════════════════════ CITAS ══════════════════════════════════════════════
 
   kpiAppt = computed(() => {
     const all       = this.inPeriod(this._appointments(), 'dateTime');
@@ -89,34 +83,9 @@ export class MedicalReportsComponent {
     return {
       total, completed, scheduled, noShow, cancelled,
       attendanceRate: total ? Math.round((completed / total) * 100) : 0,
+      noShowRate:     total ? Math.round((noShow    / total) * 100) : 0,
     };
   });
-
-  kpiPatients = computed(() => {
-    const all      = this._patients();
-    const active   = all.filter(p => p['status'] === 'active').length;
-    const critical = all.filter(p => p['status'] === 'critical').length;
-    return { total: all.length, active, critical };
-  });
-
-  kpiRevenue = computed(() => {
-    const all     = this.inPeriod(this._payments(), 'date');
-    const revenue = all.reduce((s, p) => s + (Number(p['amount']) || 0), 0);
-    const myName  = this.auth.user()?.name ?? '';
-    const myPays  = all.filter(p => p['professionalName'] === myName);
-    const myComm  = myPays.reduce((s, p) => s + (Number(p['commissionAmount']) || 0), 0);
-    const pending = myPays
-      .filter(p => p['commissionStatus'] === 'pendiente')
-      .reduce((s, p) => s + (Number(p['commissionAmount']) || 0), 0);
-    return { revenue, myComm, pending };
-  });
-
-  kpiRecords = computed(() => {
-    const all = this._records();
-    return { total: all.length };
-  });
-
-  // ── Appointment charts ────────────────────────────────────────────────────
 
   apptStatusDonut = computed((): DonutSegment[] => {
     const all   = this.inPeriod(this._appointments(), 'dateTime');
@@ -127,12 +96,11 @@ export class MedicalReportsComponent {
       { key: 'CANCELADA',  label: 'Cancelada',  color: '#ef4444' },
       { key: 'NO_ASISTIO', label: 'No asistió', color: '#f59e0b' },
     ];
-    const items = defs.map(d => ({
+    return buildDonut(defs.map(d => ({
       ...d,
       count: all.filter(a => a['status'] === d.key).length,
       pct:   Math.round(all.filter(a => a['status'] === d.key).length / total * 100),
-    }));
-    return buildDonut(items);
+    })));
   });
 
   apptByDow = computed((): BarItem[] => {
@@ -151,73 +119,112 @@ export class MedicalReportsComponent {
   });
 
   apptTopMotives = computed((): BarItem[] => {
-    const all = this.inPeriod(this._appointments(), 'dateTime');
-    const map = new Map<string, number>();
+    const all     = this.inPeriod(this._appointments(), 'dateTime');
+    const map     = new Map<string, number>();
     for (const a of all) {
-      const key = (a['service'] as string || 'Otro').trim();
+      const key = (String(a['service'] ?? 'Sin especificar')).trim() || 'Sin especificar';
       map.set(key, (map.get(key) ?? 0) + 1);
     }
-    const sorted = [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
-    const max    = sorted[0]?.[1] || 1;
+    const sorted  = [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const max     = sorted[0]?.[1] || 1;
     const palette = ['#6366f1','#8b5cf6','#3b82f6','#06b6d4','#10b981'];
     return sorted.map(([label, count], i) => ({
-      label, count, pct: Math.round((count / max) * 100), color: palette[i % palette.length],
+      label, count, pct: Math.round((count / max) * 100), color: palette[i],
     }));
   });
 
-  // ── Patient charts ────────────────────────────────────────────────────────
+  apptModalityDonut = computed((): DonutSegment[] => {
+    const all    = this.inPeriod(this._appointments(), 'dateTime');
+    const total  = all.length || 1;
+    const map    = new Map<string, number>();
+    for (const a of all) {
+      const k = String(a['modality'] ?? 'presencial');
+      map.set(k, (map.get(k) ?? 0) + 1);
+    }
+    const LABELS: Record<string, string> = { presencial: 'Presencial', telemedicina: 'Telemedicina', domicilio: 'Domicilio' };
+    const COLORS: Record<string, string> = { presencial: '#6366f1',    telemedicina: '#06b6d4',      domicilio: '#10b981'    };
+    return buildDonut([...map.entries()].sort((a, b) => b[1] - a[1]).map(([k, count]) => ({
+      label: LABELS[k] ?? k, count, pct: Math.round((count / total) * 100), color: COLORS[k] ?? '#9ca3af',
+    })));
+  });
 
-  patientStatusDonut = computed((): DonutSegment[] => {
-    const all   = this._patients();
+  // ══════════════════════ FICHAS CLÍNICAS ════════════════════════════════════
+
+  kpiRecords = computed(() => {
+    const all      = this._records();
+    const encounters = all.reduce((s, r) =>
+      s + (Array.isArray(r['encounters']) ? r['encounters'].length : 0), 0);
+    const withAlerts = all.filter(r =>
+      (r['alertNotes'] && String(r['alertNotes']).trim()) ||
+      (Array.isArray(r['allergies']) && r['allergies'].length > 0)
+    ).length;
+    return {
+      total: all.length,
+      encounters,
+      withAlerts,
+      avgEncounters: all.length ? +(encounters / all.length).toFixed(1) : 0,
+    };
+  });
+
+  genderDonut = computed((): DonutSegment[] => {
+    const all   = this._records();
     const total = all.length || 1;
-    const defs  = [
-      { key: 'active',     label: 'Activo',    color: '#10b981' },
-      { key: 'critical',   label: 'Crítico',   color: '#ef4444' },
-      { key: 'scheduled',  label: 'Agendado',  color: '#3b82f6' },
-      { key: 'discharged', label: 'Alta',      color: '#9ca3af' },
+    const map   = new Map<string, number>();
+    for (const r of all) map.set(String(r['gender'] ?? 'otro'), (map.get(String(r['gender'] ?? 'otro')) ?? 0) + 1);
+    const LABELS: Record<string, string> = { male: 'Masculino', female: 'Femenino', other: 'Otro', otro: 'Otro' };
+    const COLORS: Record<string, string> = { male: '#3b82f6',   female: '#ec4899',  other: '#9ca3af', otro: '#9ca3af' };
+    return buildDonut([...map.entries()].sort((a, b) => b[1] - a[1]).map(([k, count]) => ({
+      label: LABELS[k] ?? k, count, pct: Math.round((count / total) * 100), color: COLORS[k] ?? '#9ca3af',
+    })));
+  });
+
+  ageGroupDist = computed((): BarItem[] => {
+    const all    = this._records();
+    const groups = [
+      { label: '0–17',  min: 0,  max: 17,  color: '#06b6d4' },
+      { label: '18–35', min: 18, max: 35,  color: '#6366f1' },
+      { label: '36–50', min: 36, max: 50,  color: '#8b5cf6' },
+      { label: '51–65', min: 51, max: 65,  color: '#f59e0b' },
+      { label: '65+',   min: 66, max: 999, color: '#ef4444' },
     ];
-    const items = defs.map(d => ({
-      ...d,
-      count: all.filter(p => p['status'] === d.key).length,
-      pct:   Math.round(all.filter(p => p['status'] === d.key).length / total * 100),
+    const counts = groups.map(g => ({
+      ...g,
+      count: all.filter(r => { const a = Number(r['age']); return a >= g.min && a <= g.max; }).length,
     }));
-    return buildDonut(items);
+    const max = Math.max(...counts.map(c => c.count), 1);
+    return counts.map(c => ({ ...c, pct: Math.round((c.count / max) * 100) }));
   });
 
   insuranceDist = computed((): BarItem[] => {
-    const all   = this._patients();
+    const all   = this._records();
     const total = all.length || 1;
     const map   = new Map<string, number>();
-    for (const p of all) {
-      const k = String(p['insurance'] ?? 'particular');
+    for (const r of all) {
+      const k = String(r['insurance'] ?? 'particular');
       map.set(k, (map.get(k) ?? 0) + 1);
     }
-    const labels: Record<string, string> = {
+    const LABELS: Record<string, string> = {
       fonasa_a: 'FONASA A', fonasa_b: 'FONASA B', fonasa_c: 'FONASA C',
       fonasa_d: 'FONASA D', isapre: 'Isapre', particular: 'Particular',
     };
-    const colors: Record<string, string> = {
+    const COLORS: Record<string, string> = {
       fonasa_a: '#10b981', fonasa_b: '#34d399', fonasa_c: '#6366f1',
-      fonasa_d: '#8b5cf6', isapre: '#f59e0b', particular: '#9ca3af',
+      fonasa_d: '#8b5cf6', isapre: '#f59e0b',   particular: '#9ca3af',
     };
-    return [...map.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .map(([k, count]) => ({
-        label: labels[k] ?? k,
-        count,
-        pct:   Math.round((count / total) * 100),
-        color: colors[k] ?? '#9ca3af',
-      }));
+    return [...map.entries()].sort((a, b) => b[1] - a[1]).map(([k, count]) => ({
+      label: LABELS[k] ?? k,
+      count,
+      pct:   Math.round((count / total) * 100),
+      color: COLORS[k] ?? '#9ca3af',
+    }));
   });
 
   topConditions = computed((): BarItem[] => {
     const all = this._records();
     const map = new Map<string, number>();
     for (const r of all) {
-      const conds = r['chronicConditions'];
-      if (Array.isArray(conds)) {
-        for (const c of conds) map.set(String(c), (map.get(String(c)) ?? 0) + 1);
-      }
+      if (Array.isArray(r['chronicConditions']))
+        for (const c of r['chronicConditions']) map.set(String(c), (map.get(String(c)) ?? 0) + 1);
     }
     const sorted = [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, 7);
     const max    = sorted[0]?.[1] || 1;
@@ -226,91 +233,142 @@ export class MedicalReportsComponent {
     }));
   });
 
-  // ── Revenue charts ────────────────────────────────────────────────────────
-
-  revenueByConceptBars = computed((): AmountBar[] => {
-    const all = this.inPeriod(this._payments(), 'date');
-    const map = new Map<string, number>();
-    for (const p of all) {
-      const k = String(p['concept'] ?? 'otro');
-      map.set(k, (map.get(k) ?? 0) + (Number(p['amount']) || 0));
-    }
-    const labels: Record<string, string> = {
-      consulta: 'Consulta', procedimiento: 'Procedimiento', examenes: 'Exámenes',
-      psicologia: 'Psicología', odontologia: 'Odontología', medicamentos: 'Medicamentos', otro: 'Otro',
-    };
-    const colors: Record<string, string> = {
-      consulta: '#6366f1', procedimiento: '#8b5cf6', examenes: '#3b82f6',
-      psicologia: '#ec4899', odontologia: '#14b8a6', medicamentos: '#10b981', otro: '#6b7280',
-    };
-    const sorted = [...map.entries()].sort((a, b) => b[1] - a[1]);
-    const max    = sorted[0]?.[1] || 1;
-    return sorted.map(([k, amount]) => ({
-      label: labels[k] ?? k,
-      amount,
-      pct:   Math.round((amount / max) * 100),
-      color: colors[k] ?? '#9ca3af',
-    }));
-  });
-
-  paymentMethodDonut = computed((): DonutSegment[] => {
-    const all   = this.inPeriod(this._payments(), 'date');
-    const total = all.length || 1;
-    const map   = new Map<string, number>();
-    for (const p of all) {
-      const k = String(p['paymentMethod'] ?? 'otro');
-      map.set(k, (map.get(k) ?? 0) + 1);
-    }
-    const labels: Record<string, string> = {
-      fonasa: 'FONASA', isapre: 'Isapre', efectivo: 'Efectivo',
-      debito: 'Débito', credito: 'Crédito', transferencia: 'Transferencia',
-    };
-    const colors: Record<string, string> = {
-      fonasa: '#10b981', isapre: '#f59e0b', efectivo: '#6b7280',
-      debito: '#3b82f6', credito: '#6366f1', transferencia: '#8b5cf6',
-    };
-    const items = [...map.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .map(([k, count]) => ({
-        label: labels[k] ?? k,
-        count,
-        pct:   Math.round((count / total) * 100),
-        color: colors[k] ?? '#9ca3af',
-      }));
-    return buildDonut(items);
-  });
-
-  // ── Diagnoses ─────────────────────────────────────────────────────────────
-
   topDiagnoses = computed((): (BarItem & { code: string })[] => {
     const all = this._records();
     const map = new Map<string, { code: string; label: string; count: number }>();
     for (const r of all) {
-      const code  = String(r['diagnosisCode'] ?? '');
-      const label = String(r['diagnosisLabel'] ?? code);
+      const code  = String(r['diagnosisCode'] ?? '').trim();
+      const label = String(r['diagnosisLabel'] ?? code).trim();
       if (!code) continue;
       const ex = map.get(code);
       if (ex) ex.count++;
       else    map.set(code, { code, label, count: 1 });
     }
-    const sorted = [...map.values()].sort((a, b) => b.count - a.count).slice(0, 6);
-    const max    = sorted[0]?.count || 1;
+    const sorted  = [...map.values()].sort((a, b) => b.count - a.count).slice(0, 6);
+    const max     = sorted[0]?.count || 1;
     const palette = ['#6366f1','#8b5cf6','#3b82f6','#06b6d4','#10b981','#f59e0b'];
     return sorted.map((d, i) => ({
-      code:  d.code,
-      label: d.label,
-      count: d.count,
+      code: d.code, label: d.label, count: d.count,
       pct:   Math.round((d.count / max) * 100),
       color: palette[i % palette.length],
     }));
   });
 
-  // ── SVG helper ────────────────────────────────────────────────────────────
+  // ══════════════════════ PRESUPUESTOS ═══════════════════════════════════════
+
+  kpiPresupuestos = computed(() => {
+    const all        = this._presupuestos();
+    const now        = new Date().toISOString().slice(0, 10);
+    const soon       = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+    const sent       = all.filter(p => p['status'] !== 'draft');
+    const approved   = all.filter(p => p['status'] === 'approved' || p['status'] === 'converted');
+    const active     = all.filter(p => p['status'] !== 'rejected' && p['status'] !== 'expired');
+    return {
+      total:          all.length,
+      pipelineValue:  active.reduce((s, p) => s + this._presTotal(p), 0),
+      conversionRate: sent.length ? Math.round((approved.length / sent.length) * 100) : 0,
+      expiringSoon:   all.filter(p =>
+        p['status'] === 'sent' && p['fechaVencimiento'] >= now && p['fechaVencimiento'] <= soon
+      ).length,
+      approved:       approved.length,
+      pending:        all.filter(p => p['status'] === 'sent').length,
+    };
+  });
+
+  presupuestosStatusDonut = computed((): DonutSegment[] => {
+    const all   = this._presupuestos();
+    const total = all.length || 1;
+    const defs  = [
+      { key: 'approved',  label: 'Aprobado',   color: '#10b981' },
+      { key: 'converted', label: 'Convertido', color: '#6366f1' },
+      { key: 'sent',      label: 'Enviado',    color: '#3b82f6' },
+      { key: 'draft',     label: 'Borrador',   color: '#9ca3af' },
+      { key: 'rejected',  label: 'Rechazado',  color: '#ef4444' },
+      { key: 'expired',   label: 'Vencido',    color: '#f59e0b' },
+    ];
+    return buildDonut(
+      defs
+        .map(d => ({
+          ...d,
+          count: all.filter(p => p['status'] === d.key).length,
+          pct:   Math.round(all.filter(p => p['status'] === d.key).length / total * 100),
+        }))
+        .filter(d => d.count > 0)
+    );
+  });
+
+  topSpecialtiesBudget = computed((): AmountBar[] => {
+    const all     = this._presupuestos();
+    const map     = new Map<string, number>();
+    for (const p of all) {
+      if (p['status'] === 'rejected') continue;
+      const k = String(p['specialty'] || p['doctorName'] || 'Sin especificar').trim();
+      map.set(k, (map.get(k) ?? 0) + this._presTotal(p));
+    }
+    const sorted  = [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const max     = sorted[0]?.[1] || 1;
+    const palette = ['#6366f1','#8b5cf6','#3b82f6','#06b6d4','#10b981','#f59e0b'];
+    return sorted.map(([label, amount], i) => ({
+      label, amount, pct: Math.round((amount / max) * 100), color: palette[i],
+    }));
+  });
+
+  topBudgetItems = computed((): BarItem[] => {
+    const all = this._presupuestos();
+    const map = new Map<string, number>();
+    for (const p of all) {
+      for (const item of (Array.isArray(p['items']) ? p['items'] : [])) {
+        const k = String(item['description'] ?? 'Sin descripción').trim();
+        if (k) map.set(k, (map.get(k) ?? 0) + (Number(item['quantity']) || 1));
+      }
+    }
+    const sorted  = [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, 7);
+    const max     = sorted[0]?.[1] || 1;
+    const palette = ['#6366f1','#8b5cf6','#3b82f6','#06b6d4','#10b981','#f59e0b','#ec4899'];
+    return sorted.map(([label, count], i) => ({
+      label, count, pct: Math.round((count / max) * 100), color: palette[i % palette.length],
+    }));
+  });
+
+  previsionBudgetDist = computed((): BarItem[] => {
+    const all = this._presupuestos();
+    const map = new Map<string, number>();
+    for (const p of all) {
+      const k = String(p['prevision'] ?? 'particular');
+      map.set(k, (map.get(k) ?? 0) + 1);
+    }
+    const LABELS: Record<string, string> = {
+      particular: 'Particular', fonasa: 'FONASA', banmedica: 'Banmédica',
+      colmena: 'Colmena', consalud: 'Consalud', cruzblanca: 'Cruz Blanca',
+      isapre: 'Isapre', capredena: 'CAPREDENA',
+    };
+    const COLORS: Record<string, string> = {
+      particular: '#9ca3af', fonasa: '#10b981', banmedica: '#6366f1',
+      colmena: '#8b5cf6', consalud: '#3b82f6', cruzblanca: '#06b6d4',
+      isapre: '#f59e0b', capredena: '#ef4444',
+    };
+    const sorted = [...map.entries()].sort((a, b) => b[1] - a[1]);
+    const max    = sorted[0]?.[1] || 1;
+    return sorted.map(([k, count]) => ({
+      label: LABELS[k] ?? k, count, pct: Math.round((count / max) * 100), color: COLORS[k] ?? '#9ca3af',
+    }));
+  });
+
+  private _presTotal(p: Record<string, any>): number {
+    const subtotal = (Array.isArray(p['items']) ? p['items'] : []).reduce((s: number, item: any) => {
+      const qty  = Math.max(0, +item['quantity']   || 0);
+      const price= Math.max(0, +item['unitPrice']  || 0);
+      const disc = Math.min(100, Math.max(0, +item['discountPct'] || 0));
+      return s + qty * price * (1 - disc / 100);
+    }, 0);
+    const gDisc = Math.min(100, Math.max(0, +p['discountGlobal'] || 0));
+    return Math.max(0, subtotal * (1 - gDisc / 100));
+  }
+
+  // ══════════════════════ HELPERS ════════════════════════════════════════════
 
   readonly donutCircumference = DONUT_C;
   readonly donutR             = DONUT_R;
-
-  // ── Formatting ────────────────────────────────────────────────────────────
 
   fmt(n: number): string {
     if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
@@ -318,14 +376,15 @@ export class MedicalReportsComponent {
     return `$${n.toLocaleString('es-CL')}`;
   }
 
-  commPaidPct = computed(() => {
-    const { myComm, pending } = this.kpiRevenue();
-    return myComm > 0 ? Math.round(((myComm - pending) / myComm) * 100) : 0;
-  });
-
-  userName = computed(() => this.auth.user()?.name ?? '');
+  userName    = computed(() => this.auth.user()?.name ?? '');
   periodLabel = computed(() =>
-    this.period() === '7d' ? 'Últimos 7 días' :
+    this.period() === '7d'  ? 'Últimos 7 días' :
     this.period() === '30d' ? 'Últimos 30 días' : 'Todo el período'
+  );
+
+  hasAnyData = computed(() =>
+    this._appointments().length > 0 ||
+    this._records().length > 0 ||
+    this._presupuestos().length > 0
   );
 }

@@ -2,362 +2,454 @@
 
   <!-- ── Header ── -->
   <div class="page-header">
-    <div class="header-left">
-      <h1 class="page-title">Reportes Clínicos</h1>
-      <p class="page-subtitle">{{ userName() }} · {{ periodLabel() }}</p>
+    <div>
+      <h1 class="page-title">Reportería Clínica</h1>
+      <p class="page-subtitle">{{ periodLabel() }}</p>
     </div>
     <div class="period-tabs">
-      <button class="period-btn" [class.active]="period() === '7d'"  (click)="setPeriod('7d')">7 días</button>
-      <button class="period-btn" [class.active]="period() === '30d'" (click)="setPeriod('30d')">30 días</button>
-      <button class="period-btn" [class.active]="period() === 'all'" (click)="setPeriod('all')">Todo</button>
+      <button class="period-btn" [class.active]="period()==='7d'"  (click)="setPeriod('7d')">7 días</button>
+      <button class="period-btn" [class.active]="period()==='30d'" (click)="setPeriod('30d')">30 días</button>
+      <button class="period-btn" [class.active]="period()==='all'" (click)="setPeriod('all')">Todo</button>
     </div>
   </div>
 
-  <!-- ── KPI strip ── -->
-  <div class="kpi-strip">
+  @if (!hasAnyData()) {
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      </svg>
+      <p>Aún no hay datos suficientes para generar reportes. Registra citas, fichas clínicas o presupuestos.</p>
+    </div>
+  }
 
-    <div class="kpi-card">
-      <div class="kpi-icon kpi-blue">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
-        </svg>
-      </div>
-      <div class="kpi-body">
+  @if (hasAnyData()) {
+
+    <!-- ══════════════════ KPI STRIP ══════════════════════════════════════════ -->
+    <div class="kpi-strip">
+
+      <!-- Citas -->
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </div>
         <div class="kpi-value">{{ kpiAppt().total }}</div>
-        <div class="kpi-label">Citas totales</div>
+        <div class="kpi-label">Citas en período</div>
+        <div class="kpi-sub">
+          <span class="kpi-pill" [class.green]="kpiAppt().attendanceRate >= 70"
+                                 [class.amber]="kpiAppt().attendanceRate > 0 && kpiAppt().attendanceRate < 70"
+                                 [class.gray]="kpiAppt().attendanceRate === 0">
+            {{ kpiAppt().attendanceRate }}% asistencia
+          </span>
+        </div>
       </div>
-      <div class="kpi-sub">
-        <span class="kpi-pill green">{{ kpiAppt().attendanceRate }}% asistencia</span>
-      </div>
-    </div>
 
-    <div class="kpi-card">
-      <div class="kpi-icon kpi-green">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-      </div>
-      <div class="kpi-body">
-        <div class="kpi-value">{{ kpiPatients().active }}</div>
-        <div class="kpi-label">Pacientes activos</div>
-      </div>
-      <div class="kpi-sub">
-        <span class="kpi-pill red" *ngIf="kpiPatients().critical > 0">
-          {{ kpiPatients().critical }} crítico{{ kpiPatients().critical > 1 ? 's' : '' }}
-        </span>
-        <span class="kpi-pill gray" *ngIf="kpiPatients().critical === 0">Sin críticos</span>
-      </div>
-    </div>
-
-    <div class="kpi-card">
-      <div class="kpi-icon kpi-indigo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="1" x2="12" y2="23"/>
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-        </svg>
-      </div>
-      <div class="kpi-body">
-        <div class="kpi-value">{{ fmt(kpiRevenue().revenue) }}</div>
-        <div class="kpi-label">Ingresos clínica</div>
-      </div>
-      <div class="kpi-sub">
-        <span class="kpi-pill indigo" *ngIf="kpiRevenue().myComm > 0">
-          {{ fmt(kpiRevenue().myComm) }} mi comisión
-        </span>
-      </div>
-    </div>
-
-    <div class="kpi-card">
-      <div class="kpi-icon kpi-purple">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-          <rect x="9" y="3" width="6" height="4" rx="1" ry="1"/>
-          <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
-        </svg>
-      </div>
-      <div class="kpi-body">
+      <!-- Fichas -->
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
         <div class="kpi-value">{{ kpiRecords().total }}</div>
         <div class="kpi-label">Fichas clínicas</div>
+        <div class="kpi-sub">
+          <span class="kpi-pill green">{{ kpiRecords().encounters }} encuentros</span>
+        </div>
       </div>
-      <div class="kpi-sub">
-        <span class="kpi-pill amber" *ngIf="kpiAppt().scheduled > 0">
-          {{ kpiAppt().scheduled }} cita{{ kpiAppt().scheduled > 1 ? 's' : '' }} pendiente{{ kpiAppt().scheduled > 1 ? 's' : '' }}
-        </span>
+
+      <!-- Pipeline presupuestos -->
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-indigo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+          </svg>
+        </div>
+        <div class="kpi-value">{{ fmt(kpiPresupuestos().pipelineValue) }}</div>
+        <div class="kpi-label">Pipeline activo</div>
+        <div class="kpi-sub">
+          <span class="kpi-pill gray">{{ kpiPresupuestos().total }} presupuestos</span>
+        </div>
       </div>
+
+      <!-- Tasa de conversión -->
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+          </svg>
+        </div>
+        <div class="kpi-value">{{ kpiPresupuestos().conversionRate }}%</div>
+        <div class="kpi-label">Tasa de conversión</div>
+        <div class="kpi-sub">
+          @if (kpiPresupuestos().expiringSoon > 0) {
+            <span class="kpi-pill amber">{{ kpiPresupuestos().expiringSoon }} vencen en 7d</span>
+          } @else {
+            <span class="kpi-pill green">{{ kpiPresupuestos().approved }} aprobados</span>
+          }
+        </div>
+      </div>
+
     </div>
 
-  </div>
+    <!-- ══════════════════ SECCIÓN CITAS ══════════════════════════════════════ -->
+    <div class="section-title">
+      <span class="section-dot blue"></span>Agenda y Citas
+    </div>
 
-  <!-- ── Section 1: Agenda ── -->
-  <div class="section-title">
-    <span class="section-dot blue"></span>
-    Agenda y Citas
-  </div>
-  <div class="charts-row">
+    <div class="charts-row">
 
-    <!-- Donut: appointment status -->
-    <div class="chart-card">
-      <div class="chart-header">
-        <h3 class="chart-title">Estado de citas</h3>
-      </div>
-      <div class="donut-wrap">
-        <svg viewBox="0 0 100 100" class="donut-svg">
-          <circle cx="50" cy="50" [attr.r]="donutR" fill="none" stroke="#f3f4f6" stroke-width="14"/>
-          <circle *ngFor="let seg of apptStatusDonut()"
-                  cx="50" cy="50"
-                  [attr.r]="donutR"
-                  fill="none"
-                  [attr.stroke]="seg.color"
-                  stroke-width="14"
-                  [attr.stroke-dasharray]="seg.dashArray"
-                  [attr.stroke-dashoffset]="seg.dashOffset"
-                  transform="rotate(-90 50 50)"/>
-          <text x="50" y="47" text-anchor="middle" class="donut-center-big">{{ kpiAppt().total }}</text>
-          <text x="50" y="57" text-anchor="middle" class="donut-center-sm">citas</text>
-        </svg>
-        <div class="donut-legend">
-          <div class="legend-item" *ngFor="let seg of apptStatusDonut()">
-            <span class="legend-dot" [style.background]="seg.color"></span>
-            <span class="legend-label">{{ seg.label }}</span>
-            <span class="legend-count">{{ seg.count }}</span>
+      <!-- Donut: Estado de citas -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Estado de citas</h3>
+          <span class="chart-total">{{ kpiAppt().total }}</span>
+        </div>
+        <div class="donut-wrap">
+          <svg class="donut-svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#f3f4f6" stroke-width="14"/>
+            @for (s of apptStatusDonut(); track s.label) {
+              <circle cx="50" cy="50" r="40" fill="none" [attr.stroke]="s.color" stroke-width="14"
+                      [attr.stroke-dasharray]="s.dashArray"
+                      [attr.stroke-dashoffset]="-s.dashOffset"
+                      stroke-linecap="butt" transform="rotate(-90 50 50)"/>
+            }
+            <text x="50" y="47" text-anchor="middle" class="donut-center-big">{{ kpiAppt().attendanceRate }}%</text>
+            <text x="50" y="57" text-anchor="middle" class="donut-center-sm">asistencia</text>
+          </svg>
+          <div class="donut-legend">
+            @for (s of apptStatusDonut(); track s.label) {
+              <div class="legend-item">
+                <span class="legend-dot" [style.background]="s.color"></span>
+                <span class="legend-label">{{ s.label }}</span>
+                <span class="legend-count">{{ s.count }}</span>
+                <span class="legend-pct">{{ s.pct }}%</span>
+              </div>
+            }
           </div>
         </div>
       </div>
+
+      <!-- Barras: Citas por día de semana -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Citas por día</h3>
+          <span class="chart-subtitle">distribución semanal</span>
+        </div>
+        <div class="bar-chart-vertical">
+          @for (bar of apptByDow(); track bar.label) {
+            <div class="bar-col">
+              <div class="bar-track">
+                <div class="bar-fill" [style.height.%]="bar.pct" [style.background]="bar.color">
+                  <div class="bar-tooltip">{{ bar.count }}</div>
+                </div>
+              </div>
+              <span class="bar-label bar-label-sm">{{ bar.label }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Barras H: Top servicios / motivos -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Top servicios</h3>
+          <span class="chart-subtitle">más agendados</span>
+        </div>
+        @if (apptTopMotives().length > 0) {
+          <div class="hbars">
+            @for (bar of apptTopMotives(); track bar.label) {
+              <div class="hbar-row">
+                <span class="hbar-label" [title]="bar.label">{{ bar.label }}</span>
+                <div class="hbar-track">
+                  <div class="hbar-fill" [style.width.%]="bar.pct" [style.background]="bar.color"></div>
+                </div>
+                <span class="hbar-value">{{ bar.count }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="chart-subtitle" style="text-align:center;padding:24px 0">Sin datos de servicios</p>
+        }
+      </div>
+
+      <!-- Donut: Modalidad -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Modalidad</h3>
+          <span class="chart-subtitle">tipo de atención</span>
+        </div>
+        <div class="donut-wrap">
+          <svg class="donut-svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#f3f4f6" stroke-width="14"/>
+            @for (s of apptModalityDonut(); track s.label) {
+              <circle cx="50" cy="50" r="40" fill="none" [attr.stroke]="s.color" stroke-width="14"
+                      [attr.stroke-dasharray]="s.dashArray"
+                      [attr.stroke-dashoffset]="-s.dashOffset"
+                      stroke-linecap="butt" transform="rotate(-90 50 50)"/>
+            }
+          </svg>
+          <div class="donut-legend">
+            @for (s of apptModalityDonut(); track s.label) {
+              <div class="legend-item">
+                <span class="legend-dot" [style.background]="s.color"></span>
+                <span class="legend-label">{{ s.label }}</span>
+                <span class="legend-count">{{ s.count }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Bar: by day of week -->
-    <div class="chart-card">
-      <div class="chart-header">
-        <h3 class="chart-title">Citas por día de semana</h3>
-      </div>
-      <div class="bar-chart-vertical">
-        <div class="bar-col" *ngFor="let item of apptByDow()">
-          <div class="bar-track">
-            <div class="bar-fill"
-                 [style.height.%]="item.pct"
-                 [style.background]="item.color">
-              <span class="bar-tooltip">{{ item.count }}</span>
+    <!-- ══════════════════ SECCIÓN FICHAS CLÍNICAS ════════════════════════════ -->
+    <div class="section-title">
+      <span class="section-dot green"></span>Fichas Clínicas
+    </div>
+
+    <div class="charts-row">
+
+      <!-- Donut: Género -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Distribución por género</h3>
+          <span class="chart-total">{{ kpiRecords().total }}</span>
+        </div>
+        <div class="donut-wrap">
+          <svg class="donut-svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#f3f4f6" stroke-width="14"/>
+            @for (s of genderDonut(); track s.label) {
+              <circle cx="50" cy="50" r="40" fill="none" [attr.stroke]="s.color" stroke-width="14"
+                      [attr.stroke-dasharray]="s.dashArray"
+                      [attr.stroke-dashoffset]="-s.dashOffset"
+                      stroke-linecap="butt" transform="rotate(-90 50 50)"/>
+            }
+            <text x="50" y="47" text-anchor="middle" class="donut-center-big">{{ kpiRecords().total }}</text>
+            <text x="50" y="57" text-anchor="middle" class="donut-center-sm">pacientes</text>
+          </svg>
+          <div class="donut-legend">
+            @for (s of genderDonut(); track s.label) {
+              <div class="legend-item">
+                <span class="legend-dot" [style.background]="s.color"></span>
+                <span class="legend-label">{{ s.label }}</span>
+                <span class="legend-count">{{ s.count }}</span>
+                <span class="legend-pct">{{ s.pct }}%</span>
+              </div>
+            }
+            <div class="legend-item" style="margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6">
+              <span class="legend-label" style="color:#6b7280">Encuentros / paciente</span>
+              <span class="legend-count">{{ kpiRecords().avgEncounters }}</span>
             </div>
           </div>
-          <span class="bar-label">{{ item.label }}</span>
         </div>
       </div>
-    </div>
 
-    <!-- Horizontal bars: top motives -->
-    <div class="chart-card chart-card-full" *ngIf="apptTopMotives().length">
-      <div class="chart-header">
-        <h3 class="chart-title">Principales motivos de consulta</h3>
-      </div>
-      <div class="hbars">
-        <div class="hbar-row" *ngFor="let item of apptTopMotives()">
-          <span class="hbar-label">{{ item.label }}</span>
-          <div class="hbar-track">
-            <div class="hbar-fill" [style.width.%]="item.pct" [style.background]="item.color"></div>
-          </div>
-          <span class="hbar-value">{{ item.count }}</span>
+      <!-- Barras V: Grupos etarios -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Grupos etarios</h3>
+          <span class="chart-subtitle">distribución por edad</span>
         </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ── Section 2: Pacientes ── -->
-  <div class="section-title">
-    <span class="section-dot green"></span>
-    Cartera de Pacientes
-  </div>
-  <div class="charts-row">
-
-    <!-- Donut: patient status -->
-    <div class="chart-card">
-      <div class="chart-header">
-        <h3 class="chart-title">Estado de pacientes</h3>
-      </div>
-      <div class="donut-wrap">
-        <svg viewBox="0 0 100 100" class="donut-svg">
-          <circle cx="50" cy="50" [attr.r]="donutR" fill="none" stroke="#f3f4f6" stroke-width="14"/>
-          <circle *ngFor="let seg of patientStatusDonut()"
-                  cx="50" cy="50"
-                  [attr.r]="donutR"
-                  fill="none"
-                  [attr.stroke]="seg.color"
-                  stroke-width="14"
-                  [attr.stroke-dasharray]="seg.dashArray"
-                  [attr.stroke-dashoffset]="seg.dashOffset"
-                  transform="rotate(-90 50 50)"/>
-          <text x="50" y="47" text-anchor="middle" class="donut-center-big">{{ kpiPatients().total }}</text>
-          <text x="50" y="57" text-anchor="middle" class="donut-center-sm">pacientes</text>
-        </svg>
-        <div class="donut-legend">
-          <div class="legend-item" *ngFor="let seg of patientStatusDonut()">
-            <span class="legend-dot" [style.background]="seg.color"></span>
-            <span class="legend-label">{{ seg.label }}</span>
-            <span class="legend-count">{{ seg.count }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Horizontal bars: insurance distribution -->
-    <div class="chart-card">
-      <div class="chart-header">
-        <h3 class="chart-title">Previsión de pacientes</h3>
-      </div>
-      <div class="hbars hbars-lg">
-        <div class="hbar-row" *ngFor="let item of insuranceDist()">
-          <span class="hbar-label">{{ item.label }}</span>
-          <div class="hbar-track">
-            <div class="hbar-fill" [style.width.%]="item.pct" [style.background]="item.color"></div>
-          </div>
-          <span class="hbar-pct">{{ item.pct }}%</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Horizontal bars: chronic conditions -->
-    <div class="chart-card" *ngIf="topConditions().length">
-      <div class="chart-header">
-        <h3 class="chart-title">Condiciones crónicas más frecuentes</h3>
-      </div>
-      <div class="hbars hbars-lg">
-        <div class="hbar-row" *ngFor="let item of topConditions()">
-          <span class="hbar-label">{{ item.label }}</span>
-          <div class="hbar-track">
-            <div class="hbar-fill" [style.width.%]="item.pct" [style.background]="item.color"></div>
-          </div>
-          <span class="hbar-value">{{ item.count }}</span>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ── Section 3: Ingresos ── -->
-  <div class="section-title">
-    <span class="section-dot indigo"></span>
-    Ingresos y Cobros
-  </div>
-  <div class="charts-row">
-
-    <!-- Vertical bars: revenue by concept -->
-    <div class="chart-card chart-card-wide">
-      <div class="chart-header">
-        <h3 class="chart-title">Ingresos por concepto</h3>
-        <span class="chart-total">{{ fmt(kpiRevenue().revenue) }}</span>
-      </div>
-      <div class="bar-chart-vertical bar-chart-tall">
-        <div class="bar-col" *ngFor="let item of revenueByConceptBars()">
-          <div class="bar-track">
-            <div class="bar-fill bar-fill-amount"
-                 [style.height.%]="item.pct"
-                 [style.background]="item.color">
-              <span class="bar-tooltip">{{ fmt(item.amount) }}</span>
+        <div class="bar-chart-vertical bar-chart-tall">
+          @for (bar of ageGroupDist(); track bar.label) {
+            <div class="bar-col">
+              <div class="bar-track">
+                <div class="bar-fill" [style.height.%]="bar.pct" [style.background]="bar.color">
+                  <div class="bar-tooltip">{{ bar.count }}</div>
+                </div>
+              </div>
+              <span class="bar-label bar-label-sm">{{ bar.label }}</span>
             </div>
-          </div>
-          <span class="bar-label bar-label-sm">{{ item.label }}</span>
+          }
         </div>
       </div>
+
+      <!-- Barras H: Previsión de pacientes -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Previsión de pacientes</h3>
+          <span class="chart-subtitle">cobertura registrada</span>
+        </div>
+        @if (insuranceDist().length > 0) {
+          <div class="hbars hbars-lg">
+            @for (bar of insuranceDist(); track bar.label) {
+              <div class="hbar-row">
+                <span class="hbar-label" [title]="bar.label">{{ bar.label }}</span>
+                <div class="hbar-track">
+                  <div class="hbar-fill" [style.width.%]="bar.pct" [style.background]="bar.color"></div>
+                </div>
+                <span class="hbar-value">{{ bar.count }}</span>
+                <span class="hbar-pct">{{ bar.pct }}%</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="chart-subtitle" style="text-align:center;padding:24px 0">Sin datos de previsión</p>
+        }
+      </div>
+
+      <!-- Barras H: Condiciones crónicas -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Condiciones crónicas</h3>
+          <span class="chart-subtitle">prevalencia en cartera</span>
+        </div>
+        @if (topConditions().length > 0) {
+          <div class="hbars">
+            @for (bar of topConditions(); track bar.label) {
+              <div class="hbar-row">
+                <span class="hbar-label" [title]="bar.label">{{ bar.label }}</span>
+                <div class="hbar-track">
+                  <div class="hbar-fill" [style.width.%]="bar.pct" [style.background]="bar.color"></div>
+                </div>
+                <span class="hbar-value">{{ bar.count }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="chart-subtitle" style="text-align:center;padding:24px 0">Sin condiciones registradas</p>
+        }
+      </div>
+
     </div>
 
-    <!-- Donut: payment methods -->
-    <div class="chart-card">
-      <div class="chart-header">
-        <h3 class="chart-title">Medios de pago</h3>
-      </div>
-      <div class="donut-wrap">
-        <svg viewBox="0 0 100 100" class="donut-svg">
-          <circle cx="50" cy="50" [attr.r]="donutR" fill="none" stroke="#f3f4f6" stroke-width="14"/>
-          <circle *ngFor="let seg of paymentMethodDonut()"
-                  cx="50" cy="50"
-                  [attr.r]="donutR"
-                  fill="none"
-                  [attr.stroke]="seg.color"
-                  stroke-width="14"
-                  [attr.stroke-dasharray]="seg.dashArray"
-                  [attr.stroke-dashoffset]="seg.dashOffset"
-                  transform="rotate(-90 50 50)"/>
-        </svg>
-        <div class="donut-legend">
-          <div class="legend-item" *ngFor="let seg of paymentMethodDonut()">
-            <span class="legend-dot" [style.background]="seg.color"></span>
-            <span class="legend-label">{{ seg.label }}</span>
-            <span class="legend-pct">{{ seg.pct }}%</span>
-          </div>
+    <!-- Diagnósticos CIE-10 -->
+    @if (topDiagnoses().length > 0) {
+      <div class="chart-card" style="margin-bottom:32px">
+        <div class="chart-header">
+          <h3 class="chart-title">Top diagnósticos CIE-10</h3>
+          <span class="chart-subtitle">más frecuentes</span>
         </div>
-      </div>
-    </div>
-
-    <!-- Commission summary card -->
-    <div class="chart-card commission-summary" *ngIf="kpiRevenue().myComm > 0">
-      <div class="chart-header">
-        <h3 class="chart-title">Mi comisión</h3>
-      </div>
-      <div class="comm-total">{{ fmt(kpiRevenue().myComm) }}</div>
-      <div class="comm-row">
-        <div class="comm-item green">
-          <div class="comm-amount">{{ fmt(kpiRevenue().myComm - kpiRevenue().pending) }}</div>
-          <div class="comm-label">Cobrada</div>
-        </div>
-        <div class="comm-item amber" *ngIf="kpiRevenue().pending > 0">
-          <div class="comm-amount">{{ fmt(kpiRevenue().pending) }}</div>
-          <div class="comm-label">Pendiente</div>
-        </div>
-      </div>
-      <div class="comm-progress">
-        <div class="comm-bar-track">
-          <div class="comm-bar-fill"
-               [style.width.%]="commPaidPct()">
-          </div>
-        </div>
-        <span class="comm-pct">{{ commPaidPct() }}% cobrada</span>
-      </div>
-      <a routerLink="/commissions" class="comm-link">Ver detalle de comisiones →</a>
-    </div>
-
-  </div>
-
-  <!-- ── Section 4: Diagnósticos ── -->
-  <div class="section-title" *ngIf="topDiagnoses().length">
-    <span class="section-dot purple"></span>
-    Diagnósticos más frecuentes
-  </div>
-  <div class="charts-row" *ngIf="topDiagnoses().length">
-
-    <div class="chart-card chart-card-full">
-      <div class="chart-header">
-        <h3 class="chart-title">Top diagnósticos (CIE-10)</h3>
-        <span class="chart-subtitle">{{ kpiRecords().total }} fichas clínicas</span>
-      </div>
-      <div class="diagnosis-grid">
-        <div class="diag-item" *ngFor="let d of topDiagnoses()">
-          <div class="diag-code" [style.background]="d.color + '18'" [style.color]="d.color">{{ d.code }}</div>
-          <div class="diag-info">
-            <div class="diag-label">{{ d.label }}</div>
-            <div class="hbar-track diag-bar">
-              <div class="hbar-fill" [style.width.%]="d.pct" [style.background]="d.color"></div>
+        <div class="diagnosis-grid">
+          @for (d of topDiagnoses(); track d.code) {
+            <div class="diag-item">
+              <span class="diag-code" [style.background]="d.color + '22'" [style.color]="d.color">{{ d.code }}</span>
+              <div class="diag-info">
+                <span class="diag-label" [title]="d.label">{{ d.label }}</span>
+                <div class="hbar-track diag-bar">
+                  <div class="hbar-fill" [style.width.%]="d.pct" [style.background]="d.color"></div>
+                </div>
+              </div>
+              <span class="diag-count">{{ d.count }}</span>
             </div>
-          </div>
-          <div class="diag-count">{{ d.count }}</div>
+          }
         </div>
       </div>
+    }
+
+    <!-- ══════════════════ SECCIÓN PRESUPUESTOS ═══════════════════════════════ -->
+    <div class="section-title">
+      <span class="section-dot indigo"></span>Presupuestos
     </div>
 
-  </div>
+    <div class="charts-row">
 
-  <!-- Empty state -->
-  <div class="empty-state" *ngIf="kpiAppt().total === 0 && kpiPatients().total === 0">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="8" x2="12" y2="12"/>
-      <line x1="12" y1="16" x2="12.01" y2="16"/>
-    </svg>
-    <p>No hay datos para el período seleccionado.</p>
-  </div>
+      <!-- Donut: Estado de presupuestos -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Estado del pipeline</h3>
+          <span class="chart-total">{{ kpiPresupuestos().total }}</span>
+        </div>
+        <div class="donut-wrap">
+          <svg class="donut-svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#f3f4f6" stroke-width="14"/>
+            @for (s of presupuestosStatusDonut(); track s.label) {
+              <circle cx="50" cy="50" r="40" fill="none" [attr.stroke]="s.color" stroke-width="14"
+                      [attr.stroke-dasharray]="s.dashArray"
+                      [attr.stroke-dashoffset]="-s.dashOffset"
+                      stroke-linecap="butt" transform="rotate(-90 50 50)"/>
+            }
+            <text x="50" y="44" text-anchor="middle" class="donut-center-big">{{ kpiPresupuestos().conversionRate }}%</text>
+            <text x="50" y="54" text-anchor="middle" class="donut-center-sm">conversión</text>
+          </svg>
+          <div class="donut-legend">
+            @for (s of presupuestosStatusDonut(); track s.label) {
+              <div class="legend-item">
+                <span class="legend-dot" [style.background]="s.color"></span>
+                <span class="legend-label">{{ s.label }}</span>
+                <span class="legend-count">{{ s.count }}</span>
+                <span class="legend-pct">{{ s.pct }}%</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Barras H: Valor por especialidad -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Valor por especialidad</h3>
+          <span class="chart-subtitle">{{ fmt(kpiPresupuestos().pipelineValue) }} total</span>
+        </div>
+        @if (topSpecialtiesBudget().length > 0) {
+          <div class="hbars hbars-lg">
+            @for (bar of topSpecialtiesBudget(); track bar.label) {
+              <div class="hbar-row">
+                <span class="hbar-label" [title]="bar.label">{{ bar.label }}</span>
+                <div class="hbar-track">
+                  <div class="hbar-fill" [style.width.%]="bar.pct" [style.background]="bar.color"></div>
+                </div>
+                <span class="hbar-value" style="width:56px">{{ fmt(bar.amount) }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="chart-subtitle" style="text-align:center;padding:24px 0">Sin datos de especialidades</p>
+        }
+      </div>
+
+      <!-- Barras H: Servicios más cotizados -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Servicios cotizados</h3>
+          <span class="chart-subtitle">ítems más frecuentes</span>
+        </div>
+        @if (topBudgetItems().length > 0) {
+          <div class="hbars">
+            @for (bar of topBudgetItems(); track bar.label) {
+              <div class="hbar-row">
+                <span class="hbar-label" [title]="bar.label">{{ bar.label }}</span>
+                <div class="hbar-track">
+                  <div class="hbar-fill" [style.width.%]="bar.pct" [style.background]="bar.color"></div>
+                </div>
+                <span class="hbar-value">{{ bar.count }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="chart-subtitle" style="text-align:center;padding:24px 0">Sin ítems registrados</p>
+        }
+      </div>
+
+      <!-- Barras H: Previsión en presupuestos -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">Previsión en presupuestos</h3>
+          <span class="chart-subtitle">seguro de pacientes cotizados</span>
+        </div>
+        @if (previsionBudgetDist().length > 0) {
+          <div class="hbars">
+            @for (bar of previsionBudgetDist(); track bar.label) {
+              <div class="hbar-row">
+                <span class="hbar-label" [title]="bar.label">{{ bar.label }}</span>
+                <div class="hbar-track">
+                  <div class="hbar-fill" [style.width.%]="bar.pct" [style.background]="bar.color"></div>
+                </div>
+                <span class="hbar-value">{{ bar.count }}</span>
+                <span class="hbar-pct">{{ kpiPresupuestos().total > 0 ? ((bar.count * 100 / kpiPresupuestos().total) | number:'1.0-0') : 0 }}%</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="chart-subtitle" style="text-align:center;padding:24px 0">Sin datos de previsión</p>
+        }
+      </div>
+
+    </div>
+
+  }
 
 </div>
