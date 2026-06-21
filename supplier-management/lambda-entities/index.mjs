@@ -755,6 +755,25 @@ const ENTITY_CONFIG = {
         updatedAt:            r.updatedAt            ?? r.updated_at
       };
     }
+  },
+
+  profesionales: {
+    table: "professional",
+
+    joinSelect: `
+      SELECT id, name AS nombre, specialty AS especialidad
+      FROM professional WHERE active = true ORDER BY name
+    `,
+
+    toDb(_d) { return {}; },
+
+    fromDb(r) {
+      return {
+        id:          r.id,
+        nombre:      r.nombre ?? r.name,
+        especialidad: r.especialidad ?? r.specialty ?? null
+      };
+    }
   }
 };
 

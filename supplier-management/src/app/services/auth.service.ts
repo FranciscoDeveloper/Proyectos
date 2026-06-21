@@ -169,7 +169,7 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
     },
     { name: 'phone',       type: 'tel',    label: 'Teléfono',            required: false, hideInEncounterMode: true, showInList: false, showInDetail: true,  section: 'demographics' },
     { name: 'email',       type: 'email',  label: 'Email',               required: false, hideInEncounterMode: true, showInList: false, showInDetail: true,  section: 'demographics' },
-    { name: 'doctorName',  type: 'select', label: 'Médico Tratante',     required: false, hideInEncounterMode: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre', showInList: true, showInDetail: true, section: 'demographics' },
+    { name: 'doctorName',  type: 'select', label: 'Médico Tratante',     required: false, hideInEncounterMode: true, lookupEntity: 'profesionales', lookupValueField: 'nombre', lookupLabelField: 'nombre', showInList: true, showInDetail: true, section: 'demographics' },
     { name: 'lastVisit',   type: 'date',   label: 'Última Visita',       required: false, hideInEncounterMode: true, showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
 
     { name: 'address',         type: 'text',   label: 'Dirección',           required: false, hideInEncounterMode: true, showInList: false, showInDetail: true,  section: 'demographics' },
