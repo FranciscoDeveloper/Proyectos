@@ -771,6 +771,34 @@ const ENTITY_CONFIG = {
         updatedAt:            r.updatedAt            ?? r.updated_at
       };
     }
+  },
+
+  // ── previsiones (lookup — reads from prevision table) ────────────────────────
+  previsiones: {
+    table:       'prevision',
+    orderBy:     'sort_order ASC, nombre ASC',
+    noTimestamp: true,
+    skipAuth:    true,
+    toDb(d) {
+      const cols = {};
+      if (d.nombre    !== undefined) cols.nombre      = d.nombre;
+      if (d.sortOrder !== undefined) cols.sort_order  = d.sortOrder;
+      return cols;
+    },
+    fromDb(r) {
+      return { id: r.id, nombre: r.nombre, sortOrder: r.sort_order ?? 0 };
+    }
+  },
+
+  // ── medicos (lookup — reads from professional table) ─────────────────────────
+  medicos: {
+    table:    'professional',
+    orderBy:  'name ASC',
+    skipAuth: true,
+    toDb(d)  { return {}; },
+    fromDb(r) {
+      return { id: r.id, nombre: r.name };
+    }
   }
 };
 
@@ -819,6 +847,18 @@ async function ensureLookupTables(client) {
   await client.query(`INSERT INTO appointment_modality (value,label,color,sort_order) VALUES
     ('in_person','Presencial','#6366f1',1),('video','Videoconsulta','#0891b2',2),
     ('phone','Teléfono','#10b981',3)
+    ON CONFLICT DO NOTHING`);
+
+  // Prevision table — source of truth for insurance/previsión options
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS prevision (
+      id         SERIAL PRIMARY KEY,
+      nombre     TEXT NOT NULL UNIQUE,
+      sort_order INTEGER DEFAULT 0
+    )`);
+  await client.query(`INSERT INTO prevision (nombre, sort_order) VALUES
+    ('FONASA A',1),('FONASA B',2),('FONASA C',3),('FONASA D',4),
+    ('ISAPRE',5),('Particular',6),('Sin Previsión',7),('CAPREDENA',8),('DIPRECA',9)
     ON CONFLICT DO NOTHING`);
 
   lookupTablesReady = true;
@@ -1030,8 +1070,11 @@ export const handler = async (event, context) => {
     await ensureLookupTables(client);
 
     // ── Authorization: schema access + role write permissions ─────────────────
-    const authz = await authorizeRequest(client, tokenPayload.sub, tokenPayload.role, resolvedKey, method);
-    if (!authz.allowed) return response(authz.status, { message: authz.message });
+    // skipAuth entities (previsiones, medicos) are shared lookups — any authenticated user can read them
+    if (!config.skipAuth) {
+      const authz = await authorizeRequest(client, tokenPayload.sub, tokenPayload.role, resolvedKey, method);
+      if (!authz.allowed) return response(authz.status, { message: authz.message });
+    }
 
     // ── Special action: POST /api/entities/presupuestos/{id}/send ──────────────
     if (resolvedKey === "presupuestos" && rawPath.endsWith("/send") && method === "POST") {

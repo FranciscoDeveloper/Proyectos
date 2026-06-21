@@ -286,19 +286,12 @@ export const SCHEMA_PSYCH_RECORDS: EntitySchema = {
     { name: 'maritalStatus',  type: 'select', label: 'Estado Civil',        required: false,                   showInList: false, showInDetail: true,  section: 'demographics',
       options: [{ value: 'single', label: 'Soltero/a' }, { value: 'married', label: 'Casado/a' }, { value: 'divorced', label: 'Divorciado/a' }, { value: 'widowed', label: 'Viudo/a' }, { value: 'cohabiting', label: 'Conviviente' }]
     },
-    { name: 'insurance',      type: 'select', label: 'Previsión',           required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
-      options: [
-        { value: 'fonasa_a', label: 'FONASA A' }, { value: 'fonasa_b', label: 'FONASA B' },
-        { value: 'fonasa_c', label: 'FONASA C' }, { value: 'fonasa_d', label: 'FONASA D' },
-        { value: 'isapre',   label: 'ISAPRE'   }, { value: 'particular', label: 'Particular' }
-      ],
-      badgeColors: { fonasa_a: '#6b7280', fonasa_b: '#3b82f6', fonasa_c: '#10b981', fonasa_d: '#8b5cf6', isapre: '#f59e0b', particular: '#ec4899' }
-    },
+    { name: 'insurance', type: 'select', label: 'Previsión', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', lookupEntity: 'previsiones', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'phone',          type: 'tel',    label: 'Teléfono',            required: true,                    showInList: false, showInDetail: true,  section: 'demographics' },
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics' },
     { name: 'address',        type: 'text',   label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics' },
     { name: 'emergencyContact', type: 'text', label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics' },
-    { name: 'doctor',         type: 'text',   label: 'Psicólogo/a',         required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'search' },
+    { name: 'doctor', type: 'select', label: 'Psicólogo/a', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Última Sesión',       required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'En Terapia' }, { value: 'discharged', label: 'Alta Terapéutica' }, { value: 'critical', label: 'Riesgo' }, { value: 'scheduled', label: 'Evaluación' }],
@@ -415,17 +408,10 @@ export const SCHEMA_DENTAL_RECORDS: EntitySchema = {
     { name: 'gender',         type: 'select', label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
-    { name: 'insurance',      type: 'select', label: 'Previsión',           required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
-      options: [
-        { value: 'fonasa_a', label: 'FONASA A' }, { value: 'fonasa_b', label: 'FONASA B' },
-        { value: 'fonasa_c', label: 'FONASA C' }, { value: 'fonasa_d', label: 'FONASA D' },
-        { value: 'isapre',   label: 'ISAPRE'   }, { value: 'particular', label: 'Particular' }
-      ],
-      badgeColors: { fonasa_a: '#6b7280', fonasa_b: '#3b82f6', fonasa_c: '#10b981', fonasa_d: '#8b5cf6', isapre: '#f59e0b', particular: '#ec4899' }
-    },
+    { name: 'insurance', type: 'select', label: 'Previsión', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'previsiones', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'phone',          type: 'tel',    label: 'Teléfono',            required: true,                    showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'doctor',         type: 'text',   label: 'Odontólogo/a',        required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'search', isStable: true },
+    { name: 'doctor', type: 'select', label: 'Odontólogo/a', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Última Atención',     required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'Activo' }, { value: 'discharged', label: 'Alta' }, { value: 'maintenance', label: 'Mantención' }, { value: 'orthodontic', label: 'Ortodoncia' }],
@@ -516,19 +502,12 @@ export const SCHEMA_KINE_RECORDS: EntitySchema = {
     { name: 'gender',         type: 'select', label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
-    { name: 'insurance',      type: 'select', label: 'Previsión',           required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
-      options: [
-        { value: 'fonasa_a', label: 'FONASA A' }, { value: 'fonasa_b', label: 'FONASA B' },
-        { value: 'fonasa_c', label: 'FONASA C' }, { value: 'fonasa_d', label: 'FONASA D' },
-        { value: 'isapre',   label: 'ISAPRE'   }, { value: 'particular', label: 'Particular' }
-      ],
-      badgeColors: { fonasa_a: '#6b7280', fonasa_b: '#3b82f6', fonasa_c: '#10b981', fonasa_d: '#8b5cf6', isapre: '#f59e0b', particular: '#ec4899' }
-    },
+    { name: 'insurance', type: 'select', label: 'Previsión', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'previsiones', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'phone',          type: 'tel',    label: 'Teléfono',            required: true,                    showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'address',        type: 'text',   label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'emergencyContact', type: 'text', label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'doctor',         type: 'text',   label: 'Kinesiólogo/a',       required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'search', isStable: true },
+    { name: 'doctor', type: 'select', label: 'Kinesiólogo/a', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Última Sesión',       required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'En Tratamiento' }, { value: 'discharged', label: 'Alta Kinésica' }, { value: 'scheduled', label: 'Evaluación' }],
@@ -599,19 +578,12 @@ export const SCHEMA_NUTRITION_RECORDS: EntitySchema = {
     { name: 'gender',         type: 'select', label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
-    { name: 'insurance',      type: 'select', label: 'Previsión',           required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
-      options: [
-        { value: 'fonasa_a', label: 'FONASA A' }, { value: 'fonasa_b', label: 'FONASA B' },
-        { value: 'fonasa_c', label: 'FONASA C' }, { value: 'fonasa_d', label: 'FONASA D' },
-        { value: 'isapre',   label: 'ISAPRE'   }, { value: 'particular', label: 'Particular' }
-      ],
-      badgeColors: { fonasa_a: '#6b7280', fonasa_b: '#3b82f6', fonasa_c: '#10b981', fonasa_d: '#8b5cf6', isapre: '#f59e0b', particular: '#ec4899' }
-    },
+    { name: 'insurance', type: 'select', label: 'Previsión', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'previsiones', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'phone',          type: 'tel',    label: 'Teléfono',            required: true,                    showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'address',        type: 'text',   label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'emergencyContact', type: 'text', label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'doctor',         type: 'text',   label: 'Nutricionista',       required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'search', isStable: true },
+    { name: 'doctor', type: 'select', label: 'Nutricionista', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Último Control',      required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'Activo' }, { value: 'discharged', label: 'Alta' }, { value: 'maintenance', label: 'Mantenimiento' }],
@@ -682,19 +654,12 @@ export const SCHEMA_FONO_RECORDS: EntitySchema = {
     { name: 'gender',         type: 'select', label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
-    { name: 'insurance',      type: 'select', label: 'Previsión',           required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
-      options: [
-        { value: 'fonasa_a', label: 'FONASA A' }, { value: 'fonasa_b', label: 'FONASA B' },
-        { value: 'fonasa_c', label: 'FONASA C' }, { value: 'fonasa_d', label: 'FONASA D' },
-        { value: 'isapre',   label: 'ISAPRE'   }, { value: 'particular', label: 'Particular' }
-      ],
-      badgeColors: { fonasa_a: '#6b7280', fonasa_b: '#3b82f6', fonasa_c: '#10b981', fonasa_d: '#8b5cf6', isapre: '#f59e0b', particular: '#ec4899' }
-    },
+    { name: 'insurance', type: 'select', label: 'Previsión', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'previsiones', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'phone',          type: 'tel',    label: 'Teléfono',            required: true,                    showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'address',        type: 'text',   label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'emergencyContact', type: 'text', label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'doctor',         type: 'text',   label: 'Fonoaudiólogo/a',     required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'search', isStable: true },
+    { name: 'doctor', type: 'select', label: 'Fonoaudiólogo/a', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Última Sesión',       required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'En Terapia' }, { value: 'discharged', label: 'Alta' }, { value: 'scheduled', label: 'Evaluación' }],
@@ -765,19 +730,12 @@ export const SCHEMA_OT_RECORDS: EntitySchema = {
     { name: 'gender',         type: 'select', label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
-    { name: 'insurance',      type: 'select', label: 'Previsión',           required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
-      options: [
-        { value: 'fonasa_a', label: 'FONASA A' }, { value: 'fonasa_b', label: 'FONASA B' },
-        { value: 'fonasa_c', label: 'FONASA C' }, { value: 'fonasa_d', label: 'FONASA D' },
-        { value: 'isapre',   label: 'ISAPRE'   }, { value: 'particular', label: 'Particular' }
-      ],
-      badgeColors: { fonasa_a: '#6b7280', fonasa_b: '#3b82f6', fonasa_c: '#10b981', fonasa_d: '#8b5cf6', isapre: '#f59e0b', particular: '#ec4899' }
-    },
+    { name: 'insurance', type: 'select', label: 'Previsión', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'previsiones', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'phone',          type: 'tel',    label: 'Teléfono',            required: true,                    showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'address',        type: 'text',   label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'emergencyContact', type: 'text', label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'doctor',         type: 'text',   label: 'Terapeuta Ocupacional', required: true,                  showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'search', isStable: true },
+    { name: 'doctor', type: 'select', label: 'Terapeuta Ocupacional', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Última Sesión',       required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'En Terapia' }, { value: 'discharged', label: 'Alta' }, { value: 'maintenance', label: 'Seguimiento' }],
@@ -848,19 +806,12 @@ export const SCHEMA_MATRONA_RECORDS: EntitySchema = {
     { name: 'gender',         type: 'select', label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
-    { name: 'insurance',      type: 'select', label: 'Previsión',           required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
-      options: [
-        { value: 'fonasa_a', label: 'FONASA A' }, { value: 'fonasa_b', label: 'FONASA B' },
-        { value: 'fonasa_c', label: 'FONASA C' }, { value: 'fonasa_d', label: 'FONASA D' },
-        { value: 'isapre',   label: 'ISAPRE'   }, { value: 'particular', label: 'Particular' }
-      ],
-      badgeColors: { fonasa_a: '#6b7280', fonasa_b: '#3b82f6', fonasa_c: '#10b981', fonasa_d: '#8b5cf6', isapre: '#f59e0b', particular: '#ec4899' }
-    },
+    { name: 'insurance', type: 'select', label: 'Previsión', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'previsiones', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'phone',          type: 'tel',    label: 'Teléfono',            required: true,                    showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'address',        type: 'text',   label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'emergencyContact', type: 'text', label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'doctor',         type: 'text',   label: 'Matrona/Matrón',      required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'search', isStable: true },
+    { name: 'doctor', type: 'select', label: 'Matrona/Matrón', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Último Control',      required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'Activo' }, { value: 'pregnancy', label: 'Embarazo' }, { value: 'postpartum', label: 'Puerperio' }, { value: 'gynecological', label: 'Ginecológico' }],
@@ -931,19 +882,12 @@ export const SCHEMA_TECNOMED_RECORDS: EntitySchema = {
     { name: 'gender',         type: 'select', label: 'Sexo',                required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
-    { name: 'insurance',      type: 'select', label: 'Previsión',           required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
-      options: [
-        { value: 'fonasa_a', label: 'FONASA A' }, { value: 'fonasa_b', label: 'FONASA B' },
-        { value: 'fonasa_c', label: 'FONASA C' }, { value: 'fonasa_d', label: 'FONASA D' },
-        { value: 'isapre',   label: 'ISAPRE'   }, { value: 'particular', label: 'Particular' }
-      ],
-      badgeColors: { fonasa_a: '#6b7280', fonasa_b: '#3b82f6', fonasa_c: '#10b981', fonasa_d: '#8b5cf6', isapre: '#f59e0b', particular: '#ec4899' }
-    },
+    { name: 'insurance', type: 'select', label: 'Previsión', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'previsiones', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'phone',          type: 'tel',    label: 'Teléfono',            required: true,                    showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'address',        type: 'text',   label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'emergencyContact', type: 'text', label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'doctor',         type: 'text',   label: 'Tecnólogo Médico',    required: true,                    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'search', isStable: true },
+    { name: 'doctor', type: 'select', label: 'Tecnólogo Médico', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Último Examen',       required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'Activo' }, { value: 'completed', label: 'Completado' }, { value: 'pending', label: 'Pendiente' }],
