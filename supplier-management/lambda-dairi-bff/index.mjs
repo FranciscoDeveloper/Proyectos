@@ -862,6 +862,56 @@ async function ensureLookupTables(client) {
     ('ISAPRE',5),('Particular',6),('Sin Previsión',7),('CAPREDENA',8),('DIPRECA',9)
     ON CONFLICT DO NOTHING`);
 
+  // ── clinical_record schema migration ─────────────────────────────────────────
+  // Creates the table if missing and adds any columns introduced after initial deploy.
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS clinical_record (
+      id          SERIAL PRIMARY KEY,
+      patient_id  INTEGER,
+      status      TEXT DEFAULT 'active',
+      created_at  TIMESTAMPTZ DEFAULT NOW(),
+      updated_at  TIMESTAMPTZ DEFAULT NOW()
+    )`);
+
+  const crCols = [
+    [`insurance`,             `TEXT`],
+    [`allergies`,             `JSONB DEFAULT '[]'`],
+    [`contraindications`,     `TEXT`],
+    [`alert_notes`,           `TEXT`],
+    [`personal_history`,      `TEXT`],
+    [`family_history`,        `TEXT`],
+    [`habits`,                `TEXT`],
+    [`surgical_history`,      `TEXT`],
+    [`planned_interventions`, `TEXT`],
+    [`chronic_conditions`,    `JSONB DEFAULT '[]'`],
+    [`odontogram`,            `JSONB`],
+    [`periodontogram`,        `JSONB`],
+    [`bp`,                    `TEXT`],
+    [`heart_rate`,            `INTEGER`],
+    [`temperature`,           `NUMERIC(4,1)`],
+    [`o2_saturation`,         `NUMERIC(5,2)`],
+    [`weight`,                `NUMERIC(5,2)`],
+    [`height`,                `NUMERIC(5,2)`],
+    [`bmi`,                   `NUMERIC(5,2)`],
+    [`respiratory_rate`,      `INTEGER`],
+    [`current_medications`,   `TEXT`],
+    [`diagnosis_code`,        `TEXT`],
+    [`diagnosis_label`,       `TEXT`],
+    [`differential_dx`,       `TEXT`],
+    [`soap_subjective`,       `TEXT`],
+    [`soap_objective`,        `TEXT`],
+    [`soap_assessment`,       `TEXT`],
+    [`soap_plan`,             `TEXT`],
+    [`doctor`,                `TEXT`],
+    [`last_visit`,            `TIMESTAMPTZ`],
+    [`encounters`,            `JSONB DEFAULT '[]'`],
+  ];
+  for (const [col, type] of crCols) {
+    await client.query(
+      `ALTER TABLE clinical_record ADD COLUMN IF NOT EXISTS ${col} ${type}`
+    );
+  }
+
   lookupTablesReady = true;
   log("INFO", "Lookup tables ready");
 }

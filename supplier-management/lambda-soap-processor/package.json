@@ -2,10 +2,9 @@
   "name": "dairi-soap-processor",
   "version": "1.0.0",
   "type": "module",
-  "description": "Reacts to .md files in S3 recordings/ and writes SOAP notes to clinical_record",
+  "description": "Reacts to recordings/*.md in S3, calls BFF API to write SOAP to clinical_record",
   "main": "index.mjs",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.600.0",
-    "pg": "^8.13.0"
+    "@aws-sdk/client-s3": "^3.600.0"
   }
 }
