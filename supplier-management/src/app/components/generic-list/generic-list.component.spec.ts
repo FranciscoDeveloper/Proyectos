@@ -2,37 +2,29 @@
  * Unit tests for GenericListComponent using Angular's injection context.
  */
 import { Injector, runInInjectionContext } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
-import { SchemaService } from '../../services/schema.service';
+import { buildTestBed } from '../../testing/spec-helpers';
+import { SchemaService }      from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
-import { AuthService } from '../../services/auth.service';
 import { GenericListComponent } from './generic-list.component';
 import { FieldDefinition } from '../../models/entity-schema.model';
 
 function buildComponent(entityKey = 'suppliers'): GenericListComponent {
-  const mockRouter = { navigate: jest.fn() } as unknown as Router;
+  const { crud, schema, mockRouter, injector: baseInjector } = buildTestBed();
+
   const mockRoute = {
     paramMap: of({ get: (k: string) => k === 'entityKey' ? entityKey : null })
   } as unknown as ActivatedRoute;
 
-  // SchemaService uses inject(AuthService), so we need an injection context that provides it
-  const rootInjector = Injector.create({
-    providers: [
-      { provide: Router, useValue: mockRouter },
-      { provide: AuthService, useFactory: () => new AuthService(mockRouter) }
-    ]
-  });
-  let schemaService!: SchemaService;
-  runInInjectionContext(rootInjector, () => { schemaService = new SchemaService(); });
-  const crudService = new GenericCrudService(schemaService);
+  crud.initStore(entityKey);
 
   const injector = Injector.create({
+    parent: baseInjector,
     providers: [
-      { provide: SchemaService, useValue: schemaService },
-      { provide: GenericCrudService, useValue: crudService },
-      { provide: Router, useValue: mockRouter },
-      { provide: ActivatedRoute, useValue: mockRoute },
+      { provide: SchemaService,      useValue: schema },
+      { provide: GenericCrudService, useValue: crud   },
+      { provide: ActivatedRoute,     useValue: mockRoute },
     ]
   });
 
@@ -159,17 +151,17 @@ describe('GenericListComponent', () => {
 
   it('navigateNew calls router with new path', () => {
     component.navigateNew();
-    expect((component as any).router.navigate).toHaveBeenCalledWith(['/entity', 'suppliers', 'new']);
+    expect((component as any).router.navigate).toHaveBeenCalledWith(['/app/entity', 'suppliers', 'new']);
   });
 
   it('navigateEdit calls router with edit path', () => {
     component.navigateEdit(3);
-    expect((component as any).router.navigate).toHaveBeenCalledWith(['/entity', 'suppliers', 3, 'edit']);
+    expect((component as any).router.navigate).toHaveBeenCalledWith(['/app/entity', 'suppliers', 3, 'edit']);
   });
 
   it('navigateDetail calls router with detail path', () => {
     component.navigateDetail(2);
-    expect((component as any).router.navigate).toHaveBeenCalledWith(['/entity', 'suppliers', 2]);
+    expect((component as any).router.navigate).toHaveBeenCalledWith(['/app/entity', 'suppliers', 2]);
   });
 
   it('hasFilters false by default', () => {

@@ -59,6 +59,11 @@ export class ClinicalEncounterFormComponent implements OnInit {
     this.schema.set(this.schemaSvc.getSchema(key));
     this.crudSvc.initStore(key);
 
+    // Pre-load stores for every select field backed by a lookupEntity
+    this.schema()?.fields
+      .filter(f => f.type === 'select' && f.lookupEntity)
+      .forEach(f => this.crudSvc.initStore(f.lookupEntity!));
+
     if (idParam) this.recordId.set(+idParam);
 
     this.buildForm();
@@ -151,9 +156,11 @@ export class ClinicalEncounterFormComponent implements OnInit {
 
   getFieldOptions(field: FieldDefinition): SelectOption[] {
     if (!field.lookupEntity) return field.options ?? [];
+    const vf = field.lookupValueField ?? 'id';
+    const lf = field.lookupLabelField ?? 'label';
     return this.crudSvc.getAll(field.lookupEntity)().map(item => ({
-      value: String(item['id']),
-      label: String(item['label'])
+      value: String(item[vf] ?? item['id']),
+      label: String(item[lf] ?? item['label'] ?? item[vf] ?? item['id']),
     }));
   }
 

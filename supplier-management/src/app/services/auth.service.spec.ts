@@ -1,25 +1,62 @@
 /**
  * Unit tests for AuthService.
- * AuthService uses Angular signals and DI (Router), so we use
- * Injector.create() + runInInjectionContext() to instantiate it.
+ * login() makes a real HTTP call — we provide a smart http.post mock that
+ * simulates the login lambda for the test accounts used in these specs.
  */
 import { Injector, runInInjectionContext } from '@angular/core';
-import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { Router }     from '@angular/router';
+import { of, throwError } from 'rxjs';
+import { CryptoService } from './crypto.service';
 import { AuthService } from './auth.service';
+
+// Minimal schema stubs — tests only check entity.key and array length
+function schema(key: string) {
+  return { entity: { key, singular: key, plural: key, icon: 'circle' }, fields: [] };
+}
+
+const LOGIN_RESPONSES: Record<string, any> = {
+  'admin@empresa.com|admin123':     { token: 'tok-admin',   refreshToken: 'ref-admin',   user: { id: 1, email: 'admin@empresa.com',   role: 'admin',   name: 'Admin'   }, schemas: [schema('suppliers'), schema('products'), schema('patients')] },
+  'compras@empresa.com|compras123': { token: 'tok-compras', refreshToken: 'ref-compras', user: { id: 2, email: 'compras@empresa.com', role: 'compras', name: 'Compras' }, schemas: [schema('suppliers'), schema('products')] },
+  'medico@hospital.com|medico123':  { token: 'tok-medico',  refreshToken: 'ref-medico',  user: { id: 3, email: 'medico@hospital.com', role: 'medico',  name: 'Medico'  }, schemas: [schema('patients')] },
+  'auditor@empresa.com|viewer123':  { token: 'tok-auditor', refreshToken: 'ref-auditor', user: { id: 4, email: 'auditor@empresa.com', role: 'auditor', name: 'Auditor' }, schemas: [schema('suppliers')] },
+};
+
+function buildMockHttpForAuth() {
+  return {
+    get:    jest.fn().mockReturnValue(of(null)),
+    put:    jest.fn().mockReturnValue(of(null)),
+    delete: jest.fn().mockReturnValue(of(null)),
+    post:   jest.fn().mockImplementation((url: string, body: any) => {
+      if (url.includes('/login')) {
+        const key = `${body.email}|${body.password}`;
+        const resp = LOGIN_RESPONSES[key];
+        return resp
+          ? of(resp)
+          : throwError(() => ({ error: { message: 'Credenciales inválidas. Verifique su email y contraseña.' } }));
+      }
+      return of(null);
+    }),
+  };
+}
 
 function buildService(): { service: AuthService; mockRouter: jest.Mock } {
   const navigateFn = jest.fn().mockResolvedValue(true);
   const mockRouter = { navigate: navigateFn } as unknown as Router;
+  const mockHttp   = buildMockHttpForAuth();
+  const mockCrypto = { encryptRecord: jest.fn((d: any) => Promise.resolve(d)), decryptRecord: jest.fn((d: any) => Promise.resolve(d)), setZkEnabled: jest.fn(), clearKey: jest.fn() };
 
   const injector = Injector.create({
     providers: [
-      { provide: Router, useValue: mockRouter },
-      { provide: AuthService, useClass: AuthService }
+      { provide: Router,        useValue: mockRouter  },
+      { provide: HttpClient,    useValue: mockHttp    },
+      { provide: CryptoService, useValue: mockCrypto  },
+      { provide: AuthService,   useClass: AuthService },
     ]
   });
 
   let service!: AuthService;
-  runInInjectionContext(injector, () => { service = new AuthService(mockRouter); });
+  runInInjectionContext(injector, () => { service = injector.get(AuthService); });
   return { service, mockRouter: navigateFn };
 }
 

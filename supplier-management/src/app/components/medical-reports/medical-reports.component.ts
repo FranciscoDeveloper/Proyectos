@@ -76,10 +76,10 @@ export class MedicalReportsComponent {
   kpiAppt = computed(() => {
     const all       = this.inPeriod(this._appointments(), 'dateTime');
     const total     = all.length;
-    const completed = all.filter(a => a['status'] === 'COMPLETADA').length;
-    const scheduled = all.filter(a => a['status'] === 'AGENDADA').length;
-    const noShow    = all.filter(a => a['status'] === 'NO_ASISTIO').length;
-    const cancelled = all.filter(a => a['status'] === 'CANCELADA').length;
+    const completed = all.filter(a => a['status'] === 'completed').length;
+    const scheduled = all.filter(a => a['status'] === 'scheduled' || a['status'] === 'confirmed').length;
+    const noShow    = all.filter(a => a['status'] === 'no_show').length;
+    const cancelled = all.filter(a => a['status'] === 'cancelled').length;
     return {
       total, completed, scheduled, noShow, cancelled,
       attendanceRate: total ? Math.round((completed / total) * 100) : 0,
@@ -91,10 +91,11 @@ export class MedicalReportsComponent {
     const all   = this.inPeriod(this._appointments(), 'dateTime');
     const total = all.length || 1;
     const defs  = [
-      { key: 'COMPLETADA', label: 'Completada', color: '#10b981' },
-      { key: 'AGENDADA',   label: 'Programada', color: '#3b82f6' },
-      { key: 'CANCELADA',  label: 'Cancelada',  color: '#ef4444' },
-      { key: 'NO_ASISTIO', label: 'No asistió', color: '#f59e0b' },
+      { key: 'completed', label: 'Completada', color: '#10b981' },
+      { key: 'scheduled', label: 'Programada', color: '#3b82f6' },
+      { key: 'confirmed', label: 'Confirmada', color: '#8b5cf6' },
+      { key: 'cancelled', label: 'Cancelada',  color: '#ef4444' },
+      { key: 'no_show',   label: 'No asistió', color: '#f59e0b' },
     ];
     return buildDonut(defs.map(d => ({
       ...d,
@@ -138,11 +139,11 @@ export class MedicalReportsComponent {
     const total  = all.length || 1;
     const map    = new Map<string, number>();
     for (const a of all) {
-      const k = String(a['modality'] ?? 'presencial');
+      const k = String(a['modality'] ?? 'in_person');
       map.set(k, (map.get(k) ?? 0) + 1);
     }
-    const LABELS: Record<string, string> = { presencial: 'Presencial', telemedicina: 'Telemedicina', domicilio: 'Domicilio' };
-    const COLORS: Record<string, string> = { presencial: '#6366f1',    telemedicina: '#06b6d4',      domicilio: '#10b981'    };
+    const LABELS: Record<string, string> = { in_person: 'Presencial', video: 'Videoconsulta', phone: 'Teléfono' };
+    const COLORS: Record<string, string> = { in_person: '#6366f1',    video:  '#0891b2',       phone: '#10b981'  };
     return buildDonut([...map.entries()].sort((a, b) => b[1] - a[1]).map(([k, count]) => ({
       label: LABELS[k] ?? k, count, pct: Math.round((count / total) * 100), color: COLORS[k] ?? '#9ca3af',
     })));
@@ -203,19 +204,20 @@ export class MedicalReportsComponent {
       const k = String(r['insurance'] ?? 'particular');
       map.set(k, (map.get(k) ?? 0) + 1);
     }
-    const LABELS: Record<string, string> = {
-      fonasa_a: 'FONASA A', fonasa_b: 'FONASA B', fonasa_c: 'FONASA C',
-      fonasa_d: 'FONASA D', isapre: 'Isapre', particular: 'Particular',
+    // Supports both legacy snake_case keys and new DB values (e.g. 'FONASA A')
+    const KNOWN_COLORS: Record<string, string> = {
+      fonasa_a: '#10b981', fonasa_b: '#34d399', fonasa_c: '#6366f1', fonasa_d: '#8b5cf6',
+      isapre: '#f59e0b', particular: '#9ca3af',
+      'FONASA A': '#10b981', 'FONASA B': '#34d399', 'FONASA C': '#6366f1', 'FONASA D': '#8b5cf6',
+      'ISAPRE': '#f59e0b', 'Particular': '#9ca3af', 'Sin Previsión': '#6b7280',
+      'CAPREDENA': '#3b82f6', 'DIPRECA': '#06b6d4',
     };
-    const COLORS: Record<string, string> = {
-      fonasa_a: '#10b981', fonasa_b: '#34d399', fonasa_c: '#6366f1',
-      fonasa_d: '#8b5cf6', isapre: '#f59e0b',   particular: '#9ca3af',
-    };
-    return [...map.entries()].sort((a, b) => b[1] - a[1]).map(([k, count]) => ({
-      label: LABELS[k] ?? k,
+    const FALLBACK_PALETTE = ['#10b981','#6366f1','#3b82f6','#f59e0b','#8b5cf6','#06b6d4','#9ca3af'];
+    return [...map.entries()].sort((a, b) => b[1] - a[1]).map(([k, count], i) => ({
+      label: k,
       count,
       pct:   Math.round((count / total) * 100),
-      color: COLORS[k] ?? '#9ca3af',
+      color: KNOWN_COLORS[k] ?? FALLBACK_PALETTE[i % FALLBACK_PALETTE.length],
     }));
   });
 
