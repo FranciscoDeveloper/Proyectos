@@ -1,20 +1,44 @@
 import { Injector, runInInjectionContext } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { of, throwError } from 'rxjs';
 import { SchemaService } from './schema.service';
 import { GenericCrudService } from './generic-crud.service';
 import { AuthService } from './auth.service';
+import { CryptoService } from './crypto.service';
+
+let idCounter = 1000;
 
 function buildServices(): { service: GenericCrudService; schemaService: SchemaService } {
   const mockRouter = { navigate: jest.fn() } as unknown as Router;
+  const mockHttp = {
+    get: jest.fn(() => throwError(() => new Error('mock'))),
+    post: jest.fn((_url: string, body: any) => of({
+      ...body,
+      id: ++idCounter,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    })),
+    put: jest.fn((_url: string, body: any) => of({
+      ...body,
+      updatedAt: new Date().toISOString()
+    })),
+    delete: jest.fn(() => of({}))
+  } as unknown as HttpClient;
+
   const injector = Injector.create({
     providers: [
       { provide: Router, useValue: mockRouter },
-      { provide: AuthService, useFactory: () => new AuthService(mockRouter) }
+      { provide: HttpClient, useValue: mockHttp },
+      { provide: CryptoService, useClass: CryptoService },
+      { provide: AuthService, useClass: AuthService },
+      { provide: SchemaService, useClass: SchemaService },
+      { provide: GenericCrudService, useClass: GenericCrudService }
     ]
   });
-  let schemaService!: SchemaService;
-  runInInjectionContext(injector, () => { schemaService = new SchemaService(); });
-  const service = new GenericCrudService(schemaService);
+
+  const service = injector.get(GenericCrudService);
+  const schemaService = injector.get(SchemaService);
   return { service, schemaService };
 }
 
@@ -23,6 +47,7 @@ describe('GenericCrudService', () => {
   let schemaService: SchemaService;
 
   beforeEach(() => {
+    idCounter = 1000;
     const built = buildServices();
     service = built.service;
     schemaService = built.schemaService;
@@ -53,10 +78,11 @@ describe('GenericCrudService', () => {
       expect(typeof sig).toBe('function');
     });
 
-    it('should reflect new items after create', () => {
+    it('should reflect new items after create', async () => {
       service.initStore('suppliers');
       const before = service.getAll('suppliers')().length;
       service.create('suppliers', { name: 'New Co', code: 'NC-001' });
+      await new Promise(resolve => setTimeout(resolve, 0));
       expect(service.getAll('suppliers')().length).toBe(before + 1);
     });
   });
@@ -75,26 +101,32 @@ describe('GenericCrudService', () => {
   });
 
   describe('create()', () => {
-    it('should add a record and assign a numeric id', () => {
+    it('should add a record and assign a numeric id', async () => {
       service.initStore('products');
       const before = service.getAll('products')().length;
-      const created = service.create('products', { name: 'Nuevo', sku: 'NEW-0001' });
+      service.create('products', { name: 'Nuevo', sku: 'NEW-0001' });
+      await new Promise(resolve => setTimeout(resolve, 0));
       expect(service.getAll('products')().length).toBe(before + 1);
-      expect(typeof created['id']).toBe('number');
+      const created = service.getAll('products')().find(r => r['name'] === 'Nuevo');
+      expect(typeof created!['id']).toBe('number');
     });
 
-    it('should include createdAt and updatedAt timestamps', () => {
+    it('should include createdAt and updatedAt timestamps', async () => {
       service.initStore('products');
-      const created = service.create('products', { name: 'Test' });
-      expect(created['createdAt']).toBeDefined();
-      expect(created['updatedAt']).toBeDefined();
+      service.create('products', { name: 'Test' });
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const created = service.getAll('products')().find(r => r['name'] === 'Test');
+      expect(created!['createdAt']).toBeDefined();
+      expect(created!['updatedAt']).toBeDefined();
     });
 
-    it('should preserve provided fields in the new record', () => {
+    it('should preserve provided fields in the new record', async () => {
       service.initStore('products');
-      const created = service.create('products', { name: 'Widget', price: 9.99 });
-      expect(created['name']).toBe('Widget');
-      expect(created['price']).toBe(9.99);
+      service.create('products', { name: 'Widget', price: 9.99 });
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const created = service.getAll('products')().find(r => r['name'] === 'Widget');
+      expect(created!['name']).toBe('Widget');
+      expect(created!['price']).toBe(9.99);
     });
   });
 
@@ -102,28 +134,30 @@ describe('GenericCrudService', () => {
     it('should update an existing record', () => {
       service.initStore('suppliers');
       const id = service.getAll('suppliers')()[0]['id'];
-      const updated = service.update('suppliers', id, { name: 'Updated Name' });
-      expect(updated!['name']).toBe('Updated Name');
+      service.update('suppliers', id, { name: 'Updated Name' });
+      expect(service.getById('suppliers', id)!['name']).toBe('Updated Name');
     });
 
     it('should preserve the id after update', () => {
       service.initStore('suppliers');
       const id = service.getAll('suppliers')()[0]['id'];
-      const updated = service.update('suppliers', id, { name: 'X' });
-      expect(updated!['id']).toBe(id);
+      service.update('suppliers', id, { name: 'X' });
+      expect(service.getById('suppliers', id)!['id']).toBe(id);
     });
 
-    it('should return null when record not found', () => {
+    it('should be a no-op for non-existent id', () => {
       service.initStore('suppliers');
-      expect(service.update('suppliers', 999999, { name: 'X' })).toBeNull();
+      const before = service.getAll('suppliers')().length;
+      service.update('suppliers', 999999, { name: 'X' });
+      expect(service.getAll('suppliers')().length).toBe(before);
+      expect(service.getById('suppliers', 999999)).toBeUndefined();
     });
 
-    it('should refresh updatedAt timestamp', () => {
+    it('should apply the update optimistically', () => {
       service.initStore('patients');
       const id = service.getAll('patients')()[0]['id'];
-      const before = service.getById('patients', id)!['updatedAt'];
-      const updated = service.update('patients', id, { fullName: 'New Name' });
-      expect(updated!['updatedAt']).not.toBe(before);
+      service.update('patients', id, { fullName: 'New Name' });
+      expect(service.getById('patients', id)!['fullName']).toBe('New Name');
     });
   });
 

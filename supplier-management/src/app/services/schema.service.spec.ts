@@ -1,15 +1,24 @@
 import { Injector, runInInjectionContext } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { throwError } from 'rxjs';
 import { SchemaService } from './schema.service';
 import { AuthService } from './auth.service';
+import { CryptoService } from './crypto.service';
 
 function buildSchemaService(): SchemaService {
   const mockRouter = { navigate: jest.fn() } as unknown as Router;
-  // Provide AuthService in the injector so inject(AuthService) resolves during SchemaService construction
+  const mockHttp = {
+    post: jest.fn(() => throwError(() => new Error('mock'))),
+    get: jest.fn(() => throwError(() => new Error('mock')))
+  } as unknown as HttpClient;
+
   const injector = Injector.create({
     providers: [
       { provide: Router, useValue: mockRouter },
-      { provide: AuthService, useFactory: () => new AuthService(mockRouter) }
+      { provide: HttpClient, useValue: mockHttp },
+      { provide: CryptoService, useClass: CryptoService },
+      { provide: AuthService, useClass: AuthService }
     ]
   });
   let service!: SchemaService;
@@ -93,7 +102,7 @@ describe('SchemaService', () => {
     it('select fields should have options', () => {
       ['suppliers', 'products', 'patients'].forEach(key => {
         const schema = service.getSchema(key)!;
-        const selectFields = schema.fields.filter(f => f.type === 'select');
+        const selectFields = schema.fields.filter(f => f.type === 'select' && !f.lookupEntity);
         selectFields.forEach(f => {
           expect(f.options).toBeDefined();
           expect(f.options!.length).toBeGreaterThan(0);

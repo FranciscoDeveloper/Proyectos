@@ -1,20 +1,67 @@
-/**
- * Unit tests for AuthService.
- * AuthService uses Angular signals and DI (Router), so we use
- * Injector.create() + runInInjectionContext() to instantiate it.
- */
 import { Injector, runInInjectionContext } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { of, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
+import { CryptoService } from './crypto.service';
+import { AuthResponse } from '../models/auth.model';
+import { EntitySchema } from '../models/entity-schema.model';
+
+const mkSchema = (key: string): EntitySchema => ({
+  entity: { key, singular: key, plural: key, icon: 'box' },
+  fields: [{ name: 'id', type: 'number' as const, label: 'ID' }]
+});
+
+const LOGIN_MAP: Record<string, AuthResponse> = {
+  'admin@empresa.com:admin123': {
+    token: 'mock-token', expiresAt: '2099-01-01T00:00:00Z',
+    user: { id: 1, name: 'Admin', email: 'admin@empresa.com', role: 'admin', avatar: 'AD' },
+    schemas: [mkSchema('suppliers'), mkSchema('products'), mkSchema('patients')]
+  },
+  'compras@empresa.com:compras123': {
+    token: 'mock-token', expiresAt: '2099-01-01T00:00:00Z',
+    user: { id: 2, name: 'Compras', email: 'compras@empresa.com', role: 'manager', avatar: 'CP' },
+    schemas: [mkSchema('suppliers'), mkSchema('products')]
+  },
+  'medico@hospital.com:medico123': {
+    token: 'mock-token', expiresAt: '2099-01-01T00:00:00Z',
+    user: { id: 3, name: 'Médico', email: 'medico@hospital.com', role: 'viewer', avatar: 'MD' },
+    schemas: [mkSchema('patients')]
+  },
+  'auditor@empresa.com:viewer123': {
+    token: 'mock-token', expiresAt: '2099-01-01T00:00:00Z',
+    user: { id: 4, name: 'Auditor', email: 'auditor@empresa.com', role: 'viewer', avatar: 'AU' },
+    schemas: [mkSchema('suppliers')]
+  },
+};
+
+function buildMockHttp() {
+  return {
+    post: jest.fn((url: string, body: any) => {
+      if (String(url).includes('/api/auth/login')) {
+        const key = `${body?.email}:${body?.password}`;
+        const res = LOGIN_MAP[key];
+        if (res) return of(res);
+        return throwError(() => ({
+          error: { message: 'Credenciales inválidas. Verifique su email y contraseña.' }
+        }));
+      }
+      return of({});
+    }),
+    get: jest.fn(() => throwError(() => new Error('mock')))
+  } as unknown as HttpClient;
+}
 
 function buildService(): { service: AuthService; mockRouter: jest.Mock } {
   const navigateFn = jest.fn().mockResolvedValue(true);
   const mockRouter = { navigate: navigateFn } as unknown as Router;
+  const mockHttp = buildMockHttp();
 
   const injector = Injector.create({
     providers: [
       { provide: Router, useValue: mockRouter },
-      { provide: AuthService, useClass: AuthService }
+      { provide: HttpClient, useValue: mockHttp },
+      { provide: CryptoService, useClass: CryptoService }
     ]
   });
 
@@ -71,7 +118,7 @@ describe('AuthService', () => {
         expect(res.token).toBeTruthy();
         expect(res.user.email).toBe('admin@empresa.com');
         expect(res.user.role).toBe('admin');
-        expect(res.schemas.length).toBe(3); // admin sees all 3 entities
+        expect(res.schemas.length).toBe(3);
         done();
       },
       error: done.fail

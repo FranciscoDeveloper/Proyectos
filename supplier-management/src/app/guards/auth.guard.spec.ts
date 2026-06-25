@@ -88,7 +88,7 @@ describe('authGuard', () => {
     let result!: boolean;
     runInInjectionContext(injector, () => { result = authGuard(route, state) as boolean; });
     expect(result).toBe(false);
-    expect(navigateFn).toHaveBeenCalledWith(['/dashboard']);
+    expect(navigateFn).toHaveBeenCalledWith(['/app/dashboard']);
   });
 
   it('allows access to dashboard (no entityKey) when authenticated', () => {
@@ -139,7 +139,7 @@ describe('guestGuard', () => {
     let result!: boolean;
     runInInjectionContext(injector, () => { result = guestGuard(dummyRoute, dummyState) as boolean; });
     expect(result).toBe(false);
-    expect(navigateFn).toHaveBeenCalledWith(['/dashboard']);
+    expect(navigateFn).toHaveBeenCalledWith(['/app/dashboard']);
   });
 
   it('does not call navigate when not authenticated', () => {

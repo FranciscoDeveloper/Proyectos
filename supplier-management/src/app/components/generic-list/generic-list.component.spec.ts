@@ -3,10 +3,12 @@
  */
 import { Injector, runInInjectionContext } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { of, throwError } from 'rxjs';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { AuthService } from '../../services/auth.service';
+import { CryptoService } from '../../services/crypto.service';
 import { GenericListComponent } from './generic-list.component';
 import { FieldDefinition } from '../../models/entity-schema.model';
 
@@ -16,23 +18,27 @@ function buildComponent(entityKey = 'suppliers'): GenericListComponent {
     paramMap: of({ get: (k: string) => k === 'entityKey' ? entityKey : null })
   } as unknown as ActivatedRoute;
 
-  // SchemaService uses inject(AuthService), so we need an injection context that provides it
+  const mockHttp = {
+    post: jest.fn(() => throwError(() => new Error('mock'))),
+    get: jest.fn(() => throwError(() => new Error('mock'))),
+    delete: jest.fn(() => of({}))
+  } as unknown as HttpClient;
+
   const rootInjector = Injector.create({
     providers: [
       { provide: Router, useValue: mockRouter },
-      { provide: AuthService, useFactory: () => new AuthService(mockRouter) }
+      { provide: HttpClient, useValue: mockHttp },
+      { provide: CryptoService, useClass: CryptoService },
+      { provide: AuthService, useClass: AuthService },
+      { provide: SchemaService, useClass: SchemaService },
+      { provide: GenericCrudService, useClass: GenericCrudService }
     ]
   });
-  let schemaService!: SchemaService;
-  runInInjectionContext(rootInjector, () => { schemaService = new SchemaService(); });
-  const crudService = new GenericCrudService(schemaService);
 
   const injector = Injector.create({
+    parent: rootInjector,
     providers: [
-      { provide: SchemaService, useValue: schemaService },
-      { provide: GenericCrudService, useValue: crudService },
-      { provide: Router, useValue: mockRouter },
-      { provide: ActivatedRoute, useValue: mockRoute },
+      { provide: ActivatedRoute, useValue: mockRoute }
     ]
   });
 
@@ -99,7 +105,6 @@ describe('GenericListComponent', () => {
   });
 
   it('should sort ascending by name', () => {
-    // sortField is already 'name' from init (title field). Ensure direction is asc.
     component.sortDir.set('asc');
     const names = component.filteredItems().map(i => i['name'] as string);
     expect(names).toEqual([...names].sort());
@@ -107,7 +112,7 @@ describe('GenericListComponent', () => {
 
   it('should toggle sort direction', () => {
     const currentDir = component.sortDir();
-    component.setSort('name'); // toggles direction since field is already 'name'
+    component.setSort('name');
     const expected = currentDir === 'asc' ? 'desc' : 'asc';
     expect(component.sortDir()).toBe(expected);
   });
@@ -159,17 +164,17 @@ describe('GenericListComponent', () => {
 
   it('navigateNew calls router with new path', () => {
     component.navigateNew();
-    expect((component as any).router.navigate).toHaveBeenCalledWith(['/entity', 'suppliers', 'new']);
+    expect((component as any).router.navigate).toHaveBeenCalledWith(['/app/entity', 'suppliers', 'new']);
   });
 
   it('navigateEdit calls router with edit path', () => {
     component.navigateEdit(3);
-    expect((component as any).router.navigate).toHaveBeenCalledWith(['/entity', 'suppliers', 3, 'edit']);
+    expect((component as any).router.navigate).toHaveBeenCalledWith(['/app/entity', 'suppliers', 3, 'edit']);
   });
 
   it('navigateDetail calls router with detail path', () => {
     component.navigateDetail(2);
-    expect((component as any).router.navigate).toHaveBeenCalledWith(['/entity', 'suppliers', 2]);
+    expect((component as any).router.navigate).toHaveBeenCalledWith(['/app/entity', 'suppliers', 2]);
   });
 
   it('hasFilters false by default', () => {

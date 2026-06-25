@@ -3,10 +3,14 @@
  */
 import { Injector, runInInjectionContext } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { FormBuilder } from '@angular/forms';
+import { of, throwError } from 'rxjs';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { AuthService } from '../../services/auth.service';
+import { CryptoService } from '../../services/crypto.service';
+import { GoogleCalendarService } from '../../services/google-calendar.service';
 import { GenericFormComponent } from './generic-form.component';
 import { FieldDefinition } from '../../models/entity-schema.model';
 
@@ -24,35 +28,42 @@ function buildComponent(entityKey: string, recordId?: number): {
           if (k === 'id') return recordId != null ? String(recordId) : null;
           return null;
         }
-      }
+      },
+      data: {}
     }
   };
 
-  const mockRouterForSchema = { navigate: jest.fn() } as unknown as Router;
+  const mockHttp = {
+    post: jest.fn(() => throwError(() => new Error('mock'))),
+    get: jest.fn(() => throwError(() => new Error('mock')))
+  } as unknown as HttpClient;
+
   const rootInjector = Injector.create({
     providers: [
-      { provide: Router, useValue: mockRouterForSchema },
-      { provide: AuthService, useFactory: () => new AuthService(mockRouterForSchema) }
+      { provide: Router, useValue: mockRouter },
+      { provide: HttpClient, useValue: mockHttp },
+      { provide: CryptoService, useClass: CryptoService },
+      { provide: AuthService, useClass: AuthService },
+      { provide: SchemaService, useClass: SchemaService },
+      { provide: GenericCrudService, useClass: GenericCrudService }
     ]
   });
-  let schema!: SchemaService;
-  runInInjectionContext(rootInjector, () => { schema = new SchemaService(); });
-  const crud = new GenericCrudService(schema);
+
+  const crud = rootInjector.get(GenericCrudService);
 
   const injector = Injector.create({
+    parent: rootInjector,
     providers: [
-      { provide: SchemaService, useValue: schema },
-      { provide: GenericCrudService, useValue: crud },
       { provide: FormBuilder },
-      { provide: Router, useValue: mockRouter },
       { provide: ActivatedRoute, useValue: mockRoute },
+      { provide: GoogleCalendarService, useClass: GoogleCalendarService }
     ]
   });
 
   let component!: GenericFormComponent;
   runInInjectionContext(injector, () => { component = new GenericFormComponent(); });
   component.ngOnInit();
-  return { component, crud, mockRouter };
+  return { component, crud, mockRouter: mockRouter as { navigate: jest.Mock } };
 }
 
 describe('GenericFormComponent — CREATE mode (products)', () => {
@@ -78,8 +89,8 @@ describe('GenericFormComponent — CREATE mode (products)', () => {
     expect(component.entityKey()).toBe('products');
   });
 
-  it('should build a form control for every schema field', () => {
-    component.schema()!.fields.forEach(f => {
+  it('should build a form control for every editable schema field', () => {
+    component.editableFields().forEach(f => {
       expect(component.form.get(f.name)).toBeTruthy();
     });
   });
@@ -124,7 +135,7 @@ describe('GenericFormComponent — CREATE mode (products)', () => {
 
   it('cancel() navigates to entity list', () => {
     component.cancel();
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/entity', 'products']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/app/entity', 'products']);
   });
 
   it('getInputType() returns "text" for tags field', () => {
@@ -181,13 +192,12 @@ describe('GenericFormComponent — EDIT mode (suppliers, id=1)', () => {
       }
     });
     component.submit();
-    // After valid submit, saving() becomes true (async delay is simulating API call)
     expect(component.saving()).toBe(true);
   });
 
   it('cancel() navigates back to suppliers list', () => {
     component.cancel();
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/entity', 'suppliers']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/app/entity', 'suppliers']);
   });
 });
 
@@ -202,22 +212,27 @@ describe('GenericFormComponent — patients schema', () => {
     expect(component.schema()?.entity.key).toBe('patients');
   });
 
-  it('fullName control exists', () => {
-    expect(component.form.get('fullName')).toBeTruthy();
+  it('nombre control exists and is required', () => {
+    const ctrl = component.form.get('nombre')!;
+    expect(ctrl).toBeTruthy();
+    ctrl.setValue('');
+    expect(ctrl.hasError('required')).toBe(true);
   });
 
-  it('patientId validates pattern PAC-NNNNN', () => {
-    const ctrl = component.form.get('patientId')!;
-    ctrl.setValue('WRONG');
-    expect(ctrl.hasError('pattern')).toBe(true);
-    ctrl.setValue('PAC-00001');
-    expect(ctrl.valid || !ctrl.hasError('pattern')).toBe(true);
+  it('email control validates format', () => {
+    const ctrl = component.form.get('email')!;
+    expect(ctrl).toBeTruthy();
+    ctrl.setValue('not-an-email');
+    expect(ctrl.hasError('email')).toBe(true);
+    ctrl.setValue('valid@test.com');
+    expect(ctrl.hasError('email')).toBeFalsy();
   });
 
-  it('age field has min/max validation', () => {
-    const ctrl = component.form.get('age')!;
-    ctrl.setValue(-1);
-    expect(ctrl.hasError('min')).toBe(true);
+  it('telefono control is required', () => {
+    const ctrl = component.form.get('telefono')!;
+    expect(ctrl).toBeTruthy();
+    ctrl.setValue('');
+    expect(ctrl.hasError('required')).toBe(true);
   });
 });
 
@@ -226,24 +241,16 @@ describe('GenericFormComponent — submit guard', () => {
     const { component } = buildComponent('products');
     component.form.reset();
     component.submit();
-    // form is invalid, submit returns early — saving stays false
     expect(component.saving()).toBe(false);
   });
 
   it('should mark form as saving when form is valid', () => {
     const { component } = buildComponent('patients');
-    // Fill all required fields with valid values for patients
+    // patients catalog schema requires: nombre, email, telefono
     component.form.patchValue({
-      fullName: 'Test Patient',
-      patientId: 'PAC-00099',
-      status: 'active',
-      age: 30,
-      gender: 'male',
-      bloodType: 'O+',
-      phone: '+34 600 000 000',
-      doctor: 'Dr. Test',
-      admissionDate: '2024-01-01',
-      diagnosis: 'Test diagnosis'
+      nombre: 'Test Patient',
+      email: 'test@test.com',
+      telefono: '+56912345678'
     });
     expect(component.form.valid).toBe(true);
     component.submit();
