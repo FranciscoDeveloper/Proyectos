@@ -202,6 +202,7 @@ export class ClinicalEncounterFormComponent implements OnInit {
     } else {
       this.recorder.start({
         patientName: this.form.get('fullName')?.value || 'paciente',
+        patientRut:  this.form.get('rut')?.value      || '',
         entityKey:   this.entityKey(),
         recordId:    this.recordId()!
       });

@@ -6,6 +6,7 @@ export type RecordingState = 'idle' | 'recording' | 'saving' | 'uploading' | 'do
 
 export interface AudioUploadContext {
   patientName: string;
+  patientRut:  string;   // unique patient identifier (RUT) used in the filename
   entityKey:   string;
   recordId:    number;
 }
@@ -96,9 +97,10 @@ export class AudioRecorderService {
     this.state.set('uploading');
 
     const ext      = mimeType.includes('ogg') ? 'ogg' : 'webm';
+    const rut      = ctx.patientRut.replace(/\./g, '').replace(/\s/g, '') || `id${ctx.recordId}`;
     const safe     = ctx.patientName.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '').trim().replace(/\s+/g, '_');
     const date     = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-    const filename = `atencion_${safe}_${date}.${ext}`;
+    const filename = `atencion_${rut}_${safe}_${date}.${ext}`;
     const blob     = new Blob(this.chunks, { type: mimeType });
 
     try {

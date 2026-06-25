@@ -182,7 +182,9 @@
       <p *ngIf="recorder.error()" class="rec-error">{{ recorder.error() }}</p>
 
       <button type="button" class="btn-ghost" (click)="cancel()">Cancelar</button>
-      <button type="submit" class="btn-primary" [disabled]="saving()">
+      <button type="submit" class="btn-primary"
+              [disabled]="saving() || recorder.state() === 'done'"
+              [title]="recorder.state() === 'done' ? 'La atención fue registrada mediante grabación de audio' : ''">
         <svg *ngIf="saving()" class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
         </svg>
@@ -192,6 +194,9 @@
         </svg>
         {{ saving() ? 'Guardando...' : 'Registrar Atención' }}
       </button>
+      <p *ngIf="recorder.state() === 'done'" class="rec-saved-hint">
+        La atención fue capturada por audio. El ingreso manual está deshabilitado.
+      </p>
     </div>
 
   </form>
