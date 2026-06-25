@@ -205,11 +205,10 @@ export class ClinicalDetailComponent {
       .filter(f => f.section === 'soap')
       .map(f => ({
         label: f.label,
-        value: String(r[f.name] ?? ''),
+        value: String(r[f.name] ?? '').trim() || '—',
         meta:  this.SOAP_LABELS[f.name] ?? { icon: '?', color: '#6b7280' },
         field: f
-      }))
-      .filter(i => i.value);
+      }));
   });
 
   readonly diagnosisCode  = computed(() => String(this.record()?.['diagnosisCode']  ?? ''));
@@ -232,12 +231,10 @@ export class ClinicalDetailComponent {
     const r = this.record();
     if (!r || !this.schema) return [];
     const result: SectionField[] = [];
-    const medsField = this.schema.fields.find(f => f.name === 'currentMedications');
+    const medsField    = this.schema.fields.find(f => f.name === 'currentMedications');
     const chronicField = this.schema.fields.find(f => f.name === 'chronicConditions');
-    const meds = String(r['currentMedications'] ?? '');
-    const chronic = r['chronicConditions'];
-    if (meds && medsField) result.push({ label: medsField.label, value: meds, field: medsField });
-    if (Array.isArray(chronic) && chronic.length > 0 && chronicField) result.push({ label: chronicField.label, value: chronic, field: chronicField });
+    if (medsField)    result.push({ label: medsField.label,    value: r['currentMedications'] ?? null, field: medsField });
+    if (chronicField) result.push({ label: chronicField.label, value: r['chronicConditions']  ?? null, field: chronicField });
     return result;
   });
 
@@ -246,8 +243,7 @@ export class ClinicalDetailComponent {
     if (!r || !this.schema) return [];
     return this.schema.fields
       .filter(f => f.section === section && !f.isVitalSign && !f.isAlert)
-      .map(f => ({ label: f.label, value: r[f.name], field: f }))
-      .filter(sf => sf.value != null && sf.value !== '');
+      .map(f => ({ label: f.label, value: r[f.name] ?? null, field: f }));
   }
 
   // ── Surgical interventions ────────────────────────────────────────────────
@@ -261,10 +257,15 @@ export class ClinicalDetailComponent {
     };
   });
 
-  readonly hasSurgical = computed(() => {
-    const s = this.surgicalFields();
-    return !!(s.history || s.planned);
-  });
+  readonly hasSurgical = computed(() =>
+    !!(this.schema?.fields.some(f => f.name === 'surgicalHistory' || f.name === 'plannedInterventions'))
+  );
+
+  readonly hasDiagnosisSection = computed(() =>
+    !!(this.schema?.fields.some(f =>
+      f.name === 'diagnosisCode' || f.name === 'diagnosisLabel' || f.name === 'differentialDx'
+    ))
+  );
 
   // ── Documents tab ─────────────────────────────────────────────────────────
 
@@ -296,6 +297,9 @@ export class ClinicalDetailComponent {
   newDocName     = signal('');
   newDocCategory = signal('lab');
   newDocNotes    = signal('');
+  selectedFile   = signal<File | null>(null);
+  fileError      = signal('');
+  private readonly MAX_FILE_SIZE_BYTES = 30 * 1024 * 1024;
   private nextDocId = 5;
 
   docFilter = signal('');
@@ -309,22 +313,51 @@ export class ClinicalDetailComponent {
     );
   });
 
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file  = input.files?.[0] ?? null;
+    if (!file) { this.selectedFile.set(null); return; }
+    if (file.size > this.MAX_FILE_SIZE_BYTES) {
+      this.fileError.set(`El archivo supera los 30 MB (${this.formatFileSize(file.size)})`);
+      this.selectedFile.set(null);
+      input.value = '';
+      return;
+    }
+    this.fileError.set('');
+    this.selectedFile.set(file);
+    if (!this.newDocName().trim()) this.newDocName.set(file.name);
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+    if (bytes >= 1024)        return `${Math.round(bytes / 1024)} KB`;
+    return `${bytes} B`;
+  }
+
   addDocument(): void {
     const name = this.newDocName().trim();
     if (!name) return;
+    const file = this.selectedFile();
+    const size = file ? this.formatFileSize(file.size) : '—';
     this.documents.update(docs => [...docs, {
       id: this.nextDocId++,
       name,
       category: this.newDocCategory(),
       date: new Date().toISOString().slice(0, 10),
-      size: '—',
+      size,
       uploadedBy: this.auth.user()?.name ?? this.patient()?.doctor ?? 'Sistema',
       notes: this.newDocNotes().trim()
     }]);
+    this.cancelUpload();
+  }
+
+  cancelUpload(): void {
+    this.showUploadForm.set(false);
     this.newDocName.set('');
     this.newDocNotes.set('');
     this.newDocCategory.set('lab');
-    this.showUploadForm.set(false);
+    this.selectedFile.set(null);
+    this.fileError.set('');
   }
 
   removeDocument(id: number): void {
@@ -527,29 +560,57 @@ export class ClinicalDetailComponent {
     this.crudSvc.update(this.entityKey, this.id, { periodontogram: data });
   }
 
-  /**
-   * Schema-driven: collects all fields with section === 'encounters'.
-   * Each field value must be an array of objects (one per encounter).
-   * The frontend makes no assumptions about which keys exist — it renders
-   * whatever the backend provides.
-   */
+  /** Each DB clinical_record row = one encounter. History = all records for same patient. */
   readonly encounterHistory = computed<Record<string, any>[]>(() => {
     const r = this.record();
-    if (!r || !this.schema) return [];
+    if (!r) return [];
 
-    const encounters = this.schema.fields
-      .filter(f => f.section === 'encounters')
-      .flatMap(f => {
-        const val = r[f.name];
-        return Array.isArray(val) ? (val as Record<string, any>[]) : [];
+    const allRecords = this.crudSvc.getAll(this.entityKey)();
+    const patRut  = String(r['rut']      ?? '').trim();
+    const patName = String(r['fullName'] ?? '').trim();
+
+    return allRecords
+      .filter(rec => {
+        if (patRut) return String(rec['rut'] ?? '').trim() === patRut;
+        return String(rec['fullName'] ?? '').trim() === patName;
+      })
+      .sort((a, b) => {
+        const da = String(a['lastVisit'] ?? a['encounterDate'] ?? a['date'] ?? '');
+        const db = String(b['lastVisit'] ?? b['encounterDate'] ?? b['date'] ?? '');
+        return db.localeCompare(da);
       });
-
-    return encounters.sort((a, b) => {
-      const dateKey = Object.keys(a).find(k => /date|fecha/i.test(k));
-      if (!dateKey) return 0;
-      return String(b[dateKey]).localeCompare(String(a[dateKey]));
-    });
   });
+
+  expandedEncounterId = signal<number | null>(null);
+
+  toggleEncounterDetail(id: number): void {
+    this.expandedEncounterId.update(cur => (cur === id ? null : id));
+  }
+
+  encDate(enc: Record<string, any>): string {
+    return String(enc['lastVisit'] ?? enc['encounterDate'] ?? enc['date'] ?? '');
+  }
+
+  /** Returns clinical (non-demographic, non-alert) entries with values. */
+  encounterClinicalEntries(enc: Record<string, any>): [string, any][] {
+    if (!this.schema) return [];
+    const skipSections = new Set(['demographics', 'alerts', 'encounters']);
+    const allowed = new Set(
+      this.schema.fields
+        .filter(f => !skipSections.has(f.section ?? '') && !f.isAlert)
+        .map(f => f.name)
+    );
+    return Object.entries(enc)
+      .filter(([k, v]) =>
+        allowed.has(k) && v != null && v !== '' &&
+        !(Array.isArray(v) && (v as any[]).length === 0)
+      );
+  }
+
+  /** Returns the schema label for a field key, or a formatted fallback. */
+  labelForKey(key: string): string {
+    return this.schema?.fields.find(f => f.name === key)?.label ?? this.formatKey(key);
+  }
 
   /** Converts camelCase key to human-readable label when no schema label exists. */
   formatKey(key: string): string {

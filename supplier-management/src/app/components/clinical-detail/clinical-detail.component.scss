@@ -777,6 +777,117 @@
   white-space: pre-line;
 }
 
+/* ── Encounter card — clickable & expandable ── */
+.enc-card {
+  cursor: pointer;
+  transition: box-shadow 0.18s, border-left-color 0.18s;
+
+  &:hover { box-shadow: 0 4px 14px rgba(0,0,0,.09); }
+
+  &--expanded {
+    border-left: 3px solid #6366f1;
+    box-shadow: 0 4px 14px rgba(99,102,241,.13);
+  }
+}
+
+.enc-doctor {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #6b7280;
+  svg { width: 13px; height: 13px; }
+}
+
+.enc-chevron {
+  width: 16px;
+  height: 16px;
+  color: #9ca3af;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.enc-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px 10px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.enc-dx-chip {
+  font-size: 10px;
+  font-weight: 700;
+  color: #6366f1;
+  background: #eef2ff;
+  padding: 1px 6px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.enc-dx-text {
+  font-size: 13px;
+  color: #374151;
+}
+
+.enc-detail {
+  border-top: 1px dashed #e5e7eb;
+  padding-top: 4px;
+}
+
+.enc-no-detail {
+  padding: 12px 18px;
+  font-size: 13px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* ── File upload ── */
+.file-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.file-picker-btn {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  svg { width: 14px; height: 14px; }
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.file-selected-info {
+  font-size: 12px;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  svg { width: 13px; height: 13px; }
+
+  &--set {
+    color: #374151;
+    font-weight: 500;
+  }
+}
+
+.file-error {
+  font-size: 12px;
+  color: #ef4444;
+  margin-top: 4px;
+}
+
+.file-hint {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 3px;
+}
+
 /* ── Not found ── */
 .not-found {
   padding: 60px 20px;
