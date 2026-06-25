@@ -889,15 +889,17 @@ async function handleUserConfig(userId, body) {
 // ── Request authorization ─────────────────────────────────────────────────────
 // 1. Verifies the user has the requested schema assigned in user_schema.
 // 2. Blocks write operations (POST/PUT/DELETE) for viewer role.
-async function authorizeRequest(client, userId, role, entityKey, method) {
+// aliasKey: the original (un-resolved) entity key if different from entityKey,
+// so both 'clinical-records' and 'clinicalRecords' match the same app_schema row.
+async function authorizeRequest(client, userId, role, entityKey, method, aliasKey = null) {
   const { rows } = await client.query(
     `SELECT 1
      FROM   user_schema us
      JOIN   app_schema  s ON s.id = us.schema_id
      WHERE  us.user_id   = $1
-       AND  s.schema_key = $2
+       AND  (s.schema_key = $2 OR ($3::text IS NOT NULL AND s.schema_key = $3))
      LIMIT  1`,
-    [userId, entityKey]
+    [userId, entityKey, aliasKey]
   );
 
   if (rows.length === 0) {
@@ -1072,7 +1074,11 @@ export const handler = async (event, context) => {
     // ── Authorization: schema access + role write permissions ─────────────────
     // skipAuth entities (previsiones, medicos) are shared lookups — any authenticated user can read them
     if (!config.skipAuth) {
-      const authz = await authorizeRequest(client, tokenPayload.sub, tokenPayload.role, resolvedKey, method);
+      // Accept both the resolved key and any alias that maps to it, so that
+      // 'clinical-records' and 'clinicalRecords' both match the same app_schema row.
+      const reverseAlias = Object.entries(KEY_ALIASES).find(([, v]) => v === resolvedKey)?.[0] ?? null;
+      const aliasKey = entityKey !== resolvedKey ? entityKey : reverseAlias;
+      const authz = await authorizeRequest(client, tokenPayload.sub, tokenPayload.role, resolvedKey, method, aliasKey);
       if (!authz.allowed) return response(authz.status, { message: authz.message });
     }
 

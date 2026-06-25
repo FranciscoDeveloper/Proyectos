@@ -62,7 +62,11 @@ export class ShellComponent {
   navItems = computed(() => {
     const schemas        = this.auth.schemas();
     const hasPayments    = schemas.some(s => s.entity.key === 'payments');
-    const hasRecords     = schemas.some(s => s.entity.key === 'clinical-records');
+    const hasRecords     = schemas.some(s =>
+      s.entity.key === 'clinical-records' ||
+      s.entity.key === 'clinicalRecords'  ||
+      s.entity.moduleType === 'clinical-record'
+    );
     const hasImportable  = schemas.some(s => /patient|pacient|appointment|cita/i.test(s.entity.key));
     const hasBudgets     = schemas.some(s => /patient|pacient|payment|appointment/i.test(s.entity.key));
     return [
