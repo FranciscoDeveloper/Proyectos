@@ -753,11 +753,51 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
               encounterDate: '2026-03-02', doctor: 'Dra. Morales', motivo: 'Primera consulta por ánimo depresivo',
               presionArterial: '110/70 mmHg', frecuenciaCardiaca: '90 lpm', peso: '53 kg',
               diagnostico: 'Episodio depresivo mayor moderado. PHQ-9: 18.',
-              examenes: 'TSH: 2.1 mUI/L (normal). Hemograma: normal. Vit D: 18 ng/mL (insuficiente).',
+              examenes: 'TSH: 2.1 mUIL (normal). Hemograma: normal. Vit D: 18 ng/mL (insuficiente).',
               tratamiento: 'Inicio Sertralina 50mg c/24h. Vit D 2000 UI c/24h. Derivar a psicología.',
               indicaciones: 'Derivada a Ps. Vega para psicoterapia. Control médico en 6 semanas. Sin ideación suicida activa.'
             }
           ]
+        },
+        // Encounter 2 for María González López — same RUT, validates Tab 2 multi-encounter history
+        {
+          id: 13, fullName: 'María González López', patientId: 'PAC-00001', rut: '12.345.678-9',
+          birthDate: '1981-03-14', age: 45, gender: 'female', bloodType: 'O+',
+          insurance: 'fonasa_c', phone: '+56 9 6123 4567', email: 'maria.g@email.com',
+          address: 'Los Aromos 234, Las Condes, Santiago', emergencyContact: 'Pedro González +56 9 9876 5432',
+          doctor: 'Dra. Morales', lastVisit: '2026-01-10', status: 'active',
+          allergies: ['Penicilina', 'Sulfas'], contraindications: 'AINEs (riesgo de hipertensión).', alertNotes: '',
+          bp: '130/82', heartRate: 68, temperature: 36.5, o2Saturation: 98, weight: 69.8, height: 162, bmi: 26.6, respiratoryRate: 14,
+          personalHistory: '', familyHistory: '', habits: '',
+          surgicalHistory: '', plannedInterventions: '',
+          currentMedications: 'Losartán 50mg c/24h\nLevotiroxina 50mcg c/24h', chronicConditions: ['Hipertensión', 'Hipotiroidismo'],
+          diagnosisCode: 'E03.9', diagnosisLabel: 'Hipotiroidismo subclínico estable',
+          differentialDx: '',
+          soapSubjective: 'Sin síntomas tiroideos actuales. Refiere cumplimiento de Levotiroxina en ayunas. HTA en control domiciliario.',
+          soapObjective: 'PA: 130/82 mmHg, FC: 68 lpm. TSH 3.8 mUI/L (normal). T4L 1.1 ng/dL.',
+          soapAssessment: 'Hipotiroidismo subclínico estable. HTA en control.',
+          soapPlan: 'Mantiene Levotiroxina 50mcg + Losartán 50mg. TSH en 6 meses.',
+          encounters: []
+        },
+        // Encounter 3 for María González López
+        {
+          id: 14, fullName: 'María González López', patientId: 'PAC-00001', rut: '12.345.678-9',
+          birthDate: '1981-03-14', age: 45, gender: 'female', bloodType: 'O+',
+          insurance: 'fonasa_c', phone: '+56 9 6123 4567', email: 'maria.g@email.com',
+          address: 'Los Aromos 234, Las Condes, Santiago', emergencyContact: 'Pedro González +56 9 9876 5432',
+          doctor: 'Dra. Morales', lastVisit: '2025-08-22', status: 'active',
+          allergies: ['Penicilina', 'Sulfas'], contraindications: 'AINEs contraindicados.', alertNotes: 'Reacción anafiláctica a penicilina (2015).',
+          bp: '148/92', heartRate: 76, temperature: 36.7, o2Saturation: 96, weight: 70.5, height: 162, bmi: 26.8, respiratoryRate: 16,
+          personalHistory: 'Hipertensión arterial (desde 2018). Dislipidemia (desde 2020).', familyHistory: '', habits: '',
+          surgicalHistory: '', plannedInterventions: '',
+          currentMedications: 'Losartán 50mg c/12h\nAmlodipino 5mg (transitorio)', chronicConditions: ['Hipertensión', 'Dislipidemia'],
+          diagnosisCode: 'I10', diagnosisLabel: 'Crisis hipertensiva leve. Cefalea tensional secundaria.',
+          differentialDx: 'Hipertensión secundaria descartada.',
+          soapSubjective: 'Cefalea occipital intensa EVA 7/10 de inicio súbito hace 2 horas. PA domiciliaria 160/100 mmHg.',
+          soapObjective: 'PA: 148/92 mmHg (tras reposo 20 min). FC: 76 lpm. Fondo de ojo normal. Sin déficit neurológico.',
+          soapAssessment: 'Crisis hipertensiva leve. Respuesta a Captopril SL. Sin daño de órgano blanco.',
+          soapPlan: 'Amlodipino 5mg agregado transitoriamente. Paracetamol 1g c/8h PRN. Monitoreo PA domiciliario. Control urgente si PA > 160/100.',
+          encounters: []
         }
       ]
     },
