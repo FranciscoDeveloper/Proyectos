@@ -740,21 +740,21 @@ const ENTITY_CONFIG = {
         lastVisit:            r.lastVisit           ?? r.last_visit      ?? null,
         status:               r.status              ?? null,
         bp:                   r.bp                  ?? null,
-        heartRate:            r.heartRate           != null ? parseInt(r.heartRate)           : null,
-        temperature:          r.temperature         != null ? parseFloat(r.temperature)       : null,
-        o2Saturation:         r.o2Saturation        != null ? parseFloat(r.o2Saturation)      : null,
-        weight:               r.weight              != null ? parseFloat(r.weight)            : null,
-        height:               r.height              != null ? parseFloat(r.height)            : null,
-        bmi:                  r.bmi                 != null ? parseFloat(r.bmi)               : null,
-        respiratoryRate:      r.respiratoryRate     != null ? parseInt(r.respiratoryRate)     : null,
-        currentMedications:   r.currentMedications  ?? null,
-        diagnosisCode:        r.diagnosisCode        ?? null,
-        diagnosisLabel:       r.diagnosisLabel       ?? null,
-        differentialDx:       r.differentialDx       ?? null,
-        soapSubjective:       r.soapSubjective       ?? null,
-        soapObjective:        r.soapObjective        ?? null,
-        soapAssessment:       r.soapAssessment       ?? null,
-        soapPlan:             r.soapPlan             ?? null,
+        heartRate:            (r.heartRate      ?? r.heart_rate)       != null ? parseInt(r.heartRate      ?? r.heart_rate)       : null,
+        temperature:          (r.temperature)                           != null ? parseFloat(r.temperature)                        : null,
+        o2Saturation:         (r.o2Saturation   ?? r.o2_saturation)    != null ? parseFloat(r.o2Saturation ?? r.o2_saturation)    : null,
+        weight:               (r.weight)                                != null ? parseFloat(r.weight)                             : null,
+        height:               (r.height)                                != null ? parseFloat(r.height)                             : null,
+        bmi:                  (r.bmi)                                   != null ? parseFloat(r.bmi)                                : null,
+        respiratoryRate:      (r.respiratoryRate ?? r.respiratory_rate) != null ? parseInt(r.respiratoryRate ?? r.respiratory_rate) : null,
+        currentMedications:   r.currentMedications  ?? r.current_medications  ?? null,
+        diagnosisCode:        r.diagnosisCode        ?? r.diagnosis_code       ?? null,
+        diagnosisLabel:       r.diagnosisLabel       ?? r.diagnosis_label      ?? null,
+        differentialDx:       r.differentialDx       ?? r.differential_dx      ?? null,
+        soapSubjective:       r.soapSubjective       ?? r.soap_subjective      ?? null,
+        soapObjective:        r.soapObjective        ?? r.soap_objective       ?? null,
+        soapAssessment:       r.soapAssessment       ?? r.soap_assessment      ?? null,
+        soapPlan:             r.soapPlan             ?? r.soap_plan            ?? null,
         encounters:           Array.isArray(r.encounters) ? r.encounters : (r.encounters ? JSON.parse(r.encounters) : []),
         insurance:            r.insurance            ?? '',
         allergies:            r.allergies            ?? [],
@@ -1172,6 +1172,12 @@ async function createEntity(client, config, data, entityKey) {
     values
   );
   log("INFO", "createEntity — success", { table: config.table, newId: result.rows[0]?.id });
+  // Re-fetch with JOIN so patient demographics are included in the response
+  if (config.joinSelect && result.rows[0]?.id) {
+    const pkCol = config.pkCol ?? 'id';
+    const full  = await client.query(`${config.joinSelect} WHERE c.${pkCol} = $1 LIMIT 1`, [result.rows[0].id]);
+    if (full.rowCount > 0) return response(201, config.fromDb(full.rows[0]));
+  }
   return response(201, config.fromDb(result.rows[0]));
 }
 
@@ -1207,6 +1213,12 @@ async function updateEntity(client, config, id, data, entityKey) {
     return response(404, { message: "Registro no encontrado" });
   }
   log("INFO", "updateEntity — success", { table: config.table, id });
+  // Re-fetch with JOIN so patient demographics are not lost in the response
+  if (config.joinSelect) {
+    const pkCol = config.pkCol ?? 'id';
+    const full  = await client.query(`${config.joinSelect} WHERE c.${pkCol} = $1 LIMIT 1`, [id]);
+    if (full.rowCount > 0) return response(200, config.fromDb(full.rows[0]));
+  }
   return response(200, config.fromDb(result.rows[0]));
 }
 
@@ -1232,15 +1244,27 @@ async function appendEncounter(client, config, id, encounter) {
   const newEncounter = { ...encounter, encounterDate: encounter.encounterDate ?? new Date().toISOString() };
   const updated = [newEncounter, ...existing];
 
+  // Also update flat clinical columns (soap_*, vitals, diagnosis) from the encounter payload
+  const flatCols   = config.toDb ? config.toDb(encounter) : {};
+  const flatKeys   = Object.keys(flatCols);
+  const flatSet    = flatKeys.map((k, i) => `${k} = $${i + 3}`).join(', ');
+  const flatValues = flatKeys.map(k => flatCols[k]);
+
   const result = await client.query(
     `UPDATE ${config.table}
-     SET encounters = $1, last_visit = NOW(), updated_at = NOW()
+     SET encounters = $1, last_visit = NOW(), updated_at = NOW()${flatSet ? ', ' + flatSet : ''}
      WHERE ${pkCol} = $2
      RETURNING *`,
-    [JSON.stringify(updated), id]
+    [JSON.stringify(updated), id, ...flatValues]
   );
 
-  log("INFO", "appendEncounter — success", { table: config.table, id, totalEncounters: updated.length });
+  log("INFO", "appendEncounter — success", { table: config.table, id, totalEncounters: updated.length, flatUpdated: flatKeys });
+
+  // Re-fetch with JOIN so patient demographics are included in the response
+  if (config.joinSelect) {
+    const full = await client.query(`${config.joinSelect} WHERE c.${pkCol} = $1 LIMIT 1`, [id]);
+    if (full.rowCount > 0) return response(201, config.fromDb(full.rows[0]));
+  }
   return response(201, config.fromDb(result.rows[0]));
 }
 
