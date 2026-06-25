@@ -256,6 +256,39 @@
   border-bottom: 2px solid #e0e7ff;
 }
 
+/* ── Botones de guardado por sección (Signos Vitales / Diagnóstico) ── */
+.section-save-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0 1.5rem;
+}
+
+.btn-section-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1.1rem;
+  background: #fff;
+  border: 1.5px solid #6366f1;
+  color: #6366f1;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  svg { width: 14px; height: 14px; }
+  &:hover:not(:disabled) { background: #eef2ff; }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+.section-saved-tick {
+  font-size: 0.78rem;
+  color: #16a34a;
+  font-weight: 600;
+}
+
 /* ── Acciones ── */
 .form-actions {
   display: flex;

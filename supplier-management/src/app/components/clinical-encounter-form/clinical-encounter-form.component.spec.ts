@@ -199,34 +199,36 @@ describe('ClinicalEncounterFormComponent — getFieldOptions()', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-describe('ClinicalEncounterFormComponent — sectionHeading()', () => {
+describe('ClinicalEncounterFormComponent — editableFieldsBySection()', () => {
   let component: ClinicalEncounterFormComponent;
 
   beforeEach(() => ({ component } = buildComponent('clinical-records')));
 
-  it('returns "Signos Vitales" for the first vitals field', () => {
-    const fields = component.editableFields();
-    const idx    = fields.findIndex(f => f.section === 'vitals');
-    if (idx >= 0) expect(component.sectionHeading(fields[idx], idx)).toBe('Signos Vitales');
+  it('returns one group per encounter section present in the schema', () => {
+    const groups = component.editableFieldsBySection();
+    const sections = groups.map(g => g.section);
+    expect(sections).toEqual([...new Set(sections)]);  // no duplicates
   });
 
-  it('returns null for subsequent fields in the same section', () => {
-    const fields = component.editableFields();
-    const first  = fields.findIndex(f => f.section === 'vitals');
-    const second = fields.findIndex((f, i) => i > first && f.section === 'vitals');
-    if (second >= 0) expect(component.sectionHeading(fields[second], second)).toBeNull();
+  it('labels vitals group "Signos Vitales"', () => {
+    const grp = component.editableFieldsBySection().find(g => g.section === 'vitals');
+    if (grp) expect(grp.label).toBe('Signos Vitales');
   });
 
-  it('returns "Diagnóstico" for the first diagnosis field', () => {
-    const fields = component.editableFields();
-    const idx    = fields.findIndex(f => f.section === 'diagnosis');
-    if (idx >= 0) expect(component.sectionHeading(fields[idx], idx)).toBe('Diagnóstico');
+  it('labels diagnosis group "Diagnóstico"', () => {
+    const grp = component.editableFieldsBySection().find(g => g.section === 'diagnosis');
+    if (grp) expect(grp.label).toBe('Diagnóstico');
   });
 
-  it('returns "Nota SOAP" for the first soap field', () => {
-    const fields = component.editableFields();
-    const idx    = fields.findIndex(f => f.section === 'soap');
-    if (idx >= 0) expect(component.sectionHeading(fields[idx], idx)).toBe('Nota SOAP');
+  it('labels soap group "Nota SOAP"', () => {
+    const grp = component.editableFieldsBySection().find(g => g.section === 'soap');
+    if (grp) expect(grp.label).toBe('Nota SOAP');
+  });
+
+  it('all fields in each group belong to that section', () => {
+    for (const grp of component.editableFieldsBySection()) {
+      expect(grp.fields.every(f => f.section === grp.section)).toBe(true);
+    }
   });
 });
 
