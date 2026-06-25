@@ -6,6 +6,7 @@ import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { EntitySchema, FieldDefinition, SelectOption } from '../../models/entity-schema.model';
 import { AudioRecorderService } from '../../services/audio-recorder.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-clinical-encounter-form',
@@ -19,6 +20,7 @@ export class ClinicalEncounterFormComponent implements OnInit {
   private fb       = inject(FormBuilder);
   private schemaSvc = inject(SchemaService);
   private crudSvc  = inject(GenericCrudService);
+  private auth     = inject(AuthService);
   readonly recorder = inject(AudioRecorderService);
   readonly AudioRecorderService = AudioRecorderService;
 
@@ -243,9 +245,12 @@ export class ClinicalEncounterFormComponent implements OnInit {
     if (this.recorder.isRecording) {
       this.recorder.stop();
     } else {
+      const user = this.auth.user();
       this.recorder.start({
         patientName: this.form.get('fullName')?.value || 'paciente',
         patientRut:  this.form.get('rut')?.value      || '',
+        doctorId:    user?.id   ?? 0,
+        doctorName:  user?.name ?? 'profesional',
         entityKey:   this.entityKey(),
         recordId:    this.recordId()!
       });
