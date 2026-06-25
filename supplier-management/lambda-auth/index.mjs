@@ -304,7 +304,7 @@ async function handleRegister(body) {
       `INSERT INTO user_schema (user_id, schema_id)
        SELECT $1, s.id FROM app_schema s
        WHERE s.schema_key = ANY($2::text[])`,
-      [userId, ['clinicalRecords', 'appointments']]
+      [userId, ['clinicalRecords', 'appointments', 'patients']]
     );
 
     // Build email content — frontend sends it via /api/send-email (internet-accessible)

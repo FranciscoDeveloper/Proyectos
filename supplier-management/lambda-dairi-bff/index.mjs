@@ -344,7 +344,8 @@ const ENTITY_CONFIG = {
 
   // ── patients ─────────────────────────────────────────────────────────────────
   patients: {
-    table: "patient",
+    table:    "patient",
+    skipAuth: true,        // reference entity read by all modules (presupuestos, appointments, etc.)
     toDb(d) {
       const cols = {};
       // Accept both camelCase (API) and legacy Spanish keys
