@@ -98,12 +98,14 @@ export class AudioRecorderService {
 
     this.state.set('uploading');
 
-    const ext      = mimeType.includes('ogg') ? 'ogg' : 'webm';
-    const rut      = ctx.patientRut.replace(/\./g, '').replace(/\s/g, '') || `id${ctx.recordId}`;
-    const safe     = ctx.patientName.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '').trim().replace(/\s+/g, '_');
-    const drSafe   = ctx.doctorName.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '').trim().replace(/\s+/g, '_');
-    const date     = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-    const filename = `atencion_${rut}_${safe}_dr${ctx.doctorId}_${drSafe}_${date}.${ext}`;
+    const ext       = mimeType.includes('ogg') ? 'ogg' : 'webm';
+    const sanitize  = (s: string) => s.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '').trim().replace(/\s+/g, '_') || 'desconocido';
+    const rut       = ctx.patientRut.replace(/\./g, '').replace(/\s/g, '') || `id${ctx.recordId}`;
+    const patient   = sanitize(ctx.patientName);
+    const doctor    = sanitize(ctx.doctorName);
+    const date      = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+    // Fields separated by '--' so split('--') gives [type, date, rut, patient, drId, doctor]
+    const filename  = `atencion--${date}--${rut}--${patient}--dr${ctx.doctorId}--${doctor}.${ext}`;
     const blob     = new Blob(this.chunks, { type: mimeType });
 
     try {
