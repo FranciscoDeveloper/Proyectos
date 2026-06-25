@@ -955,19 +955,9 @@ textarea {
   margin-bottom: .875rem;
 }
 
-.prof-search-icon {
-  position: absolute;
-  left: .9rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 17px; height: 17px;
-  color: var(--muted);
-  pointer-events: none;
-}
-
 .prof-search-input {
   width: 100%;
-  padding: .7rem 2.5rem .7rem 2.6rem;
+  padding: .7rem 2.5rem .7rem .9rem;
   border: 1.5px solid var(--border);
   border-radius: 10px;
   font-size: .92rem;

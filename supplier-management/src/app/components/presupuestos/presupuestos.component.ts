@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { switchMap, of, catchError } from 'rxjs';
+import { GenericCrudService } from '../../services/generic-crud.service';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -85,7 +86,8 @@ const EMPTY_FORM = (): Omit<Presupuesto, 'id' | 'createdAt' | 'updatedAt'> => ({
   styleUrl: './presupuestos.component.scss'
 })
 export class PresupuestosComponent implements OnInit {
-  private http = inject(HttpClient);
+  private http    = inject(HttpClient);
+  private crudSvc = inject(GenericCrudService);
 
   // ── State ──────────────────────────────────────────────────────────────────
   presupuestos = signal<Presupuesto[]>([]);
@@ -109,9 +111,17 @@ export class PresupuestosComponent implements OnInit {
   loadingProfs   = signal(false);
   selectedProfId = signal('');
 
-  // Patients list
-  patients         = signal<PatientOption[]>([]);
-  loadingPatients  = signal(false);
+  // Patients list — reactive via GenericCrudService (falls back to schema seed data)
+  patients = computed<PatientOption[]>(() =>
+    this.crudSvc.getAll('patients')().map((p: any) => ({
+      id:    p.id,
+      name:  p.name   ?? p.nombre   ?? '',
+      rut:   p.rut    ?? '',
+      phone: p.phone  ?? p.telefono ?? '',
+      email: p.email  ?? ''
+    }))
+  );
+  loadingPatients   = signal(false);
   selectedPatientId = signal<number | null>(null);
 
   // Send email modal state
@@ -166,7 +176,7 @@ export class PresupuestosComponent implements OnInit {
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
-  ngOnInit() { this.load(); this.loadProfessionals(); this.loadPatients(); }
+  ngOnInit() { this.load(); this.loadProfessionals(); }
 
   private load() {
     this.loading.set(true);
@@ -181,23 +191,6 @@ export class PresupuestosComponent implements OnInit {
     this.http.get<Professional[]>('/api/book').subscribe({
       next:  list => { this.professionals.set(list); this.loadingProfs.set(false); },
       error: _    => { this.loadingProfs.set(false); }
-    });
-  }
-
-  private loadPatients() {
-    this.loadingPatients.set(true);
-    this.http.get<any[]>('/api/entities/patients').subscribe({
-      next: list => {
-        this.patients.set(list.map(p => ({
-          id:    p.id,
-          name:  p.name  ?? p.nombre ?? '',
-          rut:   p.rut   ?? '',
-          phone: p.phone ?? p.telefono ?? '',
-          email: p.email ?? ''
-        })));
-        this.loadingPatients.set(false);
-      },
-      error: _ => { this.loadingPatients.set(false); }
     });
   }
 
