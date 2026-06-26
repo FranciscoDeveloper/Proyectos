@@ -1,0 +1,11 @@
+{
+  "name": "dairi-helpdesk-worker",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Reads dairi-helpdesk-messages SQS queue and persists tickets to DynamoDB",
+  "main": "index.mjs",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/util-dynamodb":   "^3.600.0"
+  }
+}
