@@ -1,12 +1,10 @@
 import { Injectable, inject, signal, WritableSignal, Signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { SchemaService } from './schema.service';
 import { CryptoService } from './crypto.service';
 
 @Injectable({ providedIn: 'root' })
 export class GenericCrudService {
   private http          = inject(HttpClient);
-  private schemaService = inject(SchemaService);
   private crypto        = inject(CryptoService);
 
   private stores  = new Map<string, WritableSignal<Record<string, any>[]>>();
@@ -29,8 +27,7 @@ export class GenericCrudService {
         this.loading.delete(key);
       },
       error: _err => {
-        const payload = this.schemaService.getEntityPayload(key);
-        this.stores.get(key)!.set(payload ? [...payload.data] : []);
+        this.stores.get(key)!.set([]);
         this.loading.delete(key);
       }
     });

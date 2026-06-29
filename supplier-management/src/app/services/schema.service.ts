@@ -228,13 +228,7 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
           { name: 'allergies',  type: 'tags',     label: 'Alergias',                                       showInList: false, showInDetail: true  }
         ]
       },
-      data: [
-        { id: 1, nombre: 'María González López',    email: 'maria.g@email.com',   telefono: '+56912345678', diagnostic: 'Hipertensión arterial', allergies: 'Penicilina' },
-        { id: 2, nombre: 'Carlos Fernández Torres', email: 'carlos.f@email.com',  telefono: '+56923456789', diagnostic: 'Diabetes tipo 2',       allergies: null },
-        { id: 3, nombre: 'Ana Martínez Soto',       email: 'ana.m@email.com',     telefono: '+56934567890', diagnostic: null,                    allergies: 'Aspirina' },
-        { id: 4, nombre: 'Luis Hernández Pérez',    email: 'luis.h@email.com',    telefono: '+56945678901', diagnostic: 'Asma bronquial',         allergies: null },
-        { id: 5, nombre: 'Sofia Ruiz Castillo',     email: 'sofia.r@email.com',   telefono: '+56956789012', diagnostic: 'Hipotiroidismo',         allergies: 'Mariscos' }
-      ]
+      data: []
     },
 
     // ─────────────────────────── FICHAS CLÍNICAS ───────────────────────────
