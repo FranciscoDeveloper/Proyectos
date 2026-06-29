@@ -112,6 +112,12 @@ export interface FieldDefinition {
   relatedFilterValue?: string;
   /** When true, this field is hidden in encounter mode (value is set automatically) */
   hideInEncounterMode?: boolean;
+  /**
+   * When true, this field is not shown in the create/edit form.
+   * The form control is still created (so linkedFields can populate it),
+   * but the input is not rendered.
+   */
+  hideInForm?: boolean;
   /** When true, this field is required when registering a new encounter */
   requiredInEncounter?: boolean;
 }

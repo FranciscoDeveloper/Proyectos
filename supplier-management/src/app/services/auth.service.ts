@@ -149,70 +149,71 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
         { from: 'rut',    to: 'rut'      }
       ]
     },
-    // ── Identificación ────────────────────────────────────────────────────
-    { name: 'fullName',    type: 'text',   label: 'Nombre Completo',     required: true,  isTitle: true,    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'search', sortable: true, isStable: true },
-    { name: 'rut',         type: 'text',   label: 'RUT',                 required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  section: 'demographics', isStable: true, pattern: '^\\d{1,2}\\.?\\d{3}\\.?\\d{3}-[\\dkK]$', patternMessage: 'Formato: 12.345.678-9' },
-    { name: 'birthDate',   type: 'date',   label: 'Fecha de Nacimiento', required: true,                   showInList: false, showInDetail: true,  section: 'demographics', format: 'date', isStable: true },
-    { name: 'age',         type: 'number', label: 'Edad',                required: false, displayOnly: true, showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
-    { name: 'gender',      type: 'select', label: 'Sexo',                required: true,                   showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select', isStable: true,
+    // ── Identificación (auto-llenado desde selector de paciente — oculto en formulario) ──
+    { name: 'fullName',  type: 'text',   label: 'Nombre Completo', required: true,  isTitle: true,    showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'search', sortable: true, isStable: true, hideInForm: true },
+    { name: 'rut',       type: 'text',   label: 'RUT',             required: true,  isSubtitle: true, showInList: true,  showInDetail: true,  section: 'demographics', isStable: true, pattern: '^\\d{1,2}\\.?\\d{3}\\.?\\d{3}-[\\dkK]$', patternMessage: 'Formato: 12.345.678-9', hideInForm: true },
+    { name: 'age',       type: 'number', label: 'Edad',            required: false, displayOnly: true, showInList: true, showInDetail: true,  section: 'demographics', sortable: true, min: 0, max: 150, isStable: true },
+    { name: 'gender',    type: 'select', label: 'Sexo',            required: false, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, hideInForm: true,
       options: [{ value: 'male', label: 'Masculino' }, { value: 'female', label: 'Femenino' }, { value: 'other', label: 'Otro' }]
     },
-    { name: 'bloodType',   type: 'select', label: 'Grupo Sanguíneo',     required: false, isBadge: true,   showInList: true,  showInDetail: true,  section: 'demographics', isStable: true, lockWhenHasEncounters: true,
+    // ── Datos personales del paciente ─────────────────────────────────────
+    { name: 'birthDate',        type: 'date',   label: 'Fecha de Nacimiento', required: false, showInList: false, showInDetail: true, section: 'demographics', format: 'date', isStable: true },
+    { name: 'profession',       type: 'text',   label: 'Profesión',           required: false, showInList: false, showInDetail: true, section: 'demographics', isStable: true, hideInEncounterMode: true },
+    { name: 'bloodType',        type: 'select', label: 'Grupo Sanguíneo',     required: false, isBadge: true, showInList: true, showInDetail: true, section: 'demographics', isStable: true, lockWhenHasEncounters: true,
       options: [{ value: 'A+', label: 'A+' }, { value: 'A-', label: 'A-' }, { value: 'B+', label: 'B+' }, { value: 'B-', label: 'B-' }, { value: 'O+', label: 'O+' }, { value: 'O-', label: 'O-' }, { value: 'AB+', label: 'AB+' }, { value: 'AB-', label: 'AB-' }],
       badgeColors: { 'A+': '#ef4444', 'A-': '#f97316', 'B+': '#3b82f6', 'B-': '#6366f1', 'O+': '#10b981', 'O-': '#14b8a6', 'AB+': '#8b5cf6', 'AB-': '#ec4899' }
     },
-    { name: 'insurance',   type: 'select', label: 'Previsión',           required: false, lookupEntity: 'previsiones', lookupValueField: 'nombre', lookupLabelField: 'nombre', showInList: true, showInDetail: true, section: 'demographics', isStable: true },
-    { name: 'status',      type: 'select', label: 'Estado',              required: false, isBadge: true,   showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
-      hideInEncounterMode: true,
+    { name: 'insurance',        type: 'select', label: 'Previsión',           required: false, lookupEntity: 'previsiones', lookupValueField: 'nombre', lookupLabelField: 'nombre', showInList: true, showInDetail: true, section: 'demographics', isStable: true },
+    { name: 'phone',            type: 'tel',    label: 'Teléfono',            required: false, showInList: false, showInDetail: true, section: 'demographics', hideInEncounterMode: true },
+    { name: 'email',            type: 'email',  label: 'Email',               required: false, showInList: false, showInDetail: true, section: 'demographics', hideInEncounterMode: true },
+    { name: 'address',          type: 'text',   label: 'Dirección',           required: false, showInList: false, showInDetail: true, section: 'demographics', hideInEncounterMode: true },
+    { name: 'emergencyContact', type: 'text',   label: 'Contacto Emergencia', required: false, showInList: false, showInDetail: true, section: 'demographics', hideInEncounterMode: true },
+    // ── Campos administrativos (solo en detalle, no en formulario) ────────
+    { name: 'status',     type: 'select', label: 'Estado',        required: false, isBadge: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', hideInEncounterMode: true, hideInForm: true,
       options: [{ value: 'active', label: 'Activo' }, { value: 'inactive', label: 'Inactivo' }],
       badgeColors: { active: '#10b981', inactive: '#6b7280' }
     },
-    { name: 'phone',       type: 'tel',    label: 'Teléfono',            required: false, hideInEncounterMode: true, showInList: false, showInDetail: true,  section: 'demographics' },
-    { name: 'email',       type: 'email',  label: 'Email',               required: false, hideInEncounterMode: true, showInList: false, showInDetail: true,  section: 'demographics' },
-    { name: 'doctorName',  type: 'select', label: 'Médico Tratante',     required: false, hideInEncounterMode: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre', showInList: true, showInDetail: true, section: 'demographics' },
-    { name: 'lastVisit',   type: 'date',   label: 'Última Visita',       required: false, hideInEncounterMode: true, showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
+    { name: 'doctorName', type: 'select', label: 'Médico Tratante', required: false, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre', showInList: true, showInDetail: true, section: 'demographics', hideInEncounterMode: true, hideInForm: true },
+    { name: 'lastVisit',  type: 'date',   label: 'Última Visita',   required: false, showInList: true, showInDetail: true, section: 'demographics', sortable: true, format: 'date', hideInEncounterMode: true, hideInForm: true },
 
-    { name: 'address',         type: 'text',   label: 'Dirección',           required: false, hideInEncounterMode: true, showInList: false, showInDetail: true,  section: 'demographics' },
-    { name: 'emergencyContact', type: 'text',  label: 'Contacto Emergencia', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true,  section: 'demographics' },
+    // ── Alertas (solo editables en la ficha detalle, no en formulario de creación/edición) ──
+    { name: 'allergies',          type: 'tags',     label: 'Alergias',              required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts',     hideInForm: true },
+    { name: 'contraindications',  type: 'textarea', label: 'Contraindicaciones',    required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts',     hideInForm: true },
+    { name: 'alertNotes',         type: 'textarea', label: 'Notas de Alerta',       required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts',     hideInForm: true },
 
-    // ── Alertas ───────────────────────────────────────────────────────────
-    { name: 'allergies',          type: 'tags',     label: 'Alergias',              required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts' },
-    { name: 'contraindications',  type: 'textarea', label: 'Contraindicaciones',    required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts' },
-    { name: 'alertNotes',         type: 'textarea', label: 'Notas de Alerta',       required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts' },
+    // ── Signos vitales (contexto de atención médica) ──────────────────────
+    { name: 'bp',              type: 'text',   label: 'Presión Arterial',   required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', hideInForm: true },
+    { name: 'heartRate',       type: 'number', label: 'Frec. Cardíaca',     required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 300, hideInForm: true },
+    { name: 'temperature',     type: 'number', label: 'Temperatura',        required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 30, max: 45,  hideInForm: true },
+    { name: 'o2Saturation',    type: 'number', label: 'Saturación O₂',     required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 100,  hideInForm: true },
+    { name: 'weight',          type: 'number', label: 'Peso (kg)',          required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0,            hideInForm: true },
+    { name: 'height',          type: 'number', label: 'Talla (cm)',         required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0,            hideInForm: true },
+    { name: 'bmi',             type: 'number', label: 'IMC',                required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0,            hideInForm: true },
+    { name: 'respiratoryRate', type: 'number', label: 'Frec. Respiratoria', required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 60,   hideInForm: true },
 
-    // ── Signos vitales ────────────────────────────────────────────────────
-    { name: 'bp',              type: 'text',   label: 'Presión Arterial',    required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals' },
-    { name: 'heartRate',       type: 'number', label: 'Frec. Cardíaca',      required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 300 },
-    { name: 'temperature',     type: 'number', label: 'Temperatura',         required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 30, max: 45 },
-    { name: 'o2Saturation',    type: 'number', label: 'Saturación O₂',      required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 100 },
-    { name: 'weight',          type: 'number', label: 'Peso (kg)',           required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0 },
-    { name: 'height',          type: 'number', label: 'Talla (cm)',          required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0 },
-    { name: 'bmi',             type: 'number', label: 'IMC',                 required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0 },
-    { name: 'respiratoryRate', type: 'number', label: 'Frec. Respiratoria',  required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 60 },
+    // ── Antecedentes (contexto de atención médica) ────────────────────────
+    { name: 'personalHistory',  type: 'textarea', label: 'Antecedentes Personales', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'history', hideInForm: true },
+    { name: 'familyHistory',    type: 'textarea', label: 'Antecedentes Familiares', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'history', hideInForm: true },
+    { name: 'habits',           type: 'textarea', label: 'Hábitos',                 required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'history', hideInForm: true },
 
-    // ── Antecedentes ──────────────────────────────────────────────────────
-    { name: 'personalHistory',  type: 'textarea', label: 'Antecedentes Personales', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'history' },
-    { name: 'familyHistory',    type: 'textarea', label: 'Antecedentes Familiares', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'history' },
-    { name: 'habits',           type: 'textarea', label: 'Hábitos',                 required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'history' },
+    // ── Intervenciones quirúrgicas (contexto de atención médica) ─────────
+    { name: 'surgicalHistory',      type: 'textarea', label: 'Antecedentes Quirúrgicos',   required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'surgical', hideInForm: true },
+    { name: 'plannedInterventions', type: 'textarea', label: 'Intervenciones Programadas', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'surgical', hideInForm: true },
 
-    // ── Intervenciones quirúrgicas ────────────────────────────────────────
-    { name: 'surgicalHistory',      type: 'textarea', label: 'Antecedentes Quirúrgicos',   required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'surgical' },
-    { name: 'plannedInterventions', type: 'textarea', label: 'Intervenciones Programadas', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'surgical' },
+    // ── Medicación (contexto de atención médica) ──────────────────────────
+    { name: 'currentMedications', type: 'textarea', label: 'Medicación Actual',    required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'medications', isPrescription: true, hideInForm: true },
+    { name: 'chronicConditions',  type: 'tags',     label: 'Condiciones Crónicas', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'medications', hideInForm: true },
 
-    // ── Medicación ────────────────────────────────────────────────────────
-    { name: 'currentMedications', type: 'textarea', label: 'Medicación Actual',    required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'medications', isPrescription: true },
-    { name: 'chronicConditions',  type: 'tags',     label: 'Condiciones Crónicas', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'medications' },
+    // ── Diagnóstico (contexto de atención médica) ─────────────────────────
+    { name: 'diagnosisCode',  type: 'text',     label: 'Código CIE-10',           required: false, showInList: false, showInDetail: true, section: 'diagnosis', hideInEncounterMode: true, hideInForm: true },
+    { name: 'diagnosisLabel', type: 'text',     label: 'Diagnóstico Principal',   required: false, showInList: false, showInDetail: true, section: 'diagnosis', hideInForm: true },
+    { name: 'differentialDx', type: 'textarea', label: 'Diagnóstico Diferencial', required: false, showInList: false, showInDetail: true, section: 'diagnosis', hideInForm: true },
 
-    // ── Diagnóstico ───────────────────────────────────────────────────────
-    { name: 'diagnosisCode',  type: 'text',     label: 'Código CIE-10',            required: false, showInList: false, showInDetail: true, section: 'diagnosis', hideInEncounterMode: true },
-    { name: 'diagnosisLabel', type: 'text',     label: 'Diagnóstico Principal',    required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
-    { name: 'differentialDx', type: 'textarea', label: 'Diagnóstico Diferencial',  required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
-
-    // ── Nota SOAP ─────────────────────────────────────────────────────────
-    { name: 'soapSubjective', type: 'textarea', label: 'Subjetivo (S)',  required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapObjective',  type: 'textarea', label: 'Objetivo (O)',   required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapAssessment', type: 'textarea', label: 'Análisis (A)',   required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapPlan',       type: 'textarea', label: 'Plan (P)',       required: false, showInList: false, showInDetail: true, section: 'soap' },
+    // ── Nota SOAP (contexto de atención médica) ───────────────────────────
+    { name: 'soapSubjective', type: 'textarea', label: 'Subjetivo (S)', required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapObjective',  type: 'textarea', label: 'Objetivo (O)',  required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapAssessment', type: 'textarea', label: 'Análisis (A)',  required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapPlan',       type: 'textarea', label: 'Plan (P)',      required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
 
     // ── Historial de atenciones ───────────────────────────────────────────
     { name: 'encounters', type: 'object-list', label: 'Historial de Atenciones', required: false, showInList: false, showInDetail: true, section: 'encounters' }
@@ -1068,7 +1069,8 @@ export class AuthService {
   readonly token   = computed(() => this._state().token);
   readonly schemas = computed(() => this._state().schemas);
   readonly isAuthenticated = computed(() => this._state().authenticated);
-  readonly zkEnabled = computed(() => this._state().zkEnabled ?? false);
+  readonly zkEnabled    = computed(() => this._state().zkEnabled ?? false);
+  readonly isSuperAdmin = computed(() => this._state().user?.role === 'superadmin');
 
   constructor(private router: Router) {
     // Restore ZK state from session after all field initializers have run

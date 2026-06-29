@@ -144,6 +144,7 @@
             <input [id]="field.name" [type]="getInputType(field)" [formControlName]="field.name"
               [placeholder]="field.placeholder ?? field.patternMessage ?? ''"
               class="field-input" [class.invalid]="isInvalid(field.name)" />
+            <span class="field-hint" *ngIf="field.name === 'bmi'">Calculado automáticamente a partir del Peso y Talla</span>
             <span class="field-error" *ngIf="isInvalid(field.name)">{{ getError(field.name, field) }}</span>
           </div>
 

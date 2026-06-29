@@ -55,6 +55,7 @@ export const onboardingGuard: CanActivateFn = () => {
   const router       = inject(Router);
 
   const user = auth.user();
+  if (user?.role === 'superadmin') return true;
   if (user && onboarding.needsOnboarding(user.id)) {
     router.navigate(['/onboarding']);
     return false;

@@ -640,6 +640,7 @@ const ENTITY_CONFIG = {
         p.address,
         p.emergency_contact       AS "emergencyContact",
         c.insurance,
+        c.profession,
         c.allergies,
         c.contraindications,
         c.alert_notes             AS "alertNotes",
@@ -681,6 +682,7 @@ const ENTITY_CONFIG = {
       const cols = {};
       if (d.patientId            !== undefined) cols.patient_id             = d.patientId;
       if (d.insurance            !== undefined) cols.insurance              = d.insurance;
+      if (d.profession           !== undefined) cols.profession             = d.profession;
       if (d.allergies            !== undefined) cols.allergies              = JSON.stringify(d.allergies);
       if (d.contraindications    !== undefined) cols.contraindications      = d.contraindications;
       if (d.alertNotes           !== undefined) cols.alert_notes            = d.alertNotes;
@@ -739,6 +741,7 @@ const ENTITY_CONFIG = {
         doctorName:           r.doctor              ?? null,
         lastVisit:            r.lastVisit           ?? r.last_visit      ?? null,
         status:               r.status              ?? null,
+        profession:           r.profession          ?? null,
         bp:                   r.bp                  ?? null,
         heartRate:            (r.heartRate      ?? r.heart_rate)       != null ? parseInt(r.heartRate      ?? r.heart_rate)       : null,
         temperature:          (r.temperature)                           != null ? parseFloat(r.temperature)                        : null,
@@ -862,6 +865,94 @@ async function ensureLookupTables(client) {
     ('ISAPRE',5),('Particular',6),('Sin Previsión',7),('CAPREDENA',8),('DIPRECA',9)
     ON CONFLICT DO NOTHING`);
 
+  // Entity tables that the BFF references but are not auto-created elsewhere
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS professional (
+      id         SERIAL PRIMARY KEY,
+      name       TEXT NOT NULL,
+      specialty  TEXT,
+      rut        TEXT,
+      email      TEXT,
+      phone      TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    )`);
+
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS product (
+      id          SERIAL PRIMARY KEY,
+      name        TEXT NOT NULL,
+      sku         TEXT,
+      status      TEXT DEFAULT 'active',
+      price       NUMERIC(12,2),
+      stock       INTEGER DEFAULT 0,
+      weight      NUMERIC(8,3),
+      description TEXT,
+      tags        JSONB DEFAULT '[]',
+      category_id INTEGER REFERENCES category(id),
+      supplier_id INTEGER REFERENCES supplier(id),
+      created_at  TIMESTAMPTZ DEFAULT NOW(),
+      updated_at  TIMESTAMPTZ DEFAULT NOW()
+    )`);
+
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS presupuesto (
+      id               SERIAL PRIMARY KEY,
+      numero           TEXT,
+      patient_id       INTEGER REFERENCES patient(id),
+      professional_id  INTEGER REFERENCES professional(id),
+      patient_name     TEXT,
+      patient_rut      TEXT,
+      patient_phone    TEXT,
+      patient_email    TEXT,
+      doctor_name      TEXT,
+      specialty        TEXT,
+      fecha_emision    DATE,
+      fecha_vencimiento DATE,
+      prevision        TEXT DEFAULT 'particular',
+      coverage_percent NUMERIC(5,2) DEFAULT 0,
+      discount_global  NUMERIC(5,2) DEFAULT 0,
+      items            JSONB DEFAULT '[]',
+      notes            TEXT,
+      status           TEXT DEFAULT 'draft',
+      created_at       TIMESTAMPTZ DEFAULT NOW(),
+      updated_at       TIMESTAMPTZ DEFAULT NOW()
+    )`);
+
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS payment (
+      id                SERIAL PRIMARY KEY,
+      invoice_number    TEXT,
+      date              DATE,
+      concept           TEXT,
+      amount            NUMERIC(12,2),
+      payment_method    TEXT,
+      status            TEXT DEFAULT 'pending',
+      notes             TEXT,
+      commission_rate   NUMERIC(5,2),
+      commission_amount NUMERIC(12,2),
+      commission_status TEXT,
+      patient_id        INTEGER REFERENCES patient(id),
+      professional_id   INTEGER REFERENCES professional(id),
+      created_at        TIMESTAMPTZ DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ DEFAULT NOW()
+    )`);
+
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS user_config (
+      user_id    INTEGER PRIMARY KEY REFERENCES app_user(id),
+      zk_enabled BOOLEAN DEFAULT false,
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    )`);
+
+  await client.query(`
+    INSERT INTO app_schema (schema_key, singular, plural, module_type, icon)
+    VALUES ('user-management', 'Usuario', 'Gestion de Usuarios', 'admin', 'shield')
+    ON CONFLICT DO NOTHING`);
+
+  // Add profession column to clinical_record if it doesn't exist yet
+  await client.query(`ALTER TABLE clinical_record ADD COLUMN IF NOT EXISTS profession TEXT`);
+
   lookupTablesReady = true;
   log("INFO", "Lookup tables ready");
 }
@@ -893,19 +984,22 @@ async function handleUserConfig(userId, body) {
 // aliasKey: the original (un-resolved) entity key if different from entityKey,
 // so both 'clinical-records' and 'clinicalRecords' match the same app_schema row.
 async function authorizeRequest(client, userId, role, entityKey, method, aliasKey = null) {
-  const { rows } = await client.query(
-    `SELECT 1
-     FROM   user_schema us
-     JOIN   app_schema  s ON s.id = us.schema_id
-     WHERE  us.user_id   = $1
-       AND  (s.schema_key = $2 OR ($3::text IS NOT NULL AND s.schema_key = $3))
-     LIMIT  1`,
-    [userId, entityKey, aliasKey]
-  );
+  // admin and superadmin have access to all modules — skip per-module schema check
+  if (role !== 'admin' && role !== 'superadmin') {
+    const { rows } = await client.query(
+      `SELECT 1
+       FROM   user_schema us
+       JOIN   app_schema  s ON s.id = us.schema_id
+       WHERE  us.user_id   = $1
+         AND  (s.schema_key = $2 OR ($3::text IS NOT NULL AND s.schema_key = $3))
+       LIMIT  1`,
+      [userId, entityKey, aliasKey]
+    );
 
-  if (rows.length === 0) {
-    log("WARN", "Schema access denied", { userId, entityKey });
-    return { allowed: false, status: 403, message: "No tienes acceso a este módulo" };
+    if (rows.length === 0) {
+      log("WARN", "Schema access denied", { userId, entityKey });
+      return { allowed: false, status: 403, message: "No tienes acceso a este módulo" };
+    }
   }
 
   const WRITE_METHODS = new Set(["POST", "PUT", "DELETE"]);
@@ -989,8 +1083,9 @@ export const handler = async (event, context) => {
     return response(401, { message: "Token inválido o expirado" });
   }
 
+  const rawPath = rawPathEarly;
+
   // ── PATCH /api/user/config ────────────────────────────────────────────────
-  const rawPath = event.rawPath || event.path || "";
   if (rawPath === "/api/user/config") {
     if (method !== "PATCH") return response(405, { message: "Método no permitido" });
     let cfgBody = null;

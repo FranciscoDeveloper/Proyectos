@@ -31,3 +31,6 @@ sm-shop/src/main/resources/database.properties
 .DS_Store
 
 .mvnw/*.jar
+
+# Credenciales de prueba — nunca commitear
+CREDENTIALS.md

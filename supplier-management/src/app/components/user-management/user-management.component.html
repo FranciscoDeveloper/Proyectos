@@ -1,0 +1,129 @@
+<div class="admin-page">
+  <div class="admin-header">
+    <h1><span class="icon">🛡️</span> Administración de Usuarios</h1>
+    <button class="btn-refresh" (click)="loadUsers()" [disabled]="loading()">
+      {{ loading() ? 'Cargando...' : 'Actualizar' }}
+    </button>
+  </div>
+
+  <div class="error-banner" *ngIf="error()">
+    {{ error() }}
+    <button (click)="error.set(null)">✕</button>
+  </div>
+
+  <div class="loading-state" *ngIf="loading()">
+    Cargando usuarios...
+  </div>
+
+  <!-- Users table -->
+  <div class="table-wrapper" *ngIf="!loading()">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Módulos asignados</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users()" [class.self-row]="isSelf(user.id)">
+          <td class="user-cell">
+            <span class="avatar">{{ user.avatar }}</span>
+            <div class="user-info">
+              <span class="name">{{ user.name }}</span>
+              <span class="email">{{ user.email }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="badge role-badge" [class]="'role-' + user.role">{{ user.role }}</span>
+          </td>
+          <td>
+            <span class="badge status-badge" [class.active]="user.emailVerified" [class.inactive]="!user.emailVerified">
+              {{ user.emailVerified ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="schemas-cell">
+            <span class="schema-tag" *ngFor="let s of user.schemas">{{ s }}</span>
+            <span class="no-schemas" *ngIf="user.schemas.length === 0">Sin módulos</span>
+          </td>
+          <td class="actions-cell">
+            <button
+              class="btn-action btn-toggle"
+              (click)="toggleStatus(user)"
+              [disabled]="togglingId() === user.id || isSelf(user.id)"
+              [title]="isSelf(user.id) ? 'No puedes desactivar tu propia cuenta' : (user.emailVerified ? 'Desactivar cuenta' : 'Activar cuenta')"
+            >
+              {{ user.emailVerified ? '⛔ Desactivar' : '✅ Activar' }}
+            </button>
+            <button class="btn-action btn-schemas" (click)="openSchemas(user)" title="Gestionar módulos">
+              🧩 Módulos
+            </button>
+            <button
+              class="btn-action btn-password"
+              (click)="openPassword(user)"
+              [disabled]="isSelf(user.id)"
+              [title]="isSelf(user.id) ? 'Usa el perfil para cambiar tu propia contraseña' : 'Cambiar contraseña'"
+            >
+              🔑 Contraseña
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Schema editor panel -->
+<div class="modal-overlay" *ngIf="editingSchemas()" (click)="closeSchemas()">
+  <div class="modal-panel" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Módulos de {{ editingSchemas()?.name }}</h2>
+      <button class="close-btn" (click)="closeSchemas()">✕</button>
+    </div>
+    <div class="schema-grid">
+      <label class="schema-checkbox" *ngFor="let key of ALL_SCHEMAS">
+        <input
+          type="checkbox"
+          [checked]="selectedSchemas().has(key)"
+          (change)="toggleSchema(key)"
+        />
+        <span class="schema-label">{{ key }}</span>
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeSchemas()">Cancelar</button>
+      <button class="btn-save" (click)="saveSchemas()" [disabled]="savingSchemas()">
+        {{ savingSchemas() ? 'Guardando...' : 'Guardar módulos' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Password change panel -->
+<div class="modal-overlay" *ngIf="editingPassword()" (click)="closePassword()">
+  <div class="modal-panel modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Cambiar contraseña</h2>
+      <button class="close-btn" (click)="closePassword()">✕</button>
+    </div>
+    <p class="modal-subtitle">Usuario: <strong>{{ editingPassword()?.email }}</strong></p>
+    <div class="password-field">
+      <label>Nueva contraseña</label>
+      <input
+        type="password"
+        placeholder="Mínimo 8 caracteres"
+        [ngModel]="newPassword()"
+        (ngModelChange)="newPassword.set($event)"
+      />
+      <span class="field-error" *ngIf="passwordError()">{{ passwordError() }}</span>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closePassword()">Cancelar</button>
+      <button class="btn-save" (click)="savePassword()" [disabled]="savingPassword()">
+        {{ savingPassword() ? 'Guardando...' : 'Cambiar contraseña' }}
+      </button>
+    </div>
+  </div>
+</div>

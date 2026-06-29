@@ -133,6 +133,12 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () =>
           import('./components/presupuestos/presupuestos.component').then(m => m.PresupuestosComponent)
+      },
+      {
+        path: 'admin',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./components/user-management/user-management.component').then(m => m.UserManagementComponent)
       }
     ]
   },

@@ -389,8 +389,8 @@
 
         <!-- Encounter card — clickable to expand detail -->
         <div class="enc-card card"
-             [class.enc-card--expanded]="expandedEncounterId() === enc['id']"
-             (click)="toggleEncounterDetail(enc['id'])">
+             [class.enc-card--expanded]="expandedEncounterIdx() === i"
+             (click)="toggleEncounterDetail(i)">
 
           <!-- Header: date · doctor · encounter number · toggle arrow -->
           <div class="enc-header">
@@ -410,8 +410,8 @@
             </span>
             <span class="enc-index">#{{ encounterHistory().length - i }}</span>
             <svg class="enc-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polyline *ngIf="expandedEncounterId() !== enc['id']" points="6 9 12 15 18 9"/>
-              <polyline *ngIf="expandedEncounterId() === enc['id']" points="18 15 12 9 6 15"/>
+              <polyline *ngIf="expandedEncounterIdx() !== i" points="6 9 12 15 18 9"/>
+              <polyline *ngIf="expandedEncounterIdx() === i" points="18 15 12 9 6 15"/>
             </svg>
           </div>
 
@@ -422,7 +422,7 @@
           </div>
 
           <!-- Expanded: all clinical fields -->
-          <div class="enc-detail" *ngIf="expandedEncounterId() === enc['id']">
+          <div class="enc-detail" *ngIf="expandedEncounterIdx() === i">
             <div class="enc-fields" *ngIf="encounterClinicalEntries(enc).length > 0; else noDetail">
               <ng-container *ngFor="let entry of encounterClinicalEntries(enc)">
                 <div class="enc-field">

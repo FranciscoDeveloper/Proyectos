@@ -72,7 +72,7 @@ export class ShellComponent {
     return [
       { label: 'Dashboard',     icon: 'grid',         route: '/app/dashboard'     },
       ...schemas
-        .filter(s => s.entity.moduleType !== 'presupuestos')
+        .filter(s => s.entity.moduleType !== 'presupuestos' && s.entity.key !== 'reports')
         .map(s => ({
           label: s.entity.plural,
           icon: s.entity.icon,
@@ -82,11 +82,12 @@ export class ShellComponent {
               ? '/app/clinical/' + s.entity.key
               : '/app/entity/' + s.entity.key
         })),
-      ...(hasRecords     ? [{ label: 'Reportes',      icon: 'bar-chart',    route: '/app/reports'       }] : []),
+      ...((hasRecords || schemas.some(s => s.entity.key === 'reports')) ? [{ label: 'Reportes', icon: 'bar-chart', route: '/app/reports' }] : []),
       ...(hasPayments    ? [{ label: 'Comisiones',    icon: 'dollar-sign',  route: '/app/commissions'   }] : []),
       ...(hasBudgets     ? [{ label: 'Presupuestos',  icon: 'file-text',    route: '/app/presupuestos'  }] : []),
       ...(hasImportable  ? [{ label: 'Importar',      icon: 'upload',       route: '/app/import'        }] : []),
-      { label: 'Chat',          icon: 'chat',         route: '/app/chat'          }
+      { label: 'Chat',          icon: 'chat',         route: '/app/chat'          },
+      ...(this.auth.isSuperAdmin() ? [{ label: 'Administración', icon: 'shield', route: '/app/admin' }] : [])
     ];
   });
 }

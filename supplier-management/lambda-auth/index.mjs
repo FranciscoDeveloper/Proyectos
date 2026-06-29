@@ -157,6 +157,26 @@ export const handler = async (event) => {
   const rawPath = (event.rawPath || event.path || "/");
 
   if (method === "OPTIONS") return response(204, {});
+
+  // ── Admin routes (GET + PUT, require superadmin JWT) ─────────────────────
+  if (rawPath.startsWith("/api/admin/")) {
+    const authHeader = event.headers?.["authorization"] || event.headers?.["Authorization"] || "";
+    if (!authHeader.startsWith("Bearer "))
+      return response(401, { message: "Token de autenticación requerido" });
+    let tokenPayload;
+    try { tokenPayload = jwt.verify(authHeader.slice(7), JWT_SECRET); }
+    catch { return response(401, { message: "Token inválido o expirado" }); }
+    if (tokenPayload.role !== "superadmin")
+      return response(403, { message: "Acceso restringido a administradores del sistema" });
+
+    let body = null;
+    if (event.body) {
+      try { body = typeof event.body === "string" ? JSON.parse(event.body) : event.body; }
+      catch { return response(400, { message: "Body inválido" }); }
+    }
+    return handleAdminRequest(rawPath, method, body);
+  }
+
   if (method !== "POST")    return response(405, { message: "Método no permitido" });
 
   let body;
@@ -304,7 +324,7 @@ async function handleRegister(body) {
       `INSERT INTO user_schema (user_id, schema_id)
        SELECT $1, s.id FROM app_schema s
        WHERE s.schema_key = ANY($2::text[])`,
-      [userId, ['clinicalRecords', 'appointments', 'patients']]
+      [userId, ['clinicalRecords', 'appointments', 'reports']]
     );
 
     // Build email content — frontend sends it via /api/send-email (internet-accessible)
@@ -425,6 +445,117 @@ function buildActivationEmail({ name, email, activationUrl }) {
   return { to: email, subject: "Activa tu cuenta Dairi", html, text };
 }
 
+// ── Admin: gestión de usuarios (solo superadmin) ──────────────────────────────
+async function handleAdminRequest(rawPath, method, body) {
+  // GET /api/admin/users — list all users with their assigned schemas
+  if (rawPath.endsWith("/admin/users") && method === "GET") {
+    let client;
+    try {
+      client = await pool.connect();
+      await ensureColumns(client);
+      const result = await client.query(`
+        SELECT
+          u.id, u.name, u.email, u.role, u.avatar,
+          u.email_verified AS "emailVerified",
+          COALESCE(u.created_at::text, NULL) AS "createdAt",
+          COALESCE(
+            json_agg(s.schema_key ORDER BY s.id) FILTER (WHERE s.id IS NOT NULL),
+            '[]'
+          ) AS schemas
+        FROM app_user u
+        LEFT JOIN user_schema us ON us.user_id = u.id
+        LEFT JOIN app_schema  s  ON s.id = us.schema_id
+        GROUP BY u.id
+        ORDER BY u.id
+      `);
+      return response(200, result.rows);
+    } catch (err) {
+      console.error("Admin list users error:", err);
+      return response(500, { message: "Error interno del servidor" });
+    } finally { client?.release(); }
+  }
+
+  // /api/admin/users/:id/:action
+  const match = rawPath.match(/\/admin\/users\/(\d+)\/(status|password|schemas)$/);
+  if (!match) return response(404, { message: "Ruta no encontrada" });
+  const userId = parseInt(match[1], 10);
+  const action = match[2];
+
+  // PUT /api/admin/users/:id/status → { active: true|false }
+  if (action === "status" && method === "PUT") {
+    if (typeof body?.active !== "boolean")
+      return response(400, { message: "Campo 'active' requerido (boolean)" });
+    let client;
+    try {
+      client = await pool.connect();
+      const r = await client.query(
+        `UPDATE app_user SET email_verified = $1 WHERE id = $2
+         RETURNING id, email, email_verified AS "emailVerified"`,
+        [body.active, userId]
+      );
+      if (r.rowCount === 0) return response(404, { message: "Usuario no encontrado" });
+      return response(200, r.rows[0]);
+    } catch (err) {
+      console.error("Admin status error:", err);
+      return response(500, { message: "Error interno del servidor" });
+    } finally { client?.release(); }
+  }
+
+  // PUT /api/admin/users/:id/password → { password: "..." }
+  if (action === "password" && method === "PUT") {
+    const newPass = body?.password;
+    if (!newPass || newPass.length < 8)
+      return response(400, { message: "La contraseña debe tener al menos 8 caracteres" });
+    const hash = await bcrypt.hash(newPass, 12);
+    let client;
+    try {
+      client = await pool.connect();
+      const r = await client.query(
+        `UPDATE app_user SET password = $1 WHERE id = $2 RETURNING id, email`,
+        [hash, userId]
+      );
+      if (r.rowCount === 0) return response(404, { message: "Usuario no encontrado" });
+      return response(200, { message: "Contraseña actualizada", id: r.rows[0].id });
+    } catch (err) {
+      console.error("Admin password error:", err);
+      return response(500, { message: "Error interno del servidor" });
+    } finally { client?.release(); }
+  }
+
+  // PUT /api/admin/users/:id/schemas → { schemaKeys: ["clinicalRecords", ...] }
+  if (action === "schemas" && method === "PUT") {
+    const keys = body?.schemaKeys;
+    if (!Array.isArray(keys)) return response(400, { message: "Campo 'schemaKeys' requerido (array)" });
+    let client;
+    try {
+      client = await pool.connect();
+      await client.query("BEGIN");
+      await client.query(`DELETE FROM user_schema WHERE user_id = $1`, [userId]);
+      if (keys.length > 0) {
+        await client.query(
+          `INSERT INTO user_schema (user_id, schema_id)
+           SELECT $1, s.id FROM app_schema s WHERE s.schema_key = ANY($2::text[])`,
+          [userId, keys]
+        );
+      }
+      await client.query("COMMIT");
+      const updated = await client.query(
+        `SELECT s.schema_key FROM user_schema us
+         JOIN app_schema s ON s.id = us.schema_id
+         WHERE us.user_id = $1 ORDER BY s.id`,
+        [userId]
+      );
+      return response(200, { id: userId, schemas: updated.rows.map(r => r.schema_key) });
+    } catch (err) {
+      console.error("Admin schemas error:", err);
+      try { client?.query("ROLLBACK"); } catch {}
+      return response(500, { message: "Error interno del servidor" });
+    } finally { client?.release(); }
+  }
+
+  return response(405, { message: "Método no permitido" });
+}
+
 // ── Helper ────────────────────────────────────────────────────────────────────
 function response(statusCode, body) {
   return {
@@ -433,7 +564,7 @@ function response(statusCode, body) {
       "Content-Type":                 "application/json",
       "Access-Control-Allow-Origin":  "*",
       "Access-Control-Allow-Headers": "Content-Type,Authorization",
-      "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+      "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
     },
     body: JSON.stringify(body),
   };

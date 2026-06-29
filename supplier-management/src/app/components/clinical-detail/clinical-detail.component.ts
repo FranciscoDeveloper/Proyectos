@@ -560,31 +560,23 @@ export class ClinicalDetailComponent {
     this.crudSvc.update(this.entityKey, this.id, { periodontogram: data });
   }
 
-  /** Each DB clinical_record row = one encounter. History = all records for same patient. */
+  /** Reads encounter history from the JSONB encounters array on the clinical record. */
   readonly encounterHistory = computed<Record<string, any>[]>(() => {
     const r = this.record();
     if (!r) return [];
-
-    const allRecords = this.crudSvc.getAll(this.entityKey)();
-    const patRut  = String(r['rut']      ?? '').trim();
-    const patName = String(r['fullName'] ?? '').trim();
-
-    return allRecords
-      .filter(rec => {
-        if (patRut) return String(rec['rut'] ?? '').trim() === patRut;
-        return String(rec['fullName'] ?? '').trim() === patName;
-      })
-      .sort((a, b) => {
-        const da = String(a['lastVisit'] ?? a['encounterDate'] ?? a['date'] ?? '');
-        const db = String(b['lastVisit'] ?? b['encounterDate'] ?? b['date'] ?? '');
-        return db.localeCompare(da);
-      });
+    const enc = r['encounters'];
+    const arr: Record<string, any>[] = Array.isArray(enc) ? [...enc] : [];
+    return arr.sort((a, b) => {
+      const da = String(a['encounterDate'] ?? a['lastVisit'] ?? a['date'] ?? '');
+      const db = String(b['encounterDate'] ?? b['lastVisit'] ?? b['date'] ?? '');
+      return db.localeCompare(da);
+    });
   });
 
-  expandedEncounterId = signal<number | null>(null);
+  expandedEncounterIdx = signal<number | null>(null);
 
-  toggleEncounterDetail(id: number): void {
-    this.expandedEncounterId.update(cur => (cur === id ? null : id));
+  toggleEncounterDetail(idx: number): void {
+    this.expandedEncounterIdx.update(cur => (cur === idx ? null : idx));
   }
 
   encDate(enc: Record<string, any>): string {

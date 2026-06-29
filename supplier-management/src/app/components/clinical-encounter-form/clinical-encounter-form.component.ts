@@ -139,6 +139,22 @@ export class ClinicalEncounterFormComponent implements OnInit {
 
     group['encounterDate'] = [new Date().toISOString().slice(0, 10), [Validators.required]];
     this.form = this.fb.group(group);
+
+    // BMI is auto-calculated from weight and height — disable editing
+    if (this.form.get('bmi')) {
+      this.form.get('bmi')!.disable({ emitEvent: false });
+      this.form.get('weight')?.valueChanges.subscribe(() => this.recalcBmi());
+      this.form.get('height')?.valueChanges.subscribe(() => this.recalcBmi());
+    }
+  }
+
+  private recalcBmi(): void {
+    const weight = parseFloat(this.form.get('weight')?.value);
+    const height = parseFloat(this.form.get('height')?.value);
+    if (weight > 0 && height > 0) {
+      const bmi = Math.round((weight / Math.pow(height / 100, 2)) * 10) / 10;
+      this.form.get('bmi')?.setValue(bmi, { emitEvent: false });
+    }
   }
 
   ctrl(name: string): AbstractControl { return this.form.get(name)!; }
