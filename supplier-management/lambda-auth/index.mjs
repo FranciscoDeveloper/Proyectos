@@ -225,13 +225,18 @@ async function handleLogin(body) {
     if (!user.email_verified)
       return response(403, { message: "Debes activar tu cuenta. Revisa tu correo y haz clic en el enlace de activación." });
 
-    const schemasResult = await client.query(
-      `SELECT s.schema_key AS "schemaKey", s.singular, s.plural, s.icon, s.module_type AS "moduleType"
-       FROM app_schema s
-       INNER JOIN user_schema us ON us.schema_id = s.id
-       WHERE us.user_id = $1 ORDER BY s.id`,
-      [user.id]
-    );
+    const schemasResult = user.role === 'superadmin'
+      ? await client.query(
+          `SELECT schema_key AS "schemaKey", singular, plural, icon, module_type AS "moduleType"
+           FROM app_schema ORDER BY id`
+        )
+      : await client.query(
+          `SELECT s.schema_key AS "schemaKey", s.singular, s.plural, s.icon, s.module_type AS "moduleType"
+           FROM app_schema s
+           INNER JOIN user_schema us ON us.schema_id = s.id
+           WHERE us.user_id = $1 ORDER BY s.id`,
+          [user.id]
+        );
 
     const schemas = schemasResult.rows.map((s) => ({
       entity: { key: s.schemaKey, singular: s.singular, plural: s.plural, icon: s.icon, moduleType: s.moduleType },
