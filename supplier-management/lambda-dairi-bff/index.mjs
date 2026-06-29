@@ -866,6 +866,26 @@ async function ensureLookupTables(client) {
     ON CONFLICT DO NOTHING`);
 
   // Entity tables that the BFF references but are not auto-created elsewhere
+
+  // patient: master registry; FK target for clinical_record, appointment, presupuesto, payment
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS patient (
+      id                SERIAL PRIMARY KEY,
+      name              TEXT,
+      rut               TEXT,
+      birth_date        DATE,
+      gender            TEXT,
+      email             TEXT,
+      phone             TEXT,
+      address           TEXT,
+      blood_type        TEXT,
+      emergency_contact TEXT,
+      notes             TEXT,
+      prevision_id      INTEGER,
+      created_at        TIMESTAMPTZ DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ DEFAULT NOW()
+    )`);
+
   await client.query(`
     CREATE TABLE IF NOT EXISTS professional (
       id         SERIAL PRIMARY KEY,

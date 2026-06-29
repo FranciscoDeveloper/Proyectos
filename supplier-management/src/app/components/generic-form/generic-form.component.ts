@@ -118,13 +118,16 @@ export class GenericFormComponent implements OnInit {
 
     fields.forEach(f => {
       const validators = [];
-      if (f.required) validators.push(Validators.required);
-      if (f.type === 'email') validators.push(Validators.email);
-      if (f.pattern) validators.push(Validators.pattern(f.pattern));
-      if (f.minLength) validators.push(Validators.minLength(f.minLength));
-      if (f.maxLength) validators.push(Validators.maxLength(f.maxLength));
-      if (f.min !== undefined && f.type === 'number') validators.push(Validators.min(f.min));
-      if (f.max !== undefined && f.type === 'number') validators.push(Validators.max(f.max));
+      // hideInForm fields are auto-filled by linkedFields — skip user-facing validators
+      if (!f.hideInForm) {
+        if (f.required) validators.push(Validators.required);
+        if (f.type === 'email') validators.push(Validators.email);
+        if (f.pattern) validators.push(Validators.pattern(f.pattern));
+        if (f.minLength) validators.push(Validators.minLength(f.minLength));
+        if (f.maxLength) validators.push(Validators.maxLength(f.maxLength));
+        if (f.min !== undefined && f.type === 'number') validators.push(Validators.min(f.min));
+        if (f.max !== undefined && f.type === 'number') validators.push(Validators.max(f.max));
+      }
 
       let defaultVal: any = '';
       if (f.type === 'number') defaultVal = f.min ?? 0;
