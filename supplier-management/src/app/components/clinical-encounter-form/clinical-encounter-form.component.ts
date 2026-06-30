@@ -273,6 +273,21 @@ export class ClinicalEncounterFormComponent implements OnInit {
     this.saveError.set(null);
     const raw = this.form.getRawValue();
 
+    // Persist background fields to the clinical record top-level columns so the
+    // detail view reflects changes even when "Guardar Antecedentes" was not clicked.
+    const backgroundData: Record<string, any> = {};
+    this.backgroundFields().forEach(f => {
+      const v = raw[f.name];
+      if (v !== undefined && v !== null) {
+        backgroundData[f.name] = f.type === 'tags'
+          ? String(v).split(',').map((s: string) => s.trim()).filter(Boolean)
+          : v;
+      }
+    });
+    if (Object.keys(backgroundData).length > 0) {
+      this.crudSvc.update(this.entityKey(), this.recordId()!, backgroundData);
+    }
+
     const encounter: Record<string, any> = { encounterDate: raw['encounterDate'], status: 'active' };
     this.schema()!.fields
       .filter(f =>
