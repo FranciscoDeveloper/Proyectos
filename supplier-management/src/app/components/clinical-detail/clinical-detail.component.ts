@@ -378,7 +378,7 @@ export class ClinicalDetailComponent {
   readonly isDentalRecord = computed(() => this.specialty() === 'dental');
 
   readonly breadcrumbLabel = computed(() =>
-    this.schema?.entity.plural ?? 'Fichas Clínicas'
+    this.schema?.entity.plural ?? 'Pacientes'
   );
 
   readonly vitalsSectionTitle = computed(() => {
@@ -469,7 +469,7 @@ export class ClinicalDetailComponent {
       case 'ot':        return 'Ficha T.O.';
       case 'midwife':   return 'Ficha Obstétrica';
       case 'medtech':   return 'Ficha Tecnomédica';
-      default:          return 'Ficha Clínica';
+      default:          return 'Paciente';
     }
   });
 

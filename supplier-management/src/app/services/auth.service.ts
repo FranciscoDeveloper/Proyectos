@@ -132,8 +132,8 @@ const SCHEMA_PACIENTE: EntitySchema = {
 export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
   entity: {
     key: 'clinical-records',
-    singular: 'Ficha Clínica',
-    plural: 'Fichas Clínicas',
+    singular: 'Paciente',
+    plural: 'Pacientes',
     icon: 'clipboard',
     moduleType: 'clinical-record',
     description: 'Fichas clínicas y registros médicos de pacientes'
