@@ -165,7 +165,7 @@
       </div>
 
       <!-- Botón de guardado para Antecedentes (aparece al cerrar la última sección background) -->
-      <div class="section-save-row" *ngIf="grp.section === 'medications'">
+      <div class="section-save-row" *ngIf="grp.section === 'alerts'">
         <button type="button" class="btn-section-save" (click)="saveBackground()" [disabled]="savingBackground()">
           <svg *ngIf="!savingBackground()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>

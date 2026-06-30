@@ -47,7 +47,7 @@ export class ClinicalEncounterFormComponent implements OnInit {
    * se editan en la ficha principal, no aquí.
    */
   private static readonly ENCOUNTER_SECTIONS    = new Set(['vitals', 'diagnosis', 'soap']);
-  private static readonly BACKGROUND_SECTIONS  = new Set(['history', 'surgical', 'medications']);
+  private static readonly BACKGROUND_SECTIONS  = new Set(['history', 'surgical', 'medications', 'alerts']);
 
   editableFields = computed(() => {
     const fields = this.schema()?.fields ?? [];
@@ -75,6 +75,7 @@ export class ClinicalEncounterFormComponent implements OnInit {
     history:      'Antecedentes',
     surgical:     'Intervenciones Quirúrgicas',
     medications:  'Medicación',
+    alerts:       'Alertas Clínicas',
   };
 
   /** Fields grouped by section, preserving schema order. */
