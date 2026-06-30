@@ -207,6 +207,7 @@
         <p *ngIf="recorder.state() === 'done'" class="rec-success">✓ Audio guardado</p>
         <p *ngIf="recorder.error()" class="rec-error">{{ recorder.error() }}</p>
 
+        <div *ngIf="saveError()" class="save-error-banner">{{ saveError() }}</div>
         <button type="button" class="btn-ghost" (click)="cancel()">Cancelar</button>
         <button type="submit" class="btn-primary"
                 [disabled]="saving() || recorder.state() === 'done'"

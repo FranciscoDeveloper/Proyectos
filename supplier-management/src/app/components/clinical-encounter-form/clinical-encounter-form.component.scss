@@ -383,6 +383,16 @@
   animation: rec-blink 1s step-start infinite;
 }
 
+.save-error-banner {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
 .rec-error {
   font-size: 11px;
   color: #b91c1c;

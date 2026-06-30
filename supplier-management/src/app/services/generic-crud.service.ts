@@ -1,5 +1,6 @@
 import { Injectable, inject, signal, WritableSignal, Signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable, from, switchMap } from 'rxjs';
 import { CryptoService } from './crypto.service';
 
 @Injectable({ providedIn: 'root' })
@@ -78,17 +79,18 @@ export class GenericCrudService {
     });
   }
 
-  appendEncounter(key: string, id: number, encounter: Record<string, any>): void {
-    this.crypto.encryptRecord(encounter, key).then(encryptedEnc => {
-      this.http.post<Record<string, any>>(`/api/entities/${key}/${id}/encounters`, encryptedEnc).subscribe({
-        next: async updated => {
-          const decrypted = await this.crypto.decryptRecord(updated, key);
-          this.stores.get(key)?.update(
-            list => list.map(item => item['id'] === id ? decrypted : item)
-          );
-        }
-      });
-    });
+  appendEncounter(key: string, id: number, encounter: Record<string, any>): Observable<Record<string, any>> {
+    return from(this.crypto.encryptRecord(encounter, key)).pipe(
+      switchMap(encryptedEnc =>
+        this.http.post<Record<string, any>>(`/api/entities/${key}/${id}/encounters`, encryptedEnc)
+      )
+    );
+  }
+
+  async decryptAndUpdate(key: string, id: number, updated: Record<string, any>): Promise<Record<string, any>> {
+    const decrypted = await this.crypto.decryptRecord(updated, key);
+    this.stores.get(key)?.update(list => list.map(item => item['id'] === id ? decrypted : item));
+    return decrypted;
   }
 
   delete(key: string, id: number): void {

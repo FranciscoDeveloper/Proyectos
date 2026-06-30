@@ -29,6 +29,7 @@ export class ClinicalEncounterFormComponent implements OnInit {
   recordId  = signal<number | null>(null);
   saving    = signal(false);
   saved     = signal(false);
+  saveError = signal<string | null>(null);
 
   savingVitals    = signal(false);
   savedVitals     = signal(false);
@@ -230,27 +231,34 @@ export class ClinicalEncounterFormComponent implements OnInit {
     if (this.form.invalid) return;
 
     this.saving.set(true);
+    this.saveError.set(null);
     const raw = this.form.getRawValue();
 
-    setTimeout(() => {
-      const encounter: Record<string, any> = { encounterDate: raw['encounterDate'], status: 'active' };
-      this.schema()!.fields
-        .filter(f =>
-          !f.isStable &&
-          f.type !== 'object-list' && f.type !== 'dental-chart' && f.type !== 'periodontal-chart'
-        )
-        .forEach(f => {
-          const v = raw[f.name];
-          if (v !== undefined && v !== '' && v !== null) {
-            encounter[f.name] = (f.type === 'number' || f.type === 'range') ? Number(v) : v;
-          }
-        });
+    const encounter: Record<string, any> = { encounterDate: raw['encounterDate'], status: 'active' };
+    this.schema()!.fields
+      .filter(f =>
+        !f.isStable &&
+        f.type !== 'object-list' && f.type !== 'dental-chart' && f.type !== 'periodontal-chart'
+      )
+      .forEach(f => {
+        const v = raw[f.name];
+        if (v !== undefined && v !== '' && v !== null) {
+          encounter[f.name] = (f.type === 'number' || f.type === 'range') ? Number(v) : v;
+        }
+      });
 
-      this.crudSvc.appendEncounter(this.entityKey(), this.recordId()!, encounter);
-      this.saving.set(false);
-      this.saved.set(true);
-      setTimeout(() => this.router.navigate(['/app/clinical', this.entityKey(), this.recordId()]), 800);
-    }, 400);
+    this.crudSvc.appendEncounter(this.entityKey(), this.recordId()!, encounter).subscribe({
+      next: async updated => {
+        const decrypted = await this.crudSvc.decryptAndUpdate(this.entityKey(), this.recordId()!, updated);
+        this.saving.set(false);
+        this.saved.set(true);
+        setTimeout(() => this.router.navigate(['/app/clinical', this.entityKey(), this.recordId()]), 800);
+      },
+      error: err => {
+        this.saving.set(false);
+        this.saveError.set(err?.error?.message ?? 'Error al registrar la atención. Intenta de nuevo.');
+      }
+    });
   }
 
   cancel() {
