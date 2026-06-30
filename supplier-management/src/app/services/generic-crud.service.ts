@@ -2,12 +2,14 @@ import { Injectable, inject, signal, WritableSignal, Signal } from '@angular/cor
 import { HttpClient } from '@angular/common/http';
 import { SchemaService } from './schema.service';
 import { CryptoService } from './crypto.service';
+import { SignatureService } from './signature.service';
 
 @Injectable({ providedIn: 'root' })
 export class GenericCrudService {
   private http          = inject(HttpClient);
   private schemaService = inject(SchemaService);
   private crypto        = inject(CryptoService);
+  private signature     = inject(SignatureService);
 
   private stores  = new Map<string, WritableSignal<Record<string, any>[]>>();
   private loading = new Set<string>();
@@ -49,8 +51,12 @@ export class GenericCrudService {
   // ── Mutations ─────────────────────────────────────────────────────────────
 
   create(key: string, data: Record<string, any>): void {
-    this.crypto.encryptRecord(data, key).then(encrypted => {
-      this.http.post<Record<string, any>>(`/api/entities/${key}`, encrypted).subscribe({
+    Promise.all([
+      this.crypto.encryptRecord(data, key),
+      this.signature.signRecord(key, data),
+    ]).then(([encrypted, sig]) => {
+      const payload = { ...encrypted, ...sig };
+      this.http.post<Record<string, any>>(`/api/entities/${key}`, payload).subscribe({
         next: async created => {
           const decrypted = await this.crypto.decryptRecord(created, key);
           this.stores.get(key)?.update(list => [...list, decrypted]);
@@ -69,8 +75,12 @@ export class GenericCrudService {
       );
     }
 
-    this.crypto.encryptRecord(data, key).then(encrypted => {
-      this.http.put<Record<string, any>>(`/api/entities/${key}/${id}`, encrypted).subscribe({
+    Promise.all([
+      this.crypto.encryptRecord(data, key),
+      this.signature.signRecord(key, data),
+    ]).then(([encrypted, sig]) => {
+      const payload = { ...encrypted, ...sig };
+      this.http.put<Record<string, any>>(`/api/entities/${key}/${id}`, payload).subscribe({
         next: async updated => {
           const decrypted = await this.crypto.decryptRecord(updated, key);
           this.stores.get(key)?.update(
