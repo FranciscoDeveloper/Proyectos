@@ -176,10 +176,10 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
     { name: 'doctorName', type: 'select', label: 'Médico Tratante', required: false, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre', showInList: true, showInDetail: true, section: 'demographics', hideInEncounterMode: true, hideInForm: true },
     { name: 'lastVisit',  type: 'date',   label: 'Última Visita',   required: false, showInList: true, showInDetail: true, section: 'demographics', sortable: true, format: 'date', hideInEncounterMode: true, hideInForm: true },
 
-    // ── Alertas (solo editables en la ficha detalle, no en formulario de creación/edición) ──
-    { name: 'allergies',          type: 'tags',     label: 'Alergias',              required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts',     hideInForm: true },
-    { name: 'contraindications',  type: 'textarea', label: 'Contraindicaciones',    required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts',     hideInForm: true },
-    { name: 'alertNotes',         type: 'textarea', label: 'Notas de Alerta',       required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts',     hideInForm: true },
+    // ── Alertas ───────────────────────────────────────────────────────────────
+    { name: 'allergies',          type: 'tags',     label: 'Alergias',              required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts' },
+    { name: 'contraindications',  type: 'textarea', label: 'Contraindicaciones',    required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts' },
+    { name: 'alertNotes',         type: 'textarea', label: 'Notas de Alerta',       required: false, hideInEncounterMode: true, isAlert: true, showInList: false, showInDetail: true, section: 'alerts' },
 
     // ── Signos vitales (contexto de atención médica) ──────────────────────
     { name: 'bp',              type: 'text',   label: 'Presión Arterial',   required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', hideInForm: true },
