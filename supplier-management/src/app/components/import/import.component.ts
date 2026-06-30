@@ -109,12 +109,8 @@ export class ImportComponent implements OnInit {
     return hasClinicalModule ? 'patients' : null;
   });
 
-  appointmentKey = computed(() => {
-    const s = this.auth.schemas().find(s =>
-      /appointment|cita/i.test(s.entity.key) || s.entity.key === 'appointments'
-    );
-    return s?.entity.key ?? null;
-  });
+  // Appointment import disabled — requires DB migration (nullable FKs) before re-enabling
+  readonly appointmentKey = signal<string | null>(null);
 
   availableTabs = computed<TabType[]>(() => {
     const tabs: TabType[] = [];
