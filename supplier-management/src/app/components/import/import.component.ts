@@ -30,13 +30,12 @@ interface ColumnMap {
 
 // Known aliases for patient fields
 const PATIENT_ALIASES: Record<string, string[]> = {
-  fullName:  ['nombre completo', 'nombre', 'full name', 'name', 'paciente'],
+  name:      ['nombre completo', 'nombre', 'full name', 'name', 'paciente'],
   rut:       ['rut', 'run', 'dni', 'cedula', 'id'],
   email:     ['email', 'correo', 'e-mail', 'mail'],
   phone:     ['telefono', 'teléfono', 'phone', 'celular', 'movil', 'móvil', 'fono'],
   birthDate: ['fecha nacimiento', 'fecha de nacimiento', 'birth date', 'birthdate', 'nacimiento'],
   address:   ['direccion', 'dirección', 'address'],
-  notes:     ['notas', 'notes', 'observaciones', 'comentarios'],
 };
 
 // Known aliases for appointment fields
@@ -53,13 +52,12 @@ const APPOINTMENT_ALIASES: Record<string, string[]> = {
 };
 
 const PATIENT_FIELDS = [
-  { key: 'fullName',  label: 'Nombre Completo', required: true  },
+  { key: 'name',      label: 'Nombre Completo', required: true  },
   { key: 'rut',       label: 'RUT/ID',          required: false },
   { key: 'email',     label: 'Email',            required: false },
   { key: 'phone',     label: 'Teléfono',         required: false },
   { key: 'birthDate', label: 'Fecha Nacimiento', required: false },
   { key: 'address',   label: 'Dirección',        required: false },
-  { key: 'notes',     label: 'Notas',            required: false },
 ];
 
 const APPOINTMENT_FIELDS = [
@@ -100,11 +98,15 @@ export class ImportComponent implements OnInit {
   fromOnboarding = signal(false);
 
   // ── Available entity keys ──────────────────────────────────────────────────
-  patientKey = computed(() => {
-    const s = this.auth.schemas().find(s =>
-      /patient|pacient/i.test(s.entity.key) || s.entity.key === 'patients'
+
+  // 'patients' in the BFF is skipAuth:true (always accessible). We enable the
+  // patients import tab if the user has any clinical module that uses patients.
+  patientKey = computed<string | null>(() => {
+    const hasClinicalModule = this.auth.schemas().some(s =>
+      /clinical|psych|dental|kinesi|nutri|fonoaudio|terapia|matrona/i.test(s.entity.key) ||
+      s.entity.key === 'clinicalRecords'
     );
-    return s?.entity.key ?? null;
+    return hasClinicalModule ? 'patients' : null;
   });
 
   appointmentKey = computed(() => {

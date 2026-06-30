@@ -351,6 +351,7 @@ const ENTITY_CONFIG = {
       // Accept both camelCase (API) and legacy Spanish keys
       if (d.name             !== undefined) cols.name              = d.name;
       if (d.nombre           !== undefined) cols.name              = d.nombre;
+      if (d.fullName         !== undefined) cols.name              = d.fullName;
       if (d.email            !== undefined) cols.email             = d.email;
       if (d.phone            !== undefined) cols.phone             = d.phone;
       if (d.telefono         !== undefined) cols.phone             = d.telefono;
