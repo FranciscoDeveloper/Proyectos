@@ -21,7 +21,7 @@ export class SupplierService {
   }
 
   create(data: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>): void {
-    this.crud.create(this.entityKey, data as Record<string, any>);
+    this.crud.create(this.entityKey, data as Record<string, any>).subscribe();
   }
 
   update(id: number, data: Partial<Supplier>): void {

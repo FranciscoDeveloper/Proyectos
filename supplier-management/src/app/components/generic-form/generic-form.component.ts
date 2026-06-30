@@ -257,11 +257,17 @@ export class GenericFormComponent implements OnInit {
         this.saved.set(true);
         setTimeout(() => this.router.navigate(['/app/entity', this.entityKey()]), 800);
       } else {
-        this.crudService.create(this.entityKey(), processed);
-        this.syncToGoogleCalendar(processed);
-        this.saving.set(false);
-        this.saved.set(true);
-        setTimeout(() => this.router.navigate(['/app/entity', this.entityKey()]), 800);
+        this.crudService.create(this.entityKey(), processed).subscribe({
+          next: () => {
+            this.syncToGoogleCalendar(processed);
+            this.saving.set(false);
+            this.saved.set(true);
+            setTimeout(() => this.router.navigate(['/app/entity', this.entityKey()]), 800);
+          },
+          error: () => {
+            this.saving.set(false);
+          }
+        });
       }
     }, 400);
   }

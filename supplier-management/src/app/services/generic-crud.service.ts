@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, WritableSignal, Signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, from, switchMap } from 'rxjs';
+import { Observable, from, switchMap, firstValueFrom } from 'rxjs';
 import { CryptoService } from './crypto.service';
 
 @Injectable({ providedIn: 'root' })
@@ -46,15 +46,22 @@ export class GenericCrudService {
 
   // ── Mutations ─────────────────────────────────────────────────────────────
 
-  create(key: string, data: Record<string, any>): void {
-    this.crypto.encryptRecord(data, key).then(encrypted => {
-      this.http.post<Record<string, any>>(`/api/entities/${key}`, encrypted).subscribe({
-        next: async created => {
-          const decrypted = await this.crypto.decryptRecord(created, key);
-          this.stores.get(key)?.update(list => [...list, decrypted]);
-        }
-      });
-    });
+  create(key: string, data: Record<string, any>): Observable<Record<string, any>> {
+    return from(this.crypto.encryptRecord(data, key)).pipe(
+      switchMap(encrypted =>
+        this.http.post<Record<string, any>>(`/api/entities/${key}`, encrypted)
+      ),
+      switchMap(async created => {
+        const decrypted = await this.crypto.decryptRecord(created, key);
+        this.stores.get(key)?.update(list => [...list, decrypted]);
+        return decrypted;
+      })
+    );
+  }
+
+  /** Convenience wrapper: create and return a Promise (for fire-and-forget callers) */
+  createAsync(key: string, data: Record<string, any>): Promise<Record<string, any>> {
+    return firstValueFrom(this.create(key, data));
   }
 
   update(key: string, id: number, data: Record<string, any>): void {

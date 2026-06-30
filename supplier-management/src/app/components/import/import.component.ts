@@ -7,6 +7,7 @@ import { AuthService } from '../../services/auth.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { OnboardingService } from '../../services/onboarding.service';
 import { Workbook } from 'exceljs';
+import { firstValueFrom } from 'rxjs';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -360,15 +361,8 @@ export class ImportComponent implements OnInit {
     this.importDone.set(true);
   }
 
-  private createRecord(key: string, data: Record<string, string>): Promise<void> {
-    return new Promise((resolve, reject) => {
-      try {
-        this.crud.create(key, data);
-        resolve();
-      } catch (e: any) {
-        reject(e);
-      }
-    });
+  private createRecord(key: string, data: Record<string, string>): Promise<Record<string, any>> {
+    return firstValueFrom(this.crud.create(key, data));
   }
 
   // ── Template helpers ───────────────────────────────────────────────────────
