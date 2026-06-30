@@ -192,17 +192,17 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
     { name: 'respiratoryRate', type: 'number', label: 'Frec. Respiratoria', required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 60,   hideInForm: true },
 
     // ── Antecedentes (contexto de atención médica) ────────────────────────
-    { name: 'personalHistory',  type: 'textarea', label: 'Antecedentes Personales', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'history', hideInForm: true },
-    { name: 'familyHistory',    type: 'textarea', label: 'Antecedentes Familiares', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'history', hideInForm: true },
-    { name: 'habits',           type: 'textarea', label: 'Hábitos',                 required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'history', hideInForm: true },
+    { name: 'personalHistory',  type: 'textarea', label: 'Antecedentes Personales', required: false, showInList: false, showInDetail: true, section: 'history', hideInForm: true },
+    { name: 'familyHistory',    type: 'textarea', label: 'Antecedentes Familiares', required: false, showInList: false, showInDetail: true, section: 'history', hideInForm: true },
+    { name: 'habits',           type: 'textarea', label: 'Hábitos',                 required: false, showInList: false, showInDetail: true, section: 'history', hideInForm: true },
 
     // ── Intervenciones quirúrgicas (contexto de atención médica) ─────────
-    { name: 'surgicalHistory',      type: 'textarea', label: 'Antecedentes Quirúrgicos',   required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'surgical', hideInForm: true },
-    { name: 'plannedInterventions', type: 'textarea', label: 'Intervenciones Programadas', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'surgical', hideInForm: true },
+    { name: 'surgicalHistory',      type: 'textarea', label: 'Antecedentes Quirúrgicos',   required: false, showInList: false, showInDetail: true, section: 'surgical', hideInForm: true },
+    { name: 'plannedInterventions', type: 'textarea', label: 'Intervenciones Programadas', required: false, showInList: false, showInDetail: true, section: 'surgical', hideInForm: true },
 
     // ── Medicación (contexto de atención médica) ──────────────────────────
-    { name: 'currentMedications', type: 'textarea', label: 'Medicación Actual',    required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'medications', isPrescription: true, hideInForm: true },
-    { name: 'chronicConditions',  type: 'tags',     label: 'Condiciones Crónicas', required: false, hideInEncounterMode: true, showInList: false, showInDetail: true, section: 'medications', hideInForm: true },
+    { name: 'currentMedications', type: 'textarea', label: 'Medicación Actual',    required: false, showInList: false, showInDetail: true, section: 'medications', isPrescription: true, hideInForm: true },
+    { name: 'chronicConditions',  type: 'tags',     label: 'Condiciones Crónicas', required: false, showInList: false, showInDetail: true, section: 'medications', hideInForm: true },
 
     // ── Diagnóstico (contexto de atención médica) ─────────────────────────
     { name: 'diagnosisCode',  type: 'text',     label: 'Código CIE-10',           required: false, showInList: false, showInDetail: true, section: 'diagnosis', hideInEncounterMode: true, hideInForm: true },
