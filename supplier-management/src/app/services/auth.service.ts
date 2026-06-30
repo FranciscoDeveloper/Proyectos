@@ -1071,6 +1071,10 @@ export class AuthService {
   readonly isAuthenticated = computed(() => this._state().authenticated);
   readonly zkEnabled    = computed(() => this._state().zkEnabled ?? false);
   readonly isSuperAdmin = computed(() => this._state().user?.role === 'superadmin');
+  readonly isAdmin      = computed(() => {
+    const role = this._state().user?.role;
+    return role === 'admin' || role === 'superadmin';
+  });
 
   constructor(private router: Router) {
     // Restore ZK state from session after all field initializers have run

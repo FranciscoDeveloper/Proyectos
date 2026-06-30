@@ -166,7 +166,7 @@ export const handler = async (event) => {
     let tokenPayload;
     try { tokenPayload = jwt.verify(authHeader.slice(7), JWT_SECRET); }
     catch { return response(401, { message: "Token inválido o expirado" }); }
-    if (tokenPayload.role !== "superadmin")
+    if (tokenPayload.role !== "superadmin" && tokenPayload.role !== "admin")
       return response(403, { message: "Acceso restringido a administradores del sistema" });
 
     let body = null;
