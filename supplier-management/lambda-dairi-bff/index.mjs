@@ -803,6 +803,32 @@ const ENTITY_CONFIG = {
     fromDb(r) {
       return { id: r.id, nombre: r.name };
     }
+  },
+
+  // ── user-management (admin — reads/edits app_user, never exposes password) ────
+  'user-management': {
+    table:   'app_user',
+    orderBy: 'id ASC',
+    toDb(d) {
+      const cols = {};
+      if (d.name          !== undefined) cols.name           = d.name;
+      if (d.email         !== undefined) cols.email          = d.email;
+      if (d.role          !== undefined) cols.role           = d.role;
+      if (d.avatar        !== undefined) cols.avatar         = d.avatar;
+      if (d.emailVerified !== undefined) cols.email_verified = d.emailVerified;
+      return cols;
+    },
+    fromDb(r) {
+      return {
+        id:            r.id,
+        name:          r.name,
+        email:         r.email,
+        role:          r.role,
+        avatar:        r.avatar   ?? null,
+        emailVerified: r.email_verified,
+        createdAt:     r.created_at
+      };
+    }
   }
 };
 
