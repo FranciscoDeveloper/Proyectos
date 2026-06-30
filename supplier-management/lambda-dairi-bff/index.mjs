@@ -1,6 +1,8 @@
 import pg  from "pg";
 import jwt from "jsonwebtoken";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import { S3Client, ListObjectsV2Command, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const { Pool } = pg;
 
@@ -45,6 +47,9 @@ const APP_URL      = process.env.APP_URL      || "https://dairi.cl";
 const EMAIL_LAMBDA = process.env.EMAIL_LAMBDA || "send-email";
 
 const lambdaClient = new LambdaClient({ region: process.env.AWS_REGION || "us-east-1" });
+const s3Client     = new S3Client({ region: process.env.AWS_REGION || "us-east-1" });
+const DOCS_BUCKET  = process.env.DOCS_BUCKET || "friquelme-firstpage";
+const DOCS_PREFIX  = "patient-docs";
 
 // ── Entity configuration ──────────────────────────────────────────────────────
 // Each entity defines:
@@ -1141,6 +1146,62 @@ export const handler = async (event, context) => {
       catch { return response(400, { message: "Body inválido" }); }
     }
     return handleUserConfig(tokenPayload.sub, cfgBody);
+  }
+
+  // ── Documents routes /api/documents/{recordId} ───────────────────────────
+  const docsMatch = rawPath.match(/^\/api\/documents\/(\d+)(\/(.+))?$/);
+  if (docsMatch) {
+    const recordId = docsMatch[1];
+    const subPath  = docsMatch[3] ?? null;   // e.g. "Hemograma.pdf/url" or "Hemograma.pdf"
+    const prefix   = `${DOCS_PREFIX}/${recordId}/`;
+
+    // GET /api/documents/{recordId} → list documents
+    if (method === "GET" && !subPath) {
+      const cmd = new ListObjectsV2Command({ Bucket: DOCS_BUCKET, Prefix: prefix });
+      const res = await s3Client.send(cmd);
+      const files = (res.Contents ?? [])
+        .filter(obj => obj.Key !== prefix)
+        .map(obj => {
+          const rawName = obj.Key.replace(prefix, '');
+          // Decode display name: underscores back to spaces
+          const displayName = rawName.replace(/_/g, ' ').replace(/\.pdf$/, '') + '.pdf';
+          return {
+            key:          obj.Key,
+            name:         displayName,
+            size:         obj.Size,
+            lastModified: obj.LastModified,
+          };
+        });
+      return response(200, files);
+    }
+
+    // GET /api/documents/{recordId}/{encodedKey}/url → pre-signed download URL
+    if (method === "GET" && subPath && subPath.endsWith("/url")) {
+      const fileKey = decodeURIComponent(subPath.slice(0, -4)); // strip "/url"
+      const fullKey = `${DOCS_PREFIX}/${recordId}/${fileKey}`;
+      const cmd  = new GetObjectCommand({ Bucket: DOCS_BUCKET, Key: fullKey });
+      const url  = await getSignedUrl(s3Client, cmd, { expiresIn: 300 });
+      return response(200, { url });
+    }
+
+    // GET /api/documents/{recordId}/{encodedKey}/upload-url → pre-signed PUT URL
+    if (method === "GET" && subPath && subPath.endsWith("/upload-url")) {
+      const fileKey = decodeURIComponent(subPath.slice(0, -11)); // strip "/upload-url"
+      const fullKey = `${DOCS_PREFIX}/${recordId}/${fileKey}`;
+      const cmd  = new PutObjectCommand({ Bucket: DOCS_BUCKET, Key: fullKey, ContentType: "application/pdf" });
+      const url  = await getSignedUrl(s3Client, cmd, { expiresIn: 300 });
+      return response(200, { url, key: fullKey });
+    }
+
+    // DELETE /api/documents/{recordId}/{encodedKey} → delete document
+    if (method === "DELETE" && subPath) {
+      const fileKey = decodeURIComponent(subPath);
+      const fullKey = `${DOCS_PREFIX}/${recordId}/${fileKey}`;
+      await s3Client.send(new DeleteObjectCommand({ Bucket: DOCS_BUCKET, Key: fullKey }));
+      return response(200, { deleted: fullKey });
+    }
+
+    return response(405, { message: "Método no permitido en /api/documents" });
   }
 
   // ── Path parsing ──────────────────────────────────────────────────────────

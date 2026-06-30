@@ -1,6 +1,7 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { FieldDefinition } from '../../models/entity-schema.model';
@@ -30,10 +31,11 @@ interface SectionField {
     templateUrl: './clinical-detail.component.html',
     styleUrl: './clinical-detail.component.scss'
 })
-export class ClinicalDetailComponent {
+export class ClinicalDetailComponent implements OnInit {
   private route     = inject(ActivatedRoute);
   private schemaSvc = inject(SchemaService);
   private crudSvc   = inject(GenericCrudService);
+  private http      = inject(HttpClient);
   protected chatSvc = inject(ChatService);
   private auth = inject(AuthService);
 
@@ -267,6 +269,10 @@ export class ClinicalDetailComponent {
     ))
   );
 
+  ngOnInit(): void {
+    this.loadDocuments();
+  }
+
   // ── Documents tab ─────────────────────────────────────────────────────────
 
   readonly DOC_CATEGORIES = [
@@ -278,20 +284,9 @@ export class ClinicalDetailComponent {
     { value: 'other',     label: 'Otro',             color: '#6b7280' }
   ] as const;
 
-  readonly documents = signal<Array<{
-    id: number;
-    name: string;
-    category: string;
-    date: string;
-    size: string;
-    uploadedBy: string;
-    notes: string;
-  }>>([
-    { id: 1, name: 'Hemograma completo 2026-03-24.pdf', category: 'lab',      date: '2026-03-24', size: '245 KB', uploadedBy: 'Dra. Morales', notes: 'Resultados control mensual' },
-    { id: 2, name: 'Eco cardíaco Doppler 2026-03.pdf',  category: 'imaging',  date: '2026-03-10', size: '1.2 MB', uploadedBy: 'Dra. Morales', notes: 'Solicitud urgente por deterioro funcional' },
-    { id: 3, name: 'Interconsulta Cardiología.pdf',     category: 'referral', date: '2026-02-28', size: '120 KB', uploadedBy: 'Dra. Morales', notes: '' },
-    { id: 4, name: 'Consentimiento Informado Cx.pdf',   category: 'consent',  date: '2026-01-15', size: '88 KB',  uploadedBy: 'Dra. Morales', notes: 'Firmado por paciente y familiar' }
-  ]);
+  readonly documents   = signal<{ key: string; name: string; category: string; date: string; size: string; notes: string }[]>([]);
+  readonly docsLoading = signal(true);
+  readonly docsError   = signal<string | null>(null);
 
   showUploadForm = signal(false);
   newDocName     = signal('');
@@ -299,8 +294,8 @@ export class ClinicalDetailComponent {
   newDocNotes    = signal('');
   selectedFile   = signal<File | null>(null);
   fileError      = signal('');
+  uploading      = signal(false);
   private readonly MAX_FILE_SIZE_BYTES = 30 * 1024 * 1024;
-  private nextDocId = 5;
 
   docFilter = signal('');
 
@@ -308,10 +303,52 @@ export class ClinicalDetailComponent {
     const docs = this.documents();
     const f = this.docFilter();
     if (!f) return docs;
-    return docs.filter(d =>
-      d.category === f
-    );
+    return docs.filter(d => d.category === f);
   });
+
+  private loadDocuments(): void {
+    this.docsLoading.set(true);
+    this.docsError.set(null);
+    this.http.get<{ key: string; name: string; lastModified: string; size: number }[]>(
+      `/api/documents/${this.id}`
+    ).subscribe({
+      next: files => {
+        this.documents.set(files.map(f => ({
+          key:      f.key,
+          name:     f.name,
+          category: this.guessCategoryFromName(f.name),
+          date:     f.lastModified ? f.lastModified.slice(0, 10) : '',
+          size:     this.formatFileSize(f.size),
+          notes:    ''
+        })));
+        this.docsLoading.set(false);
+      },
+      error: () => {
+        this.docsLoading.set(false);
+        this.docsError.set('No se pudieron cargar los documentos.');
+      }
+    });
+  }
+
+  private guessCategoryFromName(name: string): string {
+    const n = name.toLowerCase();
+    if (/hemograma|laboratorio|examen|resultado/i.test(n)) return 'lab';
+    if (/radio|eco|imagen|scan|rx|rmn|tac/i.test(n))      return 'imaging';
+    if (/interconsulta|derivaci/i.test(n))                  return 'referral';
+    if (/informe|reporte|resumen/i.test(n))                 return 'report';
+    if (/consentimiento|firma/i.test(n))                    return 'consent';
+    return 'other';
+  }
+
+  openDocument(doc: { key: string; name: string }): void {
+    const fileName = doc.key.split('/').pop() ?? '';
+    this.http.get<{ url: string }>(
+      `/api/documents/${this.id}/${encodeURIComponent(fileName)}/url`
+    ).subscribe({
+      next: ({ url }) => window.open(url, '_blank'),
+      error: () => alert('No se pudo obtener el enlace de descarga.')
+    });
+  }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -335,20 +372,34 @@ export class ClinicalDetailComponent {
   }
 
   addDocument(): void {
-    const name = this.newDocName().trim();
-    if (!name) return;
     const file = this.selectedFile();
-    const size = file ? this.formatFileSize(file.size) : '—';
-    this.documents.update(docs => [...docs, {
-      id: this.nextDocId++,
-      name,
-      category: this.newDocCategory(),
-      date: new Date().toISOString().slice(0, 10),
-      size,
-      uploadedBy: this.auth.user()?.name ?? this.patient()?.doctor ?? 'Sistema',
-      notes: this.newDocNotes().trim()
-    }]);
-    this.cancelUpload();
+    const name = this.newDocName().trim() || file?.name || '';
+    if (!name || !file) return;
+
+    this.uploading.set(true);
+    const safeKey = name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    this.http.get<{ url: string; key: string }>(
+      `/api/documents/${this.id}/${encodeURIComponent(safeKey)}/upload-url`
+    ).subscribe({
+      next: ({ url }) => {
+        fetch(url, {
+          method: 'PUT',
+          body: file,
+          headers: { 'Content-Type': file.type || 'application/pdf' }
+        }).then(() => {
+          this.uploading.set(false);
+          this.cancelUpload();
+          this.loadDocuments();
+        }).catch(() => {
+          this.uploading.set(false);
+          this.fileError.set('Error al subir el archivo.');
+        });
+      },
+      error: () => {
+        this.uploading.set(false);
+        this.fileError.set('No se pudo iniciar la subida.');
+      }
+    });
   }
 
   cancelUpload(): void {
@@ -360,8 +411,12 @@ export class ClinicalDetailComponent {
     this.fileError.set('');
   }
 
-  removeDocument(id: number): void {
-    this.documents.update(docs => docs.filter(d => d.id !== id));
+  removeDocument(doc: { key: string; name: string }): void {
+    const fileName = doc.key.split('/').pop() ?? '';
+    this.http.delete(`/api/documents/${this.id}/${encodeURIComponent(fileName)}`).subscribe({
+      next: () => this.documents.update(docs => docs.filter(d => d.key !== doc.key)),
+      error: () => alert('No se pudo eliminar el documento.')
+    });
   }
 
   getCategoryMeta(value: string) {

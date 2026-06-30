@@ -449,8 +449,14 @@
 <!-- ════ DOCUMENTS TAB ════ -->
 <div class="docs-panel" *ngIf="activeTab() === 'documents'">
 
+  <!-- Loading / Error states -->
+  <div class="docs-loading" *ngIf="docsLoading()">
+    <span class="spinner-xs"></span> Cargando documentos…
+  </div>
+  <div class="docs-error" *ngIf="docsError()">{{ docsError() }}</div>
+
   <!-- Toolbar -->
-  <div class="docs-toolbar">
+  <div class="docs-toolbar" *ngIf="!docsLoading() && !docsError()">
     <div class="docs-filters">
       <button class="doc-filter-btn" [class.active]="docFilter() === ''" (click)="docFilter.set('')">Todos</button>
       <button *ngFor="let cat of DOC_CATEGORIES"
@@ -470,7 +476,7 @@
   </div>
 
   <!-- Upload form -->
-  <div class="docs-upload-form card" *ngIf="showUploadForm()">
+  <div class="docs-upload-form card" *ngIf="!docsLoading() && !docsError() && showUploadForm()">
     <div class="docs-form-title">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -537,7 +543,7 @@
   </div>
 
   <!-- Empty state -->
-  <div class="docs-empty" *ngIf="filteredDocuments().length === 0">
+  <div class="docs-empty" *ngIf="!docsLoading() && !docsError() && filteredDocuments().length === 0">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
     </svg>
@@ -545,7 +551,7 @@
   </div>
 
   <!-- Document list -->
-  <div class="docs-list" *ngIf="filteredDocuments().length > 0">
+  <div class="docs-list" *ngIf="!docsLoading() && filteredDocuments().length > 0">
     <div *ngFor="let doc of filteredDocuments()" class="doc-item card">
       <div class="doc-icon" [style.background]="getCategoryMeta(doc.category).color + '18'" [style.color]="getCategoryMeta(doc.category).color">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -566,12 +572,16 @@
             {{ doc.date | date:'d MMM yyyy' }}
           </span>
           <span class="doc-meta-chip" *ngIf="doc.size !== '—'">{{ doc.size }}</span>
-          <span class="doc-meta-chip">{{ doc.uploadedBy }}</span>
         </div>
         <p class="doc-notes" *ngIf="doc.notes">{{ doc.notes }}</p>
       </div>
       <div class="doc-actions">
-        <button class="doc-action-btn doc-action-btn--danger" title="Eliminar documento" (click)="removeDocument(doc.id)">
+        <button class="doc-action-btn" title="Descargar documento" (click)="openDocument(doc)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </button>
+        <button class="doc-action-btn doc-action-btn--danger" title="Eliminar documento" (click)="removeDocument(doc)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
           </svg>
