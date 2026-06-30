@@ -61,9 +61,11 @@
         </label>
         <select class="field-input field-select"
                 [class.invalid]="isInvalid(field.name)"
+                [formControlName]="field.name"
                 (change)="onEntitySelect(field, $any($event.target).value)">
           <option value="">— Seleccionar paciente —</option>
-          <option *ngFor="let opt of getEntityOptions(field)" [value]="opt.id">
+          <option *ngFor="let opt of getEntityOptions(field); trackBy: trackEntityOption"
+                  [value]="opt.id">
             {{ opt.label }}
           </option>
         </select>
@@ -71,6 +73,14 @@
         <span class="field-hint" *ngIf="getEntityOptions(field).length === 0">
           Cargando pacientes…
         </span>
+        <!-- Confirmación visual del paciente seleccionado -->
+        <div class="selected-patient-info" *ngIf="selectedPatientInfo(field)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span>{{ selectedPatientInfo(field) }}</span>
+        </div>
       </div>
     </div>
 

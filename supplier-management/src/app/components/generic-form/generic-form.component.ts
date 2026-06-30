@@ -167,7 +167,7 @@ export class GenericFormComponent implements OnInit {
   }
 
   onEntitySelect(field: FieldDefinition, selectedId: string): void {
-    this.form.get(field.name)?.setValue(selectedId);
+    // Value is already set by [formControlName] — only handle linked field patching
     if (!field.linkedFields || !selectedId) return;
     const selected = this.getEntityOptions(field).find(o => String(o.id) === String(selectedId));
     if (!selected) return;
@@ -175,6 +175,17 @@ export class GenericFormComponent implements OnInit {
     field.linkedFields.forEach(link => { patch[link.to] = selected.raw[link.from] ?? ''; });
     this.form.patchValue(patch);
     field.linkedFields.forEach(link => { this.form.get(link.to)?.disable(); });
+  }
+
+  selectedPatientInfo(field: FieldDefinition): string | null {
+    const selectedId = this.ctrl(field.name)?.value;
+    if (!selectedId) return null;
+    const opt = this.getEntityOptions(field).find(o => String(o.id) === String(selectedId));
+    return opt ? opt.label : null;
+  }
+
+  trackEntityOption(_: number, opt: { id: any; label: string; raw: Record<string, any> }): any {
+    return opt.id;
   }
 
   ctrl(name: string): AbstractControl {
