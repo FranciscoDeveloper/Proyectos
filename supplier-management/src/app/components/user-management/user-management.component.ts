@@ -1,7 +1,8 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { switchMap, of, catchError } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 
 interface AdminUser {
@@ -52,7 +53,8 @@ export class UserManagementComponent implements OnInit {
   passwordError    = signal<string | null>(null);
 
   // Status toggle feedback
-  togglingId = signal<number | null>(null);
+  togglingId        = signal<number | null>(null);
+  activationSentFor = signal<number | null>(null);
 
   // All schema keys available in the system (derived from app_schema)
   readonly ALL_SCHEMAS = [
@@ -73,12 +75,29 @@ export class UserManagementComponent implements OnInit {
   }
 
   toggleStatus(user: AdminUser) {
+    const activating = !user.emailVerified;
     this.togglingId.set(user.id);
-    this.http.put(`/api/admin/users/${user.id}/status`, { active: !user.emailVerified }).subscribe({
+    this.activationSentFor.set(null);
+
+    this.http.put<{ message: string; emailPayload?: any }>(`/api/admin/users/${user.id}/status`, { active: activating }).pipe(
+      switchMap(res => {
+        if (activating && res.emailPayload) {
+          return this.http.post('/api/send-email', res.emailPayload).pipe(
+            catchError(() => of(null))
+          );
+        }
+        return of(res);
+      })
+    ).subscribe({
       next: () => {
-        this.users.update(list =>
-          list.map(u => u.id === user.id ? { ...u, emailVerified: !u.emailVerified } : u)
-        );
+        if (activating) {
+          this.activationSentFor.set(user.id);
+          setTimeout(() => this.activationSentFor.set(null), 4000);
+        } else {
+          this.users.update(list =>
+            list.map(u => u.id === user.id ? { ...u, emailVerified: false } : u)
+          );
+        }
         this.togglingId.set(null);
       },
       error: err => {

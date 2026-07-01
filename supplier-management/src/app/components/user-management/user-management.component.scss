@@ -32,6 +32,17 @@
   &:disabled { opacity: 0.5; cursor: default; }
 }
 
+.success-banner {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
 .error-banner {
   display: flex;
   align-items: center;

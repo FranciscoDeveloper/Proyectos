@@ -11,6 +11,10 @@
     <button (click)="error.set(null)">✕</button>
   </div>
 
+  <div class="success-banner" *ngIf="activationSentFor() !== null">
+    Email de activación enviado correctamente.
+  </div>
+
   <div class="loading-state" *ngIf="loading()">
     Cargando usuarios...
   </div>
@@ -53,9 +57,12 @@
               class="btn-action btn-toggle"
               (click)="toggleStatus(user)"
               [disabled]="togglingId() === user.id || isSelf(user.id)"
-              [title]="isSelf(user.id) ? 'No puedes desactivar tu propia cuenta' : (user.emailVerified ? 'Desactivar cuenta' : 'Activar cuenta')"
+              [title]="isSelf(user.id) ? 'No puedes desactivar tu propia cuenta' : (user.emailVerified ? 'Desactivar cuenta' : 'Reenviar email de activación')"
             >
-              {{ user.emailVerified ? '⛔ Desactivar' : '✅ Activar' }}
+              <ng-container *ngIf="togglingId() === user.id">...</ng-container>
+              <ng-container *ngIf="togglingId() !== user.id">
+                {{ user.emailVerified ? '⛔ Desactivar' : '📧 Activación' }}
+              </ng-container>
             </button>
             <button class="btn-action btn-schemas" (click)="openSchemas(user)" title="Gestionar módulos">
               🧩 Módulos

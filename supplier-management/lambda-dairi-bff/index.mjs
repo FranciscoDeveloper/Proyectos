@@ -1,5 +1,6 @@
-import pg  from "pg";
-import jwt from "jsonwebtoken";
+import pg      from "pg";
+import jwt     from "jsonwebtoken";
+import bcrypt  from "bcryptjs";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import { S3Client, ListObjectsV2Command, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -1030,6 +1031,35 @@ async function handleUserConfig(userId, body) {
   }
 }
 
+// ── Activation email builder ──────────────────────────────────────────────────
+function buildActivationEmail({ name, email, activationUrl }) {
+  const firstName = name.split(" ")[0];
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f0f9ff;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f9ff;padding:40px 0;">
+<tr><td align="center">
+<table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;border:1.5px solid #bae6fd;overflow:hidden;max-width:100%;">
+<tr><td style="background:linear-gradient(135deg,#0ea5e9,#06b6d4);padding:28px 40px;">
+<h1 style="margin:0;color:#fff;font-size:26px;font-weight:900;">Dairi<span style="color:#bae6fd;">.</span></h1>
+</td></tr>
+<tr><td style="padding:36px 40px;">
+<h2 style="margin:0 0 16px;color:#0f172a;font-size:20px;">Hola, ${firstName}</h2>
+<p style="margin:0 0 24px;color:#475569;font-size:15px;">Tu cuenta en Dairi está lista. Actívala haciendo clic en el siguiente botón:</p>
+<div style="text-align:center;margin:32px 0;">
+<a href="${activationUrl}" style="background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:700;font-size:15px;display:inline-block;">Activar cuenta</a>
+</div>
+<p style="margin:24px 0 0;color:#94a3b8;font-size:13px;">Este enlace expira en 24 horas. Si no creaste esta cuenta, puedes ignorar este mensaje.</p>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+  return { to: email, subject: "Activa tu cuenta en Dairi", html };
+}
+
 // ── Request authorization ─────────────────────────────────────────────────────
 // 1. Verifies the user has the requested schema assigned in user_schema.
 // 2. Blocks write operations (POST/PUT/DELETE) for viewer role.
@@ -1202,6 +1232,131 @@ export const handler = async (event, context) => {
     }
 
     return response(405, { message: "Método no permitido en /api/documents" });
+  }
+
+  // ── Admin: user management ────────────────────────────────────────────────
+  if (rawPath.startsWith("/api/admin/")) {
+    if (tokenPayload.role !== "admin" && tokenPayload.role !== "superadmin") {
+      return response(403, { message: "Acceso denegado" });
+    }
+    let body = null;
+    if (event.body) {
+      try { body = typeof event.body === "string" ? JSON.parse(event.body) : event.body; }
+      catch { return response(400, { message: "Body inválido" }); }
+    }
+    let adminClient;
+    try {
+      adminClient = await pool.connect();
+
+      // GET /api/admin/users → all users with schemas
+      if (rawPath === "/api/admin/users" && method === "GET") {
+        const { rows } = await adminClient.query(`
+          SELECT
+            u.id, u.name, u.email, u.role, u.avatar,
+            u.email_verified, u.created_at,
+            COALESCE(
+              json_agg(s.schema_key ORDER BY s.schema_key)
+              FILTER (WHERE s.schema_key IS NOT NULL), '[]'
+            ) AS schemas
+          FROM app_user u
+          LEFT JOIN user_schema us ON us.user_id = u.id
+          LEFT JOIN app_schema  s  ON s.id = us.schema_id
+          GROUP BY u.id
+          ORDER BY u.id ASC
+        `);
+        return response(200, rows.map(r => ({
+          id:            r.id,
+          name:          r.name,
+          email:         r.email,
+          role:          r.role,
+          avatar:        r.avatar ?? null,
+          emailVerified: r.email_verified,
+          createdAt:     r.created_at,
+          schemas:       r.schemas ?? []
+        })));
+      }
+
+      // PUT /api/admin/users/:id/status → activate (resend email) or deactivate
+      const statusMatch = rawPath.match(/^\/api\/admin\/users\/(\d+)\/status$/);
+      if (statusMatch && method === "PUT") {
+        const userId = parseInt(statusMatch[1], 10);
+        const { active } = body ?? {};
+
+        if (active) {
+          const { rows } = await adminClient.query(
+            "SELECT id, name, email FROM app_user WHERE id = $1", [userId]
+          );
+          if (!rows.length) return response(404, { message: "Usuario no encontrado" });
+          const user = rows[0];
+
+          const activationToken = jwt.sign(
+            { sub: user.id, email: user.email, type: "activation" },
+            JWT_SECRET,
+            { expiresIn: "24h" }
+          );
+          await adminClient.query(
+            "UPDATE app_user SET activation_token = $1 WHERE id = $2",
+            [activationToken, userId]
+          );
+
+          const activationUrl = `${APP_URL}/#/activate?token=${encodeURIComponent(activationToken)}`;
+          const emailPayload  = buildActivationEmail({ name: user.name, email: user.email, activationUrl });
+
+          return response(200, {
+            message:      "Email de activación generado",
+            emailPayload,
+            activationUrl
+          });
+        } else {
+          await adminClient.query(
+            "UPDATE app_user SET email_verified = false, activation_token = NULL WHERE id = $1",
+            [userId]
+          );
+          return response(200, { message: "Usuario desactivado" });
+        }
+      }
+
+      // PUT /api/admin/users/:id/schemas → replace user schemas
+      const schemasMatch = rawPath.match(/^\/api\/admin\/users\/(\d+)\/schemas$/);
+      if (schemasMatch && method === "PUT") {
+        const userId    = parseInt(schemasMatch[1], 10);
+        const { schemaKeys = [] } = body ?? {};
+
+        await adminClient.query("DELETE FROM user_schema WHERE user_id = $1", [userId]);
+        if (schemaKeys.length > 0) {
+          await adminClient.query(
+            `INSERT INTO user_schema (user_id, schema_id)
+             SELECT $1, s.id FROM app_schema s WHERE s.schema_key = ANY($2::text[])`,
+            [userId, schemaKeys]
+          );
+        }
+        const { rows } = await adminClient.query(
+          `SELECT s.schema_key FROM user_schema us
+           JOIN app_schema s ON s.id = us.schema_id
+           WHERE us.user_id = $1`,
+          [userId]
+        );
+        return response(200, { schemas: rows.map(r => r.schema_key) });
+      }
+
+      // PUT /api/admin/users/:id/password → change password
+      const passwordMatch = rawPath.match(/^\/api\/admin\/users\/(\d+)\/password$/);
+      if (passwordMatch && method === "PUT") {
+        const userId     = parseInt(passwordMatch[1], 10);
+        const { password } = body ?? {};
+        if (!password || password.length < 8)
+          return response(400, { message: "La contraseña debe tener al menos 8 caracteres" });
+        const hash = await bcrypt.hash(password, 10);
+        await adminClient.query(
+          "UPDATE app_user SET password_hash = $1 WHERE id = $2", [hash, userId]
+        );
+        return response(200, { message: "Contraseña actualizada" });
+      }
+
+      return response(404, { message: "Ruta de administración no encontrada" });
+    } finally {
+      if (adminClient) adminClient.release();
+    }
   }
 
   // ── Path parsing ──────────────────────────────────────────────────────────
