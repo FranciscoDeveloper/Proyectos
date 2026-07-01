@@ -10,9 +10,9 @@ const log = (level, msg, data) => {
   console[level === "ERROR" ? "error" : "log"](JSON.stringify(entry));
 };
 
-// ── DB pool ────────────────────────────────────────────────────────────────────
 log("INFO", "dairi-book cold start");
 
+// ── DB pool ────────────────────────────────────────────────────────────────────
 const pool = new Pool({
   host:     process.env.DB_HOST,
   port:     parseInt(process.env.DB_PORT || "5432"),
@@ -27,16 +27,92 @@ const pool = new Pool({
 pool.on("error", (err) => log("ERROR", "Pool idle error", { message: err.message }));
 
 // ── Config ─────────────────────────────────────────────────────────────────────
-const FLOW_BASE_URL        = process.env.FLOW_BASE_URL        || "https://sandbox.flow.cl/api";
-const FLOW_API_KEY         = process.env.FLOW_API_KEY         || "";
-const FLOW_SECRET_KEY      = process.env.FLOW_SECRET_KEY      || "";
-const BOOK_FUNCTION_URL    = process.env.BOOK_FUNCTION_URL    || "";
-const APP_URL              = process.env.APP_URL              || "https://dairi.cl";
-const CONSULTATION_AMOUNT  = parseInt(process.env.CONSULTATION_AMOUNT || "25000");
-const APP_SECRET           = process.env.APP_SECRET           || "";
+const FLOW_BASE_URL       = process.env.FLOW_BASE_URL       || "https://sandbox.flow.cl/api";
+const FLOW_API_KEY        = process.env.FLOW_API_KEY        || "";
+const FLOW_SECRET_KEY     = process.env.FLOW_SECRET_KEY     || "";
+const BOOK_FUNCTION_URL   = process.env.BOOK_FUNCTION_URL   || "";
+const APP_URL             = process.env.APP_URL             || "https://dairi.cl";
+const CONSULTATION_AMOUNT = parseInt(process.env.CONSULTATION_AMOUNT || "25000");
+const APP_SECRET          = process.env.APP_SECRET          || "";
 
-// Generates a short-lived HMAC token (valid 10 min) that proves a booking is legitimate.
-// dairi-payment verifies this token before calling Flow — no user JWT needed.
+// ── Rate limiter ───────────────────────────────────────────────────────────────
+// POST /api/book/{id}: max 5 requests per IP per 10 minutes (booking creation)
+// All other routes:   max 60 requests per IP per minute
+const rateLimitStore = new Map();
+const POST_LIMIT  = 5;
+const POST_WINDOW = 10 * 60 * 1000;
+const GET_LIMIT   = 60;
+const GET_WINDOW  = 60 * 1000;
+
+// Purge stale entries to avoid unbounded memory growth in long-lived containers
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitStore) {
+    if (now > entry.resetAt) rateLimitStore.delete(key);
+  }
+}, 5 * 60 * 1000);
+
+function checkRateLimit(ip, isPost) {
+  const max    = isPost ? POST_LIMIT  : GET_LIMIT;
+  const window = isPost ? POST_WINDOW : GET_WINDOW;
+  const key    = `${isPost ? "p" : "g"}:${ip}`;
+  const now    = Date.now();
+  const entry  = rateLimitStore.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitStore.set(key, { count: 1, resetAt: now + window });
+    return true;
+  }
+  if (entry.count >= max) return false;
+  entry.count++;
+  return true;
+}
+
+function getClientIp(event) {
+  return (
+    event.requestContext?.http?.sourceIp ||
+    event.headers?.["x-forwarded-for"]?.split(",")[0]?.trim() ||
+    "unknown"
+  );
+}
+
+// ── Input validation ───────────────────────────────────────────────────────────
+const RE_DATE  = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+const RE_TIME  = /^([01]\d|2[0-3]):[0-5]\d$/;
+const RE_EMAIL = /^[^\s@]{1,64}@[^\s@]+\.[^\s@]{2,}$/;
+// Accepts: 12345678-9, 12345678-K, 123456789 (sin guión)
+const RE_RUT   = /^(\d{7,8}-[\dkK]|\d{7,9})$/;
+
+function validateBookingBody(body) {
+  const errors = [];
+  const date   = String(body.date         ?? "").trim();
+  const time   = String(body.time         ?? "").trim();
+  const name   = String(body.patientName  ?? "").trim();
+  const email  = String(body.patientEmail ?? "").trim().toLowerCase();
+  const rut    = String(body.patientRut   ?? "").trim().replace(/\./g, "");
+  const phone  = body.patientPhone ? String(body.patientPhone).trim().slice(0, 20) : null;
+  const reason = body.reason       ? String(body.reason).trim().slice(0, 1000)     : null;
+
+  if (!RE_DATE.test(date)) {
+    errors.push("date debe tener formato YYYY-MM-DD");
+  } else {
+    const todaySantiago = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Santiago" });
+    if (date < todaySantiago) errors.push("No se pueden agendar citas en fechas pasadas");
+  }
+
+  if (!RE_TIME.test(time)) errors.push("time debe tener formato HH:MM (00:00 – 23:59)");
+
+  if (name.length < 2)   errors.push("patientName demasiado corto (mínimo 2 caracteres)");
+  if (name.length > 150) errors.push("patientName demasiado largo (máximo 150 caracteres)");
+
+  if (!RE_EMAIL.test(email)) errors.push("patientEmail no es válido");
+  if (email.length > 255)    errors.push("patientEmail demasiado largo");
+
+  if (!RE_RUT.test(rut)) errors.push("patientRut inválido (formato: 12345678-9 o 12345678-K)");
+
+  return { errors, date, time, name, email, rut, phone, reason };
+}
+
+// ── Generates a short-lived HMAC token (valid 10 min) ─────────────────────────
 function generateBookingToken(appointmentId, amount) {
   const window = Math.floor(Date.now() / 600000);
   return createHmac("sha256", APP_SECRET)
@@ -63,7 +139,6 @@ async function ensureSchema(client) {
       updated_at      TIMESTAMPTZ DEFAULT NOW()
     )
   `);
-  // Idempotent migration for existing deployments that predate payment_id
   await client.query(`
     ALTER TABLE appointment_payment
     ADD COLUMN IF NOT EXISTS payment_id INTEGER REFERENCES payment(id)
@@ -120,9 +195,9 @@ function resp(statusCode, body) {
     statusCode,
     headers: {
       "Content-Type":                 "application/json",
-      "Access-Control-Allow-Origin":  "*",
-      "Access-Control-Allow-Headers": "Content-Type,Authorization",
-      "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+      "Access-Control-Allow-Origin":  APP_URL,
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
     },
     body: JSON.stringify(body),
   };
@@ -136,7 +211,16 @@ export const handler = async (event) => {
 
   if (method === "OPTIONS") return resp(204, {});
 
-  // Parse body: JSON for Angular calls, form-encoded for Flow webhook
+  // Flow webhook is server-to-server — skip rate limiting
+  if (rawPath !== "/payment/confirm") {
+    const ip     = getClientIp(event);
+    const isPost = method === "POST";
+    if (!checkRateLimit(ip, isPost)) {
+      log("WARN", "Rate limit exceeded", { ip, method, rawPath });
+      return resp(429, { message: "Demasiadas solicitudes. Intenta más tarde." });
+    }
+  }
+
   let body = null;
   if (event.body) {
     const raw = event.isBase64Encoded
@@ -172,26 +256,22 @@ async function route(client, method, rawPath, body, qs) {
 
     try {
       const flowStatus = await flowGet("payment/getStatus", { token });
-      // Flow status codes: 1=pending, 2=paid, 3=rejected, 4=cancelled
       const payStatus = flowStatus.status === 2 ? "paid"
                       : flowStatus.status === 3 ? "rejected"
                       : flowStatus.status === 4 ? "cancelled"
                       : "pending";
 
-      // Primary lookup: by flow_token (token stored when payment was created inline)
       let apRec = await client.query(
         `SELECT id, appointment_id, payment_id FROM appointment_payment WHERE flow_token = $1`,
         [token]
       );
 
       if (apRec.rowCount > 0) {
-        // Token already known — update status
         await client.query(
           `UPDATE appointment_payment SET status = $1, updated_at = NOW() WHERE flow_token = $2`,
           [payStatus, token]
         );
       } else {
-        // Fallback: dairi-payment created the Flow order — parse appointmentId from commerceOrder
         const match = flowStatus.commerceOrder?.match(/^APPT-(\d+)-/);
         if (match) {
           const apptId = parseInt(match[1]);
@@ -214,7 +294,6 @@ async function route(client, method, rawPath, body, qs) {
       if (apRec.rowCount > 0) {
         const { appointment_id: apptId, payment_id: paymentId } = apRec.rows[0];
 
-        // Mirror status to the ledger payment row
         if (paymentId) {
           const ledgerStatus = payStatus === "paid" ? "paid"
                              : payStatus === "cancelled" ? "cancelled"
@@ -225,7 +304,6 @@ async function route(client, method, rawPath, body, qs) {
           );
         }
 
-        // When paid, promote appointment to 'confirmed'
         if (payStatus === "paid" && apptId) {
           await client.query(
             `UPDATE appointment SET status = 'confirmed' WHERE id = $1 AND status = 'scheduled'`,
@@ -239,7 +317,6 @@ async function route(client, method, rawPath, body, qs) {
       log("ERROR", "Webhook processing error", { message: err.message, token });
     }
 
-    // Flow requires HTTP 200 within 15s
     return { statusCode: 200, headers: { "Content-Type": "text/plain" }, body: "OK" };
   }
 
@@ -299,7 +376,7 @@ async function route(client, method, rawPath, body, qs) {
   if (slotsMatch) {
     if (method !== "GET") return resp(405, { message: "Método no permitido" });
     const date = qs.date;
-    if (!date) return resp(400, { message: "Parámetro date requerido" });
+    if (!date || !RE_DATE.test(date)) return resp(400, { message: "Parámetro date inválido (formato: YYYY-MM-DD)" });
 
     const prof = await findProfessional(client, slotsMatch[1]);
     if (!prof) return resp(404, { message: "Profesional no encontrado" });
@@ -329,7 +406,6 @@ async function route(client, method, rawPath, body, qs) {
     const prof = await findProfessional(client, profMatch[1]);
     if (!prof) return resp(404, { message: "Profesional no encontrado" });
 
-    // GET → booking info
     if (method === "GET") {
       return resp(200, {
         professionalId: String(prof.id),
@@ -342,45 +418,42 @@ async function route(client, method, rawPath, body, qs) {
       });
     }
 
-    // POST → create appointment + payment order
     if (method === "POST") {
-      const { date, time, patientName, patientEmail, patientPhone, patientRut, reason, modality } = body ?? {};
-      if (!date || !time || !patientName || !patientEmail || !patientRut) {
-        return resp(400, { message: "Faltan campos obligatorios: date, time, patientName, patientEmail, patientRut" });
+      const { errors, date, time, name, email, rut, phone, reason } = validateBookingBody(body ?? {});
+      if (errors.length > 0) {
+        log("WARN", "Booking validation failed", { errors });
+        return resp(400, { message: errors[0], errors });
       }
 
       // Find or create patient by RUT
       let patientId;
-      const existing = await client.query("SELECT id FROM patient WHERE rut = $1 LIMIT 1", [patientRut]);
+      const existing = await client.query("SELECT id FROM patient WHERE rut = $1 LIMIT 1", [rut]);
       if (existing.rowCount > 0) {
         patientId = existing.rows[0].id;
       } else {
         const created = await client.query(
           "INSERT INTO patient (name, email, phone, rut) VALUES ($1, $2, $3, $4) RETURNING id",
-          [patientName, patientEmail, patientPhone || null, patientRut]
+          [name, email, phone, rut]
         );
         patientId = created.rows[0].id;
       }
 
-      const datetimeStr  = `${date}T${time}:00`;
-      const confirmCode  = generateConfirmCode();
-      const dbModality   = modality === "video" ? "video" : modality === "phone" ? "phone" : "in_person";
-      const amount       = prof.consultation_price ?? prof.price ?? CONSULTATION_AMOUNT;
+      const datetimeStr = `${date}T${time}:00`;
+      const confirmCode = generateConfirmCode();
+      const dbModality  = body.modality === "video" ? "video" : body.modality === "phone" ? "phone" : "in_person";
+      const amount      = prof.consultation_price ?? prof.price ?? CONSULTATION_AMOUNT;
 
       const appt = await client.query(
         `INSERT INTO appointment
            (patient_id, professional_id, datetime, duration_minutes, service, modality, status, reason, confirm_code)
          VALUES ($1, $2, $3::timestamp AT TIME ZONE 'America/Santiago', $4, $5, $6, 'scheduled', $7, $8)
          RETURNING id, confirm_code, modality`,
-        [patientId, prof.id, datetimeStr, prof.consultation_duration, prof.specialty, dbModality, reason || null, confirmCode]
+        [patientId, prof.id, datetimeStr, prof.consultation_duration, prof.specialty, dbModality, reason, confirmCode]
       );
       const row    = appt.rows[0];
       const apptId = row.id;
 
-      // ── Ledger payment row (always created, regardless of Flow) ───────────
-      const invoiceNumber = `RCV-${apptId}`;
-      const concept       = `Consulta ${prof.specialty} - ${prof.name}`;
-
+      // Ledger payment row (non-fatal)
       let paymentId = null;
       try {
         const payRec = await client.query(
@@ -389,11 +462,10 @@ async function route(client, method, rawPath, body, qs) {
            VALUES ($1, $2, $3, $4, $5, $6, NULL, 'pending', $7)
            RETURNING id`,
           [
-            patientId,
-            prof.id,
-            invoiceNumber,
+            patientId, prof.id,
+            `RCV-${apptId}`,
             date,
-            concept,
+            `Consulta ${prof.specialty} - ${prof.name}`,
             amount,
             `Cita agendada online. Código: ${confirmCode}`,
           ]
@@ -401,11 +473,9 @@ async function route(client, method, rawPath, body, qs) {
         paymentId = payRec.rows[0].id;
         log("INFO", "Ledger payment created", { paymentId, apptId });
       } catch (err) {
-        // Non-fatal: log and continue (appointment already committed)
         log("ERROR", "Ledger payment insert error", { message: err.message, apptId });
       }
 
-      // ── appointment_payment row (token added later by dairi-payment + webhook) ─
       try {
         await client.query(
           `INSERT INTO appointment_payment (appointment_id, payment_id, amount, currency, status)
@@ -426,7 +496,7 @@ async function route(client, method, rawPath, body, qs) {
         specialty:     prof.specialty,
         date,
         time,
-        patientName,
+        patientName:   name,
         modality:      row.modality,
         meetLink:      null,
         paymentLink:   null,
