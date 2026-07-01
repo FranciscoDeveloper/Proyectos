@@ -36,7 +36,10 @@ const SERVICE_USER_ID = parseInt(process.env.SERVICE_USER_ID || "4");
 // ── Filename parser ────────────────────────────────────────────────────────────
 
 function parseFilename(key) {
-  const base  = key.split("/").pop().replace(/\.md$/i, "");
+  // Strip compound extensions: .soap.md, .transcript.md, .md
+  const filename = key.split("/").pop().replace(/\.(soap|transcript)\.md$/i, "").replace(/\.md$/i, "");
+  // Strip optional numeric timestamp prefix: "1782786734181_atencion" → "atencion"
+  const base  = filename.replace(/^\d+_/, "");
   const parts = base.split("--");
   if (parts.length !== 6 || parts[0] !== "atencion") return null;
 
