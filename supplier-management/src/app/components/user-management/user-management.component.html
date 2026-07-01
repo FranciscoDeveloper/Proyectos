@@ -36,7 +36,7 @@
           <td class="user-cell">
             <span class="avatar">{{ user.avatar }}</span>
             <div class="user-info">
-              <span class="name">{{ user.name }}</span>
+              <span class="name">{{ user.name }} <span class="self-badge" *ngIf="isSelf(user.id)">Tú</span></span>
               <span class="email">{{ user.email }}</span>
             </div>
           </td>

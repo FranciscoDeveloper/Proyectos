@@ -17,7 +17,7 @@ export type FieldType =
   | 'entity-select';
 
 /** Determines which view component renders this entity's overview */
-export type ModuleType = 'crud' | 'list' | 'calendar' | 'clinical-record' | 'presupuestos';
+export type ModuleType = 'crud' | 'list' | 'calendar' | 'clinical-record' | 'presupuestos' | 'admin';
 
 export type FieldFormat = 'currency' | 'date' | 'stars' | 'percent' | 'none';
 export type FilterType = 'search' | 'select';

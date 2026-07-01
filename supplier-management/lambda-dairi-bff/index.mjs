@@ -639,7 +639,7 @@ const ENTITY_CONFIG = {
         c.patient_id              AS "patientId",
         p.name                    AS "fullName",
         p.rut,
-        p.birth_date              AS "birthDate",
+        COALESCE(c.birth_date, p.birth_date) AS "birthDate",
         p.gender,
         p.blood_type              AS "bloodType",
         p.phone,
@@ -688,6 +688,7 @@ const ENTITY_CONFIG = {
     toDb(d) {
       const cols = {};
       if (d.patientId            !== undefined) cols.patient_id             = d.patientId;
+      if (d.birthDate            !== undefined) cols.birth_date             = d.birthDate || null;
       if (d.insurance            !== undefined) cols.insurance              = d.insurance;
       if (d.profession           !== undefined) cols.profession             = d.profession;
       if (d.allergies            !== undefined) cols.allergies              = JSON.stringify(d.allergies);
@@ -1003,8 +1004,9 @@ async function ensureLookupTables(client) {
     VALUES ('user-management', 'Usuario', 'Gestion de Usuarios', 'admin', 'shield')
     ON CONFLICT DO NOTHING`);
 
-  // Add profession column to clinical_record if it doesn't exist yet
-  await client.query(`ALTER TABLE clinical_record ADD COLUMN IF NOT EXISTS profession TEXT`);
+  // Add columns to clinical_record if they don't exist yet
+  await client.query(`ALTER TABLE clinical_record ADD COLUMN IF NOT EXISTS profession   TEXT`);
+  await client.query(`ALTER TABLE clinical_record ADD COLUMN IF NOT EXISTS birth_date   DATE`);
 
   lookupTablesReady = true;
   log("INFO", "Lookup tables ready");

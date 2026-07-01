@@ -72,7 +72,7 @@ export class ShellComponent {
     return [
       { label: 'Dashboard',     icon: 'grid',         route: '/app/dashboard'     },
       ...schemas
-        .filter(s => s.entity.moduleType !== 'presupuestos' && s.entity.key !== 'reports')
+        .filter(s => s.entity.moduleType !== 'presupuestos' && s.entity.moduleType !== 'admin' && s.entity.key !== 'reports')
         .map(s => ({
           label: s.entity.plural,
           icon: s.entity.icon,

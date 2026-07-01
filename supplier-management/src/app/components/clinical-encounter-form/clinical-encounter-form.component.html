@@ -162,6 +162,7 @@
           {{ savingVitals() ? 'Guardando…' : 'Guardar Signos Vitales' }}
         </button>
         <span class="section-saved-tick" *ngIf="savedVitals()">✓ Guardado</span>
+        <span class="section-save-error" *ngIf="vitalsError()">✗ {{ vitalsError() }}</span>
       </div>
 
       <!-- Botón de guardado para Antecedentes (aparece al cerrar la última sección background) -->
@@ -175,6 +176,7 @@
           {{ savingBackground() ? 'Guardando…' : 'Guardar Antecedentes' }}
         </button>
         <span class="section-saved-tick" *ngIf="savedBackground()">✓ Guardado</span>
+        <span class="section-save-error" *ngIf="backgroundError()">✗ {{ backgroundError() }}</span>
       </div>
 
       <!-- Botón de guardado para Diagnóstico -->
@@ -188,6 +190,7 @@
           {{ savingDiagnosis() ? 'Guardando…' : 'Guardar Diagnóstico' }}
         </button>
         <span class="section-saved-tick" *ngIf="savedDiagnosis()">✓ Guardado</span>
+        <span class="section-save-error" *ngIf="diagnosisError()">✗ {{ diagnosisError() }}</span>
       </div>
 
       <!-- Acciones de la sección SOAP (grabador + registrar atención) -->

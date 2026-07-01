@@ -33,10 +33,13 @@ export class ClinicalEncounterFormComponent implements OnInit {
 
   savingVitals      = signal(false);
   savedVitals       = signal(false);
+  vitalsError       = signal<string | null>(null);
   savingDiagnosis   = signal(false);
   savedDiagnosis    = signal(false);
+  diagnosisError    = signal<string | null>(null);
   savingBackground  = signal(false);
   savedBackground   = signal(false);
+  backgroundError   = signal<string | null>(null);
 
   form!: FormGroup;
 
@@ -119,11 +122,8 @@ export class ClinicalEncounterFormComponent implements OnInit {
       const record = this.crudSvc.getById(key, this.recordId()!);
       if (record) {
         const patch: Record<string, any> = {};
-        const prefillSections = new Set([
-          ...ClinicalEncounterFormComponent.BACKGROUND_SECTIONS,
-        ]);
         this.schema()!.fields
-          .filter(f => f.isStable || prefillSections.has(f.section ?? ''))
+          .filter(f => f.isStable)
           .forEach(f => {
             patch[f.name] = f.type === 'tags' && Array.isArray(record[f.name])
               ? record[f.name].join(', ')
@@ -219,6 +219,8 @@ export class ClinicalEncounterFormComponent implements OnInit {
 
   saveVitals(): void {
     this.savingVitals.set(true);
+    this.savedVitals.set(false);
+    this.vitalsError.set(null);
     const raw  = this.form.getRawValue();
     const data: Record<string, any> = {};
     this.editableFields()
@@ -229,12 +231,16 @@ export class ClinicalEncounterFormComponent implements OnInit {
           data[f.name] = (f.type === 'number' || f.type === 'range') ? Number(v) : v;
         }
       });
-    this.crudSvc.update(this.entityKey(), this.recordId()!, data);
-    setTimeout(() => { this.savingVitals.set(false); this.savedVitals.set(true); }, 500);
+    this.crudSvc.update(this.entityKey(), this.recordId()!, data).subscribe({
+      next: () => { this.savingVitals.set(false); this.savedVitals.set(true); },
+      error: err => { this.savingVitals.set(false); this.vitalsError.set(err?.error?.message ?? 'Error al guardar los signos vitales'); }
+    });
   }
 
   saveDiagnosis(): void {
     this.savingDiagnosis.set(true);
+    this.savedDiagnosis.set(false);
+    this.diagnosisError.set(null);
     const raw  = this.form.getRawValue();
     const data: Record<string, any> = {};
     this.editableFields()
@@ -245,25 +251,38 @@ export class ClinicalEncounterFormComponent implements OnInit {
           data[f.name] = v;
         }
       });
-    this.crudSvc.update(this.entityKey(), this.recordId()!, data);
-    setTimeout(() => { this.savingDiagnosis.set(false); this.savedDiagnosis.set(true); }, 500);
+    this.crudSvc.update(this.entityKey(), this.recordId()!, data).subscribe({
+      next: () => { this.savingDiagnosis.set(false); this.savedDiagnosis.set(true); },
+      error: err => { this.savingDiagnosis.set(false); this.diagnosisError.set(err?.error?.message ?? 'Error al guardar el diagnóstico'); }
+    });
   }
 
   saveBackground(): void {
     this.savingBackground.set(true);
     this.savedBackground.set(false);
+    this.backgroundError.set(null);
     const raw  = this.form.getRawValue();
     const data: Record<string, any> = {};
     this.backgroundFields().forEach(f => {
       const v = raw[f.name];
-      if (v !== undefined && v !== null) {
-        data[f.name] = f.type === 'tags'
+      if (v !== undefined && v !== null && v !== '') {
+        const parsed = f.type === 'tags'
           ? String(v).split(',').map((s: string) => s.trim()).filter(Boolean)
           : v;
+        if (f.type === 'tags' ? (parsed as string[]).length > 0 : true) {
+          data[f.name] = parsed;
+        }
       }
     });
-    this.crudSvc.update(this.entityKey(), this.recordId()!, data);
-    setTimeout(() => { this.savingBackground.set(false); this.savedBackground.set(true); }, 500);
+    if (Object.keys(data).length === 0) {
+      this.savingBackground.set(false);
+      this.backgroundError.set('No hay antecedentes que guardar.');
+      return;
+    }
+    this.crudSvc.update(this.entityKey(), this.recordId()!, data).subscribe({
+      next: () => { this.savingBackground.set(false); this.savedBackground.set(true); },
+      error: err => { this.savingBackground.set(false); this.backgroundError.set(err?.error?.message ?? 'Error al guardar los antecedentes'); }
+    });
   }
 
   submit() {
@@ -274,19 +293,22 @@ export class ClinicalEncounterFormComponent implements OnInit {
     this.saveError.set(null);
     const raw = this.form.getRawValue();
 
-    // Persist background fields to the clinical record top-level columns so the
-    // detail view reflects changes even when "Guardar Antecedentes" was not clicked.
+    // Persist background fields to the clinical record top-level columns only when
+    // the doctor actually filled them in (avoid overwriting existing data with blanks).
     const backgroundData: Record<string, any> = {};
     this.backgroundFields().forEach(f => {
       const v = raw[f.name];
-      if (v !== undefined && v !== null) {
-        backgroundData[f.name] = f.type === 'tags'
+      if (v !== undefined && v !== null && v !== '') {
+        const parsed = f.type === 'tags'
           ? String(v).split(',').map((s: string) => s.trim()).filter(Boolean)
           : v;
+        if (f.type === 'tags' ? (parsed as string[]).length > 0 : true) {
+          backgroundData[f.name] = parsed;
+        }
       }
     });
     if (Object.keys(backgroundData).length > 0) {
-      this.crudSvc.update(this.entityKey(), this.recordId()!, backgroundData);
+      this.crudSvc.update(this.entityKey(), this.recordId()!, backgroundData).subscribe();
     }
 
     const encounter: Record<string, any> = { encounterDate: raw['encounterDate'], status: 'active' };

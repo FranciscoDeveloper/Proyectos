@@ -64,7 +64,7 @@ export class GenericCrudService {
     return firstValueFrom(this.create(key, data));
   }
 
-  update(key: string, id: number, data: Record<string, any>): void {
+  update(key: string, id: number, data: Record<string, any>): Observable<Record<string, any>> {
     // Optimistic update: merge immediately so signals (e.g. odontogramData) stay reactive
     const existing = this.getById(key, id);
     if (existing) {
@@ -74,16 +74,18 @@ export class GenericCrudService {
       );
     }
 
-    this.crypto.encryptRecord(data, key).then(encrypted => {
-      this.http.put<Record<string, any>>(`/api/entities/${key}/${id}`, encrypted).subscribe({
-        next: async updated => {
-          const decrypted = await this.crypto.decryptRecord(updated, key);
-          this.stores.get(key)?.update(
-            list => list.map(item => item['id'] === id ? decrypted : item)
-          );
-        }
-      });
-    });
+    return from(this.crypto.encryptRecord(data, key)).pipe(
+      switchMap(encrypted =>
+        this.http.put<Record<string, any>>(`/api/entities/${key}/${id}`, encrypted)
+      ),
+      switchMap(async updated => {
+        const decrypted = await this.crypto.decryptRecord(updated, key);
+        this.stores.get(key)?.update(
+          list => list.map(item => item['id'] === id ? decrypted : item)
+        );
+        return decrypted;
+      })
+    );
   }
 
   appendEncounter(key: string, id: number, encounter: Record<string, any>): Observable<Record<string, any>> {

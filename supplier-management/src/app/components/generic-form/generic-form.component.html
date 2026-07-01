@@ -2,7 +2,7 @@
 
   <!-- ── Header ── -->
   <div class="page-header">
-    <a [routerLink]="['/app/entity', entityKey()]" class="back-link">
+    <a [routerLink]="listRoute()" class="back-link">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       {{ schema()!.entity.plural }}
     </a>
@@ -162,6 +162,7 @@
     </div>
 
     <!-- ── Acciones ── -->
+    <div *ngIf="saveError()" class="save-error-banner">{{ saveError() }}</div>
     <div class="form-actions">
       <button type="button" class="btn-ghost" (click)="cancel()">Cancelar</button>
       <button type="submit" class="btn-primary" [disabled]="saving()">

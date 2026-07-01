@@ -128,7 +128,7 @@ export class CommissionReportComponent implements OnInit {
     current.add(paymentId);
     this.paying.set(current);
 
-    this.crud.update('payments', paymentId, { commissionStatus: 'pagada' });
+    this.crud.update('payments', paymentId, { commissionStatus: 'pagada' }).subscribe();
 
     // Remove from paying set after a short delay (optimistic UI)
     setTimeout(() => {

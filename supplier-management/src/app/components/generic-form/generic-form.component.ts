@@ -29,6 +29,7 @@ export class GenericFormComponent implements OnInit {
   recordId = signal<number | null>(null);
   saving = signal(false);
   saved = signal(false);
+  saveError = signal<string | null>(null);
   isEncounterMode = signal(false);
   /** True when the record being edited already has at least one encounter */
   hasEncounters = signal(false);
@@ -215,6 +216,7 @@ export class GenericFormComponent implements OnInit {
     if (this.form.invalid) return;
 
     this.saving.set(true);
+    this.saveError.set(null);
     const raw = this.form.getRawValue();
 
     const processFields = (): Record<string, any> => {
@@ -258,33 +260,45 @@ export class GenericFormComponent implements OnInit {
             encounter[f.name] = (f.type === 'number' || f.type === 'range') ? Number(v) : v;
           }
         });
-        this.crudService.appendEncounter(this.entityKey(), this.recordId()!, encounter);
-        this.saving.set(false);
-        this.saved.set(true);
-        setTimeout(() => this.router.navigate(['/app/clinical', this.entityKey(), this.recordId()]), 800);
+        this.crudService.appendEncounter(this.entityKey(), this.recordId()!, encounter).subscribe({
+          next: () => {
+            this.saving.set(false);
+            this.saved.set(true);
+            setTimeout(() => this.router.navigate(['/app/clinical', this.entityKey(), this.recordId()]), 800);
+          },
+          error: (err) => { this.saving.set(false); this.saveError.set(err?.error?.message ?? 'Error al guardar la atención.'); }
+        });
       } else if (this.isEdit() && this.recordId() !== null) {
-        this.crudService.update(this.entityKey(), this.recordId()!, processed);
-        this.saving.set(false);
-        this.saved.set(true);
-        setTimeout(() => this.router.navigate(['/app/entity', this.entityKey()]), 800);
+        this.crudService.update(this.entityKey(), this.recordId()!, processed).subscribe({
+          next: () => {
+            this.saving.set(false);
+            this.saved.set(true);
+            setTimeout(() => this.router.navigate(this.listRoute()), 800);
+          },
+          error: (err) => { this.saving.set(false); this.saveError.set(err?.error?.message ?? 'Error al guardar los cambios.'); }
+        });
       } else {
         this.crudService.create(this.entityKey(), processed).subscribe({
           next: () => {
             this.syncToGoogleCalendar(processed);
             this.saving.set(false);
             this.saved.set(true);
-            setTimeout(() => this.router.navigate(['/app/entity', this.entityKey()]), 800);
+            setTimeout(() => this.router.navigate(this.listRoute()), 800);
           },
-          error: () => {
-            this.saving.set(false);
-          }
+          error: (err) => { this.saving.set(false); this.saveError.set(err?.error?.message ?? 'Error al crear el registro.'); }
         });
       }
     }, 400);
   }
 
+  listRoute(): string[] {
+    return this.schema()?.entity.moduleType === 'clinical-record'
+      ? ['/app/clinical', this.entityKey()]
+      : ['/app/entity', this.entityKey()];
+  }
+
   cancel() {
-    this.router.navigate(['/app/entity', this.entityKey()]);
+    this.router.navigate(this.listRoute());
   }
 
   getInputType(field: FieldDefinition): string {

@@ -75,6 +75,7 @@ export class UserManagementComponent implements OnInit {
   }
 
   toggleStatus(user: AdminUser) {
+    console.log('[toggleStatus] called', { userId: user.id, emailVerified: user.emailVerified, togglingId: this.togglingId(), isSelf: this.isSelf(user.id) });
     const activating = !user.emailVerified;
     this.togglingId.set(user.id);
     this.activationSentFor.set(null);

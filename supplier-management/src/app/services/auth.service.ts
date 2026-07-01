@@ -159,15 +159,15 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
     // ── Datos personales del paciente ─────────────────────────────────────
     { name: 'birthDate',        type: 'date',   label: 'Fecha de Nacimiento', required: false, showInList: false, showInDetail: true, section: 'demographics', format: 'date', isStable: true },
     { name: 'profession',       type: 'text',   label: 'Profesión',           required: false, showInList: false, showInDetail: true, section: 'demographics', isStable: true, hideInEncounterMode: true },
-    { name: 'bloodType',        type: 'select', label: 'Grupo Sanguíneo',     required: false, isBadge: true, showInList: true, showInDetail: true, section: 'demographics', isStable: true, lockWhenHasEncounters: true,
+    { name: 'bloodType',        type: 'select', label: 'Grupo Sanguíneo',     required: false, isBadge: true, showInList: true, showInDetail: true, section: 'demographics', isStable: true, hideInForm: true,
       options: [{ value: 'A+', label: 'A+' }, { value: 'A-', label: 'A-' }, { value: 'B+', label: 'B+' }, { value: 'B-', label: 'B-' }, { value: 'O+', label: 'O+' }, { value: 'O-', label: 'O-' }, { value: 'AB+', label: 'AB+' }, { value: 'AB-', label: 'AB-' }],
       badgeColors: { 'A+': '#ef4444', 'A-': '#f97316', 'B+': '#3b82f6', 'B-': '#6366f1', 'O+': '#10b981', 'O-': '#14b8a6', 'AB+': '#8b5cf6', 'AB-': '#ec4899' }
     },
     { name: 'insurance',        type: 'select', label: 'Previsión',           required: false, lookupEntity: 'previsiones', lookupValueField: 'nombre', lookupLabelField: 'nombre', showInList: true, showInDetail: true, section: 'demographics', isStable: true },
-    { name: 'phone',            type: 'tel',    label: 'Teléfono',            required: false, showInList: false, showInDetail: true, section: 'demographics', hideInEncounterMode: true },
-    { name: 'email',            type: 'email',  label: 'Email',               required: false, showInList: false, showInDetail: true, section: 'demographics', hideInEncounterMode: true },
-    { name: 'address',          type: 'text',   label: 'Dirección',           required: false, showInList: false, showInDetail: true, section: 'demographics', hideInEncounterMode: true },
-    { name: 'emergencyContact', type: 'text',   label: 'Contacto Emergencia', required: false, showInList: false, showInDetail: true, section: 'demographics', hideInEncounterMode: true },
+    { name: 'phone',            type: 'tel',    label: 'Teléfono',            required: false, showInList: false, showInDetail: true, section: 'demographics', hideInEncounterMode: true, hideInForm: true },
+    { name: 'email',            type: 'email',  label: 'Email',               required: false, showInList: false, showInDetail: true, section: 'demographics', hideInEncounterMode: true, hideInForm: true },
+    { name: 'address',          type: 'text',   label: 'Dirección',           required: false, showInList: false, showInDetail: true, section: 'demographics', hideInEncounterMode: true, hideInForm: true },
+    { name: 'emergencyContact', type: 'text',   label: 'Contacto Emergencia', required: false, showInList: false, showInDetail: true, section: 'demographics', hideInEncounterMode: true, hideInForm: true },
     // ── Campos administrativos (solo en detalle, no en formulario) ────────
     { name: 'status',     type: 'select', label: 'Estado',        required: false, isBadge: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', hideInEncounterMode: true, hideInForm: true,
       options: [{ value: 'active', label: 'Activo' }, { value: 'inactive', label: 'Inactivo' }],

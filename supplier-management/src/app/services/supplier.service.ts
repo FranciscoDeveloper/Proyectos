@@ -25,7 +25,7 @@ export class SupplierService {
   }
 
   update(id: number, data: Partial<Supplier>): void {
-    this.crud.update(this.entityKey, id, data as Record<string, any>);
+    this.crud.update(this.entityKey, id, data as Record<string, any>).subscribe();
   }
 
   delete(id: number): void {

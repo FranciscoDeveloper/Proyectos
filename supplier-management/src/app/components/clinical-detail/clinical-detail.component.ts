@@ -608,11 +608,11 @@ export class ClinicalDetailComponent implements OnInit {
   });
 
   saveOdontogram(data: OdontogramData): void {
-    this.crudSvc.update(this.entityKey, this.id, { odontogram: data });
+    this.crudSvc.update(this.entityKey, this.id, { odontogram: data }).subscribe();
   }
 
   savePeriodontogram(data: PeriodontogramData): void {
-    this.crudSvc.update(this.entityKey, this.id, { periodontogram: data });
+    this.crudSvc.update(this.entityKey, this.id, { periodontogram: data }).subscribe();
   }
 
   /** Reads encounter history from the JSONB encounters array on the clinical record. */
