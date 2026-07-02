@@ -37,6 +37,9 @@ import { AuthService } from '../services/auth.service';
  *   GET    /api/chat/users
  *   GET    /api/chat/messages?conversationId=:id
  *   POST   /api/chat/messages
+ *
+ * Helpdesk
+ *   POST   /api/helpdesk/message
  */
 
 const API_BASE = 'https://cwhwahvqr0.execute-api.us-east-1.amazonaws.com';

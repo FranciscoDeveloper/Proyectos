@@ -187,35 +187,34 @@ export class ChatService {
     sig.update(arr => [...arr, userMsg]);
     this.markRead(HELPDESK_CONV_ID);
 
-    this.http.post('/api/helpdesk/message', { content, userName: me.name, userId: me.id }).subscribe({
+    this.http.post<{ message?: string }>('/api/helpdesk/message', { content, userName: me.name, userId: me.id }).subscribe({
       next: () => {
-        // Auto-reply from agent after a short simulated delay
         setTimeout(() => {
-          const reply: ChatMessage = {
-            id:              _msgSeq--,
-            conversationId:  HELPDESK_CONV_ID,
-            senderId:        HELPDESK_AGENT.id,
-            senderName:      HELPDESK_AGENT.name,
-            senderAvatar:    HELPDESK_AGENT.avatar,
-            content:         HELPDESK_AUTO_REPLY,
-            timestamp:       new Date(),
-          };
-          sig.update(arr => [...arr, reply]);
+          sig.update(arr => [...arr, {
+            id:           _msgSeq--,
+            conversationId: HELPDESK_CONV_ID,
+            senderId:     HELPDESK_AGENT.id,
+            senderName:   HELPDESK_AGENT.name,
+            senderAvatar: HELPDESK_AGENT.avatar,
+            content:      HELPDESK_AUTO_REPLY,
+            timestamp:    new Date(),
+          }]);
         }, 1200);
       },
-      error: () => {
-        // Auto-reply even on error so the user knows their message was received locally
+      error: (err) => {
+        const agentMsg = err?.status === 429
+          ? `⏳ ${err?.error?.message ?? 'Demasiados mensajes. Intenta en unos minutos.'}`
+          : '⚠️ No pude conectar con el servicio de soporte en este momento. Por favor intenta nuevamente o escríbenos a soporte@dairi.cl';
         setTimeout(() => {
-          const reply: ChatMessage = {
-            id:              _msgSeq--,
-            conversationId:  HELPDESK_CONV_ID,
-            senderId:        HELPDESK_AGENT.id,
-            senderName:      HELPDESK_AGENT.name,
-            senderAvatar:    HELPDESK_AGENT.avatar,
-            content:         '⚠️ No pude conectar con el servicio de soporte en este momento. Por favor intenta nuevamente o escríbenos a soporte@dairi.cl',
-            timestamp:       new Date(),
-          };
-          sig.update(arr => [...arr, reply]);
+          sig.update(arr => [...arr, {
+            id:           _msgSeq--,
+            conversationId: HELPDESK_CONV_ID,
+            senderId:     HELPDESK_AGENT.id,
+            senderName:   HELPDESK_AGENT.name,
+            senderAvatar: HELPDESK_AGENT.avatar,
+            content:      agentMsg,
+            timestamp:    new Date(),
+          }]);
         }, 800);
       }
     });

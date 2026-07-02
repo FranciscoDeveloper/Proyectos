@@ -4,6 +4,8 @@ import bcrypt  from "bcryptjs";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import { S3Client, ListObjectsV2Command, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { marshall } from "@aws-sdk/util-dynamodb";
 
 const { Pool } = pg;
 
@@ -47,10 +49,20 @@ const JWT_SECRET   = process.env.JWT_SECRET;
 const APP_URL      = process.env.APP_URL      || "https://dairi.cl";
 const EMAIL_LAMBDA = process.env.EMAIL_LAMBDA || "send-email";
 
-const lambdaClient = new LambdaClient({ region: process.env.AWS_REGION || "us-east-1" });
-const s3Client     = new S3Client({ region: process.env.AWS_REGION || "us-east-1" });
-const DOCS_BUCKET  = process.env.DOCS_BUCKET || "friquelme-firstpage";
-const DOCS_PREFIX  = "patient-docs";
+const lambdaClient   = new LambdaClient({ region: process.env.AWS_REGION || "us-east-1" });
+const s3Client       = new S3Client({ region: process.env.AWS_REGION || "us-east-1" });
+const dynamoClient   = new DynamoDBClient({ region: process.env.AWS_REGION || "us-east-1" });
+const HELPDESK_TABLE = process.env.HELPDESK_TABLE || "dairi-helpdesk";
+const DOCS_BUCKET    = process.env.DOCS_BUCKET || "friquelme-firstpage";
+const DOCS_PREFIX    = "patient-docs";
+
+// ── Helpdesk rate limiter (in-memory, persists across warm invocations) ───────
+// Limits: 5 messages per user per 5 minutes per Lambda instance.
+// Multiple concurrent instances each apply the limit independently,
+// which is acceptable for a low-volume support chat.
+const _hdRateMap          = new Map(); // userId → { count, windowStart }
+const HD_RATE_WINDOW_MS   = 5 * 60_000; // 5 minutes
+const HD_RATE_LIMIT       = 5;           // max messages per window
 
 // ── Entity configuration ──────────────────────────────────────────────────────
 // Each entity defines:
@@ -1168,6 +1180,56 @@ export const handler = async (event, context) => {
   }
 
   const rawPath = rawPathEarly;
+
+  // ── POST /api/helpdesk/message ────────────────────────────────────────────
+  if (rawPath === "/api/helpdesk/message" && method === "POST") {
+    let hdBody = null;
+    if (event.body) {
+      try { hdBody = typeof event.body === "string" ? JSON.parse(event.body) : event.body; }
+      catch { return response(400, { message: "Body inválido" }); }
+    }
+    const content  = String(hdBody?.content  ?? "").trim().slice(0, 500);
+    const userName = String(hdBody?.userName ?? tokenPayload.email ?? "").trim();
+    const userId   = String(hdBody?.userId   ?? tokenPayload.sub   ?? "0");
+
+    // Rate limit: max HD_RATE_LIMIT messages per HD_RATE_WINDOW_MS per user
+    const now      = Date.now();
+    const rateData = _hdRateMap.get(userId) ?? { count: 0, windowStart: now };
+    if (now - rateData.windowStart > HD_RATE_WINDOW_MS) {
+      rateData.count = 0;
+      rateData.windowStart = now;
+    }
+    if (rateData.count >= HD_RATE_LIMIT) {
+      const waitSec = Math.ceil((HD_RATE_WINDOW_MS - (now - rateData.windowStart)) / 1000);
+      log("WARN", "Helpdesk rate limit exceeded", { userId, count: rateData.count });
+      return response(429, { message: `Demasiados mensajes. Intenta nuevamente en ${waitSec} segundos.` });
+    }
+    rateData.count++;
+    _hdRateMap.set(userId, rateData);
+    if (!content) return response(400, { message: "El mensaje no puede estar vacío" });
+
+    const ticketId  = crypto.randomUUID();
+    const timestamp = new Date().toISOString();
+    try {
+      await dynamoClient.send(new PutItemCommand({
+        TableName: HELPDESK_TABLE,
+        Item: marshall({
+          ticketId,
+          userId,
+          timestamp,
+          userEmail: tokenPayload.email ?? "",
+          userName,
+          content,
+          status: "open",
+          source: "dairi-helpdesk"
+        }, { removeUndefinedValues: true })
+      }));
+      log("INFO", "Helpdesk message persisted", { ticketId, userId });
+    } catch (err) {
+      log("ERROR", "Failed to persist helpdesk message to DynamoDB", { message: err.message, ticketId });
+    }
+    return response(200, { ticketId, timestamp, message: "Mensaje recibido" });
+  }
 
   // ── PATCH /api/user/config ────────────────────────────────────────────────
   if (rawPath === "/api/user/config") {
