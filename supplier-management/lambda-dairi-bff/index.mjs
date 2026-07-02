@@ -1020,6 +1020,21 @@ async function ensureLookupTables(client) {
   await client.query(`ALTER TABLE clinical_record ADD COLUMN IF NOT EXISTS profession   TEXT`);
   await client.query(`ALTER TABLE clinical_record ADD COLUMN IF NOT EXISTS birth_date   DATE`);
 
+  // Chat message persistence
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS chat_message (
+      id              SERIAL PRIMARY KEY,
+      conversation_id TEXT        NOT NULL,
+      sender_id       INTEGER     NOT NULL,
+      sender_name     TEXT        NOT NULL DEFAULT '',
+      sender_avatar   TEXT        NOT NULL DEFAULT '',
+      content         TEXT        NOT NULL,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )`);
+  await client.query(`
+    CREATE INDEX IF NOT EXISTS idx_chat_msg_conv
+    ON chat_message(conversation_id, created_at DESC)`);
+
   lookupTablesReady = true;
   log("INFO", "Lookup tables ready");
 }
@@ -1229,6 +1244,77 @@ export const handler = async (event, context) => {
       log("ERROR", "Failed to persist helpdesk message to DynamoDB", { message: err.message, ticketId });
     }
     return response(200, { ticketId, timestamp, message: "Mensaje recibido" });
+  }
+
+  // ── Chat routes /api/chat/* ───────────────────────────────────────────────
+  if (rawPath === "/api/chat/users" && method === "GET") {
+    const COLORS = ["#6366f1","#ec4899","#f59e0b","#10b981","#3b82f6","#8b5cf6","#ef4444","#06b6d4"];
+    const client = await pool.connect();
+    try {
+      const { rows } = await client.query(
+        `SELECT id, name, email, role FROM app_user WHERE email_verified = true ORDER BY id`
+      );
+      return response(200, rows.map(r => ({
+        id:     r.id,
+        name:   r.name || r.email.split("@")[0],
+        avatar: (r.name || r.email).charAt(0).toUpperCase(),
+        role:   r.role  || "user",
+        online: false,
+        color:  COLORS[r.id % COLORS.length]
+      })));
+    } finally { client.release(); }
+  }
+
+  if (rawPath === "/api/chat/messages" && method === "GET") {
+    const convId = event.queryStringParameters?.conversationId;
+    if (!convId) return response(400, { message: "conversationId requerido" });
+    const client = await pool.connect();
+    try {
+      const { rows } = await client.query(
+        `SELECT id, conversation_id, sender_id, sender_name, sender_avatar, content, created_at
+         FROM chat_message WHERE conversation_id = $1
+         ORDER BY created_at ASC LIMIT 200`,
+        [convId]
+      );
+      return response(200, rows.map(r => ({
+        id:             r.id,
+        conversationId: r.conversation_id,
+        senderId:       r.sender_id,
+        senderName:     r.sender_name,
+        senderAvatar:   r.sender_avatar,
+        content:        r.content,
+        timestamp:      r.created_at
+      })));
+    } finally { client.release(); }
+  }
+
+  if (rawPath === "/api/chat/messages" && method === "POST") {
+    let chatBody = null;
+    if (event.body) {
+      try { chatBody = typeof event.body === "string" ? JSON.parse(event.body) : event.body; }
+      catch { return response(400, { message: "Body inválido" }); }
+    }
+    const { conversationId, senderId, senderName, senderAvatar, content } = chatBody ?? {};
+    if (!conversationId || !content) return response(400, { message: "conversationId y content son requeridos" });
+    const client = await pool.connect();
+    try {
+      const { rows } = await client.query(
+        `INSERT INTO chat_message (conversation_id, sender_id, sender_name, sender_avatar, content)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id, conversation_id, sender_id, sender_name, sender_avatar, content, created_at`,
+        [conversationId, senderId ?? tokenPayload.sub, senderName ?? "", senderAvatar ?? "", content]
+      );
+      const r = rows[0];
+      return response(201, {
+        id:             r.id,
+        conversationId: r.conversation_id,
+        senderId:       r.sender_id,
+        senderName:     r.sender_name,
+        senderAvatar:   r.sender_avatar,
+        content:        r.content,
+        timestamp:      r.created_at
+      });
+    } finally { client.release(); }
   }
 
   // ── PATCH /api/user/config ────────────────────────────────────────────────
