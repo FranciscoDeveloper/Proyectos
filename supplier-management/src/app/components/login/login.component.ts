@@ -65,7 +65,6 @@ export class LoginComponent implements OnDestroy {
     this.error.set('');
 
     const { email, password } = this.form.getRawValue();
-    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/app/dashboard';
 
     this.sub = this.auth.login({ email: email!, password: password! }).subscribe({
       next: (response) => {
@@ -74,7 +73,7 @@ export class LoginComponent implements OnDestroy {
         const target = (raw && raw.startsWith('/') && !raw.startsWith('//') && raw !== '/')
           ? raw
           : '/app/dashboard';
-        window.location.href = '/?_=' + Date.now() + '#' + target;
+        this.router.navigateByUrl(target);
       },
       error: (err: Error) => {
         this.loading.set(false);
