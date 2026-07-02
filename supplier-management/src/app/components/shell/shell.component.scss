@@ -359,6 +359,115 @@
 }
 
 /* ===== ZK SETUP BANNER (first time) ===== */
+/* ── Shared banner atoms ─────────────────────────────────────────────────── */
+
+.zk-banner-icon {
+  width: 40px;
+  height: 40px;
+  background: #fef3c7;
+  border: 1.5px solid #f59e0b;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  svg { width: 18px; height: 18px; color: #b45309; }
+
+  &--green {
+    background: #d1fae5;
+    border-color: #34d399;
+    svg { color: #059669; }
+  }
+}
+
+.zk-banner-text {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  strong { font-size: 13px; font-weight: 700; }
+  span   { font-size: 12px; line-height: 1.4; }
+  code   { font-family: monospace; background: rgba(0,0,0,0.07); padding: 1px 4px; border-radius: 3px; }
+}
+
+.zk-banner-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+
+  &--column {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    padding-top: 4px;
+  }
+}
+
+.zk-banner-error {
+  width: 100%;
+  font-size: 12px;
+  color: #b91c1c;
+  font-weight: 500;
+  margin: 0;
+  padding-top: 4px;
+}
+
+.zk-input {
+  height: 36px;
+  padding: 0 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  background: white;
+  outline: none;
+  min-width: 220px;
+  transition: border-color 0.15s;
+  &:focus { border-color: #6366f1; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  &--mono {
+    font-family: monospace;
+    letter-spacing: 0.05em;
+  }
+}
+
+.zk-recovery-link {
+  width: 100%;
+  background: none;
+  border: none;
+  color: #92400e;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: left;
+  padding: 4px 0 0;
+  text-decoration: underline;
+  opacity: 0.8;
+  &:hover { opacity: 1; }
+}
+
+.zk-link-btn {
+  background: none;
+  border: none;
+  color: #6366f1;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  &:hover { text-decoration: underline; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.zk-recovery-btns {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* ── Setup banner (green) ────────────────────────────────────────────────── */
+
 .zk-setup-banner {
   background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
   border-bottom: 1px solid #6ee7b7;
@@ -369,29 +478,8 @@
   flex-wrap: wrap;
   flex-shrink: 0;
 
-  .zk-banner-icon {
-    width: 40px;
-    height: 40px;
-    background: #d1fae5;
-    border: 1.5px solid #34d399;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    svg { width: 18px; height: 18px; color: #059669; }
-  }
-
-  .zk-banner-text {
-    flex: 1;
-    min-width: 200px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-
-    strong { font-size: 13px; font-weight: 700; color: #065f46; }
-    span   { font-size: 12px; color: #047857; line-height: 1.4; }
-  }
+  .zk-banner-icon { background: #d1fae5; border-color: #34d399; svg { color: #059669; } }
+  .zk-banner-text { strong { color: #065f46; } span { color: #047857; } }
 }
 
 .zk-setup-btn {
@@ -409,12 +497,14 @@
   gap: 6px;
   flex-shrink: 0;
   transition: background 0.2s ease;
+  white-space: nowrap;
   svg { width: 15px; height: 15px; }
   &:hover:not(:disabled) { background: #047857; }
   &:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 
-/* ===== ZK UNLOCK BANNER (certificate upload) ===== */
+/* ── Unlock banner (amber) ───────────────────────────────────────────────── */
+
 .zk-unlock-banner {
   background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
   border-bottom: 1px solid #fbbf24;
@@ -425,45 +515,13 @@
   flex-wrap: wrap;
   flex-shrink: 0;
 
-  .zk-banner-icon {
-    width: 40px;
-    height: 40px;
-    background: #fef3c7;
-    border: 1.5px solid #f59e0b;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    svg { width: 18px; height: 18px; color: #b45309; }
-  }
+  .zk-banner-text { strong { color: #92400e; } span { color: #a16207; } }
 
-  .zk-banner-text {
-    flex: 1;
-    min-width: 200px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-
-    strong { font-size: 13px; font-weight: 700; color: #92400e; }
-    span   { font-size: 12px; color: #a16207; line-height: 1.4; }
-    code   { font-family: monospace; background: rgba(0,0,0,0.06); padding: 1px 4px; border-radius: 3px; }
-  }
-
-  .zk-banner-form {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-shrink: 0;
-  }
-
-  .zk-banner-error {
-    width: 100%;
-    font-size: 12px;
-    color: #b91c1c;
-    font-weight: 500;
-    margin: 0;
-    padding-top: 4px;
+  &--recovery {
+    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+    border-color: #a78bfa;
+    .zk-banner-icon { background: #ede9fe; border-color: #a78bfa; svg { color: #7c3aed; } }
+    .zk-banner-text { strong { color: #4c1d95; } span { color: #6d28d9; } }
   }
 }
 
@@ -472,6 +530,7 @@
   padding: 0 16px;
   background: #f59e0b;
   color: white;
+  border: none;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
@@ -479,12 +538,89 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
   transition: background 0.2s ease;
+  white-space: nowrap;
   svg { width: 15px; height: 15px; }
   &:hover:not(.loading) { background: #d97706; }
   &.loading { opacity: 0.6; cursor: not-allowed; }
   input[type="file"] { display: none; }
 }
+
+/* ── Recovery codes display banner ──────────────────────────────────────── */
+
+.zk-codes-banner {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-bottom: 1px solid #86efac;
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex-shrink: 0;
+
+  .zk-codes-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    .zk-banner-text { strong { color: #14532d; } span { color: #166534; } }
+  }
+}
+
+.zk-codes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px 12px;
+}
+
+.zk-code {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: white;
+  border: 1.5px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 7px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #166534;
+
+  .zk-code-num {
+    font-size: 10px;
+    font-weight: 600;
+    color: #4ade80;
+    min-width: 14px;
+    text-align: right;
+  }
+}
+
+.zk-codes-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.zk-copy-btn {
+  height: 34px;
+  padding: 0 14px;
+  background: white;
+  color: #166534;
+  border: 1.5px solid #86efac;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s, border-color 0.15s;
+  svg { width: 13px; height: 13px; }
+  &:hover { background: #dcfce7; border-color: #4ade80; }
+}
+
+/* ── Shared spinner ──────────────────────────────────────────────────────── */
 
 .spinner-sm {
   width: 14px;
@@ -494,6 +630,7 @@
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   display: inline-block;
+  flex-shrink: 0;
 }
 
 @keyframes spin {

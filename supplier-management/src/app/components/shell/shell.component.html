@@ -127,8 +127,8 @@
         <!-- ZK status badge -->
         <div class="zk-badge"
              [class.zk-active]="cryptoSvc.isReady()"
-             [class.zk-locked]="cryptoSvc.needsUnlock()"
-             [title]="cryptoSvc.isReady() ? 'Zero-Knowledge Encryption activo — datos cifrados con AES-256-GCM' : cryptoSvc.needsUnlock() ? 'Datos cifrados bloqueados — ingresa tu contraseña' : 'Zero-Knowledge Encryption no iniciado'">
+             [class.zk-locked]="cryptoSvc.needsUnlock() || cryptoSvc.needsMigration()"
+             [title]="cryptoSvc.isReady() ? 'Zero-Knowledge Encryption activo — datos cifrados con AES-256-GCM' : (cryptoSvc.needsUnlock() || cryptoSvc.needsMigration()) ? 'Datos cifrados bloqueados — ingresa tu contraseña ZK' : 'Zero-Knowledge Encryption no iniciado'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
             <path *ngIf="cryptoSvc.isReady()" d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -153,54 +153,216 @@
       </div>
     </header>
 
-    <!-- ── ZK setup banner (first time — no certificate yet) ── -->
-    <div class="zk-setup-banner" *ngIf="cryptoSvc.needsSetup()">
-      <div class="zk-banner-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>
-      </div>
-      <div class="zk-banner-text">
-        <strong>Activa el cifrado Zero-Knowledge</strong>
-        <span>Genera tu certificado de cifrado personal. Guárdalo en un lugar seguro — lo necesitarás para descifrar tus datos en cada sesión.</span>
-      </div>
-      <button class="zk-setup-btn" (click)="setupZk()" [disabled]="zkSetting()">
-        <span class="spinner-sm" *ngIf="zkSetting()"></span>
-        <svg *ngIf="!zkSetting()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        {{ zkSetting() ? 'Generando…' : 'Generar Certificado' }}
-      </button>
-    </div>
+    <!-- ═══════════════════════════════════════════════════════════════════
+         ZK BANNERS — one <ng-container> drives the whole state machine
+         ════════════════════════════════════════════════════════════════ -->
+    <ng-container [ngSwitch]="zkBannerStep()">
 
-    <!-- ── ZK unlock banner (page reload — certificate required) ── -->
-    <div class="zk-unlock-banner" *ngIf="cryptoSvc.needsUnlock()">
-      <div class="zk-banner-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
-        </svg>
-      </div>
-      <div class="zk-banner-text">
-        <strong>Datos cifrados — sube tu certificado</strong>
-        <span>La clave de cifrado se pierde al recargar la página. Sube tu certificado <code>.json</code> para descifrar los datos.</span>
-      </div>
-      <div class="zk-banner-form">
-        <label class="cert-upload-label" [class.loading]="zkUnlocking()">
-          <span class="spinner-sm" *ngIf="zkUnlocking()"></span>
-          <svg *ngIf="!zkUnlocking()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
+      <!-- ── Setup: enter passphrase ── -->
+      <div class="zk-setup-banner" *ngSwitchCase="'setup_passphrase'">
+        <div class="zk-banner-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
-          {{ zkUnlocking() ? 'Verificando…' : 'Subir Certificado' }}
-          <input type="file" accept=".json" (change)="onCertFile($event)" [disabled]="zkUnlocking()" />
-        </label>
+        </div>
+        <div class="zk-banner-text">
+          <strong>Activa el cifrado Zero-Knowledge</strong>
+          <span>Elige una contraseña para proteger tus datos. La usarás cada vez que inicies sesión — no se almacena en ningún servidor.</span>
+        </div>
+        <div class="zk-banner-form">
+          <input class="zk-input" type="password" placeholder="Contraseña (mín. 8 caracteres)"
+                 [ngModel]="zkPassphrase()" (ngModelChange)="zkPassphrase.set($event)"
+                 (keydown.enter)="setupZk()" [disabled]="zkWorking()" autocomplete="new-password"/>
+          <input class="zk-input" type="password" placeholder="Confirmar contraseña"
+                 [ngModel]="zkPassphraseConfirm()" (ngModelChange)="zkPassphraseConfirm.set($event)"
+                 (keydown.enter)="setupZk()" [disabled]="zkWorking()" autocomplete="new-password"/>
+          <button class="zk-setup-btn" (click)="setupZk()" [disabled]="zkWorking()">
+            <span class="spinner-sm" *ngIf="zkWorking()"></span>
+            <svg *ngIf="!zkWorking()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            {{ zkWorking() ? 'Generando…' : 'Activar cifrado' }}
+          </button>
+        </div>
+        <p class="zk-banner-error" *ngIf="zkError()">{{ zkError() }}</p>
       </div>
-      <p class="zk-banner-error" *ngIf="zkCertError()">Certificado inválido o no corresponde a esta cuenta.</p>
-    </div>
+
+      <!-- ── Setup / Recovery: display recovery codes ── -->
+      <div class="zk-codes-banner" *ngSwitchCase="'setup_codes'">
+        <div class="zk-codes-header">
+          <div class="zk-banner-icon zk-banner-icon--green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <div class="zk-banner-text">
+            <strong>Cifrado activado — guarda tus códigos de recuperación</strong>
+            <span>Si olvidas tu contraseña, cualquiera de estos 8 códigos te permitirá recuperar el acceso. Guárdalos en un lugar seguro (imprímelos o cópialos). No se mostrarán de nuevo.</span>
+          </div>
+        </div>
+        <div class="zk-codes-grid">
+          <span class="zk-code" *ngFor="let c of zkCodes(); let i = index">
+            <span class="zk-code-num">{{ i + 1 }}</span>{{ c }}
+          </span>
+        </div>
+        <div class="zk-codes-actions">
+          <button class="zk-copy-btn" (click)="copyAllCodes()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            {{ zkCodesCopied() ? 'Copiado ✓' : 'Copiar todos' }}
+          </button>
+          <button class="zk-setup-btn" (click)="doneWithCodes()">
+            He guardado los códigos — Continuar
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Unlock: enter passphrase (daily flow) ── -->
+      <div class="zk-unlock-banner" *ngSwitchCase="'unlock_passphrase'">
+        <div class="zk-banner-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+          </svg>
+        </div>
+        <div class="zk-banner-text">
+          <strong>Ingresa tu contraseña ZK</strong>
+          <span>La clave de cifrado se limpia al recargar la página. Ingresa tu contraseña para descifrar los datos.</span>
+        </div>
+        <div class="zk-banner-form">
+          <input class="zk-input" type="password" placeholder="Contraseña ZK"
+                 [ngModel]="zkPassphrase()" (ngModelChange)="zkPassphrase.set($event)"
+                 (keydown.enter)="unlockZk()" [disabled]="zkWorking()" autocomplete="current-password" autofocus/>
+          <button class="cert-upload-label" [class.loading]="zkWorking()" (click)="unlockZk()" [disabled]="zkWorking()">
+            <span class="spinner-sm" *ngIf="zkWorking()"></span>
+            <svg *ngIf="!zkWorking()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            {{ zkWorking() ? 'Verificando…' : 'Descifrar' }}
+          </button>
+        </div>
+        <p class="zk-banner-error" *ngIf="zkError()">{{ zkError() }}</p>
+        <button class="zk-recovery-link" (click)="showRecoveryForm()">¿Olvidaste la contraseña? Usa un código de recuperación</button>
+      </div>
+
+      <!-- ── Unlock: recovery code form ── -->
+      <div class="zk-unlock-banner zk-unlock-banner--recovery" *ngSwitchCase="'unlock_recovery'">
+        <div class="zk-banner-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+          </svg>
+        </div>
+        <div class="zk-banner-text">
+          <strong>Recuperación de acceso</strong>
+          <span>Ingresa uno de tus 8 códigos de recuperación y una nueva contraseña.</span>
+        </div>
+        <div class="zk-banner-form zk-banner-form--column">
+          <input class="zk-input zk-input--mono" type="text" placeholder="Código de recuperación (ej. A1B2-C3D4-…)"
+                 [ngModel]="zkRecoveryInput()" (ngModelChange)="zkRecoveryInput.set($event)"
+                 [disabled]="zkWorking()" autocomplete="off"/>
+          <input class="zk-input" type="password" placeholder="Nueva contraseña (mín. 8 caracteres)"
+                 [ngModel]="zkNewPassphrase()" (ngModelChange)="zkNewPassphrase.set($event)"
+                 (keydown.enter)="unlockWithRecoveryCode()" [disabled]="zkWorking()" autocomplete="new-password"/>
+          <div class="zk-recovery-btns">
+            <button class="zk-link-btn" (click)="backToPassphrase()" [disabled]="zkWorking()">← Volver</button>
+            <button class="zk-setup-btn" (click)="unlockWithRecoveryCode()" [disabled]="zkWorking()">
+              <span class="spinner-sm" *ngIf="zkWorking()"></span>
+              {{ zkWorking() ? 'Verificando…' : 'Recuperar acceso' }}
+            </button>
+          </div>
+        </div>
+        <p class="zk-banner-error" *ngIf="zkError()">{{ zkError() }}</p>
+      </div>
+
+      <!-- ── Migration: upload legacy v1 certificate ── -->
+      <div class="zk-unlock-banner" *ngSwitchCase="'migrate_file'">
+        <div class="zk-banner-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 3 21 3 21 8"/>
+            <line x1="4" y1="20" x2="21" y2="3"/>
+            <polyline points="21 16 21 21 16 21"/>
+            <line x1="15" y1="15" x2="21" y2="21"/>
+          </svg>
+        </div>
+        <div class="zk-banner-text">
+          <strong>Actualización del sistema de cifrado</strong>
+          <span>Tu cuenta usa el sistema anterior. Sube tu certificado <code>.json</code> una última vez para migrar al nuevo sistema basado en contraseña — ya no necesitarás el archivo después.</span>
+        </div>
+        <div class="zk-banner-form">
+          <label class="cert-upload-label" [class.loading]="zkWorking()">
+            <span class="spinner-sm" *ngIf="zkWorking()"></span>
+            <svg *ngIf="!zkWorking()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            {{ zkWorking() ? 'Verificando…' : 'Subir certificado (.json)' }}
+            <input type="file" accept=".json" (change)="onCertFile($event)" [disabled]="zkWorking()" />
+          </label>
+        </div>
+        <p class="zk-banner-error" *ngIf="zkError()">{{ zkError() }}</p>
+      </div>
+
+      <!-- ── Migration: set new passphrase ── -->
+      <div class="zk-setup-banner" *ngSwitchCase="'migrate_passphrase'">
+        <div class="zk-banner-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div class="zk-banner-text">
+          <strong>Elige una contraseña para tu cifrado</strong>
+          <span>A partir de ahora usarás esta contraseña en lugar del archivo de certificado.</span>
+        </div>
+        <div class="zk-banner-form">
+          <input class="zk-input" type="password" placeholder="Nueva contraseña (mín. 8 caracteres)"
+                 [ngModel]="zkPassphrase()" (ngModelChange)="zkPassphrase.set($event)"
+                 (keydown.enter)="migratePassphrase()" [disabled]="zkWorking()" autocomplete="new-password"/>
+          <input class="zk-input" type="password" placeholder="Confirmar contraseña"
+                 [ngModel]="zkPassphraseConfirm()" (ngModelChange)="zkPassphraseConfirm.set($event)"
+                 (keydown.enter)="migratePassphrase()" [disabled]="zkWorking()" autocomplete="new-password"/>
+          <button class="zk-setup-btn" (click)="migratePassphrase()" [disabled]="zkWorking()">
+            <span class="spinner-sm" *ngIf="zkWorking()"></span>
+            {{ zkWorking() ? 'Migrando…' : 'Confirmar' }}
+          </button>
+        </div>
+        <p class="zk-banner-error" *ngIf="zkError()">{{ zkError() }}</p>
+      </div>
+
+      <!-- ── Migration done: show new codes ── -->
+      <div class="zk-codes-banner" *ngSwitchCase="'migrate_codes'">
+        <div class="zk-codes-header">
+          <div class="zk-banner-icon zk-banner-icon--green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div class="zk-banner-text">
+            <strong>Migración completada — guarda tus nuevos códigos de recuperación</strong>
+            <span>Estos 8 códigos reemplazan el certificado anterior. Guárdalos en un lugar seguro. El archivo <code>.json</code> ya no es necesario.</span>
+          </div>
+        </div>
+        <div class="zk-codes-grid">
+          <span class="zk-code" *ngFor="let c of zkCodes(); let i = index">
+            <span class="zk-code-num">{{ i + 1 }}</span>{{ c }}
+          </span>
+        </div>
+        <div class="zk-codes-actions">
+          <button class="zk-copy-btn" (click)="copyAllCodes()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            {{ zkCodesCopied() ? 'Copiado ✓' : 'Copiar todos' }}
+          </button>
+          <button class="zk-setup-btn" (click)="doneWithCodes()">He guardado los códigos — Continuar</button>
+        </div>
+      </div>
+
+    </ng-container>
 
     <main class="page-content">
       <router-outlet/>
