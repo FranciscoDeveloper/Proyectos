@@ -35,13 +35,16 @@ const DONUT_C = 2 * Math.PI * DONUT_R;
 function buildDonut(
   items: { label: string; count: number; pct: number; color: string }[]
 ): DonutSegment[] {
+  // Use raw counts (not rounded pct) so arcs always sum to exactly DONUT_C.
+  // Negative dashOffset shifts the arc clockwise (forward along the path).
+  const totalCount = items.reduce((s, i) => s + i.count, 0) || 1;
   let accumulated = 0;
   return items.map(item => {
-    const len = (item.pct / 100) * DONUT_C;
+    const len = (item.count / totalCount) * DONUT_C;
     const seg: DonutSegment = {
       ...item,
       dashArray:  `${len} ${DONUT_C - len}`,
-      dashOffset: accumulated,
+      dashOffset: -accumulated,
     };
     accumulated += len;
     return seg;
@@ -105,10 +108,12 @@ export class MedicalReportsComponent {
     const revenue = all.reduce((s, p) => s + (Number(p['amount']) || 0), 0);
     const myName  = this.auth.user()?.name ?? '';
     const myPays  = all.filter(p => p['professionalName'] === myName);
-    const myComm  = myPays.reduce((s, p) => s + (Number(p['commissionAmount']) || 0), 0);
-    const pending = myPays
-      .filter(p => p['commissionStatus'] === 'pendiente')
-      .reduce((s, p) => s + (Number(p['commissionAmount']) || 0), 0);
+    // Only count billable commissions (pagada + pendiente); no_aplica / null are excluded.
+    const paid    = myPays.filter(p => p['commissionStatus'] === 'pagada')
+                          .reduce((s, p) => s + (Number(p['commissionAmount']) || 0), 0);
+    const pending = myPays.filter(p => p['commissionStatus'] === 'pendiente')
+                          .reduce((s, p) => s + (Number(p['commissionAmount']) || 0), 0);
+    const myComm  = paid + pending;
     return { revenue, myComm, pending };
   });
 
