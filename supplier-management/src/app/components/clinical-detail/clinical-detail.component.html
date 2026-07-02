@@ -298,6 +298,7 @@
             </svg>
             {{ prescriptionButtonLabel() }}
           </button>
+          <span *ngIf="printBlocked()" class="popup-blocked-hint">Permite ventanas emergentes para imprimir</span>
         </div>
         <div class="field-list">
           <div *ngFor="let f of medicationFields()" class="field-item">

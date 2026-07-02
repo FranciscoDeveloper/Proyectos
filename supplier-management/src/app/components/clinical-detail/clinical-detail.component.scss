@@ -784,6 +784,12 @@
   &:hover { background: #10b981; color: #fff; }
 }
 
+.popup-blocked-hint {
+  font-size: 11px;
+  color: #ef4444;
+  margin-left: 8px;
+}
+
 /* ── Share button ── */
 .btn-share {
   display: inline-flex;
