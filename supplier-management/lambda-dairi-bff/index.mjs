@@ -4,8 +4,8 @@ import bcrypt  from "bcryptjs";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import { S3Client, ListObjectsV2Command, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
-import { marshall } from "@aws-sdk/util-dynamodb";
+import { DynamoDBClient, PutItemCommand, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 
 const { Pool } = pg;
 
@@ -1020,21 +1020,6 @@ async function ensureLookupTables(client) {
   await client.query(`ALTER TABLE clinical_record ADD COLUMN IF NOT EXISTS profession   TEXT`);
   await client.query(`ALTER TABLE clinical_record ADD COLUMN IF NOT EXISTS birth_date   DATE`);
 
-  // Chat message persistence
-  await client.query(`
-    CREATE TABLE IF NOT EXISTS chat_message (
-      id              SERIAL PRIMARY KEY,
-      conversation_id TEXT        NOT NULL,
-      sender_id       INTEGER     NOT NULL,
-      sender_name     TEXT        NOT NULL DEFAULT '',
-      sender_avatar   TEXT        NOT NULL DEFAULT '',
-      content         TEXT        NOT NULL,
-      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )`);
-  await client.query(`
-    CREATE INDEX IF NOT EXISTS idx_chat_msg_conv
-    ON chat_message(conversation_id, created_at DESC)`);
-
   lookupTablesReady = true;
   log("INFO", "Lookup tables ready");
 }
@@ -1268,24 +1253,31 @@ export const handler = async (event, context) => {
   if (rawPath === "/api/chat/messages" && method === "GET") {
     const convId = event.queryStringParameters?.conversationId;
     if (!convId) return response(400, { message: "conversationId requerido" });
-    const client = await pool.connect();
     try {
-      const { rows } = await client.query(
-        `SELECT id, conversation_id, sender_id, sender_name, sender_avatar, content, created_at
-         FROM chat_message WHERE conversation_id = $1
-         ORDER BY created_at ASC LIMIT 200`,
-        [convId]
-      );
-      return response(200, rows.map(r => ({
-        id:             r.id,
-        conversationId: r.conversation_id,
-        senderId:       r.sender_id,
-        senderName:     r.sender_name,
-        senderAvatar:   r.sender_avatar,
+      const result = await dynamoClient.send(new ScanCommand({
+        TableName:                 HELPDESK_TABLE,
+        FilterExpression:          "conversationId = :cid AND #src = :src",
+        ExpressionAttributeNames:  { "#src": "source" },
+        ExpressionAttributeValues: marshall({ ":cid": convId, ":src": "dairi-chat" }),
+        Limit:                     500
+      }));
+      const items = (result.Items ?? [])
+        .map(item => unmarshall(item))
+        .sort((a, b) => a.timestamp < b.timestamp ? -1 : 1)
+        .slice(-200);
+      return response(200, items.map(r => ({
+        id:             r.ticketId,
+        conversationId: r.conversationId,
+        senderId:       Number(r.senderId) || 0,
+        senderName:     r.senderName   ?? "",
+        senderAvatar:   r.senderAvatar ?? "",
         content:        r.content,
-        timestamp:      r.created_at
+        timestamp:      r.timestamp
       })));
-    } finally { client.release(); }
+    } catch (err) {
+      log("ERROR", "DynamoDB Scan chat messages failed", { message: err.message });
+      return response(200, []); // return empty rather than error so chat still opens
+    }
   }
 
   if (rawPath === "/api/chat/messages" && method === "POST") {
@@ -1296,25 +1288,36 @@ export const handler = async (event, context) => {
     }
     const { conversationId, senderId, senderName, senderAvatar, content } = chatBody ?? {};
     if (!conversationId || !content) return response(400, { message: "conversationId y content son requeridos" });
-    const client = await pool.connect();
+    const ticketId  = crypto.randomUUID();
+    const timestamp = new Date().toISOString();
     try {
-      const { rows } = await client.query(
-        `INSERT INTO chat_message (conversation_id, sender_id, sender_name, sender_avatar, content)
-         VALUES ($1, $2, $3, $4, $5)
-         RETURNING id, conversation_id, sender_id, sender_name, sender_avatar, content, created_at`,
-        [conversationId, senderId ?? tokenPayload.sub, senderName ?? "", senderAvatar ?? "", content]
-      );
-      const r = rows[0];
+      await dynamoClient.send(new PutItemCommand({
+        TableName: HELPDESK_TABLE,
+        Item: marshall({
+          ticketId,
+          conversationId,
+          senderId:     String(senderId ?? tokenPayload.sub ?? "0"),
+          senderName:   senderName   ?? "",
+          senderAvatar: senderAvatar ?? "",
+          content,
+          timestamp,
+          source:  "dairi-chat",
+          status:  "delivered"
+        }, { removeUndefinedValues: true })
+      }));
       return response(201, {
-        id:             r.id,
-        conversationId: r.conversation_id,
-        senderId:       r.sender_id,
-        senderName:     r.sender_name,
-        senderAvatar:   r.sender_avatar,
-        content:        r.content,
-        timestamp:      r.created_at
+        id:             ticketId,
+        conversationId,
+        senderId:       Number(senderId ?? tokenPayload.sub ?? 0),
+        senderName:     senderName   ?? "",
+        senderAvatar:   senderAvatar ?? "",
+        content,
+        timestamp
       });
-    } finally { client.release(); }
+    } catch (err) {
+      log("ERROR", "DynamoDB PutItem chat message failed", { message: err.message });
+      return response(500, { message: "Error al guardar el mensaje" });
+    }
   }
 
   // ── PATCH /api/user/config ────────────────────────────────────────────────
