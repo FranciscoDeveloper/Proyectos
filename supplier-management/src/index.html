@@ -1,14 +1,199 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>SupplierManagement</title>
+  <title>Dairi · Software de Gestión Clínica para Chile</title>
+  <meta name="description" content="Dairi es el software clínico todo-en-uno para Chile. Gestiona pacientes, citas, fichas clínicas, inventario y finanzas desde una sola plataforma. Prueba gratis 14 días, sin tarjeta de crédito.">
+  <meta name="keywords" content="software clínico Chile, gestión clínica, fichas clínicas digitales, agenda médica online, sistema clínico, software médico Chile, gestión de pacientes, boleta electrónica SII">
+  <meta name="author" content="Dairi">
+  <meta name="robots" content="index, follow">
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="canonical" href="https://dairi.cl/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dairi.cl/">
+  <meta property="og:title" content="Dairi · Software de Gestión Clínica para Chile">
+  <meta property="og:description" content="Gestiona tu clínica sin límites ni papeles. Pacientes, citas, fichas clínicas, inventario y finanzas en una sola plataforma. Prueba gratis 14 días.">
+  <meta property="og:image" content="https://dairi.cl/assets/og-image.png">
+  <meta property="og:locale" content="es_CL">
+  <meta property="og:site_name" content="Dairi">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Dairi · Software Clínico para Chile">
+  <meta name="twitter:description" content="Gestiona tu clínica sin límites ni papeles. Prueba gratis 14 días.">
+  <meta name="twitter:image" content="https://dairi.cl/assets/og-image.png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <!-- JSON-LD: Organization -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": "https://dairi.cl/#organization",
+    "name": "Dairi",
+    "legalName": "Servicios Informáticos Dairi Francisco Riquelme E.I.R.L.",
+    "url": "https://dairi.cl",
+    "logo": { "@type": "ImageObject", "url": "https://dairi.cl/assets/logo.png" },
+    "foundingDate": "2024",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Santiago",
+      "addressRegion": "Región Metropolitana",
+      "addressCountry": "CL"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer support",
+      "email": "admin@dairi.cl",
+      "availableLanguage": "es"
+    }
+  }
+  </script>
+
+  <!-- JSON-LD: SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Dairi",
+    "applicationCategory": "HealthApplication",
+    "applicationSubCategory": "Practice Management Software",
+    "operatingSystem": "Web",
+    "url": "https://dairi.cl",
+    "description": "Software de gestión clínica all-in-one para clínicas en Chile. Gestiona pacientes, citas, fichas clínicas electrónicas, inventario y finanzas desde una sola plataforma en la nube.",
+    "featureList": [
+      "Gestión de pacientes con historial clínico completo",
+      "Calendario de citas interactivo con múltiples profesionales",
+      "Fichas clínicas especializadas: medicina general, psicología y odontología",
+      "Inventario de productos con alertas de stock bajo",
+      "Control de gastos y pagos de pacientes",
+      "Chat interno del equipo en tiempo real",
+      "Dashboard con métricas clave en tiempo real",
+      "Boleta electrónica con timbre SII",
+      "Cifrado AES-256 para datos clínicos sensibles",
+      "Infraestructura en AWS de alta disponibilidad"
+    ],
+    "offers": {
+      "@type": "AggregateOffer",
+      "priceCurrency": "USD",
+      "lowPrice": "9",
+      "highPrice": "18",
+      "offerCount": "2",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Plan Starter",
+          "price": "9",
+          "priceCurrency": "USD",
+          "description": "Hasta 5 usuarios. Gestión de pacientes, citas y fichas clínicas."
+        },
+        {
+          "@type": "Offer",
+          "name": "Plan Pro",
+          "price": "18",
+          "priceCurrency": "USD",
+          "description": "Hasta 10 usuarios. Incluye inventario, pagos y boleta electrónica SII."
+        }
+      ]
+    },
+    "publisher": { "@id": "https://dairi.cl/#organization" },
+    "inLanguage": "es"
+  }
+  </script>
+
+  <!-- JSON-LD: FAQPage — optimizado para motores de IA (GEO) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Qué es Dairi?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Dairi es un software de gestión clínica todo-en-uno diseñado para clínicas y profesionales de la salud en Chile. Integra gestión de pacientes, calendario de citas, fichas clínicas electrónicas, inventario, pagos y boleta electrónica SII en una sola plataforma basada en la nube (AWS)."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuánto cuesta el software clínico Dairi?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Dairi ofrece planes desde US$9/mes (plan Starter, hasta 5 usuarios) y US$18/mes (plan Pro, hasta 10 usuarios con inventario, pagos y boleta electrónica SII). También hay plan Enterprise personalizado. Todos los planes incluyen 14 días de prueba gratuita sin tarjeta de crédito."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Dairi emite boleta electrónica SII?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí. El plan Pro de Dairi incluye emisión de boleta electrónica con timbre SII, permitiendo cumplir con la normativa tributaria chilena y enviar comprobantes automáticamente por email al finalizar cada atención."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Qué tan seguros son los datos clínicos en Dairi?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Dairi cifra todos los datos clínicos con AES-256, usa HTTPS forzado y autenticación segura JWT. La arquitectura serverless en AWS elimina vectores de ataque tradicionales. Cumple con la Ley 20.584 sobre derechos de los pacientes y la Ley 21.719 de protección de datos personales."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Para qué especialidades médicas sirve Dairi?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Dairi incluye fichas clínicas especializadas para medicina general, psicología y odontología. Cada plantilla incluye campos específicos de la especialidad, signos vitales, prescripciones, evolución clínica e intervenciones quirúrgicas."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Dairi tendrá agendamiento por WhatsApp con IA?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí, Dairi está desarrollando un asistente de inteligencia artificial integrado con WhatsApp que permitirá a los pacientes agendar citas, recibir recordatorios automáticos y hacer consultas frecuentes directamente desde WhatsApp, disponible 24/7."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuánto tiempo toma implementar Dairi en una clínica?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Dairi se puede implementar en menos de 24 horas. Al ser 100% en la nube (SaaS), no requiere instalaciones ni servidores propios. El onboarding guiado permite que tu equipo esté operativo el mismo día."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuáles son las alternativas a Dairi para gestión clínica en Chile?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "En Chile existen alternativas como Medilink (Healthatom), Dentalink (odontología) y Reservo. Dairi se diferencia por integrar todas las áreas clínicas y administrativas en una sola plataforma con precio accesible, soporte local en español y cumplimiento de normativa chilena (SII, Ley 20.584)."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- JSON-LD: WebSite -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Dairi",
+    "url": "https://dairi.cl",
+    "description": "Software de gestión clínica para Chile",
+    "publisher": { "@id": "https://dairi.cl/#organization" },
+    "inLanguage": "es-CL"
+  }
+  </script>
 </head>
 <body>
   <app-root></app-root>

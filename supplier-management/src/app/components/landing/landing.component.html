@@ -1,6 +1,6 @@
 <!-- NAV -->
-<nav>
-  <div class="nav-logo">Dairi<span>.</span></div>
+<nav aria-label="Navegación principal">
+  <div class="nav-logo">Dairi<span class="logo-dot">.</span></div>
   <div class="nav-links">
     <a href="#features">Funcionalidades</a>
     <a href="#ai">IA WhatsApp</a>
@@ -14,15 +14,20 @@
 </nav>
 
 <!-- HERO -->
-<section class="hero" style="max-width:100%;">
+<section class="hero" style="max-width:100%;" aria-label="Introducción a Dairi">
   <div class="hero-badge">
-    ✦ Plataforma clínica y empresarial · Tus registros clínicos seguros y disponibles 24/7
+    ✦ Ficha clínica electrónica · Segura y disponible 24/7
   </div>
   <h1>Gestiona tu clínica<br><span class="gradient">sin límites ni papeles</span></h1>
-  <p>Dairi unifica pacientes, citas, fichas clínicas, inventario, proveedores y finanzas en una sola plataforma inteligente, respaldada por infraestructura en la nube de nivel empresarial.</p>
+  <p>Software de gestión clínica para Chile: <strong>agenda médica online</strong>, <strong>fichas clínicas electrónicas</strong>, inventario y control financiero — todo integrado en una plataforma segura y disponible 24/7.</p>
   <div class="hero-btns">
     <a routerLink="/login" class="btn-primary">Comenzar gratis 14 días</a>
     <a href="#features" class="btn-secondary">Ver funcionalidades →</a>
+  </div>
+  <div class="hero-trust-pills">
+    <span class="hero-trust-pill">✓ Sin tarjeta de crédito</span>
+    <span class="hero-trust-pill">✓ Cancela cuando quieras</span>
+    <span class="hero-trust-pill">✓ Soporte en español</span>
   </div>
 
   <!-- DUAL MOCKUP SCENE -->
@@ -146,8 +151,33 @@
   </div>
 </section>
 
+<!-- TRUST BAND -->
+<div class="trust-band" aria-label="Indicadores de confianza">
+  <div class="trust-band-inner">
+    <div class="trust-band-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2l8 3.5V11c0 5.2-3.4 8.7-8 10.5C7.4 19.7 4 16.2 4 11V5.5L12 2z"/><path d="M9 12l2 2 4-4"/></svg>
+      <div><strong>Cifrado AES-256</strong><span>Datos protegidos en tránsito y en reposo</span></div>
+    </div>
+    <div class="trust-band-sep" aria-hidden="true"></div>
+    <div class="trust-band-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg>
+      <div><strong>Boleta electrónica SII</strong><span>Cumplimiento tributario chileno</span></div>
+    </div>
+    <div class="trust-band-sep" aria-hidden="true"></div>
+    <div class="trust-band-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      <div><strong>99.9% disponibilidad</strong><span>Infraestructura AWS de alta disponibilidad</span></div>
+    </div>
+    <div class="trust-band-sep" aria-hidden="true"></div>
+    <div class="trust-band-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      <div><strong>Implementación en 24 h</strong><span>Sin servidores ni instalaciones</span></div>
+    </div>
+  </div>
+</div>
+
 <!-- FEATURES -->
-<section id="features">
+<section id="features" aria-label="Funcionalidades de Dairi">
   <div class="section-label">Plataforma completa</div>
   <h2 class="section-title">Todo lo que necesita tu clínica, en un solo lugar</h2>
   <p class="section-sub">Sin hojas de cálculo, sin papel, sin sistemas desconectados. Dairi centraliza cada área operativa con flujos de trabajo diseñados para profesionales de la salud.</p>
@@ -201,19 +231,49 @@
 </section>
 
 <!-- AI / WHATSAPP -->
-<div style="padding: 0 1.5rem; max-width: 1100px; margin: 0 auto;" id="ai">
+<div style="padding: 0 1.5rem; max-width: 1100px; margin: 0 auto;" id="ai" aria-label="IA por WhatsApp">
   <div class="ai-section">
-    <div class="ai-badge">🤖 Próximamente · IA Conversacional</div>
-    <h2>Tu asistente clínico disponible<br>24/7 por WhatsApp</h2>
-    <p>Pronto los pacientes podrán agendar citas, consultar horarios disponibles, recibir recordatorios y hacer preguntas frecuentes directamente desde WhatsApp, atendidos por un agente de inteligencia artificial conectado a Dairi.</p>
-    <a href="#cta" class="btn-primary" style="margin-top:.5rem;">Quiero ser el primero en probarlo</a>
-    <div class="ai-features">
-      <span class="ai-pill">📲 Agendamiento automático</span>
-      <span class="ai-pill">🔔 Recordatorios inteligentes</span>
-      <span class="ai-pill">📋 Consulta de historial</span>
-      <span class="ai-pill">🏥 Respuestas clínicas básicas</span>
-      <span class="ai-pill">⏰ Disponibilidad 24/7</span>
-      <span class="ai-pill">🌍 Multilingüe</span>
+    <div class="ai-layout">
+      <!-- left: copy -->
+      <div class="ai-copy">
+        <div class="ai-badge">🤖 Próximamente · IA Conversacional</div>
+        <h2>Tu clínica responde sola,<br>incluso a las 11 de la noche.</h2>
+        <p>El asistente IA de Dairi agenda, confirma y recuerda citas por WhatsApp — el canal que tus pacientes ya usan todos los días. Sin esperar, sin llamadas perdidas.</p>
+        <a href="#cta" class="btn-primary" style="margin-top:1.25rem; display: inline-block;">Quiero ser el primero en probarlo</a>
+        <div class="ai-features">
+          <span class="ai-pill">📲 Agendamiento automático</span>
+          <span class="ai-pill">🔔 Recordatorios inteligentes</span>
+          <span class="ai-pill">📋 Consulta de historial</span>
+          <span class="ai-pill">⏰ Disponibilidad 24/7</span>
+        </div>
+      </div>
+
+      <!-- right: simulated WhatsApp chat -->
+      <div class="ai-phone-wrap" aria-hidden="true">
+        <div class="ai-phone">
+          <div class="ai-phone-bar">
+            <div class="ai-phone-avatar">D</div>
+            <div class="ai-phone-info">
+              <strong>Dairi IA</strong>
+              <span>● En línea</span>
+            </div>
+          </div>
+          <div class="ai-phone-chat">
+            <div class="chat-bubble chat-patient" style="animation-delay:.2s">
+              Hola, necesito hora con la Dra. Fuentes esta semana 🙏
+            </div>
+            <div class="chat-bubble chat-bot" style="animation-delay:.9s">
+              ¡Hola María! La Dra. Fuentes tiene disponibilidad el <strong>jueves a las 10:30</strong> y el <strong>viernes a las 16:00</strong>. ¿Cuál prefieres? 📅
+            </div>
+            <div class="chat-bubble chat-patient" style="animation-delay:1.9s">
+              El jueves 👍
+            </div>
+            <div class="chat-bubble chat-bot" style="animation-delay:2.6s">
+              Listo ✓ Tu hora quedó agendada para el <strong>jueves 10:30</strong>. Te enviaré un recordatorio el día anterior. ¡Hasta pronto!
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -238,6 +298,38 @@
       <div class="feature-icon">🧩</div>
       <h3>Altamente configurable</h3>
       <p>Motor de entidades basado en schemas: agrega nuevos módulos, campos y flujos de trabajo sin tocar el código fuente.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ SECTION — optimizado para Google y motores de IA -->
+<section class="faq-section" aria-label="Preguntas frecuentes">
+  <div class="section-label">Preguntas frecuentes</div>
+  <h2 class="section-title">Todo lo que necesitas saber</h2>
+  <div class="faq-grid">
+    <div class="faq-item">
+      <h3>¿Dairi incluye ficha clínica electrónica?</h3>
+      <p>Sí. Dairi incluye fichas clínicas especializadas para medicina general, psicología y odontología, con plantillas configurables, signos vitales, prescripciones digitales e intervenciones quirúrgicas.</p>
+    </div>
+    <div class="faq-item">
+      <h3>¿Emite boleta electrónica con timbre SII?</h3>
+      <p>Sí, el plan Pro incluye emisión de boleta electrónica con timbre SII y envío automático por email al paciente al finalizar cada atención, cumpliendo la normativa tributaria chilena.</p>
+    </div>
+    <div class="faq-item">
+      <h3>¿Qué tan seguros son los datos de mis pacientes?</h3>
+      <p>Todos los datos se cifran con AES-256 en tránsito y en reposo. Dairi cumple con la Ley 20.584 de derechos de los pacientes y la Ley 21.719 de protección de datos personales.</p>
+    </div>
+    <div class="faq-item">
+      <h3>¿Cuánto tiempo toma implementar Dairi?</h3>
+      <p>Menos de 24 horas. Al ser 100% en la nube, no hay instalaciones ni servidores. El onboarding guiado permite que tu equipo esté operativo el mismo día que contratas.</p>
+    </div>
+    <div class="faq-item">
+      <h3>¿Puedo cancelar en cualquier momento?</h3>
+      <p>Sí. No hay contratos a largo plazo. Puedes cancelar tu plan en cualquier momento sin penalidades. Los 14 días de prueba gratuita tampoco requieren tarjeta de crédito.</p>
+    </div>
+    <div class="faq-item">
+      <h3>¿Dairi tendrá agendamiento por WhatsApp?</h3>
+      <p>Sí, próximamente. El asistente IA de Dairi permitirá a tus pacientes agendar citas, recibir recordatorios y consultar disponibilidad directamente desde WhatsApp, las 24 horas.</p>
     </div>
   </div>
 </section>

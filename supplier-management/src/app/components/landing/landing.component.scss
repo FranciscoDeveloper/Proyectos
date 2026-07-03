@@ -37,7 +37,16 @@ nav {
   padding: 0 2rem; height: 64px;
 }
 .nav-logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); letter-spacing: -1px; }
-.nav-logo span { color: var(--accent); }
+.nav-logo .logo-dot {
+  color: var(--accent);
+  display: inline-block;
+  animation: dotPulse 2.8s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.22); }
+}
 .nav-links { display: flex; gap: 2rem; }
 .nav-links a { color: var(--muted); text-decoration: none; font-size: .9rem; transition: color .2s; }
 .nav-links a:hover { color: var(--text); }
@@ -273,6 +282,218 @@ footer {
 }
 .footer-bottom a { color: #475569; text-decoration: none; }
 .footer-bottom a:hover { color: #94a3b8; }
+
+/* ── HERO TRUST PILLS ─────────────────────────────────────────────── */
+.hero-trust-pills {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 1.25rem;
+  animation: fadeUp .55s .4s ease both;
+}
+.hero-trust-pill {
+  font-size: .8rem;
+  font-weight: 500;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+}
+
+/* ── TRUST BAND ───────────────────────────────────────────────────── */
+.trust-band {
+  background: var(--sky-50);
+  border-top: 1px solid var(--sky-200);
+  border-bottom: 1px solid var(--sky-200);
+  padding: 1.5rem 1.5rem;
+}
+.trust-band-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+}
+.trust-band-item {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem 2rem;
+  flex: 1;
+  min-width: 200px;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    color: var(--primary);
+    flex-shrink: 0;
+  }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: .05rem;
+  }
+
+  strong {
+    font-size: .85rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  span {
+    font-size: .75rem;
+    color: var(--muted);
+  }
+}
+.trust-band-sep {
+  width: 1px;
+  height: 40px;
+  background: var(--sky-200);
+  flex-shrink: 0;
+}
+@media (max-width: 700px) {
+  .trust-band-sep { display: none; }
+  .trust-band-item { min-width: 140px; padding: .5rem 1rem; }
+}
+
+/* ── AI SECTION (updated layout) ─────────────────────────────────── */
+.ai-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+  text-align: left;
+}
+.ai-section h2 {
+  text-align: left;
+}
+.ai-section p {
+  margin: 0 0 0 0;
+  text-align: left;
+}
+@media (max-width: 760px) {
+  .ai-layout { grid-template-columns: 1fr; }
+  .ai-section h2, .ai-section p { text-align: center; }
+  .ai-phone-wrap { display: flex; justify-content: center; }
+}
+
+/* WhatsApp phone mockup */
+.ai-phone-wrap { display: flex; justify-content: flex-end; }
+.ai-phone {
+  width: 280px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #ece5dd;
+  box-shadow: 0 20px 60px rgba(0,0,0,.18), 0 0 0 1px rgba(14,165,233,.1);
+}
+.ai-phone-bar {
+  background: #075e54;
+  padding: .7rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  color: #fff;
+}
+.ai-phone-avatar {
+  width: 34px;
+  height: 34px;
+  background: #25d366;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: .9rem;
+  flex-shrink: 0;
+}
+.ai-phone-info strong {
+  display: block;
+  font-size: .82rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.ai-phone-info span {
+  font-size: .68rem;
+  color: rgba(255,255,255,.75);
+}
+.ai-phone-chat {
+  padding: .85rem .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  min-height: 220px;
+}
+.chat-bubble {
+  max-width: 85%;
+  padding: .55rem .85rem;
+  border-radius: 12px;
+  font-size: .79rem;
+  line-height: 1.5;
+  opacity: 0;
+  animation: chatReveal .35s ease forwards;
+
+  strong { font-weight: 700; }
+}
+.chat-patient {
+  background: #fff;
+  align-self: flex-start;
+  border-bottom-left-radius: 3px;
+  color: #1e293b;
+}
+.chat-bot {
+  background: #dcf8c6;
+  align-self: flex-end;
+  border-bottom-right-radius: 3px;
+  color: #1e293b;
+}
+@keyframes chatReveal {
+  from { opacity: 0; transform: translateY(6px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── FAQ SECTION ──────────────────────────────────────────────────── */
+.faq-section {
+  padding: 5rem 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.25rem;
+  margin-top: 3rem;
+}
+.faq-item {
+  background: var(--bg);
+  border: 1.5px solid var(--sky-200);
+  border-radius: var(--radius);
+  padding: 1.5rem 1.75rem;
+  transition: border-color .2s, box-shadow .2s;
+
+  &:hover {
+    border-color: var(--primary);
+    box-shadow: 0 6px 24px rgba(14,165,233,.1);
+  }
+
+  h3 {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: .6rem;
+    line-height: 1.35;
+  }
+
+  p {
+    font-size: .84rem;
+    color: var(--muted);
+    line-height: 1.65;
+    margin: 0;
+  }
+}
 
 /* ── ANIMATIONS ───────────────────────────────────────────────────── */
 @keyframes fadeUp {
