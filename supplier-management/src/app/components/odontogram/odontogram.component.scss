@@ -41,6 +41,30 @@
   &:hover { background: #f3f4f6; }
 }
 
+.btn-denticion {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #3b82f6;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s;
+
+  &:hover { background: #dbeafe; }
+
+  &--active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+    &:hover { background: #2563eb; }
+  }
+}
+
 .odo-version {
   font-size: 11px;
   color: #9ca3af;
@@ -87,15 +111,34 @@
   overflow-x: auto;
 }
 
-.arch-label {
-  text-align: center;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+// Quadrant header bar (Q1 | Superior | Q2)
+.arch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 8px;
+  margin-bottom: 4px;
+
+  &--bottom { margin-top: 4px; margin-bottom: 0; }
+}
+
+.arch-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
   color: #9ca3af;
-  &--top { margin-bottom: 6px; }
-  &--bottom { margin-top: 6px; }
+}
+
+.quad-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
+
+  &.quad--q1, &.quad--q4 { background: #eff6ff; color: #3b82f6; }
+  &.quad--q2, &.quad--q3 { background: #eff6ff; color: #3b82f6; }
 }
 
 .arch {
@@ -104,31 +147,50 @@
   gap: 2px;
   flex-wrap: nowrap;
   min-width: 600px;
+  align-items: flex-end; // teeth bottom-aligned for upper arch
 }
 
-.midline {
+.arch--lower {
+  align-items: flex-start; // teeth top-aligned for lower arch
+}
+
+// Midline marker between Q1/Q2 or Q4/Q3
+.arch-midline-mark {
+  display: flex;
+  align-items: stretch;
+  padding: 0 3px;
+  align-self: stretch;
+}
+
+.arch-midline-line {
+  display: block;
+  width: 1.5px;
+  background: linear-gradient(to bottom, transparent 0%, #9ca3af 20%, #9ca3af 80%, transparent 100%);
+  border-radius: 1px;
+  min-height: 60px;
+}
+
+// Separator between upper and lower arches
+.arch-separator {
   display: flex;
   align-items: center;
-  justify-content: center;
-  height: 22px;
-  position: relative;
-  margin: 4px 0;
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0; right: 0;
-    top: 50%;
-    border-top: 1.5px dashed #d1d5db;
-  }
+  gap: 8px;
+  margin: 8px 0;
 }
 
-.midline-label {
-  position: relative;
-  background: #f9fafb;
-  padding: 0 8px;
+.arch-sep-line {
+  flex: 1;
+  height: 1.5px;
+  background: linear-gradient(to right, transparent, #d1d5db 20%, #d1d5db 80%, transparent);
+  border-radius: 1px;
+}
+
+.arch-sep-label {
   font-size: 10px;
   color: #9ca3af;
+  white-space: nowrap;
+  padding: 0 4px;
+  font-weight: 500;
   letter-spacing: 0.3px;
 }
 
@@ -138,7 +200,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   cursor: pointer;
   padding: 3px;
   border-radius: 6px;
@@ -152,8 +214,13 @@
     background: #ecfdf5;
   }
 
-  &--marked .tooth-svg .tooth-border {
+  &--marked .tooth-border {
     stroke: #6b7280;
+  }
+
+  &--absent {
+    opacity: 0.38;
+    filter: grayscale(0.8);
   }
 }
 
@@ -162,6 +229,24 @@
   font-weight: 600;
   color: #6b7280;
   line-height: 1;
+}
+
+// Condition colour dots row under/above each tooth
+.tooth-dots-row {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+}
+
+.tooth-cond-dot {
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 // ── Tooth SVG ─────────────────────────────────────────────────────────────────
@@ -228,10 +313,23 @@
   border-radius: 20px;
 }
 
+.tooth-panel-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
 .tooth-panel-title {
   font-size: 13px;
   color: #374151;
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.tooth-panel-sub {
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 400;
 }
 
 .tooth-panel-actions {
@@ -376,11 +474,66 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
+  gap: 12px;
+  padding: 12px 16px;
   border-bottom: 1px solid #e5e7eb;
   font-size: 14px;
   font-weight: 600;
   color: #374151;
+}
+
+.modal-header-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.modal-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.modal-title-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1;
+}
+
+.modal-title-sub {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.modal-preview-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.preview-tooth {
+  display: block;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.12));
+}
+
+.preview-tooth .tooth-surface {
+  stroke: #d1d5db;
+  stroke-width: 0.5;
+  transition: fill 0.15s;
+}
+
+.preview-label {
+  font-size: 9px;
+  color: #9ca3af;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  font-weight: 500;
 }
 
 .modal-body {

@@ -3,6 +3,7 @@ import { provideRouter, withHashLocation, withRouterConfig } from '@angular/rout
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { apiInterceptor } from './interceptors/api.interceptor';
+import { mockApiInterceptor } from './interceptors/mock-api.interceptor';
 
 class GlobalErrorHandler implements ErrorHandler {
   handleError(error: unknown): void {
@@ -13,7 +14,7 @@ class GlobalErrorHandler implements ErrorHandler {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes, withHashLocation(), withRouterConfig({ onSameUrlNavigation: 'reload' })),
-    provideHttpClient(withInterceptors([apiInterceptor])),
+    provideHttpClient(withInterceptors([mockApiInterceptor, apiInterceptor])),
     { provide: ErrorHandler, useClass: GlobalErrorHandler }
   ]
 };

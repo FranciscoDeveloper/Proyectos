@@ -9,6 +9,14 @@
       Odontograma
     </span>
     <div class="odo-toolbar-actions">
+      <button class="btn-denticion"
+              [class.btn-denticion--active]="showDeciduous()"
+              (click)="showDeciduous.set(!showDeciduous())">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <path d="M12 2C8 2 5 4 5 7c0 1.5.6 3 1.5 4L8 18h8l1.5-7C18.4 10 19 8.5 19 7c0-3-3-5-7-5z"/>
+        </svg>
+        {{ showDeciduous() ? 'Permanente' : 'Temporal' }}
+      </button>
       <button class="btn-legend" (click)="showLegend.set(!showLegend())">
         {{ showLegend() ? 'Ocultar' : 'Ver' }} leyenda
       </button>
@@ -27,111 +35,166 @@
   <!-- ── Arch layout ── -->
   <div class="odo-arches">
 
-    <!-- UPPER ARCH -->
-    <div class="arch-label arch-label--top">
-      <span>Superior</span>
+    <!-- ── UPPER ARCH ── -->
+    <div class="arch-header">
+      <span class="quad-badge quad--q1">{{ showDeciduous() ? 'Q5' : 'Q1' }}</span>
+      <span class="arch-title">Superior</span>
+      <span class="quad-badge quad--q2">{{ showDeciduous() ? 'Q6' : 'Q2' }}</span>
     </div>
+
     <div class="arch arch--upper">
-      <div *ngFor="let fdi of upperTeeth"
-           class="tooth-cell"
-           [class.tooth-cell--selected]="isSelected(fdi)"
-           [class.tooth-cell--marked]="hasAnyCondition(fdi)"
-           (click)="selectTooth(fdi)">
-        <span class="tooth-number">{{ fdi }}</span>
-        <!-- SVG tooth cross-section -->
-        <svg class="tooth-svg" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
-          <!-- Vestibular (top) -->
-          <polygon class="tooth-surface"
-            [attr.fill]="surfaceColor(fdi, 'V')"
-            points="0,0 36,0 27,12 9,12"
-            data-surface="V"/>
-          <!-- Lingual (bottom) -->
-          <polygon class="tooth-surface"
-            [attr.fill]="surfaceColor(fdi, 'L')"
-            points="9,32 27,32 36,44 0,44"
-            data-surface="L"/>
-          <!-- Mesial (left for Q2/Q3, right for Q1/Q4) -->
-          <polygon class="tooth-surface"
-            [attr.fill]="surfaceColor(fdi, 'M')"
-            [class.surface-right]="mesialOnRight(fdi)"
-            points="0,0 9,12 9,32 0,44"
-            data-surface="M"/>
-          <!-- Distal -->
-          <polygon class="tooth-surface"
-            [attr.fill]="surfaceColor(fdi, 'D')"
-            points="27,12 36,0 36,44 27,32"
-            data-surface="D"/>
-          <!-- Occlusal / Incisal (center) -->
-          <polygon class="tooth-surface"
-            [attr.fill]="surfaceColor(fdi, centerLabel(fdi))"
-            points="9,12 27,12 27,32 9,32"
-            data-surface="O"/>
-          <!-- Outer border -->
-          <rect class="tooth-border" x="0.5" y="0.5" width="35" height="43" rx="3"/>
-          <!-- Whole-tooth symbol overlay -->
-          <text *ngIf="toothSymbol(fdi) as sym"
-                class="tooth-symbol"
-                x="18" y="24"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                [attr.fill]="sym.color">{{ sym.symbol }}</text>
-        </svg>
+
+      <!-- Q1 / Q5 — patient's right -->
+      <ng-container *ngFor="let fdi of upperQ1()">
+        <div class="tooth-cell"
+             [class.tooth-cell--selected]="isSelected(fdi)"
+             [class.tooth-cell--marked]="hasAnyCondition(fdi)"
+             [class.tooth-cell--absent]="isAbsent(fdi)"
+             (click)="selectTooth(fdi)">
+          <span class="tooth-number">{{ fdi }}</span>
+          <!-- Condition colour dots -->
+          <div class="tooth-dots-row">
+            <span *ngFor="let c of activeConditions(fdi).slice(0,4)"
+                  class="tooth-cond-dot"
+                  [style.background]="conventionColor(c.convention)"></span>
+          </div>
+          <svg class="tooth-svg" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'V')" points="0,0 36,0 27,12 9,12"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'L')" points="9,32 27,32 36,44 0,44"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'M')" points="0,0 9,12 9,32 0,44"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'D')" points="27,12 36,0 36,44 27,32"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,centerLabel(fdi))" points="9,12 27,12 27,32 9,32"/>
+            <rect class="tooth-border" x="0.5" y="0.5" width="35" height="43" rx="3"/>
+            <text *ngIf="toothSymbol(fdi) as sym" class="tooth-symbol"
+                  x="18" y="24" text-anchor="middle" dominant-baseline="middle"
+                  [attr.fill]="sym.color">{{ sym.symbol }}</text>
+          </svg>
+        </div>
+      </ng-container>
+
+      <!-- Midline marker -->
+      <div class="arch-midline-mark">
+        <span class="arch-midline-line"></span>
       </div>
+
+      <!-- Q2 / Q6 — patient's left -->
+      <ng-container *ngFor="let fdi of upperQ2()">
+        <div class="tooth-cell"
+             [class.tooth-cell--selected]="isSelected(fdi)"
+             [class.tooth-cell--marked]="hasAnyCondition(fdi)"
+             [class.tooth-cell--absent]="isAbsent(fdi)"
+             (click)="selectTooth(fdi)">
+          <span class="tooth-number">{{ fdi }}</span>
+          <div class="tooth-dots-row">
+            <span *ngFor="let c of activeConditions(fdi).slice(0,4)"
+                  class="tooth-cond-dot"
+                  [style.background]="conventionColor(c.convention)"></span>
+          </div>
+          <svg class="tooth-svg" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'V')" points="0,0 36,0 27,12 9,12"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'L')" points="9,32 27,32 36,44 0,44"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'M')" points="0,0 9,12 9,32 0,44"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'D')" points="27,12 36,0 36,44 27,32"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,centerLabel(fdi))" points="9,12 27,12 27,32 9,32"/>
+            <rect class="tooth-border" x="0.5" y="0.5" width="35" height="43" rx="3"/>
+            <text *ngIf="toothSymbol(fdi) as sym" class="tooth-symbol"
+                  x="18" y="24" text-anchor="middle" dominant-baseline="middle"
+                  [attr.fill]="sym.color">{{ sym.symbol }}</text>
+          </svg>
+        </div>
+      </ng-container>
+
+    </div><!-- /arch--upper -->
+
+    <!-- Arch separator -->
+    <div class="arch-separator">
+      <div class="arch-sep-line"></div>
+      <span class="arch-sep-label">Línea media</span>
+      <div class="arch-sep-line"></div>
     </div>
 
-    <!-- Midline separator -->
-    <div class="midline">
-      <span class="midline-label">Línea media</span>
-    </div>
-
-    <!-- LOWER ARCH -->
+    <!-- ── LOWER ARCH ── -->
     <div class="arch arch--lower">
-      <div *ngFor="let fdi of lowerTeeth"
-           class="tooth-cell"
-           [class.tooth-cell--selected]="isSelected(fdi)"
-           [class.tooth-cell--marked]="hasAnyCondition(fdi)"
-           (click)="selectTooth(fdi)">
-        <!-- SVG tooth (lower arch is rotated 180°) -->
-        <svg class="tooth-svg tooth-svg--lower" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
-          <polygon class="tooth-surface"
-            [attr.fill]="surfaceColor(fdi, 'V')"
-            points="0,0 36,0 27,12 9,12"/>
-          <polygon class="tooth-surface"
-            [attr.fill]="surfaceColor(fdi, 'L')"
-            points="9,32 27,32 36,44 0,44"/>
-          <polygon class="tooth-surface"
-            [attr.fill]="surfaceColor(fdi, 'M')"
-            points="0,0 9,12 9,32 0,44"/>
-          <polygon class="tooth-surface"
-            [attr.fill]="surfaceColor(fdi, 'D')"
-            points="27,12 36,0 36,44 27,32"/>
-          <polygon class="tooth-surface"
-            [attr.fill]="surfaceColor(fdi, centerLabel(fdi))"
-            points="9,12 27,12 27,32 9,32"/>
-          <rect class="tooth-border" x="0.5" y="0.5" width="35" height="43" rx="3"/>
-          <text *ngIf="toothSymbol(fdi) as sym"
-                class="tooth-symbol" x="18" y="24"
-                text-anchor="middle" dominant-baseline="middle"
-                [attr.fill]="sym.color">{{ sym.symbol }}</text>
-        </svg>
-        <span class="tooth-number">{{ fdi }}</span>
+
+      <!-- Q4 / Q8 — patient's right -->
+      <ng-container *ngFor="let fdi of lowerQ4()">
+        <div class="tooth-cell"
+             [class.tooth-cell--selected]="isSelected(fdi)"
+             [class.tooth-cell--marked]="hasAnyCondition(fdi)"
+             [class.tooth-cell--absent]="isAbsent(fdi)"
+             (click)="selectTooth(fdi)">
+          <svg class="tooth-svg tooth-svg--lower" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'V')" points="0,0 36,0 27,12 9,12"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'L')" points="9,32 27,32 36,44 0,44"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'M')" points="0,0 9,12 9,32 0,44"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'D')" points="27,12 36,0 36,44 27,32"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,centerLabel(fdi))" points="9,12 27,12 27,32 9,32"/>
+            <rect class="tooth-border" x="0.5" y="0.5" width="35" height="43" rx="3"/>
+            <text *ngIf="toothSymbol(fdi) as sym" class="tooth-symbol"
+                  x="18" y="24" text-anchor="middle" dominant-baseline="middle"
+                  [attr.fill]="sym.color">{{ sym.symbol }}</text>
+          </svg>
+          <div class="tooth-dots-row">
+            <span *ngFor="let c of activeConditions(fdi).slice(0,4)"
+                  class="tooth-cond-dot"
+                  [style.background]="conventionColor(c.convention)"></span>
+          </div>
+          <span class="tooth-number">{{ fdi }}</span>
+        </div>
+      </ng-container>
+
+      <!-- Midline marker -->
+      <div class="arch-midline-mark">
+        <span class="arch-midline-line"></span>
       </div>
-    </div>
-    <div class="arch-label arch-label--bottom">
-      <span>Inferior</span>
+
+      <!-- Q3 / Q7 — patient's left -->
+      <ng-container *ngFor="let fdi of lowerQ3()">
+        <div class="tooth-cell"
+             [class.tooth-cell--selected]="isSelected(fdi)"
+             [class.tooth-cell--marked]="hasAnyCondition(fdi)"
+             [class.tooth-cell--absent]="isAbsent(fdi)"
+             (click)="selectTooth(fdi)">
+          <svg class="tooth-svg tooth-svg--lower" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'V')" points="0,0 36,0 27,12 9,12"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'L')" points="9,32 27,32 36,44 0,44"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'M')" points="0,0 9,12 9,32 0,44"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'D')" points="27,12 36,0 36,44 27,32"/>
+            <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,centerLabel(fdi))" points="9,12 27,12 27,32 9,32"/>
+            <rect class="tooth-border" x="0.5" y="0.5" width="35" height="43" rx="3"/>
+            <text *ngIf="toothSymbol(fdi) as sym" class="tooth-symbol"
+                  x="18" y="24" text-anchor="middle" dominant-baseline="middle"
+                  [attr.fill]="sym.color">{{ sym.symbol }}</text>
+          </svg>
+          <div class="tooth-dots-row">
+            <span *ngFor="let c of activeConditions(fdi).slice(0,4)"
+                  class="tooth-cond-dot"
+                  [style.background]="conventionColor(c.convention)"></span>
+          </div>
+          <span class="tooth-number">{{ fdi }}</span>
+        </div>
+      </ng-container>
+
+    </div><!-- /arch--lower -->
+
+    <div class="arch-header arch-header--bottom">
+      <span class="quad-badge quad--q4">{{ showDeciduous() ? 'Q8' : 'Q4' }}</span>
+      <span class="arch-title">Inferior</span>
+      <span class="quad-badge quad--q3">{{ showDeciduous() ? 'Q7' : 'Q3' }}</span>
     </div>
 
-  </div>
+  </div><!-- /odo-arches -->
 
   <!-- ── Selected tooth panel ── -->
-  <div class="tooth-panel card" *ngIf="selectedTooth() && !readonly">
+  <div class="tooth-panel" *ngIf="selectedTooth() && !readonly">
 
     <div class="tooth-panel-header">
       <div class="tooth-panel-id">
         <span class="tooth-fdi-badge">{{ selectedTooth() }}</span>
-        <span class="tooth-panel-title">
-          {{ isAnterior(selectedTooth()!) ? 'Diente Anterior' : 'Diente Posterior' }}
-        </span>
+        <div class="tooth-panel-meta">
+          <span class="tooth-panel-title">{{ toothName(selectedTooth()!) }}</span>
+          <span class="tooth-panel-sub">{{ quadrantLabel(selectedTooth()!) }} · {{ isAnterior(selectedTooth()!) ? 'Anterior' : 'Posterior' }}</span>
+        </div>
       </div>
       <div class="tooth-panel-actions">
         <button class="btn-dx" (click)="openDiagnosis()">
@@ -149,7 +212,7 @@
     <!-- Active conditions list -->
     <div class="condition-list" *ngIf="selectedToothData()">
       <div *ngIf="selectedToothData()!.conditions.length === 0" class="no-conditions">
-        Sin condiciones registradas
+        Sin condiciones registradas — haz clic en "Diagnóstico" para agregar
       </div>
       <div *ngFor="let c of selectedToothData()!.conditions"
            class="condition-item"
@@ -176,7 +239,7 @@
 
   </div>
 
-  <!-- Read-only legend for readonly mode -->
+  <!-- Read-only hint -->
   <div class="readonly-hint" *ngIf="readonly">
     <span>Vista de solo lectura — haga clic en "Editar Ficha" para modificar el odontograma</span>
   </div>
@@ -186,7 +249,25 @@
     <div class="modal-box" (click)="$event.stopPropagation()">
 
       <div class="modal-header">
-        <span>Agregar Condición — Diente {{ selectedTooth() }}</span>
+        <div class="modal-header-info">
+          <span class="tooth-fdi-badge">{{ selectedTooth() }}</span>
+          <div class="modal-header-text">
+            <span class="modal-title-text">Agregar Condición</span>
+            <span class="modal-title-sub">{{ toothName(selectedTooth()!) }} · {{ isAnterior(selectedTooth()!) ? 'Anterior' : 'Posterior' }}</span>
+          </div>
+        </div>
+        <!-- Live tooth preview -->
+        <div class="modal-preview-wrap">
+          <svg width="44" height="54" viewBox="0 0 36 44" class="preview-tooth">
+            <polygon class="tooth-surface preview-surface" [attr.fill]="previewSurface('V')" points="0,0 36,0 27,12 9,12"/>
+            <polygon class="tooth-surface preview-surface" [attr.fill]="previewSurface('L')" points="9,32 27,32 36,44 0,44"/>
+            <polygon class="tooth-surface preview-surface" [attr.fill]="previewSurface('M')" points="0,0 9,12 9,32 0,44"/>
+            <polygon class="tooth-surface preview-surface" [attr.fill]="previewSurface('D')" points="27,12 36,0 36,44 27,32"/>
+            <polygon class="tooth-surface preview-surface" [attr.fill]="previewSurface(centerLabel(selectedTooth()!))" points="9,12 27,12 27,32 9,32"/>
+            <rect fill="none" stroke="#9ca3af" stroke-width="1" x="0.5" y="0.5" width="35" height="43" rx="3"/>
+          </svg>
+          <span class="preview-label">Vista previa</span>
+        </div>
         <button class="btn-close-panel" (click)="closePanel()">✕</button>
       </div>
 
