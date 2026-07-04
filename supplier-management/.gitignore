@@ -52,7 +52,6 @@ lambda-entities/.env
 dairi-oferta-comercial.html
 index.html
 
-# Capacitor native platforms (generated — run cap add android/ios to restore)
+# Capacitor platforms (generadas — ejecutar cap add android/ios para restaurar)
 android/
 ios/
-dist/

@@ -698,33 +698,41 @@ export class ClinicalDetailComponent implements OnInit {
     return val ? { label: f.label, value: val } : null;
   });
 
+  printBlocked = signal(false);
+
+  private esc(s: string): string {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
   openPrescriptionTab(): void {
     const p  = this.patient();
     const rx = this.prescriptionField();
     if (!p || !rx) return;
 
-    const sp       = this.specialty();
+    this.printBlocked.set(false);
+
+    const sp        = this.specialty();
     const profLabel = this.professionalLabel();
     const profName  = this.auth.user()?.name ?? p.doctor;
     const [docTitle, docType] = (() => {
       switch (sp) {
-        case 'psych':     return [`Plan Terapéutico — ${p.fullName}`,     'PLAN TERAPÉUTICO'];
-        case 'dental':    return [`Plan Dental — ${p.fullName}`,          'PLAN DENTAL'];
+        case 'psych':     return [`Plan Terapéutico — ${p.fullName}`,      'PLAN TERAPÉUTICO'];
+        case 'dental':    return [`Plan Dental — ${p.fullName}`,           'PLAN DENTAL'];
         case 'kine':      return [`Indicaciones Kinésicas — ${p.fullName}`, 'INDICACIONES KINÉSICAS'];
-        case 'nutrition': return [`Plan Alimentario — ${p.fullName}`,     'PLAN ALIMENTARIO'];
+        case 'nutrition': return [`Plan Alimentario — ${p.fullName}`,      'PLAN ALIMENTARIO'];
         case 'fono':      return [`Indicaciones Fonoaudiológicas — ${p.fullName}`, 'INDICACIONES FONOAUDIOLÓGICAS'];
-        case 'ot':        return [`Plan T.O. — ${p.fullName}`,            'PLAN TERAPIA OCUPACIONAL'];
-        case 'medtech':   return [`Informe de Examen — ${p.fullName}`,    'INFORME DE EXAMEN'];
-        default:          return [`Receta Médica — ${p.fullName}`,        'RECETA MÉDICA'];
+        case 'ot':        return [`Plan T.O. — ${p.fullName}`,             'PLAN TERAPIA OCUPACIONAL'];
+        case 'medtech':   return [`Informe de Examen — ${p.fullName}`,     'INFORME DE EXAMEN'];
+        default:          return [`Receta Médica — ${p.fullName}`,         'RECETA MÉDICA'];
       }
     })();
-    const dateStr   = new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
+    const dateStr = new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
 
     const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>${docTitle}</title>
+  <title>${this.esc(docTitle)}</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#1a1a1a;background:#fff;padding:40px;max-width:760px;margin:0 auto}
@@ -749,33 +757,41 @@ export class ClinicalDetailComponent implements OnInit {
 <body>
   <p class="hint">Usa Ctrl+P / Cmd+P para imprimir o guardar como PDF</p>
   <div class="letterhead">
-    <div class="clinic-name">Dairi Clínica — ${docType}</div>
-    <div class="clinic-sub">${profLabel}: ${profName}</div>
+    <div class="clinic-name">Dairi Clínica — ${this.esc(docType)}</div>
+    <div class="clinic-sub">${this.esc(profLabel)}: ${this.esc(profName)}</div>
   </div>
   <hr/>
   <div class="section-label">Datos del Paciente</div>
   <div class="patient-grid">
-    <div class="patient-row"><span class="field-label">Nombre:</span><span>${p.fullName}</span></div>
-    <div class="patient-row"><span class="field-label">RUT:</span><span>${p.rut}</span></div>
-    <div class="patient-row"><span class="field-label">Edad:</span><span>${p.age} años</span></div>
-    <div class="patient-row"><span class="field-label">Previsión:</span><span>${p.insurance}</span></div>
-    <div class="patient-row"><span class="field-label">Fecha:</span><span>${dateStr}</span></div>
+    <div class="patient-row"><span class="field-label">Nombre:</span><span>${this.esc(p.fullName)}</span></div>
+    <div class="patient-row"><span class="field-label">RUT:</span><span>${this.esc(p.rut)}</span></div>
+    <div class="patient-row"><span class="field-label">Edad:</span><span>${this.esc(String(p.age))} años</span></div>
+    <div class="patient-row"><span class="field-label">Previsión:</span><span>${this.esc(p.insurance)}</span></div>
+    <div class="patient-row"><span class="field-label">Fecha:</span><span>${this.esc(dateStr)}</span></div>
   </div>
   <hr/>
-  <div class="section-label">${rx.label}</div>
-  <pre class="rx-body">${rx.value}</pre>
+  <div class="section-label">${this.esc(rx.label)}</div>
+  <pre class="rx-body">${this.esc(rx.value)}</pre>
   <div class="footer">
     <div class="sig-box">
       <div class="sig-line"></div>
-      <div class="sig-name">${profName}</div>
-      <div class="sig-sub">${profLabel} — Firma y Timbre</div>
+      <div class="sig-name">${this.esc(profName)}</div>
+      <div class="sig-sub">${this.esc(profLabel)} — Firma y Timbre</div>
     </div>
   </div>
 </body>
 </html>`;
 
-    const tab = window.open('', '_blank');
-    if (tab) { tab.document.write(html); tab.document.close(); }
+    const blob = new Blob([html], { type: 'text/html' });
+    const url  = URL.createObjectURL(blob);
+    const tab  = window.open(url, '_blank', 'noopener');
+    if (!tab) {
+      URL.revokeObjectURL(url);
+      this.printBlocked.set(true);
+    } else {
+      // Allow time for the browser to load the blob before revoking
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    }
   }
 
 }

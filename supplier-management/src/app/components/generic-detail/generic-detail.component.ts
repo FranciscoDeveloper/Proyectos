@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
+import { SignatureService } from '../../services/signature.service';
 import { EntitySchema, FieldDefinition } from '../../models/entity-schema.model';
 
 @Component({
@@ -16,11 +17,13 @@ export class GenericDetailComponent implements OnInit {
   private router = inject(Router);
   private schemaService = inject(SchemaService);
   private crudService = inject(GenericCrudService);
+  signatureService = inject(SignatureService);
 
   schema = signal<EntitySchema | null>(null);
   entityKey = signal('');
   record = signal<Record<string, any> | null>(null);
   deleteModal = signal(false);
+  signatureValid = signal<boolean | null>(null);
   /** ID of the linked clinical record (resolved from encounterEntity config) */
   linkedClinicalRecordId = signal<number | null>(null);
   linkedClinicalEntityKey = signal<string>('');
@@ -38,6 +41,10 @@ export class GenericDetailComponent implements OnInit {
     this.crudService.initStore(key);
     const rec = this.crudService.getById(key, id) ?? null;
     this.record.set(rec);
+
+    if (rec?.['_signatureHash']) {
+      this.signatureService.verifyRecord(key, rec).then(valid => this.signatureValid.set(valid));
+    }
 
     // Resolve linked clinical record if schema declares an encounterEntity
     const encounterEntity = schema?.entity.encounterEntity;

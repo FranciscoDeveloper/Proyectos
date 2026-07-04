@@ -54,11 +54,13 @@ export class CommissionReportComponent implements OnInit {
 
     const result: ProfCommission[] = [];
     map.forEach((payments, name) => {
-      const total    = payments.reduce((s, p) => s + (Number(p['commissionAmount']) || 0), 0);
       const paid     = payments.filter(p => p['commissionStatus'] === 'pagada').reduce((s, p) => s + (Number(p['commissionAmount']) || 0), 0);
       const pending  = payments.filter(p => p['commissionStatus'] === 'pendiente').reduce((s, p) => s + (Number(p['commissionAmount']) || 0), 0);
+      // Total = paid + pending only; no_aplica / null rows are excluded so paid+pending always reconciles.
+      const total    = paid + pending;
       const avgRate  = payments.reduce((s, p) => s + (Number(p['commissionRate']) || 0), 0) / payments.length;
 
+      if (total === 0) return; // no billable commissions (only no_aplica / null rows)
       const flt = this.filterStatus();
       if (flt === 'pendiente' && pending === 0) return;
       if (flt === 'pagada'    && paid    === 0) return;

@@ -239,6 +239,71 @@
 
 .empty-val { color: #cbd5e1; font-size: 0.85rem; }
 
+/* ── Signature block ── */
+.signature-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 0.875rem 1.125rem;
+  margin-bottom: 1.25rem;
+
+  &.sig-pending {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    .sig-icon { background: #f1f5f9; color: #94a3b8; }
+  }
+}
+
+.sig-icon {
+  flex-shrink: 0;
+  width: 36px; height: 36px;
+  background: #dcfce7;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #16a34a;
+  svg { width: 18px; height: 18px; }
+
+  &.sig-valid  { background: #dcfce7; color: #16a34a; }
+  &.sig-invalid { background: #fee2e2; color: #dc2626; }
+}
+
+.sig-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.sig-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #15803d;
+
+  &.sig-valid  { color: #15803d; }
+  &.sig-invalid { color: #dc2626; }
+}
+
+.sig-law {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #6b7280;
+  margin-left: 0.35rem;
+}
+
+.sig-meta {
+  font-size: 0.78rem;
+  color: #374151;
+}
+
+.sig-hash {
+  font-family: monospace;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  letter-spacing: 0.03em;
+}
+
 /* ── Empty state ── */
 .empty-state {
   display: flex;

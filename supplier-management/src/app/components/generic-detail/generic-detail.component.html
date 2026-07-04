@@ -51,6 +51,44 @@
     </div>
   </div>
 
+  <!-- ── Signature block ── -->
+  <div class="signature-block" *ngIf="record()?.['_signatureHash']; else noSignature">
+    <div class="sig-icon" [class.sig-valid]="signatureValid() === true" [class.sig-invalid]="signatureValid() === false">
+      <svg *ngIf="signatureValid() !== false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <polyline points="9 12 11 14 15 10"/>
+      </svg>
+      <svg *ngIf="signatureValid() === false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/>
+      </svg>
+    </div>
+    <div class="sig-info">
+      <span class="sig-title" [class.sig-valid]="signatureValid() === true" [class.sig-invalid]="signatureValid() === false">
+        {{ signatureValid() === false ? 'Firma no verificada' : 'Firmado electrónicamente' }}
+        <span class="sig-law">(FES · Ley 19.799)</span>
+      </span>
+      <span class="sig-meta">
+        {{ record()!['_signedByName'] || record()!['_signedByEmail'] }}
+        · {{ signatureService.formatSignedAt(record()!['_signedAt']) }}
+      </span>
+      <span class="sig-hash">SHA-256: {{ record()!['_signatureHash']?.slice(0, 16) }}…</span>
+    </div>
+  </div>
+  <ng-template #noSignature>
+    <div class="signature-block sig-pending" *ngIf="schema() && record()">
+      <div class="sig-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <div class="sig-info">
+        <span class="sig-title">Sin firma electrónica</span>
+        <span class="sig-meta">Registro previo a la implementación de firma digital</span>
+      </div>
+    </div>
+  </ng-template>
+
   <!-- ── Detail fields grid ── -->
   <div class="fields-grid">
     <ng-container *ngFor="let field of detailFields()">

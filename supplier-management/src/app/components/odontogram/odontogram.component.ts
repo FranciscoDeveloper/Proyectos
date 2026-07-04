@@ -101,7 +101,12 @@ const ANTERIOR = new Set(['11','12','13','21','22','23','31','32','33','41','42'
   '51','52','53','61','62','63','71','72','73','81','82','83']);
 
 // Quadrant 1 & 4: mesial is on the RIGHT side of the cell; Q2 & Q3: on the LEFT
-const Q1_Q4 = new Set(['11','12','13','14','15','16','17','18','41','42','43','44','45','46','47','48']);
+const Q1_Q4 = new Set([
+  '11','12','13','14','15','16','17','18',
+  '41','42','43','44','45','46','47','48',
+  '51','52','53','54','55', // deciduous Q5 — same orientation as Q1
+  '81','82','83','84','85', // deciduous Q8 — same orientation as Q4
+]);
 
 // ─── Color helpers ────────────────────────────────────────────────────────────
 
@@ -145,12 +150,30 @@ export class OdontogramComponent {
   selectedTooth  = signal<string | null>(null);
   panelOpen      = signal(false);
   showLegend     = signal(false);
+  showDeciduous  = signal(false);
 
   // Add-condition form
   newConvention  = signal<Convention>('lesion');
   newType        = signal<string>('CARIES');
   newSurfaces    = signal<Set<Surface>>(new Set());
   newNotes       = signal('');
+
+  // ── Quadrant arrays (permanent) ──────────────────────────────────────────────
+  readonly q1Teeth = ['18','17','16','15','14','13','12','11'];
+  readonly q2Teeth = ['21','22','23','24','25','26','27','28'];
+  readonly q3Teeth = ['31','32','33','34','35','36','37','38'];
+  readonly q4Teeth = ['48','47','46','45','44','43','42','41'];
+
+  // Deciduous (primary) dentition
+  readonly q5Teeth = ['55','54','53','52','51']; // upper right
+  readonly q6Teeth = ['61','62','63','64','65']; // upper left
+  readonly q7Teeth = ['71','72','73','74','75']; // lower left
+  readonly q8Teeth = ['85','84','83','82','81']; // lower right
+
+  readonly upperQ1 = computed(() => this.showDeciduous() ? this.q5Teeth : this.q1Teeth);
+  readonly upperQ2 = computed(() => this.showDeciduous() ? this.q6Teeth : this.q2Teeth);
+  readonly lowerQ3 = computed(() => this.showDeciduous() ? this.q7Teeth : this.q3Teeth);
+  readonly lowerQ4 = computed(() => this.showDeciduous() ? this.q8Teeth : this.q4Teeth);
 
   // ── Derived ─────────────────────────────────────────────────────────────────
 
@@ -343,5 +366,43 @@ export class OdontogramComponent {
 
   isSelected(fdi: string): boolean {
     return this.selectedTooth() === fdi;
+  }
+
+  // ── Additional clinical helpers ───────────────────────────────────────────────
+
+  isAbsent(fdi: string): boolean {
+    return this.toothConditions(fdi).some(c => c.type === 'AUSENTE');
+  }
+
+  activeConditions(fdi: string): ToothCondition[] {
+    return this.toothConditions(fdi);
+  }
+
+  toothName(fdi: string): string {
+    const n = parseInt(fdi, 10);
+    const n2 = n % 10;
+    if (n2 === 1 || n2 === 2) return 'Incisivo';
+    if (n2 === 3) return 'Canino';
+    if (n2 === 4 || n2 === 5) return 'Premolar';
+    return 'Molar';
+  }
+
+  /** Live preview of a surface while composing a new condition */
+  previewSurface(surface: Surface): string {
+    const fdi = this.selectedTooth();
+    if (!fdi) return 'transparent';
+    const def = this.selectedConditionDef();
+    if (def && !def.isSurface) {
+      return this.conventionColor(this.newConvention());
+    }
+    if (def?.isSurface && this.newSurfaces().has(surface)) {
+      return this.conventionColor(this.newConvention());
+    }
+    return this.surfaceColor(fdi, surface);
+  }
+
+  quadrantLabel(fdi: string): string {
+    const q = Math.floor(parseInt(fdi, 10) / 10);
+    return `Q${q}`;
   }
 }

@@ -298,6 +298,23 @@ export class PeriodontogramComponent implements OnChanges {
     return ['—', 'I', 'II', 'III'][v] ?? '—';
   }
 
+  // ── SVG chart helpers ─────────────────────────────────────────────────────────
+
+  /** Pixel height of a bar (0–40px for 0–10mm) */
+  barH(fdi: string, s: number): number {
+    return Math.min(Math.max(this.pd(fdi, s), 0), 10) * 4;
+  }
+
+  /** SVG polyline points for buccal sites — bars grow up from y=44 */
+  buccalPolyline(fdi: string): string {
+    return [0,1,2].map((s,i) => `${i*18+9},${44 - this.barH(fdi,s)}`).join(' ');
+  }
+
+  /** SVG polyline points for lingual sites — bars grow down from y=0 */
+  lingualPolyline(fdi: string): string {
+    return [3,4,5].map((s,i) => `${i*18+9},${this.barH(fdi,s)}`).join(' ');
+  }
+
   indices(): { label: string; value: string; color: string; desc: string }[] {
     const bop = this.bopPercent();
     const pi  = this.plaquePercent();

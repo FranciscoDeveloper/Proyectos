@@ -9,12 +9,11 @@ import { MobileService } from './services/mobile.service';
     template: '<router-outlet/>'
 })
 export class AppComponent implements OnInit {
-  private router    = inject(Router);
-  private auth      = inject(AuthService);
-  private mobile    = inject(MobileService);
+  private router  = inject(Router);
+  private auth    = inject(AuthService);
+  private mobile  = inject(MobileService);
 
   ngOnInit() {
-    // Inicializar plugins nativos de Capacitor (no-op en web)
     this.mobile.init();
 
     this.router.events.subscribe(event => {
