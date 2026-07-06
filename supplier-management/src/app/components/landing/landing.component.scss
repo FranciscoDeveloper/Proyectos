@@ -572,9 +572,9 @@ footer {
 
 .integrations-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.25rem;
-  max-width: 960px;
+  max-width: 760px;
   margin: 2.5rem auto 0;
   text-align: left;
   @media (max-width: 800px) { grid-template-columns: 1fr; }
