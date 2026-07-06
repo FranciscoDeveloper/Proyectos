@@ -27,6 +27,7 @@ export class DocsComponent implements OnInit {
     { id: 'chat',          label: 'Chat Interno',           icon: '💬' },
     { id: 'reportes',      label: 'Reportes y Comisiones',  icon: '📈' },
     { id: 'reserva',       label: 'Reserva Online',         icon: '🌐' },
+    { id: 'movil',         label: 'App Móvil',              icon: '📱' },
     { id: 'seguridad',     label: 'Seguridad',              icon: '🔒' },
   ];
 

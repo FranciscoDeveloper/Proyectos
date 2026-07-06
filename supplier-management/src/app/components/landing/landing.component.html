@@ -3,6 +3,7 @@
   <div class="nav-logo">Dairi<span>.</span></div>
   <div class="nav-links">
     <a href="#features">Funcionalidades</a>
+    <a href="#integraciones">Integraciones</a>
     <a href="#por-que">Por qué Dairi</a>
     <a href="#cta">Precios</a>
     <a routerLink="/docs">Documentación</a>
@@ -20,7 +21,7 @@
     ✦ Cupos limitados · Solo 50 clínicas en el plan de lanzamiento · Reserva el tuyo hoy
   </div>
   <h1>Gestiona tu clínica<br><span class="gradient">sin límites ni papeles</span></h1>
-  <p>Dairi unifica pacientes, citas, fichas clínicas, inventario, proveedores y finanzas en una sola plataforma inteligente, respaldada por infraestructura en la nube de nivel empresarial.</p>
+  <p>Dairi unifica pacientes, citas, fichas clínicas especializadas y analítica clínica en una sola plataforma inteligente con IA. Transcripción de voz automática, reserva online con pagos, app móvil nativa y toda tu clínica respaldada en la nube AWS.</p>
   <div class="hero-btns">
     <a routerLink="/login" class="btn-primary">Comenzar gratis — 30 días</a>
     <a href="#features" class="btn-secondary">Ver funcionalidades →</a>
@@ -166,37 +167,37 @@
     <div class="feature-card">
       <div class="feature-icon">📋</div>
       <h3>Fichas Clínicas Especializadas</h3>
-      <p>Plantillas configurables para medicina general, psicología y odontología. Signos vitales, alertas, prescripciones e intervenciones quirúrgicas integradas.</p>
+      <p>9 plantillas clínicas: medicina general, psicología, odontología, kinesiología, nutrición, fonoaudiología, TO, matrona y tecnología médica. Signos vitales, alertas, SOAP y prescripciones.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">🤝</div>
-      <h3>Gestión de Proveedores</h3>
-      <p>Catálogo con ratings por estrellas, categorías, ID fiscal, estado (activo/inactivo) y seguimiento histórico de compras por proveedor.</p>
+      <div class="feature-icon">🎙️</div>
+      <h3>Transcripción de Voz con IA</h3>
+      <p>Graba la consulta y Deepgram Nova-3 la transcribe en español con identificación de hablantes. La IA genera automáticamente la nota SOAP lista para la ficha clínica.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">💊</div>
-      <h3>Inventario de Productos</h3>
-      <p>Control de stock en tiempo real con alertas de reposición, categorías, precios de costo y venta, y trazabilidad por lote.</p>
+      <div class="feature-icon">📈</div>
+      <h3>Reportes y Analítica Clínica</h3>
+      <p>KPIs de citas, ingresos y fichas clínicas con filtros 7 / 30 días / historial. Gráficos por diagnóstico, especialidad, previsión (Fonasa/Isapre) y profesional.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">💸</div>
-      <h3>Control de Gastos y Pagos</h3>
-      <p>Registro de egresos por categoría, conciliación de pagos de pacientes y reportes financieros consolidados por período.</p>
+      <h3>Pagos, Comisiones y Presupuestos</h3>
+      <p>Registro de cobros, cálculo automático de comisiones por profesional y cotizaciones con envío por email. Integración de pagos online vía Flow.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">💬</div>
-      <h3>Chat Interno del Equipo</h3>
-      <p>Comunicación directa entre los miembros del staff sin salir de la plataforma. Historial de conversaciones seguro y en tiempo real.</p>
+      <h3>Chat Interno con Asistente IA</h3>
+      <p>Comunicación directa entre el staff con canales y mensajes directos. Incluye el asistente Dairi IA para responder dudas operativas del equipo.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📊</div>
       <h3>Dashboard con Métricas</h3>
-      <p>Indicadores clave al iniciar sesión: citas del día, ingresos del mes, pacientes activos y alertas de stock bajo, todo en tiempo real.</p>
+      <p>Indicadores clave al iniciar sesión: citas del día, ingresos del mes, pacientes activos y comisiones pendientes, todo actualizado en tiempo real.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">🏷️</div>
-      <h3>Boleta Electrónica</h3>
-      <p>Emite boletas a pacientes particulares con timbre electrónico SII y envío automático por email al finalizar la atención.</p>
+      <div class="feature-icon">📱</div>
+      <h3>App Móvil Android e iOS</h3>
+      <p>La misma plataforma completa en tu smartphone. Construida con Capacitor 8 sobre Angular — disponible para Android e iOS sin perder ninguna funcionalidad.</p>
     </div>
   </div>
 </section>
@@ -207,11 +208,62 @@
     <div class="docs-banner-icon">📚</div>
     <div class="docs-banner-body">
       <h3>¿Necesitas ayuda para usar Dairi?</h3>
-      <p>Consulta nuestra documentación completa con guías paso a paso para cada módulo: pacientes, citas, fichas clínicas, inventario y más.</p>
+      <p>Consulta nuestra documentación completa con guías paso a paso para cada módulo: pacientes, citas, fichas clínicas, transcripción IA y más.</p>
     </div>
     <a routerLink="/docs" class="docs-banner-btn">Ver documentación →</a>
   </div>
 </div>
+
+<!-- INTEGRATIONS -->
+<section id="integraciones">
+  <div class="section-label">Tecnología de respaldo</div>
+  <h2 class="section-title">Integrado con las mejores plataformas</h2>
+  <p class="section-sub">Dairi no trabaja solo. Cada módulo se potencia con integraciones productivas desde el primer día — sin configuraciones complejas ni costos adicionales ocultos.</p>
+  <div class="integrations-grid">
+    <div class="integration-card">
+      <div class="int-logo">AWS</div>
+      <div class="int-body">
+        <strong>Amazon Web Services</strong>
+        <p>Infraestructura serverless con Lambda, S3, API Gateway y DynamoDB. Alta disponibilidad y escalabilidad automática sin gestionar servidores.</p>
+      </div>
+    </div>
+    <div class="integration-card">
+      <div class="int-logo">🎙️</div>
+      <div class="int-body">
+        <strong>Deepgram Nova-3</strong>
+        <p>Motor de transcripción de voz médica en español con diarización por hablante. Identifica automáticamente al profesional y al paciente en la consulta.</p>
+      </div>
+    </div>
+    <div class="integration-card">
+      <div class="int-logo">🤖</div>
+      <div class="int-body">
+        <strong>Amazon Bedrock (Nova-Lite)</strong>
+        <p>IA generativa que transforma la transcripción de la consulta en una nota SOAP clínica estructurada, lista para la ficha del paciente.</p>
+      </div>
+    </div>
+    <div class="integration-card">
+      <div class="int-logo">📅</div>
+      <div class="int-body">
+        <strong>Google Calendar &amp; Meet</strong>
+        <p>Sincronización OAuth bidireccional de citas. Las videoconsultas generan automáticamente un enlace Google Meet para el profesional y el paciente.</p>
+      </div>
+    </div>
+    <div class="integration-card">
+      <div class="int-logo">💳</div>
+      <div class="int-body">
+        <strong>Flow (Pagos Online)</strong>
+        <p>Pasarela de pagos chilena integrada en el portal de reservas. El paciente paga al agendar y el estado se actualiza en tiempo real en el sistema.</p>
+      </div>
+    </div>
+    <div class="integration-card">
+      <div class="int-logo">📱</div>
+      <div class="int-body">
+        <strong>Capacitor 8 — Android &amp; iOS</strong>
+        <p>La plataforma web convertida en app nativa para Android e iOS. Splash screen, notificaciones push (FCM), feedback háptico y gestión de teclado incluidos.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- POR QUÉ DAIRI -->
 <section id="por-que">

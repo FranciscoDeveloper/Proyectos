@@ -47,22 +47,22 @@
         <h2>Introducción a Dairi</h2>
       </div>
       <p>
-        <strong>Dairi</strong> es una plataforma de gestión clínica y empresarial diseñada para
+        <strong>Dairi</strong> es una plataforma de gestión clínica con IA diseñada para
         clínicas, consultorios y centros de salud en Latinoamérica. Unifica en un único sistema
-        todos los procesos operativos: pacientes, citas, fichas clínicas, inventario, proveedores
-        y finanzas, eliminando hojas de cálculo, papel y sistemas desconectados.
+        todos los procesos operativos: pacientes, citas, fichas clínicas especializadas, analítica
+        y comunicación del equipo, eliminando hojas de cálculo, papel y sistemas desconectados.
       </p>
       <div class="info-box">
         <strong>¿Qué puedes hacer con Dairi?</strong>
         <ul>
           <li>Gestionar el ciclo completo del paciente: desde el agendamiento hasta la ficha clínica.</li>
           <li>Llevar fichas clínicas especializadas para 9 tipos de profesiones de salud.</li>
-          <li>Controlar el inventario de medicamentos y productos.</li>
-          <li>Generar presupuestos para tratamientos y procedimientos.</li>
-          <li>Administrar proveedores y registrar gastos de forma centralizada.</li>
-          <li>Comunicar a tu equipo a través del chat interno sin salir de la plataforma.</li>
+          <li>Transcribir consultas con IA (Deepgram Nova-3) y generar notas SOAP automáticamente.</li>
+          <li>Generar presupuestos para tratamientos con envío por email y cobro online.</li>
+          <li>Comunicar a tu equipo a través del chat interno con asistente IA Dairi.</li>
           <li>Generar reportes clínicos y calcular comisiones de profesionales.</li>
-          <li>Ofrecer a tus pacientes un portal de reserva online con pago integrado.</li>
+          <li>Ofrecer a tus pacientes un portal de reserva online con pago integrado vía Flow.</li>
+          <li>Usar la app móvil nativa en Android e iOS (Capacitor 8).</li>
         </ul>
       </div>
       <div class="highlight-grid">
@@ -128,7 +128,7 @@
         </div>
         <div class="info-card">
           <strong>4. Cifrado Zero-Knowledge</strong>
-          <p>Configura el cifrado AES-256 para proteger fichas clínicas con tu propia clave privada.</p>
+          <p>Configura el cifrado AES-256 con una frase de paso personal. Se generan códigos de recuperación de un solo uso para acceder desde otros dispositivos.</p>
         </div>
       </div>
       <div class="info-box">
@@ -543,8 +543,8 @@
       <h3>Alertas clínicas</h3>
       <p>Puedes agregar alergias, contraindicaciones y notas de alerta a la ficha del paciente. Estas alertas se muestran de forma destacada en la cabecera de la ficha para que el profesional las vea antes de cada atención.</p>
 
-      <h3>Transcripción de audio</h3>
-      <p>Desde la ficha clínica puedes grabar audio directamente en el navegador para dictar observaciones durante la consulta. El audio se procesa y transcribe automáticamente al texto del campo correspondiente.</p>
+      <h3>Transcripción de voz con IA</h3>
+      <p>Desde la ficha clínica puedes grabar el audio de la consulta directamente en el navegador. El sistema envía el audio a <strong>Deepgram Nova-3</strong>, que lo transcribe en español con identificación automática de hablantes (profesional / paciente). Luego, <strong>Amazon Bedrock</strong> transforma la transcripción en una <strong>nota SOAP estructurada</strong> lista para guardar en la ficha clínica.</p>
     </section>
 
     <!-- ── 8. PRESUPUESTOS ───────────────────────────────────────────────── -->
@@ -587,6 +587,12 @@
         </div>
       </div>
 
+      <h3>Enviar presupuesto por email</h3>
+      <p>Desde el panel de detalle del presupuesto, haz clic en <strong>Enviar por email</strong>. El sistema envía el presupuesto al email del paciente vía <strong>Resend</strong> con el detalle de líneas, totales y datos de la clínica.</p>
+
+      <h3>Cobro online</h3>
+      <p>Si la clínica tiene configurada la integración con <strong>Flow</strong>, el paciente puede pagar el presupuesto directamente desde el enlace enviado por email. El estado del pago se actualiza automáticamente en el sistema.</p>
+
       <div class="info-box">
         El módulo de Presupuestos está disponible para usuarios que tienen acceso a módulos de pacientes o pagos.
       </div>
@@ -597,24 +603,11 @@
       <div class="section-anchor"></div>
       <div class="section-header">
         <span class="section-icon">🤝</span>
-        <h2>Gestión de Proveedores</h2>
+        <h2>Gestión de Proveedores <span style="font-size:.7em;font-weight:500;color:#f59e0b;background:#fef3c7;padding:2px 8px;border-radius:99px;vertical-align:middle;">Próximamente</span></h2>
       </div>
-      <p>El módulo de Proveedores mantiene un catálogo de todas las empresas y personas que abastecen a tu clínica.</p>
-
-      <h3>Información de un proveedor</h3>
-      <div class="cards-grid">
-        <div class="info-card"><strong>Datos básicos</strong><p>Nombre, código, ID fiscal, categoría (laboratorio, insumos, servicios, etc.).</p></div>
-        <div class="info-card"><strong>Contacto</strong><p>Teléfono, email, sitio web, dirección y persona de contacto.</p></div>
-        <div class="info-card"><strong>Estado</strong><p>Activo / Inactivo / Bloqueado. Los inactivos no aparecen en formularios de compra.</p></div>
-        <div class="info-card"><strong>Rating</strong><p>Calificación de 1 a 5 estrellas y total acumulado de órdenes y gasto.</p></div>
+      <div class="warning-box">
+        El módulo de Gestión de Proveedores está en desarrollo y estará disponible en una próxima versión de Dairi. Su estructura incluirá catálogo de proveedores con ratings, categorías, ID fiscal, historial de compras y gestión de estado.
       </div>
-
-      <h3>Crear un nuevo proveedor</h3>
-      <ol class="steps-list">
-        <li>Ve a <strong>Proveedores</strong> en el menú lateral → <strong>+ Nuevo</strong>.</li>
-        <li>Completa nombre, código (formato XX-000), categoría, contacto y estado.</li>
-        <li>Haz clic en <strong>Guardar</strong>.</li>
-      </ol>
     </section>
 
     <!-- ── 10. INVENTARIO ─────────────────────────────────────────────────── -->
@@ -622,29 +615,10 @@
       <div class="section-anchor"></div>
       <div class="section-header">
         <span class="section-icon">💊</span>
-        <h2>Inventario de Productos</h2>
+        <h2>Inventario de Productos <span style="font-size:.7em;font-weight:500;color:#f59e0b;background:#fef3c7;padding:2px 8px;border-radius:99px;vertical-align:middle;">Próximamente</span></h2>
       </div>
-      <p>Gestiona el stock de medicamentos, insumos médicos y cualquier producto utilizado en tu clínica.</p>
-
-      <h3>Información de un producto</h3>
-      <div class="cards-grid">
-        <div class="info-card"><strong>Identificación</strong><p>Nombre, SKU (formato ABC-0000), categoría (medicamento, insumo, equipo).</p></div>
-        <div class="info-card"><strong>Precio</strong><p>Precio unitario de venta al paciente.</p></div>
-        <div class="info-card"><strong>Stock</strong><p>Cantidad actual en bodega. Los productos sin stock muestran alerta en el Dashboard.</p></div>
-        <div class="info-card"><strong>Proveedor</strong><p>Vinculación al catálogo de proveedores registrados.</p></div>
-      </div>
-
-      <h3>Estados de stock</h3>
-      <div class="table-wrapper">
-        <table class="doc-table">
-          <thead><tr><th>Estado</th><th>Descripción</th></tr></thead>
-          <tbody>
-            <tr><td><span class="badge badge-green">Activo / Disponible</span></td><td>Producto en stock y disponible para uso.</td></tr>
-            <tr><td><span class="badge badge-yellow">Stock bajo</span></td><td>Cantidad por debajo del mínimo configurado. Aparece en alertas del Dashboard.</td></tr>
-            <tr><td><span class="badge" style="background:#ef4444;color:#fff">Sin stock</span></td><td>Producto agotado. No puede asignarse a nuevos registros.</td></tr>
-            <tr><td><span class="badge badge-gray">Descontinuado / Inactivo</span></td><td>Producto dado de baja.</td></tr>
-          </tbody>
-        </table>
+      <div class="warning-box">
+        El módulo de Inventario de Productos está en desarrollo y estará disponible en una próxima versión de Dairi. Incluirá control de stock, alertas de reposición, SKU, precios de costo/venta y vinculación a proveedores.
       </div>
     </section>
 
@@ -687,7 +661,7 @@
         <span class="section-icon">💬</span>
         <h2>Chat Interno del Equipo</h2>
       </div>
-      <p>El Chat Interno permite la comunicación entre los miembros del staff sin salir de Dairi.</p>
+      <p>El Chat Interno permite la comunicación entre los miembros del staff sin salir de Dairi. Los mensajes se persisten en <strong>Amazon DynamoDB</strong> con alta disponibilidad.</p>
 
       <h3>Cómo usar el chat</h3>
       <ol class="steps-list">
@@ -696,6 +670,9 @@
         <li>Selecciona una conversación o inicia una nueva haciendo clic en <strong>+ Nueva conversación</strong>.</li>
         <li>Escribe tu mensaje y presiona <kbd>Enter</kbd> o el botón de enviar.</li>
       </ol>
+
+      <h3>Asistente IA Dairi</h3>
+      <p>Dentro del chat encontrarás la conversación con <strong>Dairi IA</strong>, el asistente inteligente de la plataforma. Puedes consultarle dudas operativas sobre el uso del sistema, flujos de trabajo y funcionalidades disponibles.</p>
 
       <div class="info-box">
         El chat es exclusivo para el equipo interno. Los pacientes no tienen acceso a esta funcionalidad.
@@ -770,7 +747,43 @@
       </div>
     </section>
 
-    <!-- ── 15. SEGURIDAD ─────────────────────────────────────────────────── -->
+    <!-- ── 15. APP MÓVIL ─────────────────────────────────────────────────── -->
+    <section id="movil" class="doc-section">
+      <div class="section-anchor"></div>
+      <div class="section-header">
+        <span class="section-icon">📱</span>
+        <h2>App Móvil Android e iOS</h2>
+      </div>
+      <p>Dairi está disponible como app nativa para <strong>Android</strong> e <strong>iOS</strong>, construida con <strong>Capacitor 8</strong> sobre la misma base Angular de la plataforma web. Accede a todas las funcionalidades desde tu smartphone.</p>
+
+      <div class="cards-grid">
+        <div class="info-card">
+          <strong>Splash Screen</strong>
+          <p>Pantalla de carga con el branding de Dairi (fondo azul #0ea5e9) que desaparece con fundido suave al cargar la app.</p>
+        </div>
+        <div class="info-card">
+          <strong>Notificaciones Push</strong>
+          <p>Notificaciones nativas (FCM para Android, APNs para iOS) para alertas de citas, mensajes del equipo y recordatorios clínicos.</p>
+        </div>
+        <div class="info-card">
+          <strong>Feedback Háptico</strong>
+          <p>Vibración táctil en acciones importantes (confirmar, guardar) para una experiencia más natural en dispositivos móviles.</p>
+        </div>
+        <div class="info-card">
+          <strong>Gestión de teclado</strong>
+          <p>En Android, el layout se adapta automáticamente cuando el teclado virtual aparece o desaparece para no tapar los formularios.</p>
+        </div>
+      </div>
+
+      <h3>Funcionalidades disponibles en la app</h3>
+      <p>La app móvil incluye todas las funcionalidades de la versión web: pacientes, citas, fichas clínicas, transcripción de voz, chat, reportes, presupuestos y reserva online. No hay funcionalidades exclusivas del escritorio.</p>
+
+      <div class="info-box">
+        La app está en proceso de publicación en <strong>Google Play</strong> y <strong>App Store</strong>. Mientras tanto, los usuarios con acceso de desarrollo pueden instalarla via APK (Android) o TestFlight (iOS) contactando a soporte.
+      </div>
+    </section>
+
+    <!-- ── 16. SEGURIDAD ─────────────────────────────────────────────────── -->
     <section id="seguridad" class="doc-section">
       <div class="section-anchor"></div>
       <div class="section-header">
@@ -809,13 +822,13 @@
       <h3>Cifrado Zero-Knowledge — ¿Cómo funciona?</h3>
       <p>Si activas el cifrado ZK durante el onboarding:</p>
       <ol class="steps-list">
-        <li>Se genera un par de claves AES-256-GCM únicas para tu clínica.</li>
-        <li>Se descarga un <strong>certificado personal</strong> (.dairi-cert) que debes guardar de forma segura.</li>
-        <li>Al iniciar sesión en un nuevo dispositivo, debes cargar tu certificado para desbloquear los datos cifrados.</li>
-        <li>Sin el certificado, los datos sensibles aparecen cifrados e ilegibles, incluso para el equipo de Dairi.</li>
+        <li>Defines una <strong>frase de paso personal</strong> (passphrase) que solo tú conoces.</li>
+        <li>Se genera una clave AES-256-GCM derivada de tu passphrase y se cifran los campos sensibles en el cliente.</li>
+        <li>Se generan <strong>códigos de recuperación de un solo uso</strong> que puedes guardar para acceder desde otros dispositivos.</li>
+        <li>Sin tu passphrase o un código de recuperación, los datos sensibles son ilegibles — incluso para el equipo de Dairi.</li>
       </ol>
       <div class="warning-box">
-        <strong>Guarda tu certificado ZK en un lugar seguro.</strong> Si lo pierdes, no hay forma de recuperar los datos cifrados. No tiene mecanismo de recuperación por diseño (Zero-Knowledge).
+        <strong>Guarda tu passphrase y tus códigos de recuperación en un lugar seguro.</strong> Los códigos de recuperación son de un solo uso. Sin ellos y sin tu passphrase, los datos cifrados no pueden recuperarse por diseño (Zero-Knowledge).
       </div>
 
       <h3>Recomendaciones para el equipo</h3>
