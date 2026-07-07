@@ -87,7 +87,8 @@ export class ShellComponent {
       ...(hasBudgets     ? [{ label: 'Presupuestos',  icon: 'file-text',    route: '/app/presupuestos'  }] : []),
       ...(hasImportable  ? [{ label: 'Importar',      icon: 'upload',       route: '/app/import'        }] : []),
       { label: 'Chat',          icon: 'chat',         route: '/app/chat'          },
-      ...(this.auth.isAdmin() ? [{ label: 'Administración', icon: 'shield', route: '/app/admin' }] : [])
+      ...(schemas.some(s => s.entity.key === 'user-management') || this.auth.isSuperAdmin()
+        ? [{ label: 'Administración', icon: 'shield', route: '/app/admin' }] : [])
     ];
   });
 }
