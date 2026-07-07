@@ -18,15 +18,16 @@
     <!-- ── Left: plan info ───────────────────────────────────── -->
     <aside class="rp-info">
       <div class="rp-info-inner">
-        <div class="rp-plan-badge">Plan Starter · 14 días gratis</div>
+        <div class="rp-plan-badge">Plan Starter · 30 días gratis</div>
         <h2 class="rp-info-title">Empieza a gestionar<br>tu clínica hoy</h2>
         <p class="rp-info-sub">Sin tarjeta de crédito. Cancela cuando quieras.</p>
 
         <ul class="rp-features">
-          <li><span class="rp-check">✓</span> Hasta 5 usuarios</li>
-          <li><span class="rp-check">✓</span> Gestión de pacientes y citas</li>
-          <li><span class="rp-check">✓</span> Fichas clínicas</li>
-          <li><span class="rp-check">✓</span> Dashboard con métricas</li>
+          <li><span class="rp-check">✓</span> Hasta 3 profesionales</li>
+          <li><span class="rp-check">✓</span> Fichas de pacientes y atenciones</li>
+          <li><span class="rp-check">✓</span> Agenda y reserva online 24/7</li>
+          <li><span class="rp-check">✓</span> Dictado de consultas por voz</li>
+          <li><span class="rp-check">✓</span> Pagos online integrados</li>
           <li><span class="rp-check">✓</span> Soporte por email</li>
         </ul>
 
@@ -60,7 +61,7 @@
             <p>Hemos enviado un enlace de activación a</p>
             <div class="rp-email-pill">{{ registeredEmail }}</div>
             <p class="rp-email-hint">
-              Haz clic en el enlace del correo para activar tu cuenta y comenzar tu prueba gratuita de 14 días.<br>
+              Haz clic en el enlace del correo para activar tu cuenta y comenzar tu prueba gratuita de 30 días.<br>
               Puede tardar unos minutos. Revisa también tu carpeta de spam.
             </p>
           } @else {
@@ -92,7 +93,7 @@
         <div class="rp-card">
           <div class="rp-card-header">
             <h1>Crear tu cuenta</h1>
-            <p>Plan Starter — 14 días sin costo</p>
+            <p>Plan Starter — 30 días sin costo</p>
           </div>
 
           <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
@@ -287,7 +288,7 @@
       <div class="rp-modal-body">
 
         <div class="tc-meta">
-          Última actualización: abril de 2026 · Versión 1.0<br>
+          Última actualización: julio de 2026 · Versión 1.1<br>
           Referencia legal: <strong>Ley N° 19.799</strong> (Documentos Electrónicos, Firma Electrónica y Servicios de Certificación) · <strong>Ley N° 19.628</strong> (Protección de Datos de Carácter Personal) · <strong>Ley N° 19.496</strong> (Protección al Consumidor)
         </div>
 
@@ -295,7 +296,7 @@
         <p>El presente sitio web y la plataforma Dairi son operados por <strong>Servicios Informáticos Dairi Francisco Riquelme E.I.R.L.</strong>, persona jurídica constituida conforme a las leyes de la República de Chile, con domicilio en Santiago, Chile. Correo de contacto: <strong>admin&#64;dairi.cl</strong>.</p>
 
         <h3>2. Objeto del Servicio</h3>
-        <p>Dairi es una plataforma SaaS (Software as a Service) de gestión clínica y empresarial que permite la administración de pacientes, citas, fichas clínicas, inventario, proveedores y registros financieros. El acceso al servicio se presta bajo los términos y condiciones aquí descritos y mediante documento electrónico conforme al artículo 3 de la Ley N° 19.799.</p>
+        <p>Dairi es una plataforma SaaS (Software as a Service) de gestión clínica que permite la administración de pacientes, citas, fichas clínicas especializadas, reserva online con pagos, transcripción de consultas por inteligencia artificial, reportes clínicos y comunicación interna del equipo. El acceso al servicio se presta bajo los términos y condiciones aquí descritos y mediante documento electrónico conforme al artículo 3 de la Ley N° 19.799.</p>
 
         <h3>3. Definiciones</h3>
         <p>Para efectos de estos términos, se entenderá por:</p>
@@ -320,8 +321,8 @@
         </ul>
 
         <h3>6. Plan Starter y Período de Prueba</h3>
-        <p>El plan Starter incluye un período de prueba gratuita de <strong>14 días corridos</strong> desde la activación de la cuenta. Transcurrido dicho período, el servicio continuará disponible únicamente si el Usuario contrata un plan de pago. Dairi se reserva el derecho de suspender el acceso al vencimiento de la prueba sin previo aviso adicional al correo de activación enviado al momento del registro.</p>
-        <p>El costo del plan Starter es de <strong>USD 9 mensual</strong> (más IVA cuando corresponda), cobrado en ciclos mensuales desde la fecha de contratación del plan de pago.</p>
+        <p>El plan Starter incluye un período de prueba gratuita de <strong>30 días corridos</strong> desde la activación de la cuenta. Transcurrido dicho período, el servicio continuará disponible únicamente si el Usuario contrata un plan de pago. Dairi se reserva el derecho de suspender el acceso al vencimiento de la prueba sin previo aviso adicional al correo de activación enviado al momento del registro.</p>
+        <p>El costo del plan Starter es de <strong>USD 3 mensual</strong> (más IVA cuando corresponda), cobrado en ciclos mensuales desde la fecha de contratación del plan de pago. El plan Starter admite hasta <strong>3 usuarios profesionales</strong> e incluye 1 especialidad clínica, 10 horas de transcripción de voz por IA al mes y una comisión del 2% sobre cobros procesados en línea.</p>
 
         <h3>7. Obligaciones del Usuario</h3>
         <p>El Usuario se obliga a:</p>
@@ -340,7 +341,8 @@
           <li>Enviar comunicaciones relacionadas con la cuenta y el servicio.</li>
           <li>Cumplir obligaciones legales.</li>
         </ul>
-        <p>Dairi no cederá, venderá ni transferirá datos personales a terceros sin consentimiento expreso del titular, salvo obligación legal. El Usuario tiene derecho a acceder, rectificar, cancelar y oponerse al tratamiento de sus datos personales, conforme a los artículos 12 y siguientes de la Ley N° 19.628, enviando solicitud a admin&#64;dairi.cl.</p>
+        <p>Los datos clínicos ingresados en la plataforma (fichas de pacientes, registros de atenciones, transcripciones de consultas) son tratados con la más alta confidencialidad. Los planes Pro y Enterprise ofrecen cifrado <strong>Zero-Knowledge AES-256-GCM</strong> sobre los datos clínicos, en que Dairi no tiene acceso a las claves de cifrado del Usuario. El procesamiento de voz para transcripción se realiza a través de proveedores certificados y los datos de audio no son almacenados permanentemente.</p>
+        <p>Dairi no cederá, venderá ni transferirá datos personales ni clínicos a terceros sin consentimiento expreso del titular, salvo obligación legal. El Usuario tiene derecho a acceder, rectificar, cancelar y oponerse al tratamiento de sus datos personales, conforme a los artículos 12 y siguientes de la Ley N° 19.628, enviando solicitud a admin&#64;dairi.cl.</p>
 
         <h3>9. Comunicaciones Electrónicas</h3>
         <p>El Usuario acepta expresamente recibir comunicaciones electrónicas al correo registrado, incluyendo el correo de activación de cuenta, avisos de facturación, actualizaciones del servicio y notificaciones legales. Dichas comunicaciones tienen plena validez conforme al artículo 12 de la Ley N° 19.799.</p>
