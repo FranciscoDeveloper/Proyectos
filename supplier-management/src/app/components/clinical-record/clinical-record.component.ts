@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-clinical-record',
@@ -14,6 +15,7 @@ export class ClinicalRecordComponent {
   private route     = inject(ActivatedRoute);
   private schemaSvc = inject(SchemaService);
   private crudSvc   = inject(GenericCrudService);
+  private auth      = inject(AuthService);
 
   readonly entityKey = this.route.snapshot.paramMap.get('entityKey')!;
   readonly schema    = this.schemaSvc.getSchema(this.entityKey);
@@ -23,7 +25,7 @@ export class ClinicalRecordComponent {
   private readonly statusField   = this.schema?.fields.find(f => f.isBadge && f.name === 'status') ?? null;
   private readonly bloodTypeField = this.schema?.fields.find(f => f.name === 'bloodType') ?? null;
   private readonly insuranceField = this.schema?.fields.find(f => f.name === 'insurance')  ?? null;
-  private readonly doctorField    = this.schema?.fields.find(f => f.name === 'doctor')     ?? null;
+  private readonly doctorField    = this.schema?.fields.find(f => f.name === 'doctor' || f.name === 'doctorName') ?? null;
   private readonly lastVisitField = this.schema?.fields.find(f => f.name === 'lastVisit')  ?? null;
   private readonly ageField       = this.schema?.fields.find(f => f.name === 'age')        ?? null;
   private readonly genderField    = this.schema?.fields.find(f => f.name === 'gender')     ?? null;
@@ -33,7 +35,12 @@ export class ClinicalRecordComponent {
 
   readonly records = computed(() => {
     const data = this.crudSvc.getAll(this.entityKey)();
-    return data.map(item => {
+    // Auto-filter: viewer-role professionals see only their own records
+    const me = this.auth.user();
+    const rawData = (me && this.auth.isProfessionalView() && this.doctorField)
+      ? data.filter(item => item[this.doctorField!.name] === me.name)
+      : data;
+    return rawData.map(item => {
       const statusVal  = this.statusField  ? item[this.statusField.name]  : null;
       const btVal      = this.bloodTypeField ? item[this.bloodTypeField.name] : null;
       const insVal     = this.insuranceField ? item[this.insuranceField.name] : null;

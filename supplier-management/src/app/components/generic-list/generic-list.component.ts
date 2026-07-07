@@ -4,6 +4,7 @@ import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
+import { AuthService } from '../../services/auth.service';
 import { EntitySchema, FieldDefinition, SelectOption } from '../../models/entity-schema.model';
 
 @Component({
@@ -17,6 +18,7 @@ export class GenericListComponent implements OnInit {
   private router = inject(Router);
   private schemaService = inject(SchemaService);
   private crudService = inject(GenericCrudService);
+  private auth = inject(AuthService);
 
   schema = signal<EntitySchema | null>(null);
   entityKey = signal('');
@@ -49,6 +51,13 @@ export class GenericListComponent implements OnInit {
     const filters = this.selectFilters();
     for (const [field, value] of Object.entries(filters)) {
       if (value) items = items.filter(item => String(item[field]) === value);
+    }
+    // Auto-filter: viewer-role professionals see only their own records
+    const me = this.auth.user();
+    if (me && this.auth.isProfessionalView()) {
+      const PROF_FIELDS = ['doctor', 'doctorName', 'professionalName'];
+      const profField = PROF_FIELDS.find(f => items.length > 0 && items[0][f] !== undefined);
+      if (profField) items = items.filter(i => i[profField] === me.name);
     }
     const sf = this.sortField();
     if (sf) {

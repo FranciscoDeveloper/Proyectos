@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { switchMap, of, catchError } from 'rxjs';
 import { GenericCrudService } from '../../services/generic-crud.service';
+import { AuthService } from '../../services/auth.service';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -88,6 +89,7 @@ const EMPTY_FORM = (): Omit<Presupuesto, 'id' | 'createdAt' | 'updatedAt'> => ({
 export class PresupuestosComponent implements OnInit {
   private http    = inject(HttpClient);
   private crudSvc = inject(GenericCrudService);
+  private auth = inject(AuthService);
 
   // ── State ──────────────────────────────────────────────────────────────────
   presupuestos = signal<Presupuesto[]>([]);
@@ -137,6 +139,11 @@ export class PresupuestosComponent implements OnInit {
 
   filtered = computed(() => {
     let list = this.presupuestos();
+    // Auto-filter: viewer-role professionals see only their own budgets
+    const me = this.auth.user();
+    if (me && this.auth.isProfessionalView()) {
+      list = list.filter(p => p.doctorName === me.name);
+    }
     const q  = this.filterSearch().toLowerCase();
     const s  = this.filterStatus();
     const fd = this.filterFrom();

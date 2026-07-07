@@ -31,6 +31,8 @@ export class ChatComponent implements AfterViewChecked {
   sidebarSection = signal<'channels' | 'dm'>('channels');
   sending        = signal(false);
 
+  readonly chatbotOnly = computed(() => !this.auth.hasTeamChat());
+
   private _shouldScroll = false;
 
   readonly HELPDESK_MAX = HELPDESK_MAX_CHARS;
@@ -103,6 +105,7 @@ export class ChatComponent implements AfterViewChecked {
   // ── Methods ────────────────────────────────────────────────────────────────
 
   selectConv(id: string): void {
+    if (this.chatbotOnly()) return;
     this.activeConvId.set(id);
     this.chatSvc.markRead(id);
     this._shouldScroll = true;
@@ -173,6 +176,9 @@ export class ChatComponent implements AfterViewChecked {
   }
 
   constructor() {
+    if (!this.auth.hasTeamChat()) {
+      this.activeConvId.set(HELPDESK_CONV_ID);
+    }
     effect(() => {
       this.activeConvId(); // track
       this._shouldScroll = true;

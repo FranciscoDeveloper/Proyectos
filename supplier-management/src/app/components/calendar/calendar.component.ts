@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
+import { AuthService } from '../../services/auth.service';
 
 interface CalEvent {
   id: number;
@@ -57,6 +58,7 @@ export class CalendarComponent {
   private route     = inject(ActivatedRoute);
   private schemaSvc = inject(SchemaService);
   private crudSvc   = inject(GenericCrudService);
+  private auth      = inject(AuthService);
   readonly gcalSvc  = inject(GoogleCalendarService);
   gcalConnecting    = signal(false);
 
@@ -133,7 +135,17 @@ export class CalendarComponent {
     if (!this.startField) return [];
     const data = this.crudSvc.getAll(this.entityKey)();
 
-    return data.map(item => {
+    // Auto-filter: viewer-role professionals see only their own appointments
+    const me = this.auth.user();
+    const filteredData = (me && this.auth.isProfessionalView())
+      ? (() => {
+          const PROF_FIELDS = ['professionalName', 'doctor', 'doctorName'];
+          const profField = PROF_FIELDS.find(f => data.length > 0 && data[0][f] !== undefined);
+          return profField ? data.filter(item => item[profField] === me.name) : data;
+        })()
+      : data;
+
+    return filteredData.map(item => {
       const startDate = this.parseDate(String(item[this.startField!.name] ?? ''));
       const rawEnd    = this.endField ? item[this.endField.name] : null;
       const endDate   = rawEnd

@@ -1,7 +1,7 @@
 <div class="chat-shell">
 
   <!-- ════ LEFT SIDEBAR ════ -->
-  <aside class="chat-sidebar">
+  <aside class="chat-sidebar" *ngIf="!chatbotOnly()">
 
     <!-- Sidebar header -->
     <div class="sb-header">
@@ -71,13 +71,17 @@
 
     <!-- Top bar -->
     <div class="chat-topbar">
-      <div class="ct-title">
+      <div class="ct-title" *ngIf="!chatbotOnly()">
         <span class="ct-name">{{ activeConvName() }}</span>
         <span class="ct-type" *ngIf="activeConvType() === 'channel'">canal</span>
         <span class="ct-type ct-type--agent" *ngIf="isHelpdeskActive()">Helpdesk</span>
         <span class="ct-type" *ngIf="activeConvType() === 'direct' && !isHelpdeskActive()">mensaje directo</span>
       </div>
-      <div class="ct-meta" *ngIf="activeOtherUser() as other">
+      <div class="ct-title" *ngIf="chatbotOnly()">
+        <span class="ct-name">🎧 Soporte Dairi</span>
+        <span class="ct-type ct-type--agent">Asistente virtual</span>
+      </div>
+      <div class="ct-meta" *ngIf="!chatbotOnly() && activeOtherUser() as other">
         <span class="ct-presence-dot" [class.online]="other.online"></span>
         <span class="ct-presence-label">{{ other.online ? 'En línea' : 'Desconectado' }}</span>
         <span class="ct-agent-role" *ngIf="other.isAgent">{{ other.role }}</span>
@@ -85,7 +89,7 @@
     </div>
 
     <!-- Helpdesk banner -->
-    <div class="helpdesk-banner" *ngIf="isHelpdeskActive()">
+    <div class="helpdesk-banner" *ngIf="isHelpdeskActive() && !chatbotOnly()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M18 18.86A3 3 0 0115 22H9a3 3 0 01-3-3.14M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-4v4m0 4h.01"/>
       </svg>
@@ -103,7 +107,8 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
         </svg>
-        <p>No hay mensajes aún. ¡Sé el primero en escribir!</p>
+        <p *ngIf="!chatbotOnly()">No hay mensajes aún. ¡Sé el primero en escribir!</p>
+        <p *ngIf="chatbotOnly()">Escríbenos tu consulta y te ayudaremos a la brevedad.</p>
       </div>
 
       <!-- Message list -->

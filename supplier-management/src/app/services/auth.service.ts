@@ -1075,6 +1075,12 @@ export class AuthService {
     const role = this._state().user?.role;
     return role === 'admin' || role === 'superadmin';
   });
+  readonly hasTeamChat = computed(() =>
+    this._state().schemas.some(s => s.entity.key === 'user-management') || this.isSuperAdmin()
+  );
+  readonly isProfessionalView = computed(() =>
+    this._state().user?.role === 'viewer'
+  );
 
   constructor(private router: Router) {
     // Restore ZK state from session after all field initializers have run
