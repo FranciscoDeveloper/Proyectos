@@ -21,7 +21,7 @@
     ✦ Cupos limitados · Solo 50 clínicas en el plan de lanzamiento · Reserva el tuyo hoy
   </div>
   <h1>Gestiona tu clínica<br><span class="gradient">sin límites ni papeles</span></h1>
-  <p>Dairi unifica pacientes, citas, fichas clínicas especializadas y analítica clínica en una sola plataforma inteligente con IA. Transcripción de voz automática, reserva online con pagos, app móvil nativa y toda tu clínica respaldada en la nube AWS.</p>
+  <p>Dairi unifica pacientes, citas, fichas clínicas especializadas y analítica clínica en una sola plataforma inteligente con IA. Transcripción de voz automática, reserva online con pagos, app móvil nativa y toda tu clínica respaldada en la nube AWS. Con control de acceso por rol, cada profesional ve solo su propia agenda, cobros y fichas clínicas.</p>
   <div class="hero-btns">
     <a routerLink="/login" class="btn-primary">Comenzar gratis — 30 días</a>
     <a href="#features" class="btn-secondary">Ver funcionalidades →</a>
@@ -187,7 +187,12 @@
     <div class="feature-card">
       <div class="feature-icon">💬</div>
       <h3>Chat Interno con Asistente IA</h3>
-      <p>Comunicación directa entre el staff con canales y mensajes directos. Incluye el asistente Dairi IA para responder dudas operativas del equipo.</p>
+      <p>El asistente Dairi IA responde dudas operativas en todos los planes. Los planes Pro y Enterprise suman el chat de equipo completo: canales y mensajes directos entre el staff.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔐</div>
+      <h3>Privacidad por Profesional</h3>
+      <p>Control de acceso por rol con filtrado automático por médico: cada profesional accede a una vista personalizada con sus propias citas, cobros, presupuestos y fichas clínicas — aplicado en el servidor, no solo en pantalla.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📊</div>
@@ -230,7 +235,7 @@
       </div>
       <div class="int-body">
         <strong>Amazon Web Services</strong>
-        <p>Toda la infraestructura de Dairi corre en AWS — la misma nube que usan Netflix y Airbnb. Tu clínica disponible las 24 hs, sin interrupciones.</p>
+        <p>Toda la infraestructura de Dairi corre en AWS — la misma nube que usan Netflix y Airbnb. Funciones serverless (Lambda), documentos de pacientes protegidos en Amazon S3 y chat respaldado en DynamoDB. Tu clínica disponible las 24 hs, sin interrupciones.</p>
       </div>
     </div>
     <div class="integration-card">
@@ -273,6 +278,19 @@
         <p>Pasarela de pagos chilena líder. El paciente reserva y paga en el mismo paso — tú recibes el dinero directo en tu cuenta bancaria.</p>
       </div>
     </div>
+    <div class="integration-card">
+      <div class="int-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 42 42" width="34" height="34" aria-label="Amazon Bedrock">
+          <rect x="4" y="4" width="34" height="34" rx="7" fill="none" stroke="#FF9900" stroke-width="2.6"/>
+          <circle cx="21" cy="21" r="5.5" fill="#FF9900"/>
+          <path d="M21 8 V15.5 M21 26.5 V34 M8 21 H15.5 M26.5 21 H34" stroke="#FF9900" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="int-body">
+        <strong>Amazon Bedrock — IA Generativa</strong>
+        <p>La IA clínica de Dairi convierte cada transcripción en una nota SOAP estructurada, lista para guardar en la ficha del paciente. Sin salir de la nube segura de AWS.</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -296,6 +314,11 @@
       <div class="feature-icon">📅</div>
       <h3>No pierdas más pacientes</h3>
       <p>Tus pacientes reservan y pagan online a cualquier hora, desde el celular. Se acabaron las horas perdidas por teléfonos ocupados o agendas de papel.</p>
+    </div>
+    <div class="feature-card" style="border-color:rgba(139,92,246,.4);">
+      <div class="feature-icon">🔐</div>
+      <h3>Cada profesional ve solo lo suyo</h3>
+      <p>Filtrado automático por médico aplicado en el servidor: la agenda, los cobros y las fichas clínicas de cada profesional quedan aisladas del resto del equipo. Privacidad clínica real, sin configuración extra.</p>
     </div>
   </div>
 </section>
@@ -324,7 +347,8 @@
         <li>Fichas de pacientes y registro de atenciones</li>
         <li>Agenda de citas con vista semanal</li>
         <li>Los pacientes reservan su hora solos, las 24 hs</li>
-        <li>Chat interno para coordinar al equipo</li>
+        <li>Chat de soporte con el asistente Dairi IA</li>
+        <li>Vista personalizada por profesional: cada uno ve solo sus datos</li>
         <li>Resumen diario de la actividad clínica</li>
         <li class="feature-highlight">✦ Dicta tus consultas con voz (10 h/mes)</li>
         <li class="feature-commission">Pagos online (2% por transacción)</li>
@@ -356,7 +380,9 @@
         <li>Videoconsultas desde la misma plataforma</li>
         <li>Citas sincronizadas con tu calendario personal</li>
         <li>Datos clínicos 100% privados y cifrados</li>
+        <li>Chat interno del equipo: canales y mensajes directos</li>
         <li>Asistente IA disponible en el chat del equipo</li>
+        <li>Módulo de administración y control de acceso por rol</li>
         <li class="feature-highlight">✦ Dicta tus consultas con voz (50 h/mes)</li>
         <li class="feature-commission">Pagos online (1% por transacción)</li>
         <li>Soporte prioritario</li>
