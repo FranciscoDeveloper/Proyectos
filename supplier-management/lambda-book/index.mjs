@@ -248,6 +248,18 @@ export const handler = async (event) => {
 // ── Router ─────────────────────────────────────────────────────────────────────
 async function route(client, method, rawPath, body, qs) {
 
+  // ── Flow browser return: POST /payment/return ─────────────────────────────
+  // Flow POSTs to urlReturn after payment — redirect browser to the Angular SPA
+  if (rawPath === "/payment/return") {
+    const token = body?.token ?? qs?.token ?? "";
+    const dest  = `${APP_URL}/#/book/payment-result${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+    return {
+      statusCode: 302,
+      headers: { Location: dest, "Cache-Control": "no-store" },
+      body: "",
+    };
+  }
+
   // ── Flow webhook: POST /payment/confirm ───────────────────────────────────
   if (rawPath === "/payment/confirm") {
     if (method !== "POST") return { statusCode: 405, body: "Method Not Allowed" };

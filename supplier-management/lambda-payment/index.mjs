@@ -96,10 +96,13 @@ export const handler = async (event) => {
   }
 
   const commerceOrder = `APPT-${appointmentId}-${Date.now()}`;
-  const urlConfirmation = BOOK_FUNCTION_URL
-    ? `${BOOK_FUNCTION_URL.replace(/\/$/, "")}/api/webhook/flow`
+  const bookBase        = BOOK_FUNCTION_URL.replace(/\/$/, "");
+  const urlConfirmation = bookBase
+    ? `${bookBase}/payment/confirm`
     : `${APP_URL}/api/webhook/flow`;
-  const urlReturn = `${APP_URL}/book/payment-result`;
+  const urlReturn       = bookBase
+    ? `${bookBase}/payment/return`
+    : `${APP_URL}/#/book/payment-result`;
 
   const params = {
     commerceOrder,
