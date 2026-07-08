@@ -59,7 +59,8 @@
           <li>Llevar fichas clínicas especializadas para 9 tipos de profesiones de salud.</li>
           <li>Transcribir consultas con IA (Deepgram Nova-3) y generar notas SOAP automáticamente.</li>
           <li>Generar presupuestos para tratamientos con envío por email y cobro online.</li>
-          <li>Comunicar a tu equipo a través del chat interno con asistente IA Dairi.</li>
+          <li>Comunicar a tu equipo a través del chat interno con asistente IA Dairi (canales y mensajes directos en planes Pro y Enterprise).</li>
+          <li>Trabajar con aislamiento de datos por profesional: cada médico o especialista ve solo sus propias citas, cobros y fichas clínicas.</li>
           <li>Generar reportes clínicos y calcular comisiones de profesionales.</li>
           <li>Ofrecer a tus pacientes un portal de reserva online con pago integrado vía Flow.</li>
           <li>Usar la app móvil nativa en Android e iOS (Capacitor 8).</li>
@@ -167,6 +168,35 @@
       </div>
       <div class="info-box">
         La asignación de módulos por usuario se gestiona a nivel de base de datos mediante la tabla <code>user_schema</code>. Cada petición al servidor verifica los permisos del usuario en tiempo real, independientemente del rol en el frontend.
+      </div>
+
+      <h3>Aislamiento de datos por profesional (vista personalizada)</h3>
+      <p>
+        Además de los roles, Dairi aplica un <strong>filtrado automático por médico</strong>: cuando la cuenta de un usuario está vinculada a un profesional de la clínica (médico, psicólogo, odontólogo u otro especialista), el sistema le muestra únicamente <strong>sus propios datos</strong>. Cada profesional accede a una <strong>vista personalizada</strong> con su información y no puede ver los registros de sus colegas.
+      </p>
+      <div class="cards-grid">
+        <div class="info-card">
+          <strong>📅 Citas</strong>
+          <p>El calendario muestra solo las citas asignadas al profesional que inició sesión.</p>
+        </div>
+        <div class="info-card">
+          <strong>💸 Cobros</strong>
+          <p>El módulo de pagos lista únicamente los cobros asociados a sus propias atenciones.</p>
+        </div>
+        <div class="info-card">
+          <strong>📄 Presupuestos</strong>
+          <p>Solo aparecen los presupuestos en los que el profesional figura como responsable.</p>
+        </div>
+        <div class="info-card">
+          <strong>📋 Fichas clínicas</strong>
+          <p>El listado de fichas se limita a los pacientes atendidos por ese profesional.</p>
+        </div>
+      </div>
+      <div class="info-box">
+        Este filtrado se aplica <strong>en el servidor</strong>, en cada consulta a la base de datos: no depende de lo que muestre u oculte el navegador. El frontend agrega un filtro adicional como segunda barrera, pero la restricción real ocurre en el backend, por lo que no puede evadirse manipulando la aplicación en el cliente.
+      </div>
+      <div class="info-box">
+        Los usuarios <strong>administradores</strong> que no están vinculados a un profesional conservan la vista global de la clínica: ven las citas, cobros, presupuestos y fichas de todo el equipo.
       </div>
     </section>
 
@@ -674,6 +704,36 @@
       <h3>Asistente IA Dairi</h3>
       <p>Dentro del chat encontrarás la conversación con <strong>Dairi IA</strong>, el asistente inteligente de la plataforma. Puedes consultarle dudas operativas sobre el uso del sistema, flujos de trabajo y funcionalidades disponibles.</p>
 
+      <h3>Disponibilidad según tu plan</h3>
+      <p>Las funcionalidades del módulo de Chat dependen del plan contratado por la clínica:</p>
+      <div class="table-wrapper">
+        <table class="doc-table">
+          <thead>
+            <tr><th>Plan</th><th>Asistente Dairi IA</th><th>Canales y mensajes directos</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Starter</strong></td>
+              <td>✅ Incluido — chat de soporte con el asistente Dairi IA.</td>
+              <td>— No incluido. El panel de conversaciones del equipo no se muestra.</td>
+            </tr>
+            <tr>
+              <td><strong>Pro</strong></td>
+              <td>✅ Incluido</td>
+              <td>✅ Chat de equipo completo: canales y mensajes directos entre el staff.</td>
+            </tr>
+            <tr>
+              <td><strong>Enterprise</strong></td>
+              <td>✅ Incluido</td>
+              <td>✅ Chat de equipo completo, con permisos diferenciados por cargo y rol.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="info-box">
+        En el plan <strong>Starter</strong>, al abrir el módulo de Chat se muestra directamente la conversación con el asistente de soporte Dairi. Para habilitar los canales y mensajes directos del equipo, actualiza al plan <strong>Pro</strong> o <strong>Enterprise</strong>.
+      </div>
+
       <div class="info-box">
         El chat es exclusivo para el equipo interno. Los pacientes no tienen acceso a esta funcionalidad.
       </div>
@@ -808,6 +868,10 @@
         <div class="info-card">
           <strong>Autorización por petición</strong>
           <p>Cada petición al servidor verifica en tiempo real que el usuario tiene acceso al módulo solicitado y que su rol permite la operación (los viewers no pueden escribir aunque lo intenten desde el cliente).</p>
+        </div>
+        <div class="info-card">
+          <strong>Aislamiento de datos por profesional</strong>
+          <p>Control de acceso por rol con filtrado automático por médico aplicado en el servidor: cada profesional ve solo sus propias citas, cobros, presupuestos y fichas clínicas. Los datos del resto del equipo quedan fuera de su vista, incluso ante intentos de acceso directo a la API.</p>
         </div>
         <div class="info-card">
           <strong>Arquitectura serverless</strong>
