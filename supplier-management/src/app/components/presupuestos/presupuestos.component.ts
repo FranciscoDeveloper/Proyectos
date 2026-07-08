@@ -113,16 +113,30 @@ export class PresupuestosComponent implements OnInit {
   loadingProfs   = signal(false);
   selectedProfId = signal('');
 
-  // Patients list — reactive via GenericCrudService (falls back to schema seed data)
-  patients = computed<PatientOption[]>(() =>
-    this.crudSvc.getAll('patients')().map((p: any) => ({
+  // Patients list — reactive via GenericCrudService (falls back to schema seed data).
+  // Professionals only see patients that appear in their own appointments.
+  patients = computed<PatientOption[]>(() => {
+    let list: PatientOption[] = this.crudSvc.getAll('patients')().map((p: any) => ({
       id:    p.id,
       name:  p.name   ?? p.nombre   ?? '',
       rut:   p.rut    ?? '',
       phone: p.phone  ?? p.telefono ?? '',
       email: p.email  ?? ''
-    }))
-  );
+    }));
+    if (this.auth.isProfessionalView()) {
+      const profId = this.auth.myProfessionalId();
+      if (profId != null) {
+        const myPatientIds = new Set(
+          this.crudSvc.getAll('appointments')()
+            .filter((a: any) => a['professionalId'] === profId)
+            .map((a: any) => a['patientId'])
+            .filter((id: any) => id != null)
+        );
+        list = list.filter(p => myPatientIds.has(p.id));
+      }
+    }
+    return list;
+  });
   loadingPatients   = signal(false);
   selectedPatientId = signal<number | null>(null);
 
@@ -187,7 +201,26 @@ export class PresupuestosComponent implements OnInit {
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
-  ngOnInit() { this.load(); this.loadProfessionals(); }
+  ngOnInit() {
+    this.load();
+    this.loadProfessionals();
+    // Pre-warm stores used for professional-scoped patient filtering and specialty lookup
+    this.crudSvc.initStore('patients');
+    this.crudSvc.initStore('appointments');
+    this.crudSvc.initStore('medicos');
+  }
+
+  /** Exposed to the template: professional users get pre-filled, locked doctor/specialty fields */
+  isProfessionalView(): boolean { return this.auth.isProfessionalView(); }
+
+  /** Look up the professional's specialty in the `medicos` entity by name */
+  private lookupSpecialty(profName: string): string {
+    if (!profName) return '';
+    const med = this.crudSvc.getAll('medicos')().find((m: any) =>
+      (m['name'] ?? m['nombre']) === profName
+    );
+    return med ? String(med['specialty'] ?? med['especialidad'] ?? '') : '';
+  }
 
   private load() {
     this.loading.set(true);
@@ -245,7 +278,15 @@ export class PresupuestosComponent implements OnInit {
   // ── Panel ──────────────────────────────────────────────────────────────────
 
   openCreate() {
-    this.form.set({ ...EMPTY_FORM(), numero: this.nextNumero() });
+    const base = { ...EMPTY_FORM(), numero: this.nextNumero() };
+    if (this.auth.isProfessionalView()) {
+      const me = this.auth.user();
+      const profName = me?.professionalName ?? me?.name ?? '';
+      base.professionalId = this.auth.myProfessionalId();
+      base.doctorName     = profName;
+      base.specialty      = this.lookupSpecialty(profName);
+    }
+    this.form.set(base);
     this.selected.set(null);
     this.selectedProfId.set('');
     this.selectedPatientId.set(null);
@@ -393,7 +434,21 @@ export class PresupuestosComponent implements OnInit {
   // ── CRUD ───────────────────────────────────────────────────────────────────
 
   save() {
-    const f = this.form();
+    let f = this.form();
+    // Professionals cannot change doctor/specialty — stamp them from the auth state
+    if (this.auth.isProfessionalView()) {
+      const me = this.auth.user();
+      const profName = me?.professionalName ?? me?.name ?? '';
+      if (profName) {
+        f = {
+          ...f,
+          professionalId: this.auth.myProfessionalId(),
+          doctorName:     profName,
+          specialty:      f.specialty || this.lookupSpecialty(profName)
+        };
+        this.form.set(f);
+      }
+    }
     if (!f.patientName.trim() || !f.doctorName.trim() || !f.fechaEmision || !f.fechaVencimiento) {
       this.serverError.set('Completa los campos obligatorios: paciente, doctor y fechas.');
       return;

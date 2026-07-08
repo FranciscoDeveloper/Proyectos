@@ -279,7 +279,8 @@ export class GenericFormComponent implements OnInit {
         });
       } else {
         this.crudService.create(this.entityKey(), processed).subscribe({
-          next: () => {
+          next: (created) => {
+            this.linkPatientToProfessional(created);
             this.syncToGoogleCalendar(processed);
             this.saving.set(false);
             this.saved.set(true);
@@ -312,6 +313,33 @@ export class GenericFormComponent implements OnInit {
     const prefix = match?.[1] ?? 'ID';
     const num = String(Date.now() % 100000).padStart(5, '0');
     return `${prefix}-${num}`;
+  }
+
+  /**
+   * When a professional creates a new patient, silently create a placeholder
+   * appointment linking the patient to the professional. The patients table has
+   * no professional_id column, so "patients of a professional" is derived from
+   * appointments — this makes the new patient visible in professional-scoped lists.
+   */
+  private linkPatientToProfessional(created: Record<string, any> | null | undefined): void {
+    if (this.entityKey() !== 'patients') return;
+    if (!this.auth.isProfessionalView()) return;
+    const profId = this.auth.myProfessionalId();
+    const patientId = created?.['id'];
+    if (profId == null || patientId == null) return;
+
+    this.crudService.create('appointments', {
+      patientId,
+      professionalId: profId,
+      patientName: created!['name'] ?? created!['nombre'] ?? '',
+      professionalName: this.auth.user()?.professionalName ?? this.auth.user()?.name ?? '',
+      status: 'scheduled',
+      reason: 'Alta de paciente',
+      dateTime: new Date().toISOString()
+    }).subscribe({
+      next: () => {},
+      error: () => {} // silent — linking is best-effort, never surfaces to the user
+    });
   }
 
   private syncToGoogleCalendar(data: Record<string, any>): void {

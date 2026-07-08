@@ -355,7 +355,11 @@
         <div class="form-row form-row-2">
           <div class="form-group">
             <label>Doctor / Profesional <span class="req">*</span></label>
-            <select [value]="selectedProfId()"
+            <!-- Professional users: field locked to their own name -->
+            <input *ngIf="isProfessionalView()" type="text" readonly disabled class="input-readonly"
+                   [value]="form().doctorName" />
+            <select *ngIf="!isProfessionalView()"
+                    [value]="selectedProfId()"
                     (change)="selectProfessional($any($event.target).value)"
                     [attr.disabled]="loadingProfs() ? true : null">
               <option value="">{{ loadingProfs() ? 'Cargando profesionales…' : '— Seleccionar profesional —' }}</option>
@@ -367,6 +371,7 @@
           <div class="form-group">
             <label>Especialidad</label>
             <input type="text" [value]="form().specialty" readonly class="input-readonly"
+                   [attr.disabled]="isProfessionalView() ? true : null"
                    placeholder="Se completa al seleccionar el profesional" />
           </div>
         </div>
