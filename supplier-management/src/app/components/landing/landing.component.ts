@@ -3,10 +3,10 @@ import { RouterLink } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
 
-const SEO_TITLE = 'Dairi | Software de Gestión Clínica para Chile y Latinoamérica';
-const SEO_DESCRIPTION = 'Dairi es el software de gestión clínica en la nube para Chile y Latinoamérica. Administra pacientes, citas, fichas clínicas, inventario y pagos en una sola plataforma. 14 días gratis.';
-const SEO_URL = 'https://app.dairi.cl/';
-const SEO_IMAGE = 'https://app.dairi.cl/og-image.png';
+const SEO_TITLE = 'Dairi — Software clínico para Chile | Citas, fichas y pagos online';
+const SEO_DESCRIPTION = 'Dairi es un software de gestión clínica en la nube para clínicas médicas y dentales en Chile: agenda de citas, fichas clínicas electrónicas de 9 especialidades, reserva online con pago vía Flow.cl, transcripción de consultas con IA y sincronización con Google Calendar. Desde US$3/mes. 30 días gratis.';
+const SEO_URL = 'https://dairi.cl/';
+const SEO_IMAGE = 'https://dairi.cl/og-image.png';
 
 const JSON_LD_SCRIPTS = [
   {
@@ -16,9 +16,9 @@ const JSON_LD_SCRIPTS = [
       '@type': 'Organization',
       name: 'Dairi',
       legalName: 'Servicios Informáticos Dairi Francisco Riquelme E.I.R.L.',
-      url: 'https://app.dairi.cl',
-      logo: 'https://app.dairi.cl/favicon.ico',
-      email: 'admin@dairi.cl',
+      url: 'https://dairi.cl',
+      logo: 'https://dairi.cl/favicon.ico',
+      email: 'contacto@dairi.cl',
       address: { '@type': 'PostalAddress', addressLocality: 'Santiago', addressCountry: 'CL' },
       sameAs: []
     }
@@ -30,23 +30,27 @@ const JSON_LD_SCRIPTS = [
       '@type': 'SoftwareApplication',
       name: 'Dairi',
       applicationCategory: 'BusinessApplication',
-      operatingSystem: 'Web',
+      operatingSystem: 'Web, Android, iOS',
       description: SEO_DESCRIPTION,
       url: SEO_URL,
+      areaServed: 'CL',
       offers: [
-        { '@type': 'Offer', name: 'Starter', price: '9', priceCurrency: 'USD',
-          priceSpecification: { '@type': 'UnitPriceSpecification', price: '9', priceCurrency: 'USD', unitCode: 'MON' } },
-        { '@type': 'Offer', name: 'Pro', price: '18', priceCurrency: 'USD',
-          priceSpecification: { '@type': 'UnitPriceSpecification', price: '18', priceCurrency: 'USD', unitCode: 'MON' } }
+        { '@type': 'Offer', name: 'Starter', price: '3', priceCurrency: 'USD',
+          priceSpecification: { '@type': 'UnitPriceSpecification', price: '3', priceCurrency: 'USD', unitCode: 'MON' } },
+        { '@type': 'Offer', name: 'Pro', price: '12', priceCurrency: 'USD',
+          priceSpecification: { '@type': 'UnitPriceSpecification', price: '12', priceCurrency: 'USD', unitCode: 'MON' } }
       ],
       featureList: [
-        'Gestión de pacientes', 'Calendario de citas', 'Fichas clínicas especializadas',
-        'Control de inventario', 'Gestión de proveedores', 'Control de pagos y gastos',
-        'Dashboard con métricas', 'Boleta electrónica SII', 'Chat interno del equipo'
+        'Gestión de pacientes', 'Calendario de citas', 'Fichas clínicas especializadas (9 especialidades)',
+        'Reserva online con pago vía Flow.cl', 'Transcripción de consultas con IA (Deepgram Nova-3)',
+        'Nota SOAP generada por IA (Amazon Bedrock)', 'Sincronización con Google Calendar y Google Meet',
+        'Reportes clínicos y comisiones', 'Presupuestos con cobro online',
+        'Chat interno con asistente IA Dairi', 'Privacidad por profesional aplicada en servidor',
+        'App móvil Android e iOS', 'Dashboard con métricas en tiempo real'
       ],
       inLanguage: 'es-CL',
       availableOnDevice: 'Desktop, Mobile, Tablet',
-      softwareVersion: '1.0'
+      softwareVersion: '2.0'
     }
   },
   {
@@ -57,33 +61,33 @@ const JSON_LD_SCRIPTS = [
       mainEntity: [
         {
           '@type': 'Question',
-          name: '¿Qué es Dairi y para qué sirve?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Dairi es un software de gestión clínica en la nube diseñado para clínicas y consultorios en Latinoamérica. Centraliza la administración de pacientes, citas, fichas clínicas, inventario de productos, proveedores y pagos en una sola plataforma accesible desde cualquier dispositivo con internet.' }
+          name: '¿Qué software clínico usar en Chile?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Dairi es un sistema de gestión clínica para Chile que incluye agenda de citas, fichas clínicas electrónicas de 9 especialidades, reserva de horas online con pago vía Flow.cl, transcripción de consultas con IA y reportes clínicos. Está diseñado para clínicas médicas, dentales y centros de especialidades, con precios desde US$3 al mes.' }
         },
         {
           '@type': 'Question',
           name: '¿Cuánto cuesta Dairi?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Dairi tiene tres planes: Starter desde US$9/mes (hasta 5 usuarios), Pro desde US$18/mes (hasta 10 usuarios con inventario, pagos y boleta electrónica) y Enterprise con precio a consultar para organizaciones grandes. Todos los planes incluyen 14 días de prueba gratuita sin tarjeta de crédito.' }
+          acceptedAnswer: { '@type': 'Answer', text: 'Dairi tiene tres planes: Starter desde US$3/mes (hasta 3 profesionales), Pro desde US$12/mes (hasta 20 profesionales, todas las especialidades) y Enterprise a precio a consultar. Todos los planes incluyen 30 días de prueba gratuita sin tarjeta de crédito.' }
         },
         {
           '@type': 'Question',
-          name: '¿Dairi es seguro para almacenar fichas clínicas?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Sí. Dairi utiliza autenticación JWT, HTTPS forzado, cifrado AES-256 en base de datos y arquitectura serverless en AWS. Los datos clínicos están almacenados en servidores en la nube con backups automáticos y acceso restringido por roles.' }
+          name: '¿Cómo pagan los pacientes sus horas médicas online?',
+          acceptedAnswer: { '@type': 'Answer', text: 'El paciente reserva su hora en el portal público de la clínica y paga en el mismo paso mediante Flow.cl, la pasarela de pagos chilena. El pago se verifica automáticamente y la cita queda confirmada en la agenda sin intervención manual.' }
         },
         {
           '@type': 'Question',
-          name: '¿Cuánto tiempo toma implementar Dairi en mi clínica?',
-          acceptedAnswer: { '@type': 'Answer', text: 'La implementación toma menos de 24 horas. Al ser una plataforma 100% en la nube, no requiere instalaciones ni servidores propios. El onboarding guiado te permite configurar tu clínica, agregar profesionales y comenzar a registrar pacientes el mismo día.' }
+          name: '¿Se sincroniza la agenda médica con Google Calendar?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Sí. Las citas de Dairi se sincronizan con Google Calendar, y las videoconsultas generan automáticamente su enlace de Google Meet, disponible para el profesional y para el paciente.' }
         },
         {
           '@type': 'Question',
-          name: '¿Dairi emite boletas electrónicas con el SII?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Sí, el plan Pro incluye emisión de boletas electrónicas con timbre del SII y envío automático por email al paciente al finalizar la atención. Compatible con la normativa tributaria chilena vigente.' }
+          name: '¿Dónde se almacenan los datos clínicos y son seguros?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Los datos se alojan en la nube de Amazon Web Services (Lambda, S3, RDS PostgreSQL, CloudFront) con arquitectura serverless HIPAA-ready. Dairi aplica cifrado Zero-Knowledge AES-256-GCM, autenticación JWT y aislamiento de datos por profesional aplicado en el servidor.' }
         },
         {
           '@type': 'Question',
-          name: '¿Funciona Dairi para clínicas pequeñas o consultorios unipersonales?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Sí. El plan Starter está diseñado para consultorios y clínicas pequeñas con hasta 5 usuarios. Incluye gestión de pacientes, citas y fichas clínicas a un precio accesible. Puedes escalar al plan Pro en cualquier momento sin perder datos.' }
+          name: '¿Funciona Dairi para una clínica dental?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Sí. Dairi incluye ficha odontológica con odontograma interactivo y periodontograma, agenda dental por sillón, diagnóstico ICDAS/CIE, plan de tratamiento por sesión y presupuestos con envío por email y cobro online.' }
         }
       ]
     }
