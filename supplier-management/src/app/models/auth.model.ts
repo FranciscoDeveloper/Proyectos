@@ -9,8 +9,10 @@ export interface AuthUser {
   id: number;
   name: string;
   email: string;
-  role: 'superadmin' | 'admin' | 'manager' | 'viewer';
+  role: 'superadmin' | 'admin' | 'manager' | 'viewer' | 'professional' | 'receptionist' | 'staff';
   avatar: string;
+  professionalId?: number | null;
+  professionalName?: string | null;
 }
 
 /**

@@ -135,13 +135,18 @@ export class CalendarComponent {
     if (!this.startField) return [];
     const data = this.crudSvc.getAll(this.entityKey)();
 
-    // Auto-filter: viewer-role professionals see only their own appointments
+    // Auto-filter: professionals see only their own appointments
     const me = this.auth.user();
     const filteredData = (me && this.auth.isProfessionalView())
       ? (() => {
+          const profId   = this.auth.myProfessionalId();
+          const profName = me.professionalName ?? me.name;
+          if (profId != null && data.length > 0 && data[0]['professionalId'] !== undefined) {
+            return data.filter(item => item['professionalId'] === profId);
+          }
           const PROF_FIELDS = ['professionalName', 'doctor', 'doctorName'];
           const profField = PROF_FIELDS.find(f => data.length > 0 && data[0][f] !== undefined);
-          return profField ? data.filter(item => item[profField] === me.name) : data;
+          return profField ? data.filter(item => item[profField] === profName) : data;
         })()
       : data;
 

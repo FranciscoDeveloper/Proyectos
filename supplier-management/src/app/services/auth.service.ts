@@ -1055,7 +1055,7 @@ const REFRESH_KEY  = 'dairi_refresh';
  * Increment this whenever the schema structure changes so that any cached
  * session in sessionStorage is invalidated and the user must re-login.
  */
-const SESSION_VERSION = 16;
+const SESSION_VERSION = 17;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1079,7 +1079,10 @@ export class AuthService {
     this._state().schemas.some(s => s.entity.key === 'user-management') || this.isSuperAdmin()
   );
   readonly isProfessionalView = computed(() =>
-    this._state().user?.role === 'viewer'
+    this._state().user?.professionalId != null
+  );
+  readonly myProfessionalId = computed(() =>
+    this._state().user?.professionalId ?? null
   );
 
   constructor(private router: Router) {

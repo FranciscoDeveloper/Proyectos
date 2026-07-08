@@ -35,10 +35,10 @@ export class ClinicalRecordComponent {
 
   readonly records = computed(() => {
     const data = this.crudSvc.getAll(this.entityKey)();
-    // Auto-filter: viewer-role professionals see only their own records
+    // Auto-filter: professionals see only their own records
     const me = this.auth.user();
     const rawData = (me && this.auth.isProfessionalView() && this.doctorField)
-      ? data.filter(item => item[this.doctorField!.name] === me.name)
+      ? data.filter(item => item[this.doctorField!.name] === (me.professionalName ?? me.name))
       : data;
     return rawData.map(item => {
       const statusVal  = this.statusField  ? item[this.statusField.name]  : null;

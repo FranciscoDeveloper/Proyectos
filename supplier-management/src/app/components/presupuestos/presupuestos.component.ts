@@ -139,10 +139,14 @@ export class PresupuestosComponent implements OnInit {
 
   filtered = computed(() => {
     let list = this.presupuestos();
-    // Auto-filter: viewer-role professionals see only their own budgets
+    // Auto-filter: professionals see only their own budgets
     const me = this.auth.user();
     if (me && this.auth.isProfessionalView()) {
-      list = list.filter(p => p.doctorName === me.name);
+      const profId   = this.auth.myProfessionalId();
+      const profName = me.professionalName ?? me.name;
+      list = profId != null
+        ? list.filter(p => (p as any).professionalId === profId)
+        : list.filter(p => p.doctorName === profName);
     }
     const q  = this.filterSearch().toLowerCase();
     const s  = this.filterStatus();

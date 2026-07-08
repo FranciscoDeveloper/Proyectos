@@ -52,12 +52,18 @@ export class GenericListComponent implements OnInit {
     for (const [field, value] of Object.entries(filters)) {
       if (value) items = items.filter(item => String(item[field]) === value);
     }
-    // Auto-filter: viewer-role professionals see only their own records
+    // Auto-filter: professionals see only their own records
     const me = this.auth.user();
     if (me && this.auth.isProfessionalView()) {
-      const PROF_FIELDS = ['doctor', 'doctorName', 'professionalName'];
-      const profField = PROF_FIELDS.find(f => items.length > 0 && items[0][f] !== undefined);
-      if (profField) items = items.filter(i => i[profField] === me.name);
+      const profId   = this.auth.myProfessionalId();
+      const profName = me.professionalName ?? me.name;
+      if (profId != null && items.length > 0 && items[0]['professionalId'] !== undefined) {
+        items = items.filter(i => i['professionalId'] === profId);
+      } else {
+        const PROF_FIELDS = ['doctor', 'doctorName', 'professionalName'];
+        const profField = PROF_FIELDS.find(f => items.length > 0 && items[0][f] !== undefined);
+        if (profField) items = items.filter(i => i[profField] === profName);
+      }
     }
     const sf = this.sortField();
     if (sf) {

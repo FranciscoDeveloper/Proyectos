@@ -295,6 +295,7 @@ const ENTITY_CONFIG = {
 
   payments: {
     table: "payment",
+    profFilter: { idCol: 'c.professional_id' },
 
     joinSelect: `
       SELECT
@@ -404,6 +405,7 @@ const ENTITY_CONFIG = {
   // ── appointments ─────────────────────────────────────────────────────────────
   appointments: {
     table: "appointment",
+    profFilter: { idCol: 'c.professional_id' },
 
     joinSelect: `
       SELECT
@@ -470,6 +472,7 @@ const ENTITY_CONFIG = {
   // ── presupuestos ─────────────────────────────────────────────────────────────
   presupuestos: {
     table: "presupuesto",
+    profFilter: { idCol: 'c.professional_id' },
 
     joinSelect: `
       SELECT
@@ -643,6 +646,7 @@ const ENTITY_CONFIG = {
   // ── clinical-records ─────────────────────────────────────────────────────────
   'clinical-records': {
     table: "clinical_record",
+    profFilter: { nameCol: 'c.doctor' },
 
     // JOIN with patient to populate demographic fields (fullName, rut, etc.)
     joinSelect: `
@@ -1604,11 +1608,25 @@ export const handler = async (event, context) => {
       return await appendEncounter(client, config, id, body);
     }
 
-    if (method === "GET" && !id)        return await listEntities(client, config, entityKey);
-    if (method === "GET" && id)         return await getEntity(client, config, id, entityKey);
-    if (method === "POST" && !id)       return await createEntity(client, config, body, entityKey);
-    if (method === "PUT" && id)         return await updateEntity(client, config, id, body, entityKey);
-    if (method === "DELETE" && id)      return await deleteEntity(client, config, id, entityKey);
+    // ── Resolve professional scope (determines per-professional data filtering) ──
+    let profScope = null;
+    {
+      const { rows } = await client.query(
+        `SELECT p.id AS prof_id, p.name AS prof_name
+         FROM professional p WHERE p.user_id = $1 LIMIT 1`,
+        [tokenPayload.sub]
+      );
+      if (rows.length) {
+        profScope = { professionalId: rows[0].prof_id, professionalName: rows[0].prof_name };
+        log("INFO", "profScope resolved", profScope);
+      }
+    }
+
+    if (method === "GET" && !id)        return await listEntities(client, config, entityKey, profScope);
+    if (method === "GET" && id)         return await getEntity(client, config, id, entityKey, profScope);
+    if (method === "POST" && !id)       return await createEntity(client, config, body, entityKey, profScope);
+    if (method === "PUT" && id)         return await updateEntity(client, config, id, body, entityKey, profScope);
+    if (method === "DELETE" && id)      return await deleteEntity(client, config, id, entityKey, profScope);
 
     log("WARN", "Method not allowed", { method });
     return response(405, { message: "Método no permitido" });
@@ -1630,12 +1648,37 @@ export const handler = async (event, context) => {
 
 // ── CRUD operations ───────────────────────────────────────────────────────────
 
-async function listEntities(client, config, entityKey) {
+/**
+ * Build a WHERE clause that restricts rows to the authenticated professional.
+ * Uses idCol (FK) when available, nameCol (text match) as fallback.
+ * Returns { clause: string, params: any[] } — clause already contains AND/WHERE prefix.
+ */
+function buildProfWhere(config, profScope, existingParamCount = 0) {
+  if (!profScope || !config.profFilter) return { clause: '', params: [] };
+  const f = config.profFilter;
+  const params = [];
+  const conditions = [];
+
+  if (f.idCol && profScope.professionalId != null) {
+    params.push(profScope.professionalId);
+    conditions.push(`${f.idCol} = $${existingParamCount + params.length}`);
+  }
+  if (f.nameCol && profScope.professionalName) {
+    params.push(profScope.professionalName);
+    conditions.push(`${f.nameCol} = $${existingParamCount + params.length}`);
+  }
+
+  if (conditions.length === 0) return { clause: ' WHERE (1=0)', params: [] };
+  return { clause: ` WHERE (${conditions.join(' OR ')})`, params };
+}
+
+async function listEntities(client, config, entityKey, profScope) {
   log("INFO", "listEntities — querying", { table: config.table, hasJoin: !!config.joinSelect });
   const orderBy = config.orderBy ?? (config.joinSelect ? 'c.created_at DESC' : 'id DESC');
   let result;
   if (config.joinSelect) {
-    result = await client.query(`${config.joinSelect} ORDER BY ${orderBy}`);
+    const { clause, params } = buildProfWhere(config, profScope);
+    result = await client.query(`${config.joinSelect}${clause} ORDER BY ${orderBy}`, params);
   } else {
     result = await client.query(`SELECT * FROM ${config.table} ORDER BY ${orderBy}`);
   }
@@ -1643,12 +1686,17 @@ async function listEntities(client, config, entityKey) {
   return response(200, result.rows.map(config.fromDb));
 }
 
-async function getEntity(client, config, id, entityKey) {
+async function getEntity(client, config, id, entityKey, profScope) {
   log("INFO", "getEntity — querying", { table: config.table, id, hasJoin: !!config.joinSelect });
   const pkCol = config.pkCol ?? 'id';
   let result;
   if (config.joinSelect) {
-    result = await client.query(`${config.joinSelect} WHERE c.${pkCol} = $1 LIMIT 1`, [id]);
+    const { clause, params } = buildProfWhere(config, profScope, 1);
+    const andOrWhere = clause ? clause.replace(' WHERE ', ' AND ') : '';
+    result = await client.query(
+      `${config.joinSelect} WHERE c.${pkCol} = $1${andOrWhere} LIMIT 1`,
+      [id, ...params]
+    );
   } else {
     result = await client.query(`SELECT * FROM ${config.table} WHERE ${pkCol} = $1 LIMIT 1`, [id]);
   }
@@ -1660,13 +1708,26 @@ async function getEntity(client, config, id, entityKey) {
   return response(200, config.fromDb(result.rows[0]));
 }
 
-async function createEntity(client, config, data, entityKey) {
+async function createEntity(client, config, data, entityKey, profScope) {
   if (!data || typeof data !== "object") {
     log("WARN", "createEntity — missing body", { entityKey });
     return response(400, { message: "Body requerido para crear un registro" });
   }
 
   const cols = config.toDb(data);
+
+  // Auto-stamp professional identity so records are always linked to the creator
+  if (profScope && config.profFilter) {
+    const f = config.profFilter;
+    if (f.idCol && profScope.professionalId != null) {
+      const col = f.idCol.replace(/^\w+\./, '');     // strip alias 'c.' → 'professional_id'
+      if (!(col in cols)) cols[col] = profScope.professionalId;
+    } else if (f.nameCol && profScope.professionalName) {
+      const col = f.nameCol.replace(/^\w+\./, '');   // strip alias 'c.' → 'doctor'
+      if (!(col in cols)) cols[col] = profScope.professionalName;
+    }
+  }
+
   const keys = Object.keys(cols);
   if (keys.length === 0) {
     log("WARN", "createEntity — no valid fields", { entityKey, receivedKeys: Object.keys(data) });
@@ -1692,7 +1753,7 @@ async function createEntity(client, config, data, entityKey) {
   return response(201, config.fromDb(result.rows[0]));
 }
 
-async function updateEntity(client, config, id, data, entityKey) {
+async function updateEntity(client, config, id, data, entityKey, profScope) {
   if (!data || typeof data !== "object") {
     log("WARN", "updateEntity — missing body", { entityKey, id });
     return response(400, { message: "Body requerido para actualizar" });
@@ -1708,13 +1769,29 @@ async function updateEntity(client, config, id, data, entityKey) {
   const pkCol      = config.pkCol ?? 'id';
   const tsClause   = config.noTimestamp ? '' : ', updated_at = NOW()';
   const setClauses = keys.map((k, i) => `${k} = $${i + 1}`).join(", ");
-  const values     = [...keys.map(k => cols[k]), id];
+
+  // Build ownership check for professionals
+  let ownerClause = '';
+  let ownerParams = [];
+  if (profScope && config.profFilter) {
+    const f = config.profFilter;
+    if (f.idCol && profScope.professionalId != null) {
+      const col = f.idCol.replace(/^\w+\./, '');
+      ownerParams.push(profScope.professionalId);
+      ownerClause = ` AND ${col} = $${keys.length + 1 + ownerParams.length}`;
+    } else if (f.nameCol && profScope.professionalName) {
+      const col = f.nameCol.replace(/^\w+\./, '');
+      ownerParams.push(profScope.professionalName);
+      ownerClause = ` AND ${col} = $${keys.length + 1 + ownerParams.length}`;
+    }
+  }
+  const values = [...keys.map(k => cols[k]), id, ...ownerParams];
 
   log("INFO", "updateEntity — updating", { table: config.table, id, columns: keys });
   const result = await client.query(
     `UPDATE ${config.table}
      SET ${setClauses}${tsClause}
-     WHERE ${pkCol} = $${keys.length + 1}
+     WHERE ${pkCol} = $${keys.length + 1}${ownerClause}
      RETURNING *`,
     values
   );
@@ -1779,12 +1856,29 @@ async function appendEncounter(client, config, id, encounter) {
   return response(201, config.fromDb(result.rows[0]));
 }
 
-async function deleteEntity(client, config, id, entityKey) {
+async function deleteEntity(client, config, id, entityKey, profScope) {
   log("INFO", "deleteEntity — deleting", { table: config.table, id });
-  const pkCol  = config.pkCol ?? 'id';
+  const pkCol = config.pkCol ?? 'id';
+
+  // Build ownership check for professionals
+  let ownerClause = '';
+  let ownerParams = [];
+  if (profScope && config.profFilter) {
+    const f = config.profFilter;
+    if (f.idCol && profScope.professionalId != null) {
+      const col = f.idCol.replace(/^\w+\./, '');
+      ownerParams.push(profScope.professionalId);
+      ownerClause = ` AND ${col} = $2`;
+    } else if (f.nameCol && profScope.professionalName) {
+      const col = f.nameCol.replace(/^\w+\./, '');
+      ownerParams.push(profScope.professionalName);
+      ownerClause = ` AND ${col} = $2`;
+    }
+  }
+
   const result = await client.query(
-    `DELETE FROM ${config.table} WHERE ${pkCol} = $1 RETURNING ${pkCol}`,
-    [id]
+    `DELETE FROM ${config.table} WHERE ${pkCol} = $1${ownerClause} RETURNING ${pkCol}`,
+    [id, ...ownerParams]
   );
   if (result.rowCount === 0) {
     log("WARN", "deleteEntity — not found", { table: config.table, id });

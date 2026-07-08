@@ -206,9 +206,12 @@ async function handleLogin(body) {
 
     const userResult = await client.query(
       `SELECT u.id, u.name, u.email, u.password, u.role, u.avatar, u.email_verified,
-              COALESCE(uc.zk_enabled, false) AS zk_enabled
+              COALESCE(uc.zk_enabled, false) AS zk_enabled,
+              p.id   AS professional_id,
+              p.name AS professional_name
        FROM app_user u
-       LEFT JOIN user_config uc ON uc.user_id = u.id
+       LEFT JOIN user_config  uc ON uc.user_id = u.id
+       LEFT JOIN professional p  ON p.user_id  = u.id
        WHERE u.email = $1 LIMIT 1`,
       [email.toLowerCase().trim()]
     );
@@ -262,7 +265,8 @@ async function handleLogin(body) {
       token,
       refreshToken: rawRefreshToken,
       expiresAt: new Date(Date.now() + JWT_EXPIRES_IN_MS).toISOString(),
-      user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar },
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar,
+              professionalId: user.professional_id ?? null, professionalName: user.professional_name ?? null },
       zkEnabled: user.zk_enabled,
       schemas,
     });
