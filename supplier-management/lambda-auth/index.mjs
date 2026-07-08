@@ -285,8 +285,14 @@ async function handleRegister(body) {
   if (!nombre || !apellidos || !email || !password)
     return response(400, { message: "Faltan campos obligatorios: nombre, apellidos, email, password" });
 
-  if (password.length < 8)
-    return response(400, { message: "La contraseña debe tener al menos 8 caracteres" });
+  const pwErrors = [];
+  if (password.length < 8)             pwErrors.push("al menos 8 caracteres");
+  if (!/[A-Z]/.test(password))         pwErrors.push("al menos una mayúscula");
+  if (!/[a-z]/.test(password))         pwErrors.push("al menos una minúscula");
+  if (!/\d/.test(password))            pwErrors.push("al menos un número");
+  if (!/[^A-Za-z0-9]/.test(password)) pwErrors.push("al menos un carácter especial");
+  if (pwErrors.length > 0)
+    return response(400, { message: `La contraseña debe incluir: ${pwErrors.join(", ")}.` });
 
   const emailNorm = email.toLowerCase().trim();
 
@@ -513,8 +519,15 @@ async function handleAdminRequest(rawPath, method, body) {
   // PUT /api/admin/users/:id/password → { password: "..." }
   if (action === "password" && method === "PUT") {
     const newPass = body?.password;
-    if (!newPass || newPass.length < 8)
-      return response(400, { message: "La contraseña debe tener al menos 8 caracteres" });
+    if (!newPass) return response(400, { message: "Se requiere una contraseña" });
+    const adminPwErrors = [];
+    if (newPass.length < 8)             adminPwErrors.push("al menos 8 caracteres");
+    if (!/[A-Z]/.test(newPass))         adminPwErrors.push("al menos una mayúscula");
+    if (!/[a-z]/.test(newPass))         adminPwErrors.push("al menos una minúscula");
+    if (!/\d/.test(newPass))            adminPwErrors.push("al menos un número");
+    if (!/[^A-Za-z0-9]/.test(newPass)) adminPwErrors.push("al menos un carácter especial");
+    if (adminPwErrors.length > 0)
+      return response(400, { message: `La contraseña debe incluir: ${adminPwErrors.join(", ")}.` });
     const hash = await bcrypt.hash(newPass, 12);
     let client;
     try {

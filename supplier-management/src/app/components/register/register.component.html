@@ -176,8 +176,73 @@
                   }
                 </button>
               </div>
-              @if (isInvalid('password')) {
-                <span class="rp-error">La contraseña debe tener al menos 8 caracteres</span>
+              @if (passwordRules.touched) {
+                <div class="rp-strength-bar">
+                  <div class="rp-strength-track">
+                    <div class="rp-strength-fill"
+                         [class.rp-weak]="passwordStrengthLevel === 'weak'"
+                         [class.rp-medium]="passwordStrengthLevel === 'medium'"
+                         [class.rp-strong]="passwordStrengthLevel === 'strong'"></div>
+                  </div>
+                  <span class="rp-strength-label"
+                        [class.rp-weak]="passwordStrengthLevel === 'weak'"
+                        [class.rp-medium]="passwordStrengthLevel === 'medium'"
+                        [class.rp-strong]="passwordStrengthLevel === 'strong'">
+                    {{ passwordStrengthLevel === 'weak' ? 'Débil' : passwordStrengthLevel === 'medium' ? 'Media' : 'Fuerte' }}
+                  </span>
+                </div>
+                <ul class="rp-rules">
+                  <li [class.rp-rule-ok]="passwordRules.minLength" [class.rp-rule-fail]="!passwordRules.minLength">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      @if (passwordRules.minLength) {
+                        <polyline points="20 6 9 17 4 12"/>
+                      } @else {
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      }
+                    </svg>
+                    Mínimo 8 caracteres
+                  </li>
+                  <li [class.rp-rule-ok]="passwordRules.uppercase" [class.rp-rule-fail]="!passwordRules.uppercase">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      @if (passwordRules.uppercase) {
+                        <polyline points="20 6 9 17 4 12"/>
+                      } @else {
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      }
+                    </svg>
+                    Al menos una mayúscula (A–Z)
+                  </li>
+                  <li [class.rp-rule-ok]="passwordRules.lowercase" [class.rp-rule-fail]="!passwordRules.lowercase">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      @if (passwordRules.lowercase) {
+                        <polyline points="20 6 9 17 4 12"/>
+                      } @else {
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      }
+                    </svg>
+                    Al menos una minúscula (a–z)
+                  </li>
+                  <li [class.rp-rule-ok]="passwordRules.number" [class.rp-rule-fail]="!passwordRules.number">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      @if (passwordRules.number) {
+                        <polyline points="20 6 9 17 4 12"/>
+                      } @else {
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      }
+                    </svg>
+                    Al menos un número (0–9)
+                  </li>
+                  <li [class.rp-rule-ok]="passwordRules.special" [class.rp-rule-fail]="!passwordRules.special">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      @if (passwordRules.special) {
+                        <polyline points="20 6 9 17 4 12"/>
+                      } @else {
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      }
+                    </svg>
+                    Al menos un carácter especial (!&#64;#$%...)
+                  </li>
+                </ul>
               }
             </div>
 

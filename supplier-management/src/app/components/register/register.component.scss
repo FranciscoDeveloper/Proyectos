@@ -373,3 +373,37 @@
   font-weight: 500;
   margin-bottom: .5rem;
 }
+
+/* ── Password strength ─────────────────────────────────────────── */
+.rp-strength-bar {
+  display: flex; align-items: center; gap: .625rem; margin-top: .5rem;
+}
+.rp-strength-track {
+  flex: 1; height: 5px; border-radius: 99px;
+  background: var(--sky-100, #e0f2fe);
+  overflow: hidden;
+}
+.rp-strength-fill {
+  height: 100%; border-radius: 99px; transition: width .3s, background .3s;
+  &.rp-weak   { width: 33%; background: #ef4444; }
+  &.rp-medium { width: 66%; background: #f59e0b; }
+  &.rp-strong { width: 100%; background: #22c55e; }
+}
+.rp-strength-label {
+  font-size: .75rem; font-weight: 600; min-width: 3.5rem; text-align: right;
+  &.rp-weak   { color: #ef4444; }
+  &.rp-medium { color: #f59e0b; }
+  &.rp-strong { color: #22c55e; }
+}
+.rp-rules {
+  list-style: none; padding: 0; margin: .5rem 0 0;
+  display: flex; flex-direction: column; gap: .3rem;
+  li {
+    display: flex; align-items: center; gap: .4rem;
+    font-size: .78rem; color: var(--sky-text, #374151);
+    transition: color .2s;
+    svg { width: 14px; height: 14px; flex-shrink: 0; }
+  }
+  .rp-rule-ok  { color: #16a34a; }
+  .rp-rule-fail { color: #dc2626; }
+}

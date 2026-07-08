@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -8,6 +8,17 @@ function passwordMatch(ctrl: AbstractControl): ValidationErrors | null {
   const pass    = ctrl.get('password')?.value;
   const confirm = ctrl.get('confirmPassword')?.value;
   return pass && confirm && pass !== confirm ? { passwordMismatch: true } : null;
+}
+
+function passwordStrength(ctrl: AbstractControl): ValidationErrors | null {
+  const v = ctrl.value ?? '';
+  const errors: ValidationErrors = {};
+  if (v.length < 8)              errors['minLength']  = true;
+  if (!/[A-Z]/.test(v))          errors['uppercase']  = true;
+  if (!/[a-z]/.test(v))          errors['lowercase']  = true;
+  if (!/\d/.test(v))             errors['number']     = true;
+  if (!/[^A-Za-z0-9]/.test(v))  errors['special']    = true;
+  return Object.keys(errors).length ? errors : null;
 }
 
 @Component({
@@ -34,7 +45,7 @@ export class RegisterComponent {
     apellidos:       ['', [Validators.required, Validators.minLength(2)]],
     email:           ['', [Validators.required, Validators.email]],
     telefono:        ['', [Validators.required, Validators.pattern(/^\+?[\d\s\-]{7,15}$/)]],
-    password:        ['', [Validators.required, Validators.minLength(8)]],
+    password:        ['', [Validators.required, passwordStrength]],
     confirmPassword: ['', [Validators.required]],
     termsAccepted:   [false, [Validators.requiredTrue]]
   }, { validators: passwordMatch });
@@ -46,6 +57,27 @@ export class RegisterComponent {
 
   get passwordMismatch(): boolean {
     return !!(this.form.hasError('passwordMismatch') && this.form.get('confirmPassword')?.touched);
+  }
+
+  get passwordRules() {
+    const ctrl = this.form.get('password');
+    const v    = ctrl?.value ?? '';
+    return {
+      minLength: v.length >= 8,
+      uppercase: /[A-Z]/.test(v),
+      lowercase: /[a-z]/.test(v),
+      number:    /\d/.test(v),
+      special:   /[^A-Za-z0-9]/.test(v),
+      touched:   !!ctrl?.touched,
+    };
+  }
+
+  get passwordStrengthLevel(): 'weak' | 'medium' | 'strong' {
+    const r = this.passwordRules;
+    const passed = [r.minLength, r.uppercase, r.lowercase, r.number, r.special].filter(Boolean).length;
+    if (passed <= 2) return 'weak';
+    if (passed <= 4) return 'medium';
+    return 'strong';
   }
 
   get registeredEmail(): string {
