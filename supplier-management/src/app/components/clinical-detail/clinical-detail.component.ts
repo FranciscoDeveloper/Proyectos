@@ -269,8 +269,25 @@ export class ClinicalDetailComponent implements OnInit {
     ))
   );
 
+  // ── AI narrative summary ──────────────────────────────────────────────────
+
+  aiSummary      = signal<string | null>(null);
+  summaryLoading = signal(false);
+  summaryError   = signal(false);
+
+  loadAiSummary(): void {
+    this.summaryLoading.set(true);
+    this.summaryError.set(false);
+    this.http.get<{ summary: string }>(`/api/clinical-summary/${this.id}`)
+      .subscribe({
+        next:  r  => { this.aiSummary.set(r.summary); this.summaryLoading.set(false); },
+        error: () => { this.summaryLoading.set(false); this.summaryError.set(true); }
+      });
+  }
+
   ngOnInit(): void {
     this.loadDocuments();
+    this.loadAiSummary();
   }
 
   // ── Documents tab ─────────────────────────────────────────────────────────
