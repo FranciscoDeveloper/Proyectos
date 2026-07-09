@@ -48,130 +48,181 @@
     ✦ Cupos limitados · Solo 50 clínicas en el plan de lanzamiento · Reserva el tuyo hoy
   </div>
   <h1>Software clínico para Chile<br><span class="gradient">citas, fichas y pagos online</span></h1>
-  <p>Dairi es un sistema de gestión clínica en la nube para clínicas médicas, dentales y de especialidades en Chile: agenda de citas, fichas clínicas electrónicas de 9 especialidades, reserva online con pago integrado vía Flow.cl, transcripción de consultas con IA, sincronización con Google Calendar y app móvil nativa — todo respaldado en la nube AWS. Con control de acceso por rol, cada profesional ve solo su propia agenda, cobros y fichas clínicas.</p>
+  <p>Dairi es un sistema de gestión clínica en la nube para clínicas médicas, dentales y de especialidades en Chile: agenda de citas, fichas clínicas electrónicas de 9 especialidades, reserva online con pago vía Flow y Transbank Webpay, transcripción de consultas con Deepgram IA, resumen clínico con Amazon Bedrock, sincronización con Google Calendar y app móvil nativa — todo respaldado en la nube AWS. Con control de acceso por rol, cada profesional ve solo su propia agenda, cobros y fichas clínicas.</p>
   <div class="hero-btns">
     <a routerLink="/login" class="btn-primary">Comenzar gratis — 30 días</a>
     <a href="#features" class="btn-secondary">Ver funcionalidades →</a>
   </div>
 
-  <!-- DUAL MOCKUP SCENE -->
-  <div style="margin-top:4rem;width:100%;max-width:980px;display:flex;flex-direction:column;align-items:center;gap:3.5rem;perspective:1400px;position:relative;padding-bottom:50px;">
-    <div style="width:100%;border-radius:12px;overflow:hidden;flex-shrink:0;z-index:2;
-          box-shadow:0 20px 60px rgba(0,0,0,.18),0 6px 20px rgba(14,165,233,.10),0 0 0 1px rgba(14,165,233,.12);
-          transition:box-shadow .35s ease,transform .35s ease;"
-          onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 28px 70px rgba(0,0,0,.22),0 8px 28px rgba(14,165,233,.14),0 0 0 1px rgba(14,165,233,.18)'"
-          onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 20px 60px rgba(0,0,0,.18),0 6px 20px rgba(14,165,233,.10),0 0 0 1px rgba(14,165,233,.12)'">
-      <div style="background:#0a1628;padding:.52rem .85rem;display:flex;align-items:center;gap:.4rem;">
-        <div style="width:10px;height:10px;border-radius:50%;background:#ff5f57;"></div>
-        <div style="width:10px;height:10px;border-radius:50%;background:#febc2e;"></div>
-        <div style="width:10px;height:10px;border-radius:50%;background:#28c840;"></div>
-        <div style="flex:1;margin-left:.4rem;background:rgba(255,255,255,.07);border-radius:5px;padding:.17rem .75rem;font-size:.67rem;color:#64748b;">app.dairi.cl / dashboard</div>
+  <!-- POWERED-BY INTEGRATION STRIP -->
+  <div class="powered-by">
+    <span class="pb-label">Integrado con</span>
+    <span class="pb-chip pb-flow">Flow.cl</span>
+    <span class="pb-chip pb-transbank">Transbank Webpay</span>
+    <span class="pb-chip pb-google">Google Calendar &amp; Meet</span>
+    <span class="pb-chip pb-aws">Amazon Web Services</span>
+    <span class="pb-chip pb-deepgram">Deepgram Nova-3</span>
+    <span class="pb-chip pb-bedrock">Amazon Bedrock</span>
+  </div>
+
+  <!-- MOCKUP SCENE -->
+  <div class="mockup-scene">
+    <div class="mockup-tabs">
+      <button class="mtab" [class.active]="activeView === 'dashboard'" (click)="activeView = 'dashboard'">📊 Dashboard</button>
+      <button class="mtab" [class.active]="activeView === 'citas'" (click)="activeView = 'citas'">📅 Agenda</button>
+      <button class="mtab" [class.active]="activeView === 'ficha'" (click)="activeView = 'ficha'">📋 Ficha Clínica</button>
+    </div>
+    <div class="mockup-browser">
+      <div class="mb-chrome">
+        <span class="mb-dot mb-dot-r"></span>
+        <span class="mb-dot mb-dot-y"></span>
+        <span class="mb-dot mb-dot-g"></span>
+        <div class="mb-bar">🔒 app.dairi.cl</div>
       </div>
-      <div style="background:#111c2d;display:flex;min-height:410px;">
-        <div style="width:152px;background:#0f1e30;border-right:1px solid #1e3452;padding:.9rem .6rem;flex-shrink:0;">
-          <div style="font-size:.92rem;font-weight:800;color:#38bdf8;margin-bottom:1.1rem;padding-left:.35rem;font-family:'Plus Jakarta Sans',sans-serif;">Dairi</div>
-          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.75rem;background:rgba(14,165,233,.18);color:#38bdf8;font-weight:700;margin-bottom:.2rem;"><span>📊</span>Dashboard</div>
-          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.75rem;color:#64748b;margin-bottom:.2rem;"><span>🧑‍⚕️</span>Pacientes</div>
-          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.75rem;color:#64748b;margin-bottom:.2rem;"><span>📅</span>Citas</div>
-          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.75rem;color:#64748b;margin-bottom:.2rem;"><span>📋</span>Fichas</div>
-          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.75rem;color:#64748b;margin-bottom:.2rem;"><span>💊</span>Productos</div>
-          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.75rem;color:#64748b;margin-bottom:.2rem;"><span>🤝</span>Proveedores</div>
-          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.75rem;color:#64748b;margin-bottom:.2rem;"><span>💳</span>Pagos</div>
-          <div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .58rem;border-radius:7px;font-size:.68rem;color:#64748b;"><span>💬</span>Chat</div>
+      <div class="mb-app">
+        <div class="mb-sidebar">
+          <div class="mbs-logo">Dairi</div>
+          <div class="mbs-nav">
+            <div class="mbs-item" [class.active]="activeView === 'dashboard'" (click)="activeView = 'dashboard'"><span>📊</span><span>Dashboard</span></div>
+            <div class="mbs-item"><span>🧑‍⚕️</span><span>Pacientes</span></div>
+            <div class="mbs-item" [class.active]="activeView === 'citas'" (click)="activeView = 'citas'"><span>📅</span><span>Citas</span></div>
+            <div class="mbs-item" [class.active]="activeView === 'ficha'" (click)="activeView = 'ficha'"><span>📋</span><span>Fichas</span></div>
+            <div class="mbs-item"><span>💊</span><span>Inventario</span></div>
+            <div class="mbs-item"><span>💸</span><span>Pagos</span></div>
+            <div class="mbs-item"><span>💬</span><span>Chat IA</span></div>
+          </div>
         </div>
-        <div style="flex:1;padding:1rem;overflow:hidden;color:#f1f5f9;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;">
-            <span style="font-size:.85rem;font-weight:700;">Resumen del día</span>
-            <span style="background:rgba(14,165,233,.18);color:#38bdf8;border-radius:99px;padding:.13rem .55rem;font-size:.6rem;font-weight:700;">● EN VIVO</span>
+        <div class="mb-main">
+
+          <!-- VIEW: DASHBOARD -->
+          <div class="mv" [class.active]="activeView === 'dashboard'">
+            <div class="mv-header">
+              <span class="mv-title">Resumen del día</span>
+              <span class="mv-badge mv-live">● EN VIVO</span>
+              <button class="mv-new-btn mv-ai-btn">✦ IA activa</button>
+            </div>
+            <div class="kpi-grid">
+              <div class="kpi"><div class="kpi-val kpi-blue">12</div><div class="kpi-label">Citas hoy</div></div>
+              <div class="kpi"><div class="kpi-val kpi-green">$840K</div><div class="kpi-label">Ingresos</div></div>
+              <div class="kpi"><div class="kpi-val kpi-cyan">247</div><div class="kpi-label">Pacientes</div></div>
+              <div class="kpi"><div class="kpi-val kpi-amber">8</div><div class="kpi-label">Stock bajo</div></div>
+            </div>
+            <div class="mv-chart-wrap">
+              <div class="mv-chart-title">Citas · Semana actual</div>
+              <div class="mv-chart">
+                <div class="mc-col"><div class="mc-bar" style="height:55%"></div><span>L</span></div>
+                <div class="mc-col"><div class="mc-bar" style="height:75%"></div><span>M</span></div>
+                <div class="mc-col"><div class="mc-bar" style="height:40%"></div><span>X</span></div>
+                <div class="mc-col"><div class="mc-bar mc-today" style="height:90%"></div><span class="mc-today-lbl">J</span></div>
+                <div class="mc-col"><div class="mc-bar mc-dim" style="height:60%"></div><span>V</span></div>
+                <div class="mc-col"><div class="mc-bar mc-dim" style="height:25%"></div><span>S</span></div>
+                <div class="mc-col"><div class="mc-bar mc-dim" style="height:10%"></div><span>D</span></div>
+              </div>
+            </div>
+            <div class="mv-table">
+              <div class="mvt-row mvt-head"><span>Paciente</span><span>Hora</span><span>Profesional</span><span>Estado</span></div>
+              <div class="mvt-row"><span>María González</span><span>09:00</span><span>Dr. Rojas</span><span class="st st-green">Completada</span></div>
+              <div class="mvt-row"><span>Carlos Soto</span><span>10:30</span><span>Dra. Vidal</span><span class="st st-amber">En espera</span></div>
+              <div class="mvt-row"><span>Ana Pérez</span><span>11:15</span><span>Dr. Rojas</span><span class="st st-blue">Agendada</span></div>
+              <div class="mvt-row"><span>Luis Morales</span><span>14:00</span><span>Dra. Vidal</span><span class="st st-green">Completada</span></div>
+            </div>
           </div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.55rem;margin-bottom:.9rem;">
-            <div style="background:#0f1e30;border:1px solid #1e3452;border-radius:8px;padding:.6rem .45rem;text-align:center;"><div style="font-size:1rem;font-weight:800;color:#38bdf8;">12</div><div style="font-size:.56rem;color:#64748b;margin-top:.08rem;">Citas hoy</div></div>
-            <div style="background:#0f1e30;border:1px solid #1e3452;border-radius:8px;padding:.6rem .45rem;text-align:center;"><div style="font-size:1rem;font-weight:800;color:#10b981;">$840K</div><div style="font-size:.56rem;color:#64748b;margin-top:.08rem;">Ingresos</div></div>
-            <div style="background:#0f1e30;border:1px solid #1e3452;border-radius:8px;padding:.6rem .45rem;text-align:center;"><div style="font-size:1rem;font-weight:800;color:#06b6d4;">247</div><div style="font-size:.56rem;color:#64748b;margin-top:.08rem;">Pacientes</div></div>
-            <div style="background:#0f1e30;border:1px solid #1e3452;border-radius:8px;padding:.6rem .45rem;text-align:center;"><div style="font-size:1rem;font-weight:800;color:#f59e0b;">8</div><div style="font-size:.56rem;color:#64748b;margin-top:.08rem;">Stock bajo</div></div>
+
+          <!-- VIEW: AGENDA / CALENDARIO -->
+          <div class="mv" [class.active]="activeView === 'citas'">
+            <div class="mv-header">
+              <span class="mv-title">Calendario</span>
+              <span class="mv-badge">Julio 2026</span>
+              <button class="mv-new-btn">+ Nueva Cita</button>
+            </div>
+            <div class="cal-nav">
+              <button class="cal-btn">&#8249;</button>
+              <span>Julio 2026</span>
+              <button class="cal-btn">&#8250;</button>
+            </div>
+            <div class="cal-grid-head">
+              <span>Lun</span><span>Mar</span><span>Mi&#233;</span><span>Jue</span>
+              <span>Vie</span><span class="cal-wknd">S&#225;b</span><span class="cal-wknd">Dom</span>
+            </div>
+            <div class="cal-grid">
+              <!-- Row 1: Jul starts Wed -->
+              <div class="cal-cell cal-empty"></div>
+              <div class="cal-cell cal-empty"></div>
+              <div class="cal-cell"><div class="cal-num">1</div><div class="cal-evt cal-blue">09:00 M.Gonz&#225;lez</div></div>
+              <div class="cal-cell"><div class="cal-num">2</div><div class="cal-evt cal-green">11:30 C.Soto</div></div>
+              <div class="cal-cell"><div class="cal-num">3</div><div class="cal-evt cal-purple">10:00 A.P&#233;rez</div></div>
+              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">4</div></div>
+              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">5</div></div>
+              <!-- Row 2 -->
+              <div class="cal-cell"><div class="cal-num">6</div><div class="cal-evt cal-blue">08:30 L.Morales</div><div class="cal-evt cal-green">15:00 P.Torres</div></div>
+              <div class="cal-cell"><div class="cal-num">7</div><div class="cal-evt cal-pink">09:00 S.Rojas</div></div>
+              <div class="cal-cell"><div class="cal-num">8</div><div class="cal-evt cal-green">10:30 R.Vega</div></div>
+              <div class="cal-cell cal-today"><div class="cal-today-num">9</div><div class="cal-evt cal-blue">09:00 M.Gonz&#225;lez</div><div class="cal-evt cal-more">+3 m&#225;s</div></div>
+              <div class="cal-cell"><div class="cal-num">10</div><div class="cal-evt cal-purple">11:30 T.Ibarra</div></div>
+              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">11</div></div>
+              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">12</div></div>
+              <!-- Row 3 -->
+              <div class="cal-cell"><div class="cal-num">13</div><div class="cal-evt cal-blue">09:00 U.Rojas</div></div>
+              <div class="cal-cell"><div class="cal-num">14</div><div class="cal-evt cal-green">08:00 F.Castro</div></div>
+              <div class="cal-cell"><div class="cal-num">15</div><div class="cal-evt cal-pink">10:30 K.Mu&#241;oz</div></div>
+              <div class="cal-cell"><div class="cal-num">16</div><div class="cal-evt cal-blue">09:00 S.L&#243;pez</div><div class="cal-evt cal-more">+1 m&#225;s</div></div>
+              <div class="cal-cell"><div class="cal-num">17</div><div class="cal-evt cal-green">08:30 D.R&#237;os</div></div>
+              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">18</div></div>
+              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">19</div></div>
+              <!-- Row 4 -->
+              <div class="cal-cell"><div class="cal-num">20</div><div class="cal-evt cal-blue">09:00 Q.Lagos</div></div>
+              <div class="cal-cell"><div class="cal-num">21</div><div class="cal-evt cal-green">08:30 R.Mena</div></div>
+              <div class="cal-cell"><div class="cal-num">22</div><div class="cal-evt cal-purple">10:00 B.Salas</div></div>
+              <div class="cal-cell"><div class="cal-num">23</div><div class="cal-evt cal-pink">09:00 Y.Soria</div></div>
+              <div class="cal-cell"><div class="cal-num">24</div><div class="cal-evt cal-blue">10:30 Z.Reyes</div></div>
+              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">25</div></div>
+              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">26</div></div>
+              <!-- Row 5 -->
+              <div class="cal-cell"><div class="cal-num">27</div><div class="cal-evt cal-green">08:30 A.Mora</div></div>
+              <div class="cal-cell"><div class="cal-num">28</div><div class="cal-evt cal-blue">09:00 B.L&#243;pez</div></div>
+              <div class="cal-cell"><div class="cal-num">29</div><div class="cal-evt cal-pink">10:00 C.Garc&#237;a</div></div>
+              <div class="cal-cell"><div class="cal-num">30</div><div class="cal-evt cal-blue">11:00 D.R&#237;os</div><div class="cal-evt cal-more">+2 m&#225;s</div></div>
+              <div class="cal-cell"><div class="cal-num">31</div><div class="cal-evt cal-green">09:00 E.Torres</div></div>
+              <div class="cal-cell cal-empty cal-weekend"></div>
+              <div class="cal-cell cal-empty cal-weekend"></div>
+            </div>
           </div>
-          <div style="background:#16213e;border:1px solid #2d2d4a;border-radius:10px;overflow:hidden;">
-            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;background:rgba(255,255,255,.04);padding:.5rem 1rem;font-size:.68rem;color:#94a3b8;font-weight:600;letter-spacing:.5px;text-transform:uppercase;"><span>Paciente</span><span>Hora</span><span>Profesional</span><span>Estado</span></div>
-            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:.55rem 1rem;border-top:1px solid #2d2d4a;font-size:.75rem;align-items:center;color:#f1f5f9;"><span>María González</span><span>09:00</span><span>Dr. Rojas</span><span><span style="background:rgba(16,185,129,.15);color:#10b981;border-radius:99px;padding:.15rem .55rem;font-size:.65rem;font-weight:600;">Completada</span></span></div>
-            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:.55rem 1rem;border-top:1px solid #2d2d4a;font-size:.75rem;align-items:center;color:#f1f5f9;"><span>Carlos Soto</span><span>10:30</span><span>Dra. Vidal</span><span><span style="background:rgba(245,158,11,.15);color:#f59e0b;border-radius:99px;padding:.15rem .55rem;font-size:.65rem;font-weight:600;">En espera</span></span></div>
-            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:.55rem 1rem;border-top:1px solid #2d2d4a;font-size:.75rem;align-items:center;color:#f1f5f9;"><span>Ana Pérez</span><span>11:15</span><span>Dr. Rojas</span><span><span style="background:rgba(236,72,153,.15);color:#ec4899;border-radius:99px;padding:.15rem .55rem;font-size:.65rem;font-weight:600;">Agendada</span></span></div>
-            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:.55rem 1rem;border-top:1px solid #2d2d4a;font-size:.75rem;align-items:center;color:#f1f5f9;"><span>Luis Morales</span><span>14:00</span><span>Dra. Vidal</span><span><span style="background:rgba(16,185,129,.15);color:#10b981;border-radius:99px;padding:.15rem .55rem;font-size:.65rem;font-weight:600;">Completada</span></span></div>
+
+          <!-- VIEW: FICHA CL&#205;NICA -->
+          <div class="mv" [class.active]="activeView === 'ficha'">
+            <div class="mv-header">
+              <span class="mv-title">Ficha Cl&#237;nica</span>
+              <span class="mv-badge mv-live">● IA activa</span>
+            </div>
+            <div class="pt-header">
+              <div class="pt-avatar">MG</div>
+              <div class="pt-info">
+                <div class="pt-name">Mar&#237;a Gonz&#225;lez Soto</div>
+                <div class="pt-meta">RUT 12.345.678-9 &#183; 34 a&#241;os &#183; FONASA A &#183; Dr. Rojas</div>
+              </div>
+            </div>
+            <div class="vitals-grid">
+              <div class="vital"><div class="vital-val">120/80</div><div class="vital-lbl">Presi&#243;n</div></div>
+              <div class="vital"><div class="vital-val">36.8&#176;C</div><div class="vital-lbl">Temp.</div></div>
+              <div class="vital"><div class="vital-val">72</div><div class="vital-lbl">FC (bpm)</div></div>
+              <div class="vital"><div class="vital-val">98%</div><div class="vital-lbl">SpO2</div></div>
+            </div>
+            <div class="soap-block">
+              <div class="soap-row"><span class="soap-tag soap-s">S</span><span class="soap-text">Paciente refiere cefalea persistente por 3 d&#237;as, intensidad 6/10, tipo tensional...</span></div>
+              <div class="soap-row"><span class="soap-tag soap-o">O</span><span class="soap-text">PA 120/80, T 36.8&#176;C, FC 72 bpm, SpO2 98%. Fondo de ojo sin alteraciones...</span></div>
+              <div class="soap-row"><span class="soap-tag soap-a">A</span><span class="soap-text">Cefalea tensional G44.2. Sin signos de focalidad neurol&#243;gica...</span></div>
+              <div class="soap-row"><span class="soap-tag soap-p">P</span><span class="soap-text">Paracetamol 1g c/8h &#215; 5 d&#237;as. Reposo relativo. Control en 7 d&#237;as si persiste...</span></div>
+            </div>
+            <div class="ai-strip">
+              <span class="ai-chip">&#129302; Nota SOAP &#183; Amazon Bedrock</span>
+              <span class="ai-chip">&#128196; Resumen cl&#237;nico &#183; Amazon Bedrock</span>
+              <span class="ai-chip">&#127908; Transcripci&#243;n &#183; Deepgram Nova-3</span>
+            </div>
           </div>
+
         </div>
       </div>
     </div>
-    <div style="width:100%;border-radius:12px;overflow:hidden;flex-shrink:0;z-index:1;
-          box-shadow:0 20px 60px rgba(0,0,0,.12),0 6px 20px rgba(14,165,233,.08),0 0 0 1px rgba(14,165,233,.10);
-          transition:box-shadow .35s ease,transform .35s ease;"
-          onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 28px 70px rgba(0,0,0,.16),0 8px 28px rgba(14,165,233,.12),0 0 0 1px rgba(14,165,233,.16)'"
-          onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 20px 60px rgba(0,0,0,.12),0 6px 20px rgba(14,165,233,.08),0 0 0 1px rgba(14,165,233,.10)'">
-      <div style="background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:.52rem .85rem;display:flex;align-items:center;gap:.4rem;">
-        <div style="width:10px;height:10px;border-radius:50%;background:#ff5f57;"></div>
-        <div style="width:10px;height:10px;border-radius:50%;background:#febc2e;"></div>
-        <div style="width:10px;height:10px;border-radius:50%;background:#28c840;"></div>
-        <div style="flex:1;margin-left:.4rem;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:5px;padding:.17rem .75rem;font-size:.67rem;color:#94a3b8;">app.dairi.cl / calendario</div>
-      </div>
-      <div style="background:#fff;display:flex;flex-direction:column;min-height:410px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:.55rem .85rem .42rem;border-bottom:1px solid #e0f2fe;flex-shrink:0;">
-          <div style="display:flex;align-items:center;gap:.38rem;">
-            <span style="font-size:.8rem;font-weight:800;color:#0c4a6e;font-family:'Plus Jakarta Sans',sans-serif;">Calendario</span>
-            <span style="background:#e0f2fe;color:#0284c7;border-radius:99px;padding:.1rem .48rem;font-size:.57rem;font-weight:700;">Abril 2026</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:.32rem;">
-            <div style="display:flex;align-items:center;gap:.18rem;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:.16rem .48rem;font-size:.63rem;font-weight:600;color:#0284c7;"><span style="color:#94a3b8;">‹</span><span>Abril 2026</span><span style="color:#94a3b8;">›</span></div>
-            <div style="background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;border-radius:5px;padding:.18rem .52rem;font-size:.58rem;font-weight:700;">+ Nueva Cita</div>
-            <div style="display:flex;gap:.13rem;"><span style="background:#0ea5e9;color:#fff;border-radius:4px;padding:.16rem .38rem;font-size:.56rem;font-weight:700;">Mes</span><span style="color:#94a3b8;padding:.16rem .38rem;font-size:.56rem;">Semana</span><span style="color:#94a3b8;padding:.16rem .38rem;font-size:.56rem;">Día</span></div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #e0f2fe;background:#f0f9ff;flex-shrink:0;">
-          <div style="padding:.25rem 0;text-align:center;font-size:.56rem;font-weight:800;color:#475569;letter-spacing:.6px;text-transform:uppercase;">Lun</div>
-          <div style="padding:.25rem 0;text-align:center;font-size:.56rem;font-weight:800;color:#475569;letter-spacing:.6px;text-transform:uppercase;">Mar</div>
-          <div style="padding:.25rem 0;text-align:center;font-size:.56rem;font-weight:800;color:#475569;letter-spacing:.6px;text-transform:uppercase;">Mié</div>
-          <div style="padding:.25rem 0;text-align:center;font-size:.56rem;font-weight:800;color:#475569;letter-spacing:.6px;text-transform:uppercase;">Jue</div>
-          <div style="padding:.25rem 0;text-align:center;font-size:.56rem;font-weight:800;color:#475569;letter-spacing:.6px;text-transform:uppercase;">Vie</div>
-          <div style="padding:.25rem 0;text-align:center;font-size:.56rem;font-weight:800;color:#0ea5e9;letter-spacing:.6px;text-transform:uppercase;">Sáb</div>
-          <div style="padding:.25rem 0;text-align:center;font-size:.56rem;font-weight:800;color:#0ea5e9;letter-spacing:.6px;text-transform:uppercase;">Dom</div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(5,1fr);flex:1;">
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;opacity:0.15;min-height:0;"></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">1</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:00 M.González</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">11:30 C.Soto</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">2</div><div style="background:#ede9fe;color:#5b21b6;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">10:00 A.Pérez</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">3</div><div style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">08:30 L.Morales</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">15:00 P.Torres</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">4</div><div style="background:#fce7f3;color:#9d174d;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:00 S.Rojas</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">5</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">6</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">7</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:30 R.Vega</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">8</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">08:00 F.Castro</div><div style="background:#ede9fe;color:#5b21b6;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">11:00 G.Ruiz</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">9</div><div style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">10:30 K.Muñoz</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">10</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:00 S.López</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">14:00 T.Pinto</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">11</div><div style="background:#fce7f3;color:#9d174d;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">08:30 D.Ríos</div><div style="background:#e0f2fe;color:#0369a1;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">+ 2 más</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">12</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">10:00 B.Salas</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">13</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#f0f9ff;border-top:2px solid #0ea5e9 !important;min-height:0;"><div style="font-size:.6rem;font-weight:800;display:inline-flex;align-items:center;justify-content:center;background:#0ea5e9;color:#fff;border-radius:50%;width:14px;height:14px;margin-bottom:.2rem;">14</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:00 M.González</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">10:30 C.Soto</div><div style="background:#e0f2fe;color:#0369a1;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">+ 3 más</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">15</div><div style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">11:00 N.Araya</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">16:00 P.Vera</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">16</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">08:00 O.Silva</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">17</div><div style="background:#fce7f3;color:#9d174d;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:30 H.Pardo</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">13:00 I.Fuentes</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">18</div><div style="background:#ede9fe;color:#5b21b6;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">10:00 J.Bravo</div><div style="background:#e0f2fe;color:#0369a1;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">+ 1 más</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">19</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">20</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">21</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:00 Q.Lagos</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">22</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">08:30 R.Mena</div><div style="background:#fce7f3;color:#9d174d;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">14:30 S.Díaz</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">23</div><div style="background:#ede9fe;color:#5b21b6;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">11:30 T.Ibarra</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">24</div><div style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:00 U.Rojas</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">15:00 V.Cerda</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">25</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">10:00 W.Núñez</div><div style="background:#e0f2fe;color:#0369a1;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">+ 2 más</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">26</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">11:00 X.Palma</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#0ea5e9;margin-bottom:.2rem;">27</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">28</div><div style="background:#dbeafe;color:#1d4ed8;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">09:00 Y.Soria</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">29</div><div style="background:#fef9c3;color:#854d0e;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">10:30 Z.Reyes</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;min-height:0;"><div style="font-size:.6rem;font-weight:600;color:#475569;margin-bottom:.2rem;">30</div><div style="background:#dcfce7;color:#166534;border-radius:3px;padding:.1rem .28rem;font-size:.52rem;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:.1rem;">08:30 A.Mora</div></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;opacity:0.15;min-height:0;"></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;opacity:0.15;min-height:0;"></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;opacity:0.15;min-height:0;"></div>
-          <div style="padding:.28rem .3rem;border-right:1px solid #e0f2fe;border-bottom:1px solid #e0f2fe;background:#fafeff;opacity:0.15;min-height:0;"></div>
-        </div>
-      </div>
-    </div>
-    <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:75%;height:36px;background:radial-gradient(ellipse,rgba(14,165,233,.14) 0%,transparent 70%);filter:blur(12px);pointer-events:none;"></div>
   </div>
 </section>
 
@@ -209,7 +260,7 @@
     <div class="feature-card">
       <div class="feature-icon">💸</div>
       <h3>Pagos, Comisiones y Presupuestos</h3>
-      <p>Registro de cobros, cálculo automático de comisiones por profesional y cotizaciones con envío por email. Integración de pagos online vía Flow.</p>
+      <p>Registro de cobros, cálculo automático de comisiones por profesional y cotizaciones con envío por email. Pagos online vía Flow y Transbank Webpay — Redcompra y crédito incluidos.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">💬</div>
@@ -324,7 +375,26 @@
       </div>
       <div class="int-body">
         <strong>Amazon Bedrock — IA Generativa</strong>
-        <p>La IA clínica de Dairi convierte cada transcripción en una nota SOAP estructurada, lista para guardar en la ficha del paciente. Sin salir de la nube segura de AWS.</p>
+        <p>La IA clínica de Dairi convierte cada transcripción en una nota SOAP estructurada y genera resúmenes narrativos del historial del paciente, todo dentro de la nube segura de AWS.</p>
+      </div>
+    </div>
+    <div class="integration-card">
+      <div class="int-logo">
+        <svg viewBox="0 0 110 38" width="100" height="34" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Transbank Webpay">
+          <rect width="110" height="38" rx="5" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+          <circle cx="9" cy="13" r="3.8" fill="#E30613"/>
+          <text x="16" y="19" textLength="72" lengthAdjust="spacingAndGlyphs"
+                font-family="'DIN Next','DIN Alternate','DIN',Arial,'Helvetica Neue',sans-serif"
+                font-weight="700" font-size="15" fill="#1E1E64">transbank</text>
+          <circle cx="92" cy="16" r="3.8" fill="#FFC600"/>
+          <text x="9" y="32"
+                font-family="'DIN Next','DIN Alternate','DIN',Arial,'Helvetica Neue',sans-serif"
+                font-weight="700" font-size="11" fill="#E30613" letter-spacing=".3">webpay</text>
+        </svg>
+      </div>
+      <div class="int-body">
+        <strong>Transbank Webpay — Pagos con Tarjeta</strong>
+        <p>El estándar de pagos en Chile. Tus pacientes pagan con Redcompra, Crédito y prepago directamente en la reserva online — sin salir de la plataforma, sin redireccionamientos.</p>
       </div>
     </div>
   </div>

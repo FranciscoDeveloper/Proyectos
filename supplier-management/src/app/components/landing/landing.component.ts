@@ -106,6 +106,8 @@ export class LandingComponent implements OnInit, OnDestroy {
   private metaSvc  = inject(Meta);
   private doc      = inject(DOCUMENT);
 
+  activeView = 'dashboard';
+
   ngOnInit(): void {
     this.titleSvc.setTitle(SEO_TITLE);
 

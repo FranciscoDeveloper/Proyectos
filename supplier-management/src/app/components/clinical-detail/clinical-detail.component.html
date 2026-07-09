@@ -156,13 +156,11 @@
     </button>
   </div>
 
-  <!-- ════ TWO-COLUMN LAYOUT ════ -->
+  <!-- ════ THREE-COLUMN LAYOUT ════ -->
   <div class="cd-layout" *ngIf="activeTab() === 'record'">
 
-    <!-- LEFT COLUMN -->
+    <!-- LEFT COLUMN: Vital Signs -->
     <div class="cd-left">
-
-      <!-- ── Vital Signs ── -->
       <div class="section card" *ngIf="vitals().length > 0">
         <div class="section-header section-header--vitals">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -186,6 +184,72 @@
             </span>
             <span class="vital-normal" *ngIf="v.normal && !v.bpClass">Normal: {{ v.normal }}</span>
           </div>
+        </div>
+      </div>
+
+      <!-- Contact info -->
+      <div class="section card">
+        <div class="section-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span>Datos del Paciente</span>
+        </div>
+        <div class="contact-list">
+          <div class="contact-row" *ngIf="patient()!.birthDate">
+            <span class="contact-label">Fecha Nac.</span>
+            <span class="contact-value">{{ patient()!.birthDate | date:'d MMM yyyy' }}</span>
+          </div>
+          <div class="contact-row" *ngIf="patient()!.address">
+            <span class="contact-label">Dirección</span>
+            <span class="contact-value">{{ patient()!.address }}</span>
+          </div>
+          <div class="contact-row" *ngIf="patient()!.phone">
+            <span class="contact-label">Teléfono</span>
+            <span class="contact-value">{{ patient()!.phone }}</span>
+          </div>
+          <div class="contact-row" *ngIf="patient()!.email">
+            <span class="contact-label">Email</span>
+            <span class="contact-value">{{ patient()!.email }}</span>
+          </div>
+          <div class="contact-row" *ngIf="patient()!.emergencyContact">
+            <span class="contact-label">Emergencia</span>
+            <span class="contact-value">{{ patient()!.emergencyContact }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER COLUMN: AI Summary + SOAP + Diagnosis -->
+    <div class="cd-center">
+
+      <!-- ── AI Narrative Summary ── -->
+      <div class="ai-summary-panel section">
+        <div class="ai-summary-header">
+          <span class="ai-summary-icon">✦</span>
+          <span class="ai-summary-title">Resumen Narrativo IA</span>
+          <span class="ai-summary-badge">Amazon Bedrock</span>
+          <button class="ai-refresh-btn" (click)="loadAiSummary()" [disabled]="summaryLoading()" title="Regenerar resumen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+          </button>
+        </div>
+        <div class="ai-summary-body">
+          <div class="ai-loading" *ngIf="summaryLoading()">
+            <span class="spinner-xs"></span>
+            Generando resumen con IA…
+          </div>
+          <div class="ai-error" *ngIf="summaryError() && !summaryLoading()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            No se pudo generar el resumen. Verifica que Amazon Bedrock esté habilitado.
+          </div>
+          <p class="ai-text" *ngIf="aiSummary() && !summaryLoading()">{{ aiSummary() }}</p>
         </div>
       </div>
 
@@ -234,7 +298,7 @@
 
     </div>
 
-    <!-- RIGHT COLUMN -->
+    <!-- RIGHT COLUMN: History + Meds + Surgical + Mini Encounter Timeline -->
     <div class="cd-right">
 
       <!-- ── Medical History ── -->
@@ -326,36 +390,28 @@
         </div>
       </div>
 
-      <!-- ── Contact info ── -->
-      <div class="section card">
-        <div class="section-header">
+      <!-- ── Mini Encounter Timeline ── -->
+      <div class="section card" *ngIf="encounterHistory().length > 0">
+        <div class="section-header section-header--history">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
+            <polyline points="12 8 12 12 14 14"/>
+            <path d="M3.05 11a9 9 0 1 0 .5-4.5"/><polyline points="3 3 3 7 7 7"/>
           </svg>
-          <span>Datos del Paciente</span>
+          <span>{{ historyTabLabel() }}</span>
+          <span class="tab-count">{{ encounterHistory().length }}</span>
         </div>
-        <div class="contact-list">
-          <div class="contact-row" *ngIf="patient()!.birthDate">
-            <span class="contact-label">Fecha Nac.</span>
-            <span class="contact-value">{{ patient()!.birthDate | date:'d MMM yyyy' }}</span>
+        <div class="mini-timeline">
+          <div *ngFor="let enc of encounterHistory().slice(0, 5); let i = index" class="mini-enc">
+            <div class="mini-enc-dot"></div>
+            <div class="mini-enc-body">
+              <span class="mini-enc-date">{{ encDate(enc) | date:'d MMM yyyy' }}</span>
+              <span class="enc-dx-chip mini-chip" *ngIf="enc['diagnosisCode']">{{ enc['diagnosisCode'] }}</span>
+              <span class="mini-enc-dx">{{ enc['diagnosisLabel'] || enc['diagnosis'] || '—' }}</span>
+            </div>
           </div>
-          <div class="contact-row" *ngIf="patient()!.address">
-            <span class="contact-label">Dirección</span>
-            <span class="contact-value">{{ patient()!.address }}</span>
-          </div>
-          <div class="contact-row" *ngIf="patient()!.phone">
-            <span class="contact-label">Teléfono</span>
-            <span class="contact-value">{{ patient()!.phone }}</span>
-          </div>
-          <div class="contact-row" *ngIf="patient()!.email">
-            <span class="contact-label">Email</span>
-            <span class="contact-value">{{ patient()!.email }}</span>
-          </div>
-          <div class="contact-row" *ngIf="patient()!.emergencyContact">
-            <span class="contact-label">Emergencia</span>
-            <span class="contact-value">{{ patient()!.emergencyContact }}</span>
-          </div>
+          <button class="mini-timeline-more" *ngIf="encounterHistory().length > 5" (click)="activeTab.set('history')">
+            Ver todo el historial ({{ encounterHistory().length }})
+          </button>
         </div>
       </div>
 
