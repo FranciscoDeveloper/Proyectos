@@ -9,7 +9,7 @@ export function response(statusCode, body) {
   return {
     statusCode,
     headers: { ...CORS_HEADERS },
-    body: JSON.stringify(body)
+    body: body !== null ? JSON.stringify(body) : ''
   };
 }
 

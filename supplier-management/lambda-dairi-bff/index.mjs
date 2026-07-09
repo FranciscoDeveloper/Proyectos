@@ -72,8 +72,29 @@ export const handler = async (event, context) => {
   if (chatResult) return chatResult;
 
   // ── Documents (S3 only, no DB client needed) ──────────────────────────────
-  const docsResult = await handleDocuments(rawPath, method);
-  if (docsResult) return docsResult;
+  try {
+    const docsResult = await handleDocuments(rawPath, method);
+    if (docsResult) return docsResult;
+  } catch (s3Err) {
+    log.error('Documents S3 error', { message: s3Err.message, rawPath });
+    return response(500, { message: 'Error al acceder a documentos', error: s3Err.message });
+  }
+
+  // ── Pre-check: paths that need a DB client must match a known prefix ───────
+  // This avoids burning a pool.connect() (and hanging when RDS is stopped) on
+  // unknown routes — those get a fast 404 without touching the DB.
+  const needsDb =
+    rawPath === '/api/chat/users' ||
+    rawPath === '/api/user/config' ||
+    /^\/api\/clinical-summary\/\d+$/.test(rawPath) ||
+    rawPath.startsWith('/api/admin/') ||
+    rawPath.startsWith('/api/entities/') ||
+    rawPath.startsWith('/api/suppliers');
+
+  if (!needsDb) {
+    log.warn('Path did not match any handler', { rawPath });
+    return response(404, { message: 'Ruta no encontrada' });
+  }
 
   // ── Routes that need a DB client ──────────────────────────────────────────
   let client;
