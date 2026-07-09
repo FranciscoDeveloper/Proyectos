@@ -21,7 +21,7 @@
     ✦ Cupos limitados · Solo 50 clínicas en el plan de lanzamiento · Reserva el tuyo hoy
   </div>
   <h1>Gestiona tu clínica<br><span class="gradient">sin límites ni papeles</span></h1>
-  <p>Dairi unifica pacientes, citas, fichas clínicas especializadas y analítica clínica en una sola plataforma inteligente con IA. Transcripción de voz automática, reserva online con pagos, app móvil nativa y toda tu clínica respaldada en la nube AWS. Con control de acceso por rol, cada profesional ve solo su propia agenda, cobros y fichas clínicas.</p>
+  <p>Dairi es el software de gestión clínica para Chile y Latinoamérica: pacientes, citas, fichas clínicas especializadas, analítica e IA en una sola plataforma. Transcripción de voz con Deepgram, pagos online con Flow y Transbank Webpay, resumen clínico con Amazon Bedrock, app móvil nativa y toda tu clínica respaldada en AWS. Con control de acceso por rol, cada profesional ve solo su propia agenda, cobros y fichas clínicas.</p>
   <div class="hero-btns">
     <a routerLink="/login" class="btn-primary">Comenzar gratis — 30 días</a>
     <a href="#features" class="btn-secondary">Ver funcionalidades →</a>
@@ -31,6 +31,7 @@
   <div class="powered-by">
     <span class="pb-label">Integrado con</span>
     <span class="pb-chip pb-flow">Flow.cl</span>
+    <span class="pb-chip pb-transbank">Transbank Webpay</span>
     <span class="pb-chip pb-google">Google Calendar &amp; Meet</span>
     <span class="pb-chip pb-aws">Amazon Web Services</span>
     <span class="pb-chip pb-deepgram">Deepgram Nova-3</span>
@@ -187,6 +188,7 @@
             </div>
             <div class="ai-strip">
               <span class="ai-chip">&#129302; Nota SOAP &#183; Amazon Bedrock</span>
+              <span class="ai-chip">&#128196; Resumen cl&#237;nico &#183; Amazon Bedrock</span>
               <span class="ai-chip">&#127908; Transcripci&#243;n &#183; Deepgram Nova-3</span>
             </div>
           </div>
@@ -231,7 +233,7 @@
     <div class="feature-card">
       <div class="feature-icon">💸</div>
       <h3>Pagos, Comisiones y Presupuestos</h3>
-      <p>Registro de cobros, cálculo automático de comisiones por profesional y cotizaciones con envío por email. Integración de pagos online vía Flow.</p>
+      <p>Registro de cobros, cálculo automático de comisiones por profesional y cotizaciones con envío por email. Pagos online vía Flow y Transbank Webpay — Redcompra y crédito incluidos.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">💬</div>
@@ -343,7 +345,26 @@
       </div>
       <div class="int-body">
         <strong>Amazon Bedrock — IA Generativa</strong>
-        <p>La IA clínica de Dairi convierte cada transcripción en una nota SOAP estructurada, lista para guardar en la ficha del paciente. Sin salir de la nube segura de AWS.</p>
+        <p>La IA clínica de Dairi convierte cada transcripción en una nota SOAP estructurada y genera resúmenes narrativos del historial del paciente, todo dentro de la nube segura de AWS.</p>
+      </div>
+    </div>
+    <div class="integration-card">
+      <div class="int-logo">
+        <svg viewBox="0 0 110 38" width="100" height="34" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Transbank Webpay">
+          <rect width="110" height="38" rx="5" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+          <circle cx="9" cy="13" r="3.8" fill="#E30613"/>
+          <text x="16" y="19" textLength="72" lengthAdjust="spacingAndGlyphs"
+                font-family="'DIN Next','DIN Alternate','DIN',Arial,'Helvetica Neue',sans-serif"
+                font-weight="700" font-size="15" fill="#1E1E64">transbank</text>
+          <circle cx="92" cy="16" r="3.8" fill="#FFC600"/>
+          <text x="9" y="32"
+                font-family="'DIN Next','DIN Alternate','DIN',Arial,'Helvetica Neue',sans-serif"
+                font-weight="700" font-size="11" fill="#E30613" letter-spacing=".3">webpay</text>
+        </svg>
+      </div>
+      <div class="int-body">
+        <strong>Transbank Webpay — Pagos con Tarjeta</strong>
+        <p>El estándar de pagos en Chile. Tus pacientes pagan con Redcompra, Crédito y prepago directamente en la reserva online — sin salir de la plataforma, sin redireccionamientos.</p>
       </div>
     </div>
   </div>
