@@ -13,6 +13,7 @@
  *   ## Subjetivo   (or Subjective / S)
  *   ## Objetivo    (or Objective  / O)
  *   ## Evaluación  (or Assessment / A)
+ *   ## Diagnóstico (or Diagnosis / Impresión Diagnóstica) — optional
  *   ## Plan        (or P)
  */
 
@@ -70,6 +71,8 @@ const SOAP_ALIASES = {
   subjective: "subjective", objective: "objective", assessment: "assessment",
   plan_of_care: "plan",
   s: "subjective", o: "objective", a: "assessment", p: "plan",
+  diagnostico: "diagnosis", diagnostico_clinico: "diagnosis",
+  impresion_diagnostica: "diagnosis", diagnosis: "diagnosis",
 };
 
 function normalize(s) {
@@ -79,7 +82,7 @@ function normalize(s) {
 }
 
 function parseSoap(content) {
-  const soap  = { subjective: "", objective: "", assessment: "", plan: "" };
+  const soap  = { subjective: "", objective: "", assessment: "", plan: "", diagnosis: "" };
   const lines = content.split(/\r?\n/);
   let current = null;
   const buf   = [];
@@ -183,7 +186,7 @@ export const handler = async (event) => {
       console.warn(JSON.stringify({ msg: "No SOAP headings — raw content → Subjetivo" }));
       soap.subjective = content.trim();
     }
-    console.log(JSON.stringify({ msg: "SOAP parsed", s: !!soap.subjective, o: !!soap.objective, a: !!soap.assessment, p: !!soap.plan }));
+    console.log(JSON.stringify({ msg: "SOAP parsed", s: !!soap.subjective, o: !!soap.objective, a: !!soap.assessment, p: !!soap.plan, dx: !!soap.diagnosis }));
 
     // ── 4. Find patient via BFF ────────────────────────────────────────────────
     let patients;
@@ -248,6 +251,7 @@ export const handler = async (event) => {
       soapObjective:  soap.objective   || null,
       soapAssessment: soap.assessment  || null,
       soapPlan:       soap.plan        || null,
+      diagnosisLabel: soap.diagnosis   || null,
       doctor:         meta.doctorName,
       doctorId:       meta.doctorId,
       source:         "audio-transcription",
@@ -264,7 +268,8 @@ export const handler = async (event) => {
         soapObjective:  soap.objective   || null,
         soapAssessment: soap.assessment  || null,
         soapPlan:       soap.plan        || null,
-        doctorName:     meta.doctorName,
+        ...(soap.diagnosis ? { diagnosisLabel: soap.diagnosis } : {}),
+        professionalId: meta.doctorId,
         lastVisit:      meta.encounterDate,
         encounters:     updatedEncounters,
       });
@@ -275,6 +280,7 @@ export const handler = async (event) => {
         patientId,
         doctorId:        meta.doctorId,
         encounterDate:   meta.encounterDate,
+        diagnosisLabel:  soap.diagnosis || null,
         totalEncounters: updatedEncounters.length,
       }));
     } catch (err) {

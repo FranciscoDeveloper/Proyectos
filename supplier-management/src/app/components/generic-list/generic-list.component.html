@@ -5,7 +5,7 @@
       <h1 class="page-title">{{ schema()!.entity.plural }}</h1>
       <span class="record-count">{{ filteredItems().length }} registros</span>
     </div>
-    <button *ngIf="!schema()?.entity?.disableEdit" class="btn-primary" (click)="navigateNew()">
+    <button *ngIf="!schema()?.entity?.disableEdit && !schema()?.entity?.disableCreate" class="btn-primary" (click)="navigateNew()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Nuevo {{ schema()!.entity.singular }}
     </button>
@@ -150,8 +150,10 @@
       </svg>
       <p *ngIf="hasFilters()">No hay {{ schema()!.entity.plural | lowercase }} que coincidan con los filtros.</p>
       <p *ngIf="!hasFilters()">No hay {{ schema()!.entity.plural | lowercase }} registrados aún.</p>
-      <button class="btn-primary" (click)="hasFilters() ? clearFilters() : navigateNew()">
-        {{ hasFilters() ? 'Limpiar filtros' : 'Crear ' + schema()!.entity.singular }}
+      <p *ngIf="!hasFilters() && schema()?.entity?.disableCreate" class="empty-hint">{{ schema()?.entity?.disableCreateHint }}</p>
+      <button *ngIf="hasFilters()" class="btn-primary" (click)="clearFilters()">Limpiar filtros</button>
+      <button *ngIf="!hasFilters() && !schema()?.entity?.disableCreate" class="btn-primary" (click)="navigateNew()">
+        Crear {{ schema()!.entity.singular }}
       </button>
     </div>
   </ng-template>

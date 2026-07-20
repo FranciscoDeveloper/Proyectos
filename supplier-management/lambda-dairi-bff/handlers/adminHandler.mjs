@@ -24,7 +24,10 @@ export async function handleAdmin(rawPath, method, event, tokenPayload, client) 
 
   const log = getLogger();
 
-  if (tokenPayload.role !== 'admin' && tokenPayload.role !== 'superadmin') {
+  // Only superadmin manages accounts platform-wide — 'admin' is the self-registration
+  // role every new signup gets, so allowing it here would let any tenant manage any
+  // other tenant's users. The frontend nav already gates this behind isSuperAdmin().
+  if (tokenPayload.role !== 'superadmin') {
     return response(403, { message: 'Acceso denegado' });
   }
 
@@ -95,6 +98,13 @@ export async function handleAdmin(rawPath, method, event, tokenPayload, client) 
         'UPDATE app_user SET email_verified = false, activation_token = NULL WHERE id = $1',
         [userId]
       );
+      // Revoke outstanding refresh tokens so "desactivar" actually cuts access —
+      // the existing 2h access token still has to expire naturally, but the user
+      // can no longer refresh it into a new one.
+      await client.query(
+        'UPDATE refresh_token SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL',
+        [userId]
+      );
       return response(200, { message: 'Usuario desactivado' });
     }
   }
@@ -127,11 +137,25 @@ export async function handleAdmin(rawPath, method, event, tokenPayload, client) 
   if (passwordMatch && method === 'PUT') {
     const userId     = parseInt(passwordMatch[1], 10);
     const { password } = body ?? {};
-    if (!password || password.length < 8)
-      return response(400, { message: 'La contraseña debe tener al menos 8 caracteres' });
-    const hash = await bcrypt.hash(password, 10);
+
+    const pwErrors = [];
+    if (!password || password.length < 8) pwErrors.push('al menos 8 caracteres');
+    if (!password || !/[A-Z]/.test(password)) pwErrors.push('al menos una mayúscula');
+    if (!password || !/[a-z]/.test(password)) pwErrors.push('al menos una minúscula');
+    if (!password || !/\d/.test(password))    pwErrors.push('al menos un número');
+    if (!password || !/[^A-Za-z0-9]/.test(password)) pwErrors.push('al menos un carácter especial');
+    if (pwErrors.length > 0)
+      return response(400, { message: `La contraseña debe incluir: ${pwErrors.join(', ')}.` });
+
+    const hash = await bcrypt.hash(password, 12);
     await client.query(
-      'UPDATE app_user SET password_hash = $1 WHERE id = $2', [hash, userId]
+      'UPDATE app_user SET password = $1 WHERE id = $2', [hash, userId]
+    );
+    // Revoke outstanding refresh tokens — if this reset was prompted by a
+    // compromised account, an attacker's existing refresh token must die too.
+    await client.query(
+      'UPDATE refresh_token SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL',
+      [userId]
     );
     return response(200, { message: 'Contraseña actualizada' });
   }

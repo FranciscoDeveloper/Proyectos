@@ -218,7 +218,9 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
           singular: 'Paciente',
           plural: 'Pacientes',
           icon: 'heart',
-          description: 'Registro y seguimiento de pacientes'
+          description: 'Registro y seguimiento de pacientes',
+          disableCreate: true,
+          disableCreateHint: 'Los pacientes se registran automáticamente al agendar una cita en el módulo de Citas.'
         },
         fields: [
           { name: 'nombre',     type: 'text',     label: 'Nombre',       required: true,  isTitle: true,    showInList: true,  showInDetail: true,  sortable: true,  filterable: true,  filterType: 'search' },
@@ -1045,6 +1047,9 @@ export class SchemaService {
    *    for generic 'list' the local catalog type takes precedence
    *  - singular/plural/icon/description: local catalog wins (richer labels/icons)
    *  - fields: backend wins if non-empty, otherwise falls back to local catalog
+   *  - any other catalog-only entity flag (disableCreate, disableEdit, disableDelete,
+   *    encounterEntity, ...) is preserved — the backend response never carries these,
+   *    so it must never be the sole source for the merged entity object.
    */
   private mergeSchema(
     authorized: EntitySchema | undefined,
@@ -1055,6 +1060,7 @@ export class SchemaService {
     const backendType  = authorized.entity.moduleType;
     const isSpecific   = backendType === 'calendar' || backendType === 'clinical-record';
     const entity = {
+      ...catalog?.entity,
       ...authorized.entity,
       singular:    catalog?.entity.singular    ?? authorized.entity.singular,
       plural:      catalog?.entity.plural      ?? authorized.entity.plural,

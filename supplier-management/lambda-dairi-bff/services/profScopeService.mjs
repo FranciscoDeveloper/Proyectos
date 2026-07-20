@@ -10,7 +10,8 @@ import { getLogger } from '../lib/logger.mjs';
 
 /**
  * Build a WHERE clause that restricts rows to the authenticated professional.
- * Uses idCol (FK) when available, nameCol (text match) as fallback.
+ * Uses idCol (FK) when available, nameCol (text match) as fallback, or existsIn
+ * for entities with no direct professional FK (ownership derived via a related table).
  *
  * @param {object} config             Entity config; may carry a `profFilter` descriptor.
  * @param {object|null} profScope     Resolved scope: { professionalId, professionalName }.
@@ -31,6 +32,13 @@ export function buildProfWhere(config, profScope, existingParamCount = 0) {
   if (f.nameCol && profScope.professionalName) {
     params.push(profScope.professionalName);
     conditions.push(`${f.nameCol} = $${existingParamCount + params.length}`);
+  }
+  if (f.existsIn && profScope.professionalId != null) {
+    const { table, patientCol = 'patient_id', profCol = 'professional_id', pkCol = 'id' } = f.existsIn;
+    params.push(profScope.professionalId);
+    conditions.push(
+      `EXISTS (SELECT 1 FROM ${table} x WHERE x.${patientCol} = c.${pkCol} AND x.${profCol} = $${existingParamCount + params.length})`
+    );
   }
 
   if (conditions.length === 0) return { clause: ' WHERE (1=0)', params: [] };

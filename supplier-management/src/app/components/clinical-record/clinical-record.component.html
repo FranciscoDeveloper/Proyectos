@@ -15,7 +15,7 @@
       </h1>
       <p class="page-sub" *ngIf="schema?.entity?.description">{{ schema!.entity.description }}</p>
     </div>
-    <a [routerLink]="['/app/clinical', entityKey, 'new']" class="btn btn-primary">
+    <a *ngIf="!schema?.entity?.disableCreate" [routerLink]="['/app/clinical', entityKey, 'new']" class="btn btn-primary">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
@@ -137,6 +137,7 @@
       <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
     </svg>
     <p>No se encontraron {{ schema?.entity?.plural?.toLowerCase() ?? 'fichas' }}</p>
+    <p *ngIf="!activeFilter() && schema?.entity?.disableCreate" class="empty-hint">{{ schema?.entity?.disableCreateHint }}</p>
     <button class="btn btn-outline" (click)="clearFilter()" *ngIf="activeFilter()">Limpiar búsqueda</button>
   </div>
 

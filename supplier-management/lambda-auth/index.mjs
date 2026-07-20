@@ -166,7 +166,7 @@ export const handler = async (event) => {
     let tokenPayload;
     try { tokenPayload = jwt.verify(authHeader.slice(7), JWT_SECRET); }
     catch { return response(401, { message: "Token inválido o expirado" }); }
-    if (tokenPayload.role !== "superadmin" && tokenPayload.role !== "admin")
+    if (tokenPayload.role !== "superadmin")
       return response(403, { message: "Acceso restringido a administradores del sistema" });
 
     let body = null;
@@ -339,7 +339,7 @@ async function handleRegister(body) {
       `INSERT INTO user_schema (user_id, schema_id)
        SELECT $1, s.id FROM app_schema s
        WHERE s.schema_key = ANY($2::text[])`,
-      [userId, ['clinicalRecords', 'appointments', 'reports']]
+      [userId, ['clinicalRecords', 'appointments', 'reports', 'presupuestos']]
     );
 
     // Build email content — frontend sends it via /api/send-email (internet-accessible)

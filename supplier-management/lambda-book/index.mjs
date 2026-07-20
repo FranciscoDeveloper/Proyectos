@@ -450,6 +450,28 @@ async function route(client, method, rawPath, body, qs) {
         patientId = created.rows[0].id;
       }
 
+      // Find or create the initial clinical record for this patient — empty, no
+      // encounters yet. Lets the doctor start registering atenciones right away
+      // and gives lambda-soap-processor a record to write the first SOAP note into.
+      // clinical_record.patient_id is UNIQUE (one shared record per patient, across
+      // whichever professionals treat them), so the existence check is patient-only —
+      // it must not also filter by professional_id or a second booking with a
+      // different doctor would try to INSERT a duplicate and violate that constraint.
+      try {
+        const crExisting = await client.query(
+          "SELECT id FROM clinical_record WHERE patient_id = $1 LIMIT 1",
+          [patientId]
+        );
+        if (crExisting.rowCount === 0) {
+          await client.query(
+            "INSERT INTO clinical_record (patient_id, professional_id, status) VALUES ($1, $2, 'active')",
+            [patientId, prof.id]
+          );
+        }
+      } catch (err) {
+        log("ERROR", "Initial clinical_record insert error", { message: err.message, patientId });
+      }
+
       const datetimeStr = `${date}T${time}:00`;
       const confirmCode = generateConfirmCode();
       const dbModality  = body.modality === "video" ? "video" : body.modality === "phone" ? "phone" : "in_person";

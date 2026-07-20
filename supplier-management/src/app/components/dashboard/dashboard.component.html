@@ -1,4 +1,12 @@
 <!-- ══════════════════════════════════════════════════════════════════
+     SUPPORT NOTICE BANNER (dismissible)
+══════════════════════════════════════════════════════════════════ -->
+<div class="support-alert" *ngIf="showSupportAlert()">
+  <span class="support-alert-text">Si encuentra cualquier problema, favor notifíquelo vía chat al equipo de soporte.</span>
+  <button type="button" class="support-alert-close" (click)="dismissSupportAlert()" aria-label="Cerrar aviso">&times;</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
      CLINIC DASHBOARD  (médico / perfil con appointments)
 ══════════════════════════════════════════════════════════════════ -->
 <ng-container *ngIf="isClinicProfile()">

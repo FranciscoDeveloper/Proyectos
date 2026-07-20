@@ -105,6 +105,13 @@ export async function createEntity(client, config, body, entityKey, profScope) {
 
   const cols = config.toDb(body);
 
+  // Let the entity override/generate columns server-side (e.g. a globally-unique
+  // sequential number) — always runs with full table visibility, ignoring profFilter,
+  // since values like `numero` must be unique across every professional.
+  if (config.beforeInsert) {
+    await config.beforeInsert(client, cols);
+  }
+
   // Auto-stamp professional identity so records are always linked to the creator
   if (profScope && config.profFilter) {
     const f = config.profFilter;

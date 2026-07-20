@@ -1,0 +1,11 @@
+{
+  "name": "dairi-lambda-transcribe",
+  "version": "1.0.0",
+  "description": "Lambda handler for S3-triggered audio transcription (Deepgram) + SOAP note generation (Bedrock)",
+  "main": "handler.js",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.600.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.600.0",
+    "@deepgram/sdk": "^3.9.0"
+  }
+}

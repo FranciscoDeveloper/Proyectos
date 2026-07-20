@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -48,6 +48,15 @@ interface ApptRow {
 export class DashboardComponent {
   readonly auth   = inject(AuthService);
   private crudSvc = inject(GenericCrudService);
+
+  // ── Support notice banner (dismissible, persists across sessions) ──────────
+  private static readonly SUPPORT_ALERT_KEY = 'dairi_support_alert_dismissed';
+  showSupportAlert = signal(localStorage.getItem(DashboardComponent.SUPPORT_ALERT_KEY) !== 'true');
+
+  dismissSupportAlert(): void {
+    this.showSupportAlert.set(false);
+    localStorage.setItem(DashboardComponent.SUPPORT_ALERT_KEY, 'true');
+  }
 
   // ── Clinic profile detection ───────────────────────────────────────────────
   isClinicProfile = computed(() =>

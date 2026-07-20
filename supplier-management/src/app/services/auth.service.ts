@@ -136,7 +136,9 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
     plural: 'Pacientes',
     icon: 'clipboard',
     moduleType: 'clinical-record',
-    description: 'Fichas clínicas y registros médicos de pacientes'
+    description: 'Fichas clínicas y registros médicos de pacientes',
+    disableCreate: true,
+    disableCreateHint: 'La ficha inicial se crea automáticamente al agendar una cita en el módulo de Citas.'
   },
   fields: [
     // ── Selector de paciente registrado (solo en creación) ────────────────
@@ -268,7 +270,9 @@ export const SCHEMA_PSYCH_RECORDS: EntitySchema = {
     plural: 'Fichas Psicológicas',
     icon: 'brain',
     moduleType: 'clinical-record',
-    description: 'Fichas psicológicas y registros terapéuticos'
+    description: 'Fichas psicológicas y registros terapéuticos',
+    disableCreate: true,
+    disableCreateHint: 'La ficha inicial se crea automáticamente al agendar una cita en el módulo de Citas.'
   },
   fields: [
     // ── Demographics ─────────────────────────────────────────────────────
@@ -292,7 +296,7 @@ export const SCHEMA_PSYCH_RECORDS: EntitySchema = {
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics' },
     { name: 'address',        type: 'text',   label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics' },
     { name: 'emergencyContact', type: 'text', label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics' },
-    { name: 'doctor', type: 'select', label: 'Psicólogo/a', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
+    { name: 'professionalId', type: 'select', label: 'Psicólogo/a', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', lookupEntity: 'medicos', lookupValueField: 'id', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Última Sesión',       required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'En Terapia' }, { value: 'discharged', label: 'Alta Terapéutica' }, { value: 'critical', label: 'Riesgo' }, { value: 'scheduled', label: 'Evaluación' }],
@@ -397,7 +401,9 @@ export const SCHEMA_DENTAL_RECORDS: EntitySchema = {
     plural: 'Fichas Dentales',
     icon: 'tooth',
     moduleType: 'clinical-record',
-    description: 'Fichas odontológicas y registros de tratamientos'
+    description: 'Fichas odontológicas y registros de tratamientos',
+    disableCreate: true,
+    disableCreateHint: 'La ficha inicial se crea automáticamente al agendar una cita en el módulo de Citas.'
   },
   fields: [
     // ── Demographics (STABLE) ─────────────────────────────────────────────
@@ -412,7 +418,7 @@ export const SCHEMA_DENTAL_RECORDS: EntitySchema = {
     { name: 'insurance', type: 'select', label: 'Previsión', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'previsiones', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
     { name: 'phone',          type: 'tel',    label: 'Teléfono',            required: true,                    showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'doctor', type: 'select', label: 'Odontólogo/a', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
+    { name: 'professionalId', type: 'select', label: 'Odontólogo/a', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'id', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Última Atención',     required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'Activo' }, { value: 'discharged', label: 'Alta' }, { value: 'maintenance', label: 'Mantención' }, { value: 'orthodontic', label: 'Ortodoncia' }],
@@ -491,7 +497,9 @@ export const SCHEMA_KINE_RECORDS: EntitySchema = {
     plural: 'Fichas Kinésicas',
     icon: 'clipboard',
     moduleType: 'clinical-record',
-    description: 'Fichas kinésicas y registros de rehabilitación física'
+    description: 'Fichas kinésicas y registros de rehabilitación física',
+    disableCreate: true,
+    disableCreateHint: 'La ficha inicial se crea automáticamente al agendar una cita en el módulo de Citas.'
   },
   fields: [
     // ── Demographics (STABLE) ─────────────────────────────────────────────
@@ -508,7 +516,7 @@ export const SCHEMA_KINE_RECORDS: EntitySchema = {
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'address',        type: 'text',   label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'emergencyContact', type: 'text', label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'doctor', type: 'select', label: 'Kinesiólogo/a', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
+    { name: 'professionalId', type: 'select', label: 'Kinesiólogo/a', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'id', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Última Sesión',       required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'En Tratamiento' }, { value: 'discharged', label: 'Alta Kinésica' }, { value: 'scheduled', label: 'Evaluación' }],
@@ -567,7 +575,9 @@ export const SCHEMA_NUTRITION_RECORDS: EntitySchema = {
     plural: 'Fichas Nutricionales',
     icon: 'clipboard',
     moduleType: 'clinical-record',
-    description: 'Fichas nutricionales y seguimiento alimentario'
+    description: 'Fichas nutricionales y seguimiento alimentario',
+    disableCreate: true,
+    disableCreateHint: 'La ficha inicial se crea automáticamente al agendar una cita en el módulo de Citas.'
   },
   fields: [
     // ── Demographics (STABLE) ─────────────────────────────────────────────
@@ -584,7 +594,7 @@ export const SCHEMA_NUTRITION_RECORDS: EntitySchema = {
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'address',        type: 'text',   label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'emergencyContact', type: 'text', label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'doctor', type: 'select', label: 'Nutricionista', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
+    { name: 'professionalId', type: 'select', label: 'Nutricionista', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'id', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Último Control',      required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'Activo' }, { value: 'discharged', label: 'Alta' }, { value: 'maintenance', label: 'Mantenimiento' }],
@@ -643,7 +653,9 @@ export const SCHEMA_FONO_RECORDS: EntitySchema = {
     plural: 'Fichas Fonoaudiológicas',
     icon: 'clipboard',
     moduleType: 'clinical-record',
-    description: 'Fichas fonoaudiológicas y registros de terapia del lenguaje'
+    description: 'Fichas fonoaudiológicas y registros de terapia del lenguaje',
+    disableCreate: true,
+    disableCreateHint: 'La ficha inicial se crea automáticamente al agendar una cita en el módulo de Citas.'
   },
   fields: [
     // ── Demographics (STABLE) ─────────────────────────────────────────────
@@ -660,7 +672,7 @@ export const SCHEMA_FONO_RECORDS: EntitySchema = {
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'address',        type: 'text',   label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'emergencyContact', type: 'text', label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'doctor', type: 'select', label: 'Fonoaudiólogo/a', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
+    { name: 'professionalId', type: 'select', label: 'Fonoaudiólogo/a', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'id', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Última Sesión',       required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'En Terapia' }, { value: 'discharged', label: 'Alta' }, { value: 'scheduled', label: 'Evaluación' }],
@@ -719,7 +731,9 @@ export const SCHEMA_OT_RECORDS: EntitySchema = {
     plural: 'Fichas T.O.',
     icon: 'clipboard',
     moduleType: 'clinical-record',
-    description: 'Fichas de terapia ocupacional y registros funcionales'
+    description: 'Fichas de terapia ocupacional y registros funcionales',
+    disableCreate: true,
+    disableCreateHint: 'La ficha inicial se crea automáticamente al agendar una cita en el módulo de Citas.'
   },
   fields: [
     // ── Demographics (STABLE) ─────────────────────────────────────────────
@@ -736,7 +750,7 @@ export const SCHEMA_OT_RECORDS: EntitySchema = {
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'address',        type: 'text',   label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'emergencyContact', type: 'text', label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'doctor', type: 'select', label: 'Terapeuta Ocupacional', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
+    { name: 'professionalId', type: 'select', label: 'Terapeuta Ocupacional', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'id', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Última Sesión',       required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'En Terapia' }, { value: 'discharged', label: 'Alta' }, { value: 'maintenance', label: 'Seguimiento' }],
@@ -795,7 +809,9 @@ export const SCHEMA_MATRONA_RECORDS: EntitySchema = {
     plural: 'Fichas Obstétricas',
     icon: 'clipboard',
     moduleType: 'clinical-record',
-    description: 'Fichas obstétricas y registros ginecológicos'
+    description: 'Fichas obstétricas y registros ginecológicos',
+    disableCreate: true,
+    disableCreateHint: 'La ficha inicial se crea automáticamente al agendar una cita en el módulo de Citas.'
   },
   fields: [
     // ── Demographics (STABLE) ─────────────────────────────────────────────
@@ -812,7 +828,7 @@ export const SCHEMA_MATRONA_RECORDS: EntitySchema = {
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'address',        type: 'text',   label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'emergencyContact', type: 'text', label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'doctor', type: 'select', label: 'Matrona/Matrón', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
+    { name: 'professionalId', type: 'select', label: 'Matrona/Matrón', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'id', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Último Control',      required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'Activo' }, { value: 'pregnancy', label: 'Embarazo' }, { value: 'postpartum', label: 'Puerperio' }, { value: 'gynecological', label: 'Ginecológico' }],
@@ -871,7 +887,9 @@ export const SCHEMA_TECNOMED_RECORDS: EntitySchema = {
     plural: 'Fichas Tecnomédicas',
     icon: 'clipboard',
     moduleType: 'clinical-record',
-    description: 'Fichas tecnomédicas y registros de exámenes de laboratorio'
+    description: 'Fichas tecnomédicas y registros de exámenes de laboratorio',
+    disableCreate: true,
+    disableCreateHint: 'La ficha inicial se crea automáticamente al agendar una cita en el módulo de Citas.'
   },
   fields: [
     // ── Demographics (STABLE) ─────────────────────────────────────────────
@@ -888,7 +906,7 @@ export const SCHEMA_TECNOMED_RECORDS: EntitySchema = {
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'address',        type: 'text',   label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'emergencyContact', type: 'text', label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'doctor', type: 'select', label: 'Tecnólogo Médico', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'nombre', lookupLabelField: 'nombre' },
+    { name: 'professionalId', type: 'select', label: 'Tecnólogo Médico', required: true, showInList: true, showInDetail: true, section: 'demographics', filterable: true, filterType: 'select', isStable: true, lookupEntity: 'medicos', lookupValueField: 'id', lookupLabelField: 'nombre' },
     { name: 'lastVisit',      type: 'date',   label: 'Último Examen',       required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'Activo' }, { value: 'completed', label: 'Completado' }, { value: 'pending', label: 'Pendiente' }],

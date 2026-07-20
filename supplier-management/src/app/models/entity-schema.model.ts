@@ -144,6 +144,10 @@ export interface EntityMeta {
   disableEdit?: boolean;
   /** When true, the delete action is hidden in list and detail views */
   disableDelete?: boolean;
+  /** When true, the "new record" action is hidden and the /new route redirects back to the list */
+  disableCreate?: boolean;
+  /** Shown instead of the "Crear" button in the empty state when disableCreate is true */
+  disableCreateHint?: string;
 }
 
 export interface EntitySchema {

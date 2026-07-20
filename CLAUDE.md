@@ -108,7 +108,7 @@ python -m awscli s3 sync "dist/supplier-management/browser" "s3://friquelme-firs
 Al registrar (`POST /register`):
 1. `app_user` — INSERT (email_verified=false, role='admin')
 2. `app_user` — UPDATE SET activation_token (JWT 24h)
-3. `user_schema` — INSERT módulos por defecto: `clinicalRecords`, `appointments`, `reports`
+3. `user_schema` — INSERT módulos por defecto: `clinicalRecords`, `appointments`, `reports`, `presupuestos`
 
 Al activar (`POST /activate`):
 4. `app_user` — UPDATE SET email_verified=true, activation_token=NULL

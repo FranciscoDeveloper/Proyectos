@@ -314,6 +314,12 @@ export const ENTITY_CONFIG = {
   patients: {
     table:    "patient",
     skipAuth: true,        // reference entity read by all modules (presupuestos, appointments, etc.)
+
+    // patient has no professional_id column — scope via "has an appointment with me" instead.
+    // profScope === null (admin/staff, no professional row) still sees every patient.
+    joinSelect: `SELECT c.* FROM patient c`,
+    profFilter: { existsIn: { table: 'appointment', patientCol: 'patient_id', profCol: 'professional_id' } },
+
     toDb(d) {
       const cols = {};
       // Accept both camelCase (API) and legacy Spanish keys
@@ -422,6 +428,24 @@ export const ENTITY_CONFIG = {
   presupuestos: {
     table: "presupuesto",
     profFilter: { idCol: 'c.professional_id' },
+
+    // `numero` is UNIQUE across the whole table, but professionals only ever see their
+    // own (profFilter-scoped) rows client-side — a client-computed "next number" based
+    // on that scoped view collides with numbers already taken by other professionals.
+    // Always regenerate it server-side from the full, unscoped table.
+    async beforeInsert(client, cols) {
+      const year = new Date().getFullYear();
+      const { rows } = await client.query(
+        `SELECT numero FROM presupuesto WHERE numero LIKE $1`,
+        [`PRES-${year}-%`]
+      );
+      let max = 0;
+      for (const r of rows) {
+        const seq = parseInt(String(r.numero).split('-').pop(), 10);
+        if (!isNaN(seq) && seq > max) max = seq;
+      }
+      cols.numero = `PRES-${year}-${String(max + 1).padStart(4, '0')}`;
+    },
 
     joinSelect: `
       SELECT
@@ -595,13 +619,15 @@ export const ENTITY_CONFIG = {
   // ── Clinical records ──
   'clinical-records': {
     table: "clinical_record",
-    profFilter: { nameCol: 'c.doctor' },
+    profFilter: { idCol: 'c.professional_id' },
 
     // JOIN with patient to populate demographic fields (fullName, rut, etc.)
+    // and with professional to resolve the assigned doctor's name.
     joinSelect: `
       SELECT
         c.id,
         c.patient_id              AS "patientId",
+        c.professional_id         AS "professionalId",
         p.name                    AS "fullName",
         p.rut,
         COALESCE(c.birth_date, p.birth_date) AS "birthDate",
@@ -640,14 +666,15 @@ export const ENTITY_CONFIG = {
         c.soap_objective          AS "soapObjective",
         c.soap_assessment         AS "soapAssessment",
         c.soap_plan               AS "soapPlan",
-        c.doctor,
+        pr.name                   AS "doctorName",
         c.last_visit              AS "lastVisit",
         c.encounters,
         c.status,
         c.created_at              AS "createdAt",
         c.updated_at              AS "updatedAt"
       FROM clinical_record c
-      LEFT JOIN patient p ON p.id = c.patient_id
+      LEFT JOIN patient      p  ON p.id = c.patient_id
+      LEFT JOIN professional pr ON pr.id = c.professional_id
     `,
 
     toDb(d) {
@@ -683,7 +710,7 @@ export const ENTITY_CONFIG = {
       if (d.soapObjective        !== undefined) cols.soap_objective         = d.soapObjective;
       if (d.soapAssessment       !== undefined) cols.soap_assessment        = d.soapAssessment;
       if (d.soapPlan             !== undefined) cols.soap_plan              = d.soapPlan;
-      if (d.doctorName           !== undefined) cols.doctor                 = d.doctorName;
+      if (d.professionalId       !== undefined) cols.professional_id        = d.professionalId;
       if (d.lastVisit            !== undefined) cols.last_visit             = d.lastVisit;
       if (d.encounters           !== undefined) cols.encounters             = JSON.stringify(d.encounters);
       if (d.status               !== undefined) cols.status                 = d.status;
@@ -701,6 +728,7 @@ export const ENTITY_CONFIG = {
       return {
         id:                   r.id,
         patientId:            r.patientId          ?? r.patient_id,
+        professionalId:       r.professionalId     ?? r.professional_id ?? null,
         fullName:             r.fullName            ?? null,
         rut:                  r.rut                ?? null,
         birthDate:            r.birthDate          ?? r.birth_date ?? null,
@@ -711,7 +739,7 @@ export const ENTITY_CONFIG = {
         email:                r.email              ?? null,
         address:              r.address            ?? null,
         emergencyContact:     r.emergencyContact   ?? r.emergency_contact ?? null,
-        doctorName:           r.doctor              ?? null,
+        doctorName:           r.doctorName          ?? null,
         lastVisit:            r.lastVisit           ?? r.last_visit      ?? null,
         status:               r.status              ?? null,
         profession:           r.profession          ?? null,
@@ -774,7 +802,7 @@ export const ENTITY_CONFIG = {
     skipAuth: true,
     toDb(d)  { return {}; },
     fromDb(r) {
-      return { id: r.id, nombre: r.name };
+      return { id: r.id, nombre: r.name, specialty: r.specialty ?? null, especialidad: r.specialty ?? null };
     }
   },
 
