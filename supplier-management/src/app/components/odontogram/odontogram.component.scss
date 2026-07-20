@@ -78,9 +78,9 @@
 .odo-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;
   margin-bottom: 12px;
-  padding: 8px 12px;
+  padding: 10px 14px;
   background: #f9fafb;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
@@ -200,86 +200,225 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
   cursor: pointer;
-  padding: 3px;
+  padding: 3px 2px;
   border-radius: 6px;
   border: 2px solid transparent;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 
-  &:hover { background: #e5e7eb; }
-
-  &--selected {
-    border-color: #10b981 !important;
-    background: #ecfdf5;
+  &:hover {
+    background: #e0f2fe;
+    box-shadow: 0 0 0 1px #bae6fd;
   }
 
-  &--marked .tooth-border {
-    stroke: #6b7280;
+  &--selected {
+    border-color: #2563eb !important;
+    background: #eff6ff;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.18);
   }
 
   &--absent {
-    opacity: 0.38;
-    filter: grayscale(0.8);
+    opacity: 0.36;
+    filter: grayscale(0.85);
   }
 }
 
 .tooth-number {
   font-size: 10px;
-  font-weight: 600;
-  color: #6b7280;
+  font-weight: 700;
+  color: #4b5563;
   line-height: 1;
 }
 
-// Condition colour dots row under/above each tooth
-.tooth-dots-row {
-  display: flex;
-  gap: 2px;
-  height: 6px;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-}
-
-.tooth-cond-dot {
-  display: block;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  flex-shrink: 0;
+.tooth-type-label {
+  font-size: 8.5px;
+  font-weight: 500;
+  color: #9ca3af;
+  line-height: 1;
+  letter-spacing: 0.2px;
 }
 
 // ── Tooth SVG ─────────────────────────────────────────────────────────────────
 
 .tooth-svg {
-  width: 36px;
-  height: 44px;
+  width: 38px;
+  height: 46px;
   display: block;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
 
-  &--lower {
-    transform: rotate(180deg);
-  }
+  &--lower { transform: rotate(180deg); }
+}
+
+// Ivory/white tooth background fill
+.tooth-fill {
+  fill: #f8f6f0;
+  stroke: none;
 }
 
 .tooth-surface {
-  stroke: #d1d5db;
-  stroke-width: 0.5;
+  stroke: rgba(148,163,184,0.5);
+  stroke-width: 0.4;
   transition: fill 0.15s;
-
-  &[fill="transparent"] { fill: white; }
+  &[fill="transparent"] { fill: rgba(248,246,240,0.0); }
 }
 
-.tooth-border {
-  fill: none;
-  stroke: #9ca3af;
-  stroke-width: 1;
+// Anatomical crown border — the tooth shape outline
+.tooth-crown-border {
+  stroke: #94a3b8;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+// Condition count badge inside SVG
+.cond-count-bg {
+  fill: #2563eb;
+}
+.cond-count-text {
+  fill: white;
+  font-size: 6.5px;
+  font-weight: 700;
+  font-family: system-ui, sans-serif;
+  pointer-events: none;
 }
 
 .tooth-symbol {
   font-size: 10px;
   font-weight: 700;
   pointer-events: none;
+  font-family: system-ui, sans-serif;
 }
+
+// ── Stats bar ─────────────────────────────────────────────────────────────────
+
+.odo-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 7px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #374151;
+  background: white;
+  border: 1px solid #e5e7eb;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+
+.stat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.stat-empty {
+  font-size: 11.5px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+// ── Panel tooth icon (mini) ───────────────────────────────────────────────────
+
+.panel-tooth-icon {
+  width: 36px;
+  height: 44px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.12));
+}
+
+// ── Quick-add bar ─────────────────────────────────────────────────────────────
+
+.quick-add-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.quick-add-label {
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 500;
+  margin-right: 2px;
+}
+
+.quick-btn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1.5px solid;
+  cursor: pointer;
+  transition: all 0.12s;
+
+  &--caries  { color: #ef4444; border-color: #fca5a5; background: #fef2f2; &:hover { background: #fee2e2; } }
+  &--rest    { color: #3b82f6; border-color: #bfdbfe; background: #eff6ff; &:hover { background: #dbeafe; } }
+  &--endo    { color: #8b5cf6; border-color: #c4b5fd; background: #f5f3ff; &:hover { background: #ede9fe; } }
+  &--ausente { color: #1f2937; border-color: #9ca3af; background: #f9fafb; &:hover { background: #f3f4f6; } }
+  &--corona  { color: #b45309; border-color: #fcd34d; background: #fffbeb; &:hover { background: #fef3c7; } }
+}
+
+// ── Legend (improved) ─────────────────────────────────────────────────────────
+
+.legend-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legend-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #9ca3af;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.legend-tooth-type {
+  svg { flex-shrink: 0; }
+  gap: 6px;
+}
+
+// ── Readonly hint ─────────────────────────────────────────────────────────────
+
+.readonly-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #9ca3af;
+  font-style: italic;
+  svg { color: #9ca3af; flex-shrink: 0; }
+}
+
+// ── Convention pill dot ───────────────────────────────────────────────────────
+
+.conv-pill { display: inline-flex; align-items: center; gap: 5px; }
+.conv-pill-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
 // ── Selected tooth panel ──────────────────────────────────────────────────────
 

@@ -379,12 +379,27 @@ export class OdontogramComponent {
   }
 
   toothName(fdi: string): string {
-    const n = parseInt(fdi, 10);
-    const n2 = n % 10;
-    if (n2 === 1 || n2 === 2) return 'Incisivo';
+    const n2 = parseInt(fdi, 10) % 10;
+    if (n2 === 1) return 'Incisivo Central';
+    if (n2 === 2) return 'Incisivo Lateral';
     if (n2 === 3) return 'Canino';
-    if (n2 === 4 || n2 === 5) return 'Premolar';
-    return 'Molar';
+    if (n2 === 4) return 'Primer Premolar';
+    if (n2 === 5) return 'Segundo Premolar';
+    if (n2 === 6) return 'Primer Molar';
+    if (n2 === 7) return 'Segundo Molar';
+    if (n2 === 8) return 'Molar del Juicio';
+    return 'Diente';
+  }
+
+  /** Short anatomical type label */
+  toothTypeLabel(fdi: string): string {
+    const d = parseInt(fdi, 10) % 10;
+    if (d === 1 || d === 2) return 'Inc';
+    if (d === 3) return 'Can';
+    if (d === 4 || d === 5) return 'Pre';
+    if (d === 6 || d === 7) return 'Mol';
+    if (d === 8) return 'Cor';
+    return '';
   }
 
   /** Live preview of a surface while composing a new condition */
@@ -404,5 +419,58 @@ export class OdontogramComponent {
   quadrantLabel(fdi: string): string {
     const q = Math.floor(parseInt(fdi, 10) / 10);
     return `Q${q}`;
+  }
+
+  // ── Anatomical tooth shape SVGs ───────────────────────────────────────────────
+
+  /** Unique prefix per instance — prevents SVG clipPath ID collisions */
+  readonly clipPrefix = 'oc' + Math.random().toString(36).slice(2, 7);
+
+  clipId(fdi: string): string { return `${this.clipPrefix}-${fdi}`; }
+
+  /** SVG crown path (viewBox 0 0 36 44) — differs by tooth type */
+  getToothCrownPath(fdi: string): string {
+    const d = parseInt(fdi, 10) % 10;
+    switch (d) {
+      // Incisivo central — rectangular chisel, flat occlusal edge
+      case 1: return 'M3,0 H33 Q36,0 36,3 V41 Q36,44 33,44 H3 Q0,44 0,41 V3 Q0,0 3,0 Z';
+      // Incisivo lateral — same but slightly narrower
+      case 2: return 'M4,1 H32 Q35,1 35,4 V41 Q35,44 32,44 H4 Q1,44 1,41 V4 Q1,1 4,1 Z';
+      // Canino — pointed single cusp
+      case 3: return 'M1,14 L18,0 L35,14 V41 Q35,44 31,44 H5 Q1,44 1,41 Z';
+      // Primer Premolar — two cusps
+      case 4: return 'M1,14 Q7,0 14,6 Q18,9 22,6 Q29,0 35,14 V41 Q35,44 31,44 H5 Q1,44 1,41 Z';
+      // Segundo Premolar — two rounded cusps
+      case 5: return 'M2,13 Q8,1 14,7 Q18,10 22,7 Q28,1 34,13 V41 Q34,44 30,44 H6 Q2,44 2,41 Z';
+      // Primer Molar — tres cúspides, el más ancho
+      case 6: return 'M0,14 Q5,1 10,6 Q14,10 18,6 Q22,10 26,6 Q31,1 36,14 V41 Q36,44 32,44 H4 Q0,44 0,41 Z';
+      // Segundo Molar — tres cúspides
+      case 7: return 'M1,13 Q6,1 11,6 Q15,10 18,6 Q21,10 25,6 Q30,1 35,13 V41 Q35,44 31,44 H5 Q1,44 1,41 Z';
+      // Molar del Juicio — compacto, 2-3 cúspides
+      case 8: return 'M4,12 Q9,1 15,7 Q18,10 21,7 Q27,1 32,12 V41 Q32,44 28,44 H8 Q4,44 4,41 Z';
+      default: return 'M3,0 H33 Q36,0 36,3 V41 Q36,44 33,44 H3 Q0,44 0,41 V3 Q0,0 3,0 Z';
+    }
+  }
+
+  conditionCount(fdi: string): number { return this.toothConditions(fdi).length; }
+
+  /** Resumen estadístico para la barra de estado */
+  readonly stats = computed(() => {
+    let caries = 0, restorations = 0, absent = 0, endodontics = 0, crowns = 0;
+    for (const tooth of Object.values(this._data().teeth)) {
+      const active = tooth.conditions.filter(c => !c.isAnnulled);
+      if (active.some(c => c.type === 'CARIES' || c.type === 'CARIES_SECONDARY')) caries++;
+      if (active.some(c => c.type.startsWith('REST_') || c.type === 'SELLANTE')) restorations++;
+      if (active.some(c => c.type === 'AUSENTE')) absent++;
+      if (active.some(c => c.type === 'ENDODONCIA')) endodontics++;
+      if (active.some(c => c.type.startsWith('CORONA_'))) crowns++;
+    }
+    return { caries, restorations, absent, endodontics, crowns };
+  });
+
+  /** Preselecciona condición y abre el modal de diagnóstico */
+  quickDiagnosis(type: string): void {
+    this.newType.set(type);
+    this.panelOpen.set(true);
   }
 }
