@@ -43,7 +43,7 @@ const JSON_LD_SCRIPTS = [
       featureList: [
         'Gestión de pacientes', 'Calendario de citas', 'Fichas clínicas especializadas (9 especialidades)',
         'Reserva online con pago vía Flow.cl', 'Transcripción de consultas con IA (Deepgram Nova-3)',
-        'Nota SOAP generada por IA (Amazon Bedrock)', 'Sincronización con Google Calendar y Google Meet',
+        'Nota SOAP generada por IA (Dairi IA)', 'Sincronización con Google Calendar y Google Meet',
         'Reportes clínicos y comisiones', 'Presupuestos con cobro online',
         'Chat interno con asistente IA Dairi', 'Privacidad por profesional aplicada en servidor',
         'App móvil Android e iOS', 'Dashboard con métricas en tiempo real'
