@@ -217,6 +217,20 @@ export class ClinicalDetailComponent implements OnInit {
   readonly diagnosisLabel = computed(() => String(this.record()?.['diagnosisLabel'] ?? ''));
   readonly differentialDx = computed(() => String(this.record()?.['differentialDx'] ?? ''));
 
+  readonly soapIsAi = computed(() => this.record()?.['soapSource'] === 'ai-transcription');
+  readonly soapReviewed = computed(() => this.record()?.['soapSource'] === 'ai-reviewed');
+  aiReviewConfirmed = signal(false);
+  confirmingReview  = signal(false);
+
+  confirmAiReview(): void {
+    if (!this.aiReviewConfirmed()) return;
+    this.confirmingReview.set(true);
+    this.crudSvc.update(this.entityKey, this.id, { soapSource: 'ai-reviewed' }).subscribe({
+      next: () => { this.confirmingReview.set(false); this.aiReviewConfirmed.set(false); },
+      error: () => { this.confirmingReview.set(false); }
+    });
+  }
+
   /** Uses the schema field label so each specialty shows its own term
    *  (e.g. "Plan de Tratamiento" for dental, "Diagnóstico diferencial" for others) */
   readonly differentialDxLabel = computed(() =>

@@ -253,6 +253,27 @@
         </div>
       </div>
 
+      <!-- ── Banner IA pendiente de revisión ── -->
+      <div class="ai-review-banner" *ngIf="soapIsAi()">
+        <div class="ai-review-banner__icon">🤖</div>
+        <div class="ai-review-banner__body">
+          <strong>Nota SOAP generada por IA · Revisión requerida</strong>
+          <p>Este contenido fue generado automáticamente a partir de una transcripción de audio. Revisa cada sección antes de confirmar — el profesional es responsable del contenido de la ficha clínica.</p>
+          <label class="ai-review-banner__check">
+            <input type="checkbox" [checked]="aiReviewConfirmed()" (change)="aiReviewConfirmed.set(!aiReviewConfirmed())" />
+            He revisado y verifico que el contenido de la nota SOAP es correcto
+          </label>
+          <button class="ai-review-banner__btn" [disabled]="!aiReviewConfirmed() || confirmingReview()" (click)="confirmAiReview()">
+            {{ confirmingReview() ? 'Guardando…' : 'Confirmar revisión' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Badge SOAP revisado ── -->
+      <div class="ai-reviewed-badge" *ngIf="soapReviewed()">
+        <span>✓ Nota SOAP revisada y confirmada por el profesional</span>
+      </div>
+
       <!-- ── SOAP Note ── -->
       <div class="section card" *ngIf="soapItems().length > 0">
         <div class="section-header section-header--soap">
