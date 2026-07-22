@@ -337,10 +337,10 @@ export const SCHEMA_PSYCH_RECORDS: EntitySchema = {
     { name: 'differentialDx', type: 'textarea', label: 'Diagnóstico Diferencial',   required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 
     // ── Session notes (SOAP adapted) ─────────────────────────────────────
-    { name: 'soapSubjective', type: 'textarea', label: 'Relato del Paciente (S)',   required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Lo que el paciente reporta: emociones, pensamientos, eventos' },
-    { name: 'soapObjective',  type: 'textarea', label: 'Observación Clínica (O)',   required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Conducta observada, estado mental, comunicación no verbal' },
-    { name: 'soapAssessment', type: 'textarea', label: 'Formulación Clínica (A)',   required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Hipótesis de trabajo, patrones identificados, evolución' },
-    { name: 'soapPlan',       type: 'textarea', label: 'Plan Terapéutico (P)',      required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Intervenciones, tareas intersesión, derivaciones' },
+    { name: 'soapSubjective', type: 'textarea', label: 'Relato del Paciente (S)',   required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Lo que el paciente reporta: emociones, pensamientos, eventos', hideInForm: true },
+    { name: 'soapObjective',  type: 'textarea', label: 'Observación Clínica (O)',   required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Conducta observada, estado mental, comunicación no verbal', hideInForm: true },
+    { name: 'soapAssessment', type: 'textarea', label: 'Formulación Clínica (A)',   required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Hipótesis de trabajo, patrones identificados, evolución', hideInForm: true },
+    { name: 'soapPlan',       type: 'textarea', label: 'Plan Terapéutico (P)',      required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Intervenciones, tareas intersesión, derivaciones', hideInForm: true },
 
     // ── Encounter history ────────────────────────────────────────────────
     { name: 'encounters', type: 'object-list', label: 'Historial de Sesiones', required: false, showInList: false, showInDetail: true, section: 'encounters' }
@@ -459,10 +459,10 @@ export const SCHEMA_DENTAL_RECORDS: EntitySchema = {
     { name: 'differentialDx', type: 'textarea', label: 'Plan de Tratamiento',   required: false, showInList: false, showInDetail: true, section: 'diagnosis', isStable: true },
 
     // ── SOAP for dental procedure ─────────────────────────────────────────
-    { name: 'soapSubjective', type: 'textarea', label: 'Motivo de Consulta (S)',   required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Síntomas referidos por el paciente, dolor, sensibilidad' },
-    { name: 'soapObjective',  type: 'textarea', label: 'Examen Clínico (O)',        required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Hallazgos clínicos, radiográficos, piezas tratadas' },
-    { name: 'soapAssessment', type: 'textarea', label: 'Diagnóstico de Sesión (A)', required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Diagnóstico y estado actual del tratamiento' },
-    { name: 'soapPlan',       type: 'textarea', label: 'Procedimiento Realizado (P)', required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Materiales usados, técnica, próxima sesión, indicaciones' },
+    { name: 'soapSubjective', type: 'textarea', label: 'Motivo de Consulta (S)',   required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Síntomas referidos por el paciente, dolor, sensibilidad', hideInForm: true },
+    { name: 'soapObjective',  type: 'textarea', label: 'Examen Clínico (O)',        required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Hallazgos clínicos, radiográficos, piezas tratadas', hideInForm: true },
+    { name: 'soapAssessment', type: 'textarea', label: 'Diagnóstico de Sesión (A)', required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Diagnóstico y estado actual del tratamiento', hideInForm: true },
+    { name: 'soapPlan',       type: 'textarea', label: 'Procedimiento Realizado (P)', required: false, showInList: false, showInDetail: true, section: 'soap', placeholder: 'Materiales usados, técnica, próxima sesión, indicaciones', hideInForm: true },
 
     // ── Encounter history ─────────────────────────────────────────────────
     { name: 'encounters', type: 'object-list', label: 'Historial de Atenciones', required: false, showInList: false, showInDetail: true, section: 'encounters' },
@@ -557,10 +557,10 @@ export const SCHEMA_KINE_RECORDS: EntitySchema = {
     { name: 'differentialDx', type: 'textarea', label: 'Objetivos Terapéuticos',  required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 
     // ── SOAP ──────────────────────────────────────────────────────────────
-    { name: 'soapSubjective', type: 'textarea', label: 'Motivo y Síntomas (S)',      required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapObjective',  type: 'textarea', label: 'Evaluación Funcional (O)',   required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapAssessment', type: 'textarea', label: 'Diagnóstico Kinésico (A)',   required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapPlan',       type: 'textarea', label: 'Ejercicios e Indicaciones (P)', required: false, showInList: false, showInDetail: true, section: 'soap' },
+    { name: 'soapSubjective', type: 'textarea', label: 'Motivo y Síntomas (S)',      required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapObjective',  type: 'textarea', label: 'Evaluación Funcional (O)',   required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapAssessment', type: 'textarea', label: 'Diagnóstico Kinésico (A)',   required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapPlan',       type: 'textarea', label: 'Ejercicios e Indicaciones (P)', required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
 
     // ── Encounter history ─────────────────────────────────────────────────
     { name: 'encounters', type: 'object-list', label: 'Historial de Sesiones Kinésicas', required: false, showInList: false, showInDetail: true, section: 'encounters' }
@@ -635,10 +635,10 @@ export const SCHEMA_NUTRITION_RECORDS: EntitySchema = {
     { name: 'differentialDx', type: 'textarea', label: 'Equivalentes y Recomendaciones', required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 
     // ── SOAP ──────────────────────────────────────────────────────────────
-    { name: 'soapSubjective', type: 'textarea', label: 'Anamnesis Alimentaria (S)',              required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapObjective',  type: 'textarea', label: 'Evaluación Antropométrica y Dietaria (O)', required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapAssessment', type: 'textarea', label: 'Diagnóstico Nutricional (A)',            required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapPlan',       type: 'textarea', label: 'Plan y Recomendaciones (P)',             required: false, showInList: false, showInDetail: true, section: 'soap' },
+    { name: 'soapSubjective', type: 'textarea', label: 'Anamnesis Alimentaria (S)',              required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapObjective',  type: 'textarea', label: 'Evaluación Antropométrica y Dietaria (O)', required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapAssessment', type: 'textarea', label: 'Diagnóstico Nutricional (A)',            required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapPlan',       type: 'textarea', label: 'Plan y Recomendaciones (P)',             required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
 
     // ── Encounter history ─────────────────────────────────────────────────
     { name: 'encounters', type: 'object-list', label: 'Historial de Controles Nutricionales', required: false, showInList: false, showInDetail: true, section: 'encounters' }
@@ -713,10 +713,10 @@ export const SCHEMA_FONO_RECORDS: EntitySchema = {
     { name: 'differentialDx', type: 'textarea', label: 'Objetivos Terapéuticos',       required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 
     // ── SOAP ──────────────────────────────────────────────────────────────
-    { name: 'soapSubjective', type: 'textarea', label: 'Relato del Paciente / Familia (S)', required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapObjective',  type: 'textarea', label: 'Evaluación Fonoaudiológica (O)',    required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapAssessment', type: 'textarea', label: 'Diagnóstico y Evolución (A)',       required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapPlan',       type: 'textarea', label: 'Plan de Intervención (P)',          required: false, showInList: false, showInDetail: true, section: 'soap' },
+    { name: 'soapSubjective', type: 'textarea', label: 'Relato del Paciente / Familia (S)', required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapObjective',  type: 'textarea', label: 'Evaluación Fonoaudiológica (O)',    required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapAssessment', type: 'textarea', label: 'Diagnóstico y Evolución (A)',       required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapPlan',       type: 'textarea', label: 'Plan de Intervención (P)',          required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
 
     // ── Encounter history ─────────────────────────────────────────────────
     { name: 'encounters', type: 'object-list', label: 'Historial de Sesiones', required: false, showInList: false, showInDetail: true, section: 'encounters' }
@@ -791,10 +791,10 @@ export const SCHEMA_OT_RECORDS: EntitySchema = {
     { name: 'differentialDx', type: 'textarea', label: 'Metas de Intervención',     required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 
     // ── SOAP ──────────────────────────────────────────────────────────────
-    { name: 'soapSubjective', type: 'textarea', label: 'Relato del Paciente (S)',              required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapObjective',  type: 'textarea', label: 'Evaluación Funcional Ocupacional (O)', required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapAssessment', type: 'textarea', label: 'Diagnóstico Ocupacional (A)',          required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapPlan',       type: 'textarea', label: 'Plan de Intervención T.O. (P)',        required: false, showInList: false, showInDetail: true, section: 'soap' },
+    { name: 'soapSubjective', type: 'textarea', label: 'Relato del Paciente (S)',              required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapObjective',  type: 'textarea', label: 'Evaluación Funcional Ocupacional (O)', required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapAssessment', type: 'textarea', label: 'Diagnóstico Ocupacional (A)',          required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapPlan',       type: 'textarea', label: 'Plan de Intervención T.O. (P)',        required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
 
     // ── Encounter history ─────────────────────────────────────────────────
     { name: 'encounters', type: 'object-list', label: 'Historial de Sesiones T.O.', required: false, showInList: false, showInDetail: true, section: 'encounters' }
@@ -869,10 +869,10 @@ export const SCHEMA_MATRONA_RECORDS: EntitySchema = {
     { name: 'differentialDx', type: 'textarea', label: 'Plan de Tratamiento',                    required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 
     // ── SOAP ──────────────────────────────────────────────────────────────
-    { name: 'soapSubjective', type: 'textarea', label: 'Motivo de Consulta (S)',          required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapObjective',  type: 'textarea', label: 'Control y Examen Clínico (O)',    required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapAssessment', type: 'textarea', label: 'Diagnóstico (A)',                 required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapPlan',       type: 'textarea', label: 'Procedimientos e Indicaciones (P)', required: false, showInList: false, showInDetail: true, section: 'soap' },
+    { name: 'soapSubjective', type: 'textarea', label: 'Motivo de Consulta (S)',          required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapObjective',  type: 'textarea', label: 'Control y Examen Clínico (O)',    required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapAssessment', type: 'textarea', label: 'Diagnóstico (A)',                 required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapPlan',       type: 'textarea', label: 'Procedimientos e Indicaciones (P)', required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
 
     // ── Encounter history ─────────────────────────────────────────────────
     { name: 'encounters', type: 'object-list', label: 'Historial de Controles', required: false, showInList: false, showInDetail: true, section: 'encounters' }
@@ -947,10 +947,10 @@ export const SCHEMA_TECNOMED_RECORDS: EntitySchema = {
     { name: 'differentialDx', type: 'textarea', label: 'Observaciones Adicionales', required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 
     // ── SOAP ──────────────────────────────────────────────────────────────
-    { name: 'soapSubjective', type: 'textarea', label: 'Solicitud Médica y Contexto (S)', required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapObjective',  type: 'textarea', label: 'Resultados del Examen (O)',       required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapAssessment', type: 'textarea', label: 'Interpretación (A)',              required: false, showInList: false, showInDetail: true, section: 'soap' },
-    { name: 'soapPlan',       type: 'textarea', label: 'Informe y Recomendaciones (P)',   required: false, showInList: false, showInDetail: true, section: 'soap' },
+    { name: 'soapSubjective', type: 'textarea', label: 'Solicitud Médica y Contexto (S)', required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapObjective',  type: 'textarea', label: 'Resultados del Examen (O)',       required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapAssessment', type: 'textarea', label: 'Interpretación (A)',              required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
+    { name: 'soapPlan',       type: 'textarea', label: 'Informe y Recomendaciones (P)',   required: false, showInList: false, showInDetail: true, section: 'soap', hideInForm: true },
 
     // ── Encounter history ─────────────────────────────────────────────────
     { name: 'encounters', type: 'object-list', label: 'Historial de Exámenes', required: false, showInList: false, showInDetail: true, section: 'encounters' }
