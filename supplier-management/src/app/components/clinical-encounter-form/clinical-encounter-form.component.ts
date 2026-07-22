@@ -311,7 +311,7 @@ export class ClinicalEncounterFormComponent implements OnInit {
       this.crudSvc.update(this.entityKey(), this.recordId()!, backgroundData).subscribe();
     }
 
-    const encounter: Record<string, any> = { encounterDate: raw['encounterDate'], status: 'active' };
+    const encounter: Record<string, any> = { encounterDate: raw['encounterDate'], status: 'active', soapSource: 'manual' };
     this.schema()!.fields
       .filter(f =>
         !f.isStable &&

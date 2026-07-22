@@ -268,8 +268,10 @@ export const handler = async (event) => {
         soapObjective:  soap.objective   || null,
         soapAssessment: soap.assessment  || null,
         soapPlan:       soap.plan        || null,
+        soapSource:     'ai-transcription',
         ...(soap.diagnosis ? { diagnosisLabel: soap.diagnosis } : {}),
         professionalId: meta.doctorId,
+        doctorName:     meta.doctorName,
         lastVisit:      meta.encounterDate,
         encounters:     updatedEncounters,
       });

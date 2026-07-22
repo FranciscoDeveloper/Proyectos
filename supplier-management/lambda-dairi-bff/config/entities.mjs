@@ -666,6 +666,7 @@ export const ENTITY_CONFIG = {
         c.soap_objective          AS "soapObjective",
         c.soap_assessment         AS "soapAssessment",
         c.soap_plan               AS "soapPlan",
+        c.soap_source             AS "soapSource",
         pr.name                   AS "doctorName",
         c.last_visit              AS "lastVisit",
         c.encounters,
@@ -710,7 +711,9 @@ export const ENTITY_CONFIG = {
       if (d.soapObjective        !== undefined) cols.soap_objective         = d.soapObjective;
       if (d.soapAssessment       !== undefined) cols.soap_assessment        = d.soapAssessment;
       if (d.soapPlan             !== undefined) cols.soap_plan              = d.soapPlan;
+      if (d.soapSource           !== undefined) cols.soap_source            = d.soapSource;
       if (d.professionalId       !== undefined) cols.professional_id        = d.professionalId;
+      if (d.doctorName           !== undefined) cols.doctor                 = d.doctorName;
       if (d.lastVisit            !== undefined) cols.last_visit             = d.lastVisit;
       if (d.encounters           !== undefined) cols.encounters             = JSON.stringify(d.encounters);
       if (d.status               !== undefined) cols.status                 = d.status;
@@ -759,6 +762,7 @@ export const ENTITY_CONFIG = {
         soapObjective:        r.soapObjective        ?? r.soap_objective       ?? null,
         soapAssessment:       r.soapAssessment       ?? r.soap_assessment      ?? null,
         soapPlan:             r.soapPlan             ?? r.soap_plan            ?? null,
+        soapSource:           r.soapSource           ?? r.soap_source          ?? null,
         encounters:           Array.isArray(r.encounters) ? r.encounters : (r.encounters ? JSON.parse(r.encounters) : []),
         insurance:            r.insurance            ?? '',
         allergies:            r.allergies            ?? [],
