@@ -108,6 +108,7 @@ export class PatientBookingComponent implements OnInit {
   selectedTime   = signal('');
   availableSlots = signal<string[]>([]);
   loadingSlots   = signal(false);
+  isDirectLink   = signal(false);
 
   patientName  = signal('');
   patientEmail = signal('');
@@ -191,6 +192,7 @@ export class PatientBookingComponent implements OnInit {
     }
 
     const idParam = this.route.snapshot.paramMap.get('token') ?? '';
+    this.isDirectLink.set(!!idParam);
     if (idParam) {
       this.professionalId.set(idParam);
       this.loadBookingInfo(idParam);
@@ -280,7 +282,6 @@ export class PatientBookingComponent implements OnInit {
       next: slots => {
         this.availableSlots.set(slots);
         this.loadingSlots.set(false);
-        this.step.set(2);
       },
       error: () => this.loadingSlots.set(false)
     });
@@ -292,12 +293,16 @@ export class PatientBookingComponent implements OnInit {
   }
 
   back(): void {
-    if (this.step() === 1 && !this.route.snapshot.paramMap.get('token')) {
+    if (this.step() === 1 && !this.isDirectLink()) {
       this.professionalId.set('');
       this.bookingInfo.set(null);
       this.selectedDate.set(null);
+      this.selectedTime.set('');
       this.searchQuery.set('');
       this.step.set(0);
+    } else if (this.step() === 3) {
+      this.selectedTime.set('');
+      this.step.set(1);
     } else if (this.step() > 0) {
       this.step.update(s => s - 1);
     }

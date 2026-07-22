@@ -1432,3 +1432,138 @@ textarea {
   border-color: rgba(14,165,233,.25);
   border-top-color: var(--sky-primary);
 }
+
+/* ── Split layout — step 1: date + time together ── */
+
+.booking-main--wide {
+  max-width: 940px;
+}
+
+.split-panel {
+  .btn-back { margin-bottom: 1.25rem; }
+}
+
+.split-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.split-col {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.split-col-label {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--muted);
+  margin: 0;
+
+  svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    color: var(--sky-primary);
+  }
+}
+
+.split-date-badge {
+  margin-left: auto;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--sky-dark);
+  background: var(--sky-100);
+  border: 1px solid var(--sky-200);
+  border-radius: 99px;
+  padding: .15rem .65rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.slots-card {
+  background: #fff;
+  border: 1.5px solid var(--sky-200);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 24px rgba(14,165,233,.09);
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+}
+
+.slots-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--muted);
+
+  svg {
+    width: 52px;
+    height: 52px;
+    opacity: .22;
+    color: var(--sky-primary);
+  }
+
+  p {
+    font-size: .88rem;
+    line-height: 1.65;
+    max-width: 220px;
+  }
+}
+
+.slots-loading-inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .85rem;
+  color: var(--muted);
+  font-size: .88rem;
+}
+
+.slots-card .slots-empty {
+  flex: 1;
+  padding: 2rem 1rem;
+}
+
+.slots-card .slots-grid {
+  margin-top: 0;
+}
+
+/* ── Responsive: stack on narrow viewports ── */
+@media (max-width: 700px) {
+  .split-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .booking-main--wide {
+    max-width: 640px;
+  }
+
+  .slots-card {
+    min-height: auto;
+  }
+
+  .split-date-badge {
+    display: none;
+  }
+}

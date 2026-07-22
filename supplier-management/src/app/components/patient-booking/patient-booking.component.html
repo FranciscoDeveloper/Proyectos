@@ -104,7 +104,7 @@
   </main>
 
   <!-- ── BOOKING FLOW ── -->
-  <main class="booking-main" *ngIf="!loading() && !loadingProfs() && !error() && step() >= 1">
+  <main class="booking-main" [class.booking-main--wide]="step() === 1" *ngIf="!loading() && !loadingProfs() && !error() && step() >= 1">
 
     <!-- Doctor card -->
     <div class="doctor-card">
@@ -122,88 +122,118 @@
     </div>
 
     <!-- Step indicator -->
-    <div class="steps" *ngIf="step() < 4">
-      <div class="step-item" [class.active]="step() >= 1" [class.done]="step() > 1">
-        <div class="step-circle">{{ step() > 1 ? '✓' : '1' }}</div>
-        <span>Fecha</span>
+    <div class="steps" *ngIf="step() >= 1 && step() < 4">
+      <div class="step-item" [class.active]="step() >= 1" [class.done]="step() >= 3">
+        <div class="step-circle">{{ step() >= 3 ? '✓' : '1' }}</div>
+        <span>Fecha y hora</span>
       </div>
-      <div class="step-line" [class.done]="step() > 1"></div>
-      <div class="step-item" [class.active]="step() >= 2" [class.done]="step() > 2">
-        <div class="step-circle">{{ step() > 2 ? '✓' : '2' }}</div>
-        <span>Hora</span>
-      </div>
-      <div class="step-line" [class.done]="step() > 2"></div>
+      <div class="step-line" [class.done]="step() >= 3"></div>
       <div class="step-item" [class.active]="step() >= 3">
-        <div class="step-circle">3</div>
+        <div class="step-circle">2</div>
         <span>Datos</span>
       </div>
     </div>
 
-    <!-- ── STEP 1: DATE ── -->
-    <div class="step-panel" *ngIf="step() === 1">
-      <h2 class="step-title">¿Qué día te acomoda?</h2>
+    <!-- ── STEP 1: DATE + TIME (split layout) ── -->
+    <div class="step-panel split-panel" *ngIf="step() === 1">
 
-      <div class="calendar-card">
-        <div class="cal-nav">
-          <button class="cal-nav-btn" (click)="prevMonth()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <span class="cal-month-label">{{ calendarMonthLabel() }}</span>
-          <button class="cal-nav-btn" (click)="nextMonth()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-        </div>
-
-        <div class="cal-grid">
-          <div class="cal-dow" *ngFor="let d of DOW_LABELS">{{ d }}</div>
-          <div *ngFor="let day of calendarDays()"
-               class="cal-day"
-               [class.other-month]="!day.currentMonth"
-               [class.past]="day.past"
-               [class.available]="day.available && day.currentMonth"
-               [class.today]="isToday(day)"
-               [class.selected]="isSelected(day)"
-               (click)="selectDate(day)">
-            {{ day.date.getDate() }}
-            <div class="day-dot" *ngIf="day.available && day.currentMonth && !isSelected(day)"></div>
-          </div>
-        </div>
-
-        <div class="cal-legend">
-          <span class="legend-item"><span class="legend-dot available"></span> Disponible</span>
-          <span class="legend-item"><span class="legend-dot today"></span> Hoy</span>
-        </div>
-      </div>
-
-      <div class="loading-slots" *ngIf="loadingSlots()">
-        <div class="spinner-sm"></div> Cargando horarios…
-      </div>
-    </div>
-
-    <!-- ── STEP 2: TIME ── -->
-    <div class="step-panel" *ngIf="step() === 2">
-      <button class="btn-back" (click)="back()">
+      <button class="btn-back" *ngIf="!isDirectLink()" (click)="back()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
         Volver
       </button>
-      <h2 class="step-title">¿A qué hora?</h2>
-      <p class="step-sub">{{ selectedDateLabel() }}</p>
 
-      <div class="slots-empty" *ngIf="availableSlots().length === 0">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        <p>Sin horarios disponibles para este día.<br>Selecciona otra fecha.</p>
-        <button class="btn-secondary" (click)="back()">Elegir otro día</button>
-      </div>
+      <div class="split-layout">
 
-      <div class="slots-grid" *ngIf="availableSlots().length > 0">
-        <button *ngFor="let slot of availableSlots()"
-                class="slot-btn"
-                [class.active]="selectedTime() === slot"
-                (click)="selectTime(slot)">
-          {{ slot }}
-        </button>
+        <!-- LEFT: Calendar -->
+        <div class="split-col">
+          <h3 class="split-col-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Elige un día
+          </h3>
+          <div class="calendar-card">
+            <div class="cal-nav">
+              <button class="cal-nav-btn" (click)="prevMonth()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <span class="cal-month-label">{{ calendarMonthLabel() }}</span>
+              <button class="cal-nav-btn" (click)="nextMonth()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+
+            <div class="cal-grid">
+              <div class="cal-dow" *ngFor="let d of DOW_LABELS">{{ d }}</div>
+              <div *ngFor="let day of calendarDays()"
+                   class="cal-day"
+                   [class.other-month]="!day.currentMonth"
+                   [class.past]="day.past"
+                   [class.available]="day.available && day.currentMonth"
+                   [class.today]="isToday(day)"
+                   [class.selected]="isSelected(day)"
+                   (click)="selectDate(day)">
+                {{ day.date.getDate() }}
+                <div class="day-dot" *ngIf="day.available && day.currentMonth && !isSelected(day)"></div>
+              </div>
+            </div>
+
+            <div class="cal-legend">
+              <span class="legend-item"><span class="legend-dot available"></span> Disponible</span>
+              <span class="legend-item"><span class="legend-dot today"></span> Hoy</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Time slots -->
+        <div class="split-col">
+          <h3 class="split-col-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Horarios disponibles
+            <span class="split-date-badge" *ngIf="selectedDate() && !loadingSlots()">{{ selectedDateLabel() }}</span>
+          </h3>
+
+          <div class="slots-card">
+            <!-- No date selected -->
+            <div class="slots-placeholder" *ngIf="!selectedDate() && !loadingSlots()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <p>Selecciona un día en el calendario<br>para ver los horarios disponibles</p>
+            </div>
+
+            <!-- Loading -->
+            <div class="slots-loading-inner" *ngIf="loadingSlots()">
+              <div class="spinner"></div>
+              <p>Cargando horarios…</p>
+            </div>
+
+            <!-- No slots -->
+            <div class="slots-empty" *ngIf="selectedDate() && !loadingSlots() && availableSlots().length === 0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <p>Sin horarios para este día.<br>Elige otra fecha.</p>
+            </div>
+
+            <!-- Slots grid -->
+            <div class="slots-grid" *ngIf="selectedDate() && !loadingSlots() && availableSlots().length > 0">
+              <button *ngFor="let slot of availableSlots()"
+                      class="slot-btn"
+                      [class.active]="selectedTime() === slot"
+                      (click)="selectTime(slot)">
+                {{ slot }}
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
