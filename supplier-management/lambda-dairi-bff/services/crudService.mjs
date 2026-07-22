@@ -182,29 +182,25 @@ export async function updateEntity(client, config, id, body, entityKey, profScop
   const tsClause   = config.noTimestamp ? '' : ', updated_at = NOW()';
   const setClauses = keys.map((k, i) => `${k} = $${i + 1}`).join(', ');
 
-  // Build ownership check for professionals
-  let ownerClause = '';
-  let ownerParams = [];
-  if (profScope && config.profFilter) {
-    const f = config.profFilter;
-    if (f.idCol && profScope.professionalId != null) {
-      const col = f.idCol.replace(/^\w+\./, '');
-      ownerParams.push(profScope.professionalId);
-      ownerClause = ` AND ${col} = $${keys.length + 1 + ownerParams.length}`;
-    } else if (f.nameCol && profScope.professionalName) {
-      const col = f.nameCol.replace(/^\w+\./, '');
-      ownerParams.push(profScope.professionalName);
-      ownerClause = ` AND ${col} = $${keys.length + 1 + ownerParams.length}`;
-    }
-  }
+  // Build ownership check for professionals. Mirrors buildProfWhere (list/get) so a
+  // professional can update exactly the rows they're allowed to see — e.g. entities
+  // scoped via existsIn (shared rows like clinical-records, visible to every
+  // professional with an appointment for that patient, not just whoever "owns" it).
+  // The table is aliased `c` so profFilter's `c.`-prefixed idCol/existsIn conditions
+  // (written for the joinSelect context) resolve the same way here.
+  const { clause: ownerClause, params: ownerParams } = profScopeService.buildProfAndClause(
+    config,
+    profScope,
+    keys.length + 1
+  );
   const values = [...keys.map(k => cols[k]), id, ...ownerParams];
 
   log.info('updateEntity — updating', { table: config.table, id, columns: keys });
   const result = await client.query(
-    `UPDATE ${config.table}
+    `UPDATE ${config.table} AS c
      SET ${setClauses}${tsClause}
-     WHERE ${pkCol} = $${keys.length + 1}${ownerClause}
-     RETURNING *`,
+     WHERE c.${pkCol} = $${keys.length + 1}${ownerClause}
+     RETURNING c.*`,
     values
   );
 
@@ -239,24 +235,17 @@ export async function deleteEntity(client, config, id, entityKey, profScope) {
 
   const pkCol = config.pkCol ?? 'id';
 
-  // Build ownership check for professionals
-  let ownerClause = '';
-  let ownerParams = [];
-  if (profScope && config.profFilter) {
-    const f = config.profFilter;
-    if (f.idCol && profScope.professionalId != null) {
-      const col = f.idCol.replace(/^\w+\./, '');
-      ownerParams.push(profScope.professionalId);
-      ownerClause = ` AND ${col} = $2`;
-    } else if (f.nameCol && profScope.professionalName) {
-      const col = f.nameCol.replace(/^\w+\./, '');
-      ownerParams.push(profScope.professionalName);
-      ownerClause = ` AND ${col} = $2`;
-    }
-  }
+  // Build ownership check for professionals — see updateEntity for why this is shared
+  // with list/get instead of a idCol/nameCol-only subset (existsIn-scoped entities need
+  // the same OR'd condition set here too, and the `c` alias matches those conditions).
+  const { clause: ownerClause, params: ownerParams } = profScopeService.buildProfAndClause(
+    config,
+    profScope,
+    1
+  );
 
   const result = await client.query(
-    `DELETE FROM ${config.table} WHERE ${pkCol} = $1${ownerClause} RETURNING ${pkCol}`,
+    `DELETE FROM ${config.table} AS c WHERE c.${pkCol} = $1${ownerClause} RETURNING c.${pkCol}`,
     [id, ...ownerParams]
   );
   if (result.rowCount === 0) {

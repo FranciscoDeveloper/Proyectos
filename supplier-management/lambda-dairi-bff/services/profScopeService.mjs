@@ -9,17 +9,24 @@
 import { getLogger } from '../lib/logger.mjs';
 
 /**
- * Build a WHERE clause that restricts rows to the authenticated professional.
- * Uses idCol (FK) when available, nameCol (text match) as fallback, or existsIn
- * for entities with no direct professional FK (ownership derived via a related table).
+ * Build the list of OR-combined SQL conditions (with bound params) that restrict
+ * rows to the authenticated professional. Shared by every call site that needs
+ * row-level ownership enforcement (list/get use it via buildProfWhere; update/delete
+ * append it to their own WHERE via buildProfAndClause) so all four verbs agree on
+ * who can see/touch a row instead of each re-implementing a subset of profFilter.
+ *
+ * Uses idCol (FK) when available, nameCol (text match) as fallback, and/or existsIn
+ * for entities with no direct professional FK — or, like `clinical-records`, whose
+ * FK only stamps the record's creator/last-editor while the row is meant to stay
+ * visible to every professional who has ever had an appointment with that patient.
  *
  * @param {object} config             Entity config; may carry a `profFilter` descriptor.
  * @param {object|null} profScope     Resolved scope: { professionalId, professionalName }.
  * @param {number} existingParamCount Number of positional params already bound before this clause.
- * @returns {{ clause: string, params: any[] }} Clause already contains its WHERE prefix.
+ * @returns {{ conditions: string[], params: any[] }}
  */
-export function buildProfWhere(config, profScope, existingParamCount = 0) {
-  if (!profScope || !config.profFilter) return { clause: '', params: [] };
+function buildProfConditions(config, profScope, existingParamCount = 0) {
+  if (!profScope || !config.profFilter) return { conditions: [], params: [] };
 
   const f = config.profFilter;
   const params = [];
@@ -41,8 +48,45 @@ export function buildProfWhere(config, profScope, existingParamCount = 0) {
     );
   }
 
+  return { conditions, params };
+}
+
+/**
+ * Build a WHERE clause that restricts rows to the authenticated professional.
+ * See buildProfConditions for the condition set. Fails closed (1=0) when the
+ * entity declares a profFilter and the professional has a resolved scope but
+ * none of the configured conditions could be built.
+ *
+ * @param {object} config             Entity config; may carry a `profFilter` descriptor.
+ * @param {object|null} profScope     Resolved scope: { professionalId, professionalName }.
+ * @param {number} existingParamCount Number of positional params already bound before this clause.
+ * @returns {{ clause: string, params: any[] }} Clause already contains its WHERE prefix.
+ */
+export function buildProfWhere(config, profScope, existingParamCount = 0) {
+  if (!profScope || !config.profFilter) return { clause: '', params: [] };
+
+  const { conditions, params } = buildProfConditions(config, profScope, existingParamCount);
   if (conditions.length === 0) return { clause: ' WHERE (1=0)', params: [] };
   return { clause: ` WHERE (${conditions.join(' OR ')})`, params };
+}
+
+/**
+ * Build an ` AND (...)` fragment for appending to an existing WHERE (used by
+ * updateEntity/deleteEntity, which filter by primary key first). Mirrors
+ * buildProfWhere's condition set and fail-closed behavior so a professional
+ * can only update/delete rows they'd also be able to see via list/get.
+ *
+ * @param {object} config             Entity config; may carry a `profFilter` descriptor.
+ * @param {object|null} profScope     Resolved scope: { professionalId, professionalName }.
+ * @param {number} existingParamCount Number of positional params already bound before this clause.
+ * @returns {{ clause: string, params: any[] }} Clause already contains its AND prefix, or '' when unscoped.
+ */
+export function buildProfAndClause(config, profScope, existingParamCount = 0) {
+  if (!profScope || !config.profFilter) return { clause: '', params: [] };
+
+  const { conditions, params } = buildProfConditions(config, profScope, existingParamCount);
+  if (conditions.length === 0) return { clause: ' AND (1=0)', params: [] };
+  return { clause: ` AND (${conditions.join(' OR ')})`, params };
 }
 
 /**

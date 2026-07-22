@@ -619,7 +619,19 @@ export const ENTITY_CONFIG = {
   // ── Clinical records ──
   'clinical-records': {
     table: "clinical_record",
-    profFilter: { idCol: 'c.professional_id' },
+    // clinical_record is a single row per patient, UNIQUE on patient_id and shared
+    // across every professional who treats them (see class-level doc). idCol alone
+    // only shows the record to whoever happens to be stamped in professional_id —
+    // the creator (lambda-book) or whoever last wrote a SOAP note (lambda-soap-processor)
+    // — so a second specialist with a real appointment for the same patient would see
+    // nothing for them in their own module. Mirror the `patients` entity's existsIn
+    // pattern (below) so any professional with an appointment for this patient also
+    // sees/can edit the shared record; idCol is kept alongside it purely as a fallback
+    // for the (currently theoretical) case of a record with no appointment row at all.
+    profFilter: {
+      idCol: 'c.professional_id',
+      existsIn: { table: 'appointment', patientCol: 'patient_id', profCol: 'professional_id', pkCol: 'patient_id' }
+    },
 
     // JOIN with patient to populate demographic fields (fullName, rut, etc.)
     // and with professional to resolve the assigned doctor's name.
