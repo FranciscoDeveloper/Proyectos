@@ -713,7 +713,9 @@ export const ENTITY_CONFIG = {
       if (d.soapPlan             !== undefined) cols.soap_plan              = d.soapPlan;
       if (d.soapSource           !== undefined) cols.soap_source            = d.soapSource;
       if (d.professionalId       !== undefined) cols.professional_id        = d.professionalId;
-      if (d.doctorName           !== undefined) cols.doctor                 = d.doctorName;
+      // doctorName is read-only (resolved server-side via JOIN to professional.name in
+      // joinSelect) — clinical_record has no `doctor` column since the professional_id
+      // FK migration, so it must never be written here even if the caller sends it.
       if (d.lastVisit            !== undefined) cols.last_visit             = d.lastVisit;
       if (d.encounters           !== undefined) cols.encounters             = JSON.stringify(d.encounters);
       if (d.status               !== undefined) cols.status                 = d.status;
