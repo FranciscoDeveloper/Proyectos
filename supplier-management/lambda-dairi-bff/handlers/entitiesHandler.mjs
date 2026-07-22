@@ -75,13 +75,16 @@ export async function handleEntities(rawPath, method, event, tokenPayload, clien
     return await sendPresupuestoEmail(client, config, id, body);
   }
 
-  // ── Special action: POST /api/entities/{clinicalKey}/{id}/encounters ─────────
-  if (rawPath.endsWith('/encounters') && method === 'POST' && id) {
-    return await crudService.appendEncounter(client, config, id, body);
-  }
-
   // ── Resolve professional scope ──────────────────────────────────────────────
   const profScope = await profScopeService.resolveProfScope(client, tokenPayload.sub);
+
+  // ── Special action: POST /api/entities/{clinicalKey}/{id}/encounters ─────────
+  // Resolved after profScope so appending an encounter is subject to the same
+  // row-level ownership check as GET/PUT — otherwise any professional with module
+  // access could append to a clinical record they have no relationship to, by id.
+  if (rawPath.endsWith('/encounters') && method === 'POST' && id) {
+    return await crudService.appendEncounter(client, config, id, body, profScope);
+  }
 
   // ── CRUD dispatch ───────────────────────────────────────────────────────────
   if (method === 'GET'    && !id) return await crudService.listEntities(client, config, entityKey, profScope);

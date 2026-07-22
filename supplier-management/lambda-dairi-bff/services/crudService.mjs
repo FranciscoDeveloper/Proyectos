@@ -267,9 +267,10 @@ export async function deleteEntity(client, config, id, entityKey, profScope) {
  * @param {object} config                  Entity descriptor.
  * @param {number|string} id               Primary key value.
  * @param {object} encounter               Encounter payload to append.
+ * @param {object|null} profScope          Resolved professional scope, or null.
  * @returns {Promise<object>} HTTP response with the updated record or a 400/404.
  */
-export async function appendEncounter(client, config, id, encounter) {
+export async function appendEncounter(client, config, id, encounter, profScope) {
   const log = getLogger();
 
   if (!encounter || typeof encounter !== 'object') {
@@ -278,10 +279,14 @@ export async function appendEncounter(client, config, id, encounter) {
 
   const pkCol = config.pkCol ?? 'id';
 
-  // Fetch current record to get existing encounters
+  // Fetch current record to get existing encounters, scoped the same way getEntity
+  // is — otherwise any professional with module access could append an encounter to
+  // a clinical record they have no relationship to, just by guessing/enumerating id.
+  const { clause, params: scopeParams } = profScopeService.buildProfWhere(config, profScope, 1);
+  const andOrWhere = clause ? clause.replace(' WHERE ', ' AND ') : '';
   const current = await client.query(
-    `SELECT encounters FROM ${config.table} WHERE ${pkCol} = $1`,
-    [id]
+    `SELECT encounters FROM ${config.table} AS c WHERE c.${pkCol} = $1${andOrWhere}`,
+    [id, ...scopeParams]
   );
   if (current.rowCount === 0) {
     return response(404, { message: 'Ficha clínica no encontrada' });
