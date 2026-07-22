@@ -3,7 +3,6 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
-import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-clinical-record',
@@ -15,7 +14,6 @@ export class ClinicalRecordComponent {
   private route     = inject(ActivatedRoute);
   private schemaSvc = inject(SchemaService);
   private crudSvc   = inject(GenericCrudService);
-  private auth      = inject(AuthService);
 
   readonly entityKey = this.route.snapshot.paramMap.get('entityKey')!;
   readonly schema    = this.schemaSvc.getSchema(this.entityKey);
@@ -35,11 +33,14 @@ export class ClinicalRecordComponent {
 
   readonly records = computed(() => {
     const data = this.crudSvc.getAll(this.entityKey)();
-    // Auto-filter: professionals see only their own records
-    const me = this.auth.user();
-    const rawData = (me && this.auth.isProfessionalView() && this.doctorField)
-      ? data.filter(item => item[this.doctorField!.name] === (me.professionalName ?? me.name))
-      : data;
+    // Per-professional isolation is enforced server-side by the BFF profFilter
+    // (WHERE professional_id = <me>), so the store already contains only the
+    // caller's own records. A client-side name filter here is redundant and, worse,
+    // fragile: it compared item['doctorName'] (a JOIN-resolved professional.name)
+    // against the user's display name and silently hid legitimately-owned records
+    // whenever those strings differed — and never ran at all for specialty modules
+    // (psych/dental/…), whose schema exposes `professionalId`, not `doctorName`.
+    const rawData = data;
     return rawData.map(item => {
       const statusVal  = this.statusField  ? item[this.statusField.name]  : null;
       const btVal      = this.bloodTypeField ? item[this.bloodTypeField.name] : null;
@@ -55,9 +56,16 @@ export class ClinicalRecordComponent {
         statusColor:  this.statusField?.badgeColors?.[statusVal] ?? '#6b7280',
         bloodType:    btVal ?? '',
         bloodTypeColor: this.bloodTypeField?.badgeColors?.[btVal] ?? '#6b7280',
-        insurance:    this.insuranceField?.options?.find(o => o.value === insVal)?.label ?? '',
+        // `insurance` is backed by a lookupEntity (previsiones) with no static
+        // `options`, so option-label resolution yields nothing — fall back to the
+        // stored value (which is already the prevision name) instead of a blank.
+        insurance:    this.insuranceField?.options?.find(o => o.value === insVal)?.label ?? String(insVal ?? ''),
         insuranceColor: this.insuranceField?.badgeColors?.[insVal] ?? '#6b7280',
-        doctor:       this.doctorField   ? String(item[this.doctorField.name]   ?? '') : '',
+        // BFF always resolves the treating professional's name via JOIN and returns
+        // it as `doctorName`, regardless of whether the frontend schema (medical vs.
+        // specialty modules) declares a matching field — read it directly so the
+        // professional shows in every module, not only the generic medical one.
+        doctor:       String(item['doctorName'] ?? item['doctor'] ?? (this.doctorField ? item[this.doctorField.name] : '') ?? ''),
         lastVisit:    this.lastVisitField ? String(item[this.lastVisitField.name] ?? '') : '',
         age:          this.ageField      ? Number(item[this.ageField.name] ?? 0) : 0,
         gender:       this.genderField?.options?.find(o => o.value === genderVal)?.label ?? '',
