@@ -18,7 +18,7 @@ const JSON_LD_SCRIPTS = [
       legalName: 'Servicios Informáticos Dairi Francisco Riquelme E.I.R.L.',
       url: 'https://app.dairi.cl',
       logo: 'https://app.dairi.cl/favicon.ico',
-      email: 'admin@dairi.cl',
+      email: 'contacto@dairi.cl',
       address: { '@type': 'PostalAddress', addressLocality: 'Santiago', addressCountry: 'CL' },
       sameAs: []
     }
@@ -34,10 +34,10 @@ const JSON_LD_SCRIPTS = [
       description: SEO_DESCRIPTION,
       url: SEO_URL,
       offers: [
-        { '@type': 'Offer', name: 'Starter', price: '9', priceCurrency: 'USD',
-          priceSpecification: { '@type': 'UnitPriceSpecification', price: '9', priceCurrency: 'USD', unitCode: 'MON' } },
-        { '@type': 'Offer', name: 'Pro', price: '18', priceCurrency: 'USD',
-          priceSpecification: { '@type': 'UnitPriceSpecification', price: '18', priceCurrency: 'USD', unitCode: 'MON' } }
+        { '@type': 'Offer', name: 'Starter', price: '3', priceCurrency: 'USD',
+          priceSpecification: { '@type': 'UnitPriceSpecification', price: '3', priceCurrency: 'USD', unitCode: 'MON' } },
+        { '@type': 'Offer', name: 'Pro', price: '12', priceCurrency: 'USD',
+          priceSpecification: { '@type': 'UnitPriceSpecification', price: '12', priceCurrency: 'USD', unitCode: 'MON' } }
       ],
       featureList: [
         'Gestión de pacientes', 'Calendario de citas', 'Fichas clínicas especializadas',
@@ -103,6 +103,15 @@ export class LandingComponent implements OnInit, OnDestroy {
   private doc      = inject(DOCUMENT);
 
   activeView = 'dashboard';
+  private rotateInterval?: ReturnType<typeof setInterval>;
+  private readonly ROTATE_VIEWS = ['dashboard', 'citas', 'ficha'];
+  private rotateIdx = 0;
+
+  setActiveView(view: string): void {
+    this.activeView = view;
+    this.rotateIdx  = this.ROTATE_VIEWS.indexOf(view);
+    if (this.rotateInterval) { clearInterval(this.rotateInterval); this.rotateInterval = undefined; }
+  }
 
   ngOnInit(): void {
     this.titleSvc.setTitle(SEO_TITLE);
@@ -123,6 +132,11 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.metaSvc.updateTag({ name: 'twitter:description', content: SEO_DESCRIPTION });
     this.metaSvc.updateTag({ name: 'twitter:image',       content: SEO_IMAGE });
 
+    this.rotateInterval = setInterval(() => {
+      this.rotateIdx  = (this.rotateIdx + 1) % this.ROTATE_VIEWS.length;
+      this.activeView = this.ROTATE_VIEWS[this.rotateIdx];
+    }, 3200);
+
     for (const { id, content } of JSON_LD_SCRIPTS) {
       const existing = this.doc.getElementById(id);
       if (existing) existing.remove();
@@ -135,6 +149,7 @@ export class LandingComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.rotateInterval) clearInterval(this.rotateInterval);
     for (const { id } of JSON_LD_SCRIPTS) {
       this.doc.getElementById(id)?.remove();
     }

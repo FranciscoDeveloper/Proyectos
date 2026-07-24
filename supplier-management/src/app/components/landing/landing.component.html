@@ -20,8 +20,8 @@
   <div class="hero-badge">
     ✦ Cupos limitados · Solo 50 clínicas en el plan de lanzamiento · Reserva el tuyo hoy
   </div>
-  <h1>Gestiona tu clínica<br><span class="gradient">sin límites ni papeles</span></h1>
-  <p>Dairi es el software de gestión clínica para Chile y Latinoamérica: pacientes, citas, fichas clínicas especializadas, analítica e IA en una sola plataforma. Transcripción de voz con Deepgram Nova-3, pagos online con Flow y Transbank Webpay, app móvil nativa y toda tu clínica respaldada en la nube. Con control de acceso por rol, cada profesional ve solo su propia agenda, cobros y fichas clínicas.</p>
+  <h1>Software clínico para Chile<br><span class="gradient">citas, fichas y pagos online</span></h1>
+  <p>Agenda online, fichas clínicas especializadas y cobros con Flow y Transbank — todo en un solo software. Transcripción de consultas con IA, comisiones automáticas y cada profesional ve solo sus propios datos.</p>
   <div class="hero-btns">
     <a routerLink="/login" class="btn-primary">Comenzar gratis — 30 días</a>
     <a href="#features" class="btn-secondary">Ver funcionalidades →</a>
@@ -39,9 +39,9 @@
   <!-- MOCKUP SCENE -->
   <div class="mockup-scene">
     <div class="mockup-tabs">
-      <button class="mtab" [class.active]="activeView === 'dashboard'" (click)="activeView = 'dashboard'">📊 Dashboard</button>
-      <button class="mtab" [class.active]="activeView === 'citas'" (click)="activeView = 'citas'">📅 Agenda</button>
-      <button class="mtab" [class.active]="activeView === 'ficha'" (click)="activeView = 'ficha'">📋 Ficha Clínica</button>
+      <button class="mtab" [class.active]="activeView === 'dashboard'" (click)="setActiveView('dashboard')">📊 Dashboard</button>
+      <button class="mtab" [class.active]="activeView === 'citas'" (click)="setActiveView('citas')">📅 Agenda</button>
+      <button class="mtab" [class.active]="activeView === 'ficha'" (click)="setActiveView('ficha')">📋 Ficha Clínica</button>
     </div>
     <div class="mockup-browser">
       <div class="mb-chrome">
@@ -54,10 +54,10 @@
         <div class="mb-sidebar">
           <div class="mbs-logo">Dairi</div>
           <div class="mbs-nav">
-            <div class="mbs-item" [class.active]="activeView === 'dashboard'" (click)="activeView = 'dashboard'"><span>📊</span><span>Dashboard</span></div>
+            <div class="mbs-item" [class.active]="activeView === 'dashboard'" (click)="setActiveView('dashboard')"><span>📊</span><span>Dashboard</span></div>
             <div class="mbs-item"><span>🧑‍⚕️</span><span>Pacientes</span></div>
-            <div class="mbs-item" [class.active]="activeView === 'citas'" (click)="activeView = 'citas'"><span>📅</span><span>Citas</span></div>
-            <div class="mbs-item" [class.active]="activeView === 'ficha'" (click)="activeView = 'ficha'"><span>📋</span><span>Fichas</span></div>
+            <div class="mbs-item" [class.active]="activeView === 'citas'" (click)="setActiveView('citas')"><span>📅</span><span>Citas</span></div>
+            <div class="mbs-item" [class.active]="activeView === 'ficha'" (click)="setActiveView('ficha')"><span>📋</span><span>Fichas</span></div>
             <div class="mbs-item"><span>💊</span><span>Inventario</span></div>
             <div class="mbs-item"><span>💸</span><span>Pagos</span></div>
             <div class="mbs-item"><span>💬</span><span>Chat IA</span></div>
@@ -197,6 +197,29 @@
   </div>
 </section>
 
+<!-- TRUST STRIP -->
+<div class="trust-strip">
+  <div class="trust-item">
+    <span class="trust-num">9</span>
+    <span class="trust-lbl">especialidades clínicas</span>
+  </div>
+  <div class="trust-div"></div>
+  <div class="trust-item">
+    <span class="trust-num">US$3</span>
+    <span class="trust-lbl">plan Starter / mes</span>
+  </div>
+  <div class="trust-div"></div>
+  <div class="trust-item">
+    <span class="trust-num">30 días</span>
+    <span class="trust-lbl">gratis, sin tarjeta</span>
+  </div>
+  <div class="trust-div"></div>
+  <div class="trust-item">
+    <span class="trust-num">&lt;24 h</span>
+    <span class="trust-lbl">para implementar</span>
+  </div>
+</div>
+
 <!-- FEATURES -->
 <section id="features">
   <div class="section-label">Plataforma completa</div>
@@ -204,54 +227,49 @@
   <p class="section-sub">Sin hojas de cálculo, sin papel, sin sistemas desconectados. Dairi centraliza cada área operativa con flujos de trabajo diseñados para profesionales de la salud.</p>
   <div class="features-grid">
     <div class="feature-card">
-      <div class="feature-icon">🧑‍⚕️</div>
-      <h3>Gestión de Pacientes</h3>
-      <p>Perfil completo de cada paciente: datos de contacto, historial de consultas, diagnósticos y evolución clínica en un solo expediente digital.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📅</div>
-      <h3>Calendario de Citas</h3>
-      <p>Vista mensual interactiva con creación rápida de citas, estados personalizables (Agendada, Completada, Cancelada, No asistió) y asignación por profesional.</p>
+      <div class="feature-icon">🎙️</div>
+      <h3>La ficha se escribe sola</h3>
+      <p>Graba la consulta y Deepgram Nova-3 la transcribe en español con identificación de hablantes. La IA genera la nota SOAP lista para la ficha — en segundos, sin tipear nada.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📋</div>
-      <h3>Fichas Clínicas Especializadas</h3>
-      <p>9 plantillas clínicas: medicina general, psicología, odontología, kinesiología, nutrición, fonoaudiología, TO, matrona y tecnología médica. Signos vitales, alertas, SOAP y prescripciones.</p>
+      <h3>9 Fichas Clínicas Especializadas</h3>
+      <p>Medicina general, psicología, odontología, kinesiología, nutrición, fonoaudiología, TO, matrona y tecnología médica. Signos vitales, alertas, nota SOAP y prescripciones en cada especialidad.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">🎙️</div>
-      <h3>Transcripción de Voz con IA</h3>
-      <p>Graba la consulta y Deepgram Nova-3 la transcribe en español con identificación de hablantes. La IA genera automáticamente la nota SOAP lista para la ficha clínica.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📈</div>
-      <h3>Reportes y Analítica Clínica</h3>
-      <p>KPIs de citas, ingresos y fichas clínicas con filtros 7 / 30 días / historial. Gráficos por diagnóstico, especialidad, previsión (Fonasa/Isapre) y profesional.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">💸</div>
-      <h3>Pagos, Comisiones y Presupuestos</h3>
-      <p>Registro de cobros, cálculo automático de comisiones por profesional y cotizaciones con envío por email. Pagos online vía Flow y Transbank Webpay — Redcompra y crédito incluidos.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">💬</div>
-      <h3>Chat Interno con Asistente IA</h3>
-      <p>El asistente Dairi IA responde dudas operativas en todos los planes. Los planes Pro y Enterprise suman el chat de equipo completo: canales y mensajes directos entre el staff.</p>
+      <div class="feature-icon">📅</div>
+      <h3>Agenda y Reservas Online</h3>
+      <p>Los pacientes reservan su hora solos, las 24 horas, desde el celular. Vista mensual con estados personalizables (Agendada, Completada, Cancelada, No asistió) y asignación por profesional.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🔐</div>
       <h3>Privacidad por Profesional</h3>
-      <p>Control de acceso por rol con filtrado automático por médico: cada profesional accede a una vista personalizada con sus propias citas, cobros, presupuestos y fichas clínicas — aplicado en el servidor, no solo en pantalla.</p>
+      <p>Filtrado automático por médico aplicado en el servidor: cada profesional accede solo a sus citas, cobros, presupuestos y fichas clínicas. Privacidad real, sin configuración extra.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💸</div>
+      <h3>Pagos, Comisiones y Presupuestos</h3>
+      <p>Cobros online vía Flow y Transbank Webpay (Redcompra y crédito incluidos). Cálculo automático de comisiones por profesional y cotizaciones enviadas por email al paciente.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📊</div>
-      <h3>Dashboard con Métricas</h3>
-      <p>Indicadores clave al iniciar sesión: citas del día, ingresos del mes, pacientes activos y comisiones pendientes, todo actualizado en tiempo real.</p>
+      <h3>Dashboard y Analítica Clínica</h3>
+      <p>Indicadores clave al iniciar sesión: citas del día, ingresos del mes, pacientes activos. KPIs con filtros 7 / 30 días / historial, gráficos por especialidad y previsión (Fonasa/Isapre).</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧑‍⚕️</div>
+      <h3>Gestión de Pacientes</h3>
+      <p>Expediente digital completo: datos de contacto, historial de consultas, diagnósticos y evolución clínica. Búsqueda por RUT, nombre o previsión en segundos.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💬</div>
+      <h3>Asistente IA incluido</h3>
+      <p>Dairi IA responde dudas operativas en todos los planes. Los planes Pro y Enterprise suman el chat de equipo: canales y mensajes directos entre el staff de la clínica.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📱</div>
       <h3>App Móvil Android e iOS</h3>
-      <p>La misma plataforma completa en tu smartphone. Construida con Capacitor 8 sobre Angular — disponible para Android e iOS sin perder ninguna funcionalidad.</p>
+      <p>La misma plataforma completa en tu smartphone — sin funcionalidades recortadas. Descárgala para Android e iOS y lleva tu clínica en el bolsillo.</p>
     </div>
   </div>
 </section>
@@ -369,7 +387,7 @@
     <div class="feature-card" style="border-color:rgba(14,165,233,.4);">
       <div class="feature-icon">💰</div>
       <h3>Precio justo, sin sorpresas</h3>
-      <p>Desde US$3 al mes con todo incluido. Otros sistemas cobran hasta 50 veces más por hacer menos, y sin app móvil.</p>
+      <p>Desde US$3 al mes con todo incluido — fichas, IA, pagos online y app móvil. La mayoría de los softwares clínicos arrancan desde US$80/mes y no incluyen ni la mitad.</p>
     </div>
     <div class="feature-card" style="border-color:rgba(16,185,129,.35);">
       <div class="feature-icon">📅</div>
@@ -487,6 +505,30 @@
   <p class="trial-note">30 días de prueba completa. Después elige el plan que más te acomode. Cancela cuando quieras, sin preguntas.</p>
 </div>
 
+<!-- FAQ -->
+<section class="faq-section" id="faq">
+  <div class="section-label">Preguntas frecuentes</div>
+  <h2 class="section-title">Lo que siempre nos preguntan</h2>
+  <div class="faq-grid">
+    <div class="faq-item">
+      <h3 class="faq-q">¿Cuánto tiempo tarda implementar Dairi?</h3>
+      <p class="faq-a">Menos de 24 horas. Al ser 100% en la nube no necesitas instalar nada ni contratar un técnico. Configura tu clínica, agrega profesionales y comienza a registrar pacientes el mismo día.</p>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-q">¿Es seguro guardar fichas clínicas en la nube?</h3>
+      <p class="faq-a">Sí. Usamos autenticación JWT, HTTPS forzado, cifrado en base de datos y arquitectura serverless en AWS — la misma nube de Netflix y Airbnb. Backups automáticos y acceso restringido por roles de usuario.</p>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-q">¿Funciona para mi especialidad?</h3>
+      <p class="faq-a">Dairi incluye 9 fichas clínicas especializadas: medicina general, psicología, odontología, kinesiología, nutrición, fonoaudiología, terapia ocupacional, matrona y tecnología médica. Cada una con sus campos específicos.</p>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-q">¿Puedo cancelar en cualquier momento?</h3>
+      <p class="faq-a">Sí. Sin contratos mínimos ni penalizaciones. Cancela cuando quieras desde tu panel de usuario — tus datos quedan disponibles para exportar en cualquier formato.</p>
+    </div>
+  </div>
+</section>
+
 <!-- FOOTER -->
 <footer id="contacto">
   <div class="footer-grid">
@@ -509,8 +551,7 @@
     </div>
     <div class="footer-col">
       <h4>Contacto</h4>
-      <div class="contact-item">📧 <a href="mailto:admin&#64;dairi.cl">admin&#64;dairi.cl</a></div>
-      <div class="contact-item">📞 <span>+56 9 0000 0000</span></div>
+      <div class="contact-item">📧 <a href="mailto:contacto&#64;dairi.cl">contacto&#64;dairi.cl</a></div>
       <div class="contact-item">📍 <span>Santiago, Chile</span></div>
       <div class="contact-item" style="margin-top:.75rem; gap: 1rem;">
         <a href="#">LinkedIn</a>
