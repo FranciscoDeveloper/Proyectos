@@ -15,9 +15,12 @@ const MODEL_ID = process.env.BEDROCK_MODEL_ID ?? "amazon.nova-lite-v1:0";
 const SOAP_PROMPT =
   "Convierte la siguiente consulta médica en una nota clínica SOAP en español. " +
   "Usa exactamente estos encabezados markdown, en este orden: '## Subjetivo', '## Objetivo', " +
-  "'## Análisis', '## Diagnóstico', '## Plan'. " +
+  "'## Análisis', '## Diagnóstico', '## Plan', '## Resumen'. " +
   "En 'Diagnóstico' incluye solo el o los diagnósticos clínicos concluidos (nombre de la condición), " +
   "sin narrativa adicional; si la conversación no permite concluir un diagnóstico, deja la sección vacía. " +
+  "En 'Resumen' escribe un párrafo narrativo breve (máximo 4 oraciones), en tercera persona, claro, " +
+  "conciso y clínicamente relevante, que resuma la atención para que otro profesional entienda el caso " +
+  "de un vistazo. Sin listas ni viñetas, solo el párrafo. " +
   "Usa solo información dicha en la conversación; no inventes datos.";
 
 const handler = async (event) => {

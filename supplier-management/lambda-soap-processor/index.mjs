@@ -15,6 +15,7 @@
  *   ## Evaluación  (or Assessment / A)
  *   ## Diagnóstico (or Diagnosis / Impresión Diagnóstica) — optional
  *   ## Plan        (or P)
+ *   ## Resumen     (or Summary) — optional narrative summary
  */
 
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
@@ -73,6 +74,7 @@ const SOAP_ALIASES = {
   s: "subjective", o: "objective", a: "assessment", p: "plan",
   diagnostico: "diagnosis", diagnostico_clinico: "diagnosis",
   impresion_diagnostica: "diagnosis", diagnosis: "diagnosis",
+  resumen: "summary", resumen_narrativo: "summary", summary: "summary",
 };
 
 function normalize(s) {
@@ -82,7 +84,7 @@ function normalize(s) {
 }
 
 function parseSoap(content) {
-  const soap  = { subjective: "", objective: "", assessment: "", plan: "", diagnosis: "" };
+  const soap  = { subjective: "", objective: "", assessment: "", plan: "", diagnosis: "", summary: "" };
   const lines = content.split(/\r?\n/);
   let current = null;
   const buf   = [];
@@ -186,7 +188,7 @@ export const handler = async (event) => {
       console.warn(JSON.stringify({ msg: "No SOAP headings — raw content → Subjetivo" }));
       soap.subjective = content.trim();
     }
-    console.log(JSON.stringify({ msg: "SOAP parsed", s: !!soap.subjective, o: !!soap.objective, a: !!soap.assessment, p: !!soap.plan, dx: !!soap.diagnosis }));
+    console.log(JSON.stringify({ msg: "SOAP parsed", s: !!soap.subjective, o: !!soap.objective, a: !!soap.assessment, p: !!soap.plan, dx: !!soap.diagnosis, summary: !!soap.summary }));
 
     // ── 4. Find patient via BFF ────────────────────────────────────────────────
     let patients;
@@ -252,6 +254,7 @@ export const handler = async (event) => {
       soapAssessment: soap.assessment  || null,
       soapPlan:       soap.plan        || null,
       diagnosisLabel: soap.diagnosis   || null,
+      aiSummary:      soap.summary     || null,
       doctor:         meta.doctorName,
       doctorId:       meta.doctorId,
       source:         "audio-transcription",
@@ -269,6 +272,7 @@ export const handler = async (event) => {
         soapAssessment: soap.assessment  || null,
         soapPlan:       soap.plan        || null,
         soapSource:     'ai-transcription',
+        aiSummary:      soap.summary     || null,
         ...(soap.diagnosis ? { diagnosisLabel: soap.diagnosis } : {}),
         professionalId: meta.doctorId,
         doctorName:     meta.doctorName,

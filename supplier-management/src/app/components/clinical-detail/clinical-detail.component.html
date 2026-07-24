@@ -230,7 +230,7 @@
           <span class="ai-summary-icon">✦</span>
           <span class="ai-summary-title">Resumen Narrativo IA</span>
           <span class="ai-summary-badge">Amazon Bedrock</span>
-          <button class="ai-refresh-btn" (click)="loadAiSummary()" [disabled]="summaryLoading()" title="Regenerar resumen">
+          <button class="ai-refresh-btn" (click)="loadAiSummary()" [disabled]="summaryLoading()" title="Actualizar resumen">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="23 4 23 10 17 10"/>
               <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
@@ -240,14 +240,17 @@
         <div class="ai-summary-body">
           <div class="ai-loading" *ngIf="summaryLoading()">
             <span class="spinner-xs"></span>
-            Generando resumen con IA…
+            Cargando resumen…
           </div>
           <div class="ai-error" *ngIf="summaryError() && !summaryLoading()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
               <line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
-            No se pudo generar el resumen. Verifica que Amazon Bedrock esté habilitado.
+            No se pudo cargar el resumen. Intenta de nuevo más tarde.
+          </div>
+          <div class="ai-empty" *ngIf="summaryUnavailable() && !summaryLoading() && !summaryError()">
+            El resumen se genera automáticamente al transcribir una consulta por audio.
           </div>
           <p class="ai-text" *ngIf="aiSummary() && !summaryLoading()">{{ aiSummary() }}</p>
         </div>

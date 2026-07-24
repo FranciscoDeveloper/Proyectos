@@ -285,16 +285,25 @@ export class ClinicalDetailComponent implements OnInit {
 
   // ── AI narrative summary ──────────────────────────────────────────────────
 
-  aiSummary      = signal<string | null>(null);
-  summaryLoading = signal(false);
-  summaryError   = signal(false);
+  aiSummary          = signal<string | null>(null);
+  summaryLoading     = signal(false);
+  summaryError       = signal(false);
+  // True when the request succeeded but the record has no ai_summary yet — e.g. a clinical
+  // record created manually, or one predating this feature, or an audio consult whose
+  // transcription pipeline hasn't finished. Distinct from summaryError (a real failure).
+  summaryUnavailable = signal(false);
 
   loadAiSummary(): void {
     this.summaryLoading.set(true);
     this.summaryError.set(false);
-    this.http.get<{ summary: string }>(`/api/clinical-summary/${this.id}`)
+    this.summaryUnavailable.set(false);
+    this.http.get<{ summary: string | null; available: boolean }>(`/api/clinical-summary/${this.id}`)
       .subscribe({
-        next:  r  => { this.aiSummary.set(r.summary); this.summaryLoading.set(false); },
+        next: r => {
+          this.aiSummary.set(r.summary);
+          this.summaryUnavailable.set(!r.available);
+          this.summaryLoading.set(false);
+        },
         error: () => { this.summaryLoading.set(false); this.summaryError.set(true); }
       });
   }

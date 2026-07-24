@@ -679,6 +679,7 @@ export const ENTITY_CONFIG = {
         c.soap_assessment         AS "soapAssessment",
         c.soap_plan               AS "soapPlan",
         c.soap_source             AS "soapSource",
+        c.ai_summary              AS "aiSummary",
         pr.name                   AS "doctorName",
         c.last_visit              AS "lastVisit",
         c.encounters,
@@ -724,6 +725,7 @@ export const ENTITY_CONFIG = {
       if (d.soapAssessment       !== undefined) cols.soap_assessment        = d.soapAssessment;
       if (d.soapPlan             !== undefined) cols.soap_plan              = d.soapPlan;
       if (d.soapSource           !== undefined) cols.soap_source            = d.soapSource;
+      if (d.aiSummary            !== undefined) cols.ai_summary             = d.aiSummary;
       if (d.professionalId       !== undefined) cols.professional_id        = d.professionalId;
       // doctorName is read-only (resolved server-side via JOIN to professional.name in
       // joinSelect) — clinical_record has no `doctor` column since the professional_id
@@ -777,6 +779,7 @@ export const ENTITY_CONFIG = {
         soapAssessment:       r.soapAssessment       ?? r.soap_assessment      ?? null,
         soapPlan:             r.soapPlan             ?? r.soap_plan            ?? null,
         soapSource:           r.soapSource           ?? r.soap_source          ?? null,
+        aiSummary:            r.aiSummary            ?? r.ai_summary           ?? null,
         encounters:           Array.isArray(r.encounters) ? r.encounters : (r.encounters ? JSON.parse(r.encounters) : []),
         insurance:            r.insurance            ?? '',
         allergies:            r.allergies            ?? [],
