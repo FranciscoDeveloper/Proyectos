@@ -201,7 +201,11 @@ export class PatientBookingComponent implements OnInit {
 
   private verifyPayment(token: string): void {
     this.checkingPayment.set(true);
-    this.http.get<PaymentStatus>(`/api/book/payment/status?token=${encodeURIComponent(token)}`).subscribe({
+    // dairi-book (VPC-attached, no NAT Gateway) can't reach Flow.cl to check payment
+    // status — /api/book/payment/status always fails from there. dairi-payment isn't
+    // VPC-attached and already talks to Flow for payment/create, so status checks go
+    // through its function URL instead (read-only call to Flow, no charge/email risk).
+    this.http.post<PaymentStatus>(PAYMENT_LAMBDA_URL, { action: 'status', token }).subscribe({
       next: status => {
         this.paymentStatus.set(status);
         this.checkingPayment.set(false);

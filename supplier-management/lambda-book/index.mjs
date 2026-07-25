@@ -97,6 +97,10 @@ function validateBookingBody(body) {
   } else {
     const todaySantiago = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Santiago" });
     if (date < todaySantiago) errors.push("No se pueden agendar citas en fechas pasadas");
+    else if (date === todaySantiago && RE_TIME.test(time)) {
+      const nowSantiago = new Date().toLocaleTimeString("sv-SE", { timeZone: "America/Santiago", hour: "2-digit", minute: "2-digit" });
+      if (time < nowSantiago) errors.push("No se pueden agendar citas en horas pasadas");
+    }
   }
 
   if (!RE_TIME.test(time)) errors.push("time debe tener formato HH:MM (00:00 – 23:59)");
@@ -143,6 +147,22 @@ async function ensureSchema(client) {
     ALTER TABLE appointment_payment
     ADD COLUMN IF NOT EXISTS payment_id INTEGER REFERENCES payment(id)
   `);
+  // Prevents two patients from booking the same professional/slot concurrently.
+  // POST /api/book/{id} previously inserted unconditionally — a race (or a stale
+  // /slots response) could double-book the same datetime. The partial index only
+  // applies to live appointments, so a cancelled/no-show slot can be rebooked.
+  // Wrapped: if pre-existing duplicate rows make the index creation fail, don't
+  // block every request forever — log and keep going (INSERT-time check below
+  // still catches new races via ON CONFLICT DO NOTHING).
+  try {
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_appointment_no_double_book
+      ON appointment (professional_id, datetime)
+      WHERE status NOT IN ('cancelled', 'no_show')
+    `);
+  } catch (err) {
+    log("ERROR", "Could not create no-double-book index (likely pre-existing duplicates)", { message: err.message });
+  }
   schemaReady = true;
   log("INFO", "DB schema ready");
 }
@@ -182,6 +202,69 @@ async function findProfessional(client, idOrToken) {
     ? await client.query("SELECT * FROM professional WHERE id = $1 AND active = true LIMIT 1", [numId])
     : await client.query("SELECT * FROM professional WHERE booking_token = $1 AND active = true LIMIT 1", [idOrToken]);
   return res.rowCount > 0 ? res.rows[0] : null;
+}
+
+// ── Applies a resolved Flow payment status to appointment_payment / payment / appointment ──
+// Shared by /payment/confirm (calls Flow itself — only reachable if this Lambda ever gets
+// internet egress) and /payment/apply-status (status already resolved by dairi-payment,
+// which IS reachable from Flow since it isn't VPC-attached — see route comment below).
+async function applyPaymentStatus(client, { token, commerceOrder, flowOrder, payStatus }) {
+  let apRec = await client.query(
+    `SELECT id, appointment_id, payment_id FROM appointment_payment WHERE flow_token = $1`,
+    [token]
+  );
+
+  if (apRec.rowCount > 0) {
+    await client.query(
+      `UPDATE appointment_payment SET status = $1, updated_at = NOW() WHERE flow_token = $2`,
+      [payStatus, token]
+    );
+  } else {
+    const match = commerceOrder?.match(/^APPT-(\d+)-/);
+    if (match) {
+      const apptId = parseInt(match[1]);
+      apRec = await client.query(
+        `SELECT id, appointment_id, payment_id FROM appointment_payment
+         WHERE appointment_id = $1 ORDER BY created_at DESC LIMIT 1`,
+        [apptId]
+      );
+      if (apRec.rowCount > 0) {
+        await client.query(
+          `UPDATE appointment_payment
+           SET flow_token = $1, commerce_order = $2, flow_order = $3, status = $4, updated_at = NOW()
+           WHERE id = $5`,
+          [token, commerceOrder, flowOrder ?? null, payStatus, apRec.rows[0].id]
+        );
+      }
+    }
+  }
+
+  if (apRec.rowCount > 0) {
+    const { appointment_id: apptId, payment_id: paymentId } = apRec.rows[0];
+
+    if (paymentId) {
+      const ledgerStatus = payStatus === "paid" ? "paid"
+                         : payStatus === "cancelled" ? "cancelled"
+                         : "pending";
+      await client.query(`UPDATE payment SET status = $1 WHERE id = $2`, [ledgerStatus, paymentId]);
+    }
+
+    if (payStatus === "paid" && apptId) {
+      await client.query(
+        `UPDATE appointment SET status = 'confirmed' WHERE id = $1 AND status = 'scheduled'`,
+        [apptId]
+      );
+    }
+  }
+
+  return apRec.rowCount > 0;
+}
+
+function flowStatusCodeToPayStatus(code) {
+  return code === 2 ? "paid"
+       : code === 3 ? "rejected"
+       : code === 4 ? "cancelled"
+       : "pending";
 }
 
 function generateConfirmCode() {
@@ -261,6 +344,13 @@ async function route(client, method, rawPath, body, qs) {
   }
 
   // ── Flow webhook: POST /payment/confirm ───────────────────────────────────
+  // NOTE: dairi-book runs inside vpc-0e99bc3b783e6f17c, which has no NAT Gateway /
+  // internet route (same root cause already found for dairi-bff↔DynamoDB/Bedrock).
+  // flowGet() below therefore cannot actually reach Flow.cl from this Lambda — it
+  // will fail after a long connect timeout. Kept only as a legacy fallback for any
+  // in-flight Flow payment already created with urlConfirmation pointing here.
+  // New payments now get urlConfirmation pointed at dairi-payment (not VPC-attached,
+  // has real internet egress) — see /payment/apply-status below for the working path.
   if (rawPath === "/payment/confirm") {
     if (method !== "POST") return { statusCode: 405, body: "Method Not Allowed" };
     const token = body?.token;
@@ -268,62 +358,8 @@ async function route(client, method, rawPath, body, qs) {
 
     try {
       const flowStatus = await flowGet("payment/getStatus", { token });
-      const payStatus = flowStatus.status === 2 ? "paid"
-                      : flowStatus.status === 3 ? "rejected"
-                      : flowStatus.status === 4 ? "cancelled"
-                      : "pending";
-
-      let apRec = await client.query(
-        `SELECT id, appointment_id, payment_id FROM appointment_payment WHERE flow_token = $1`,
-        [token]
-      );
-
-      if (apRec.rowCount > 0) {
-        await client.query(
-          `UPDATE appointment_payment SET status = $1, updated_at = NOW() WHERE flow_token = $2`,
-          [payStatus, token]
-        );
-      } else {
-        const match = flowStatus.commerceOrder?.match(/^APPT-(\d+)-/);
-        if (match) {
-          const apptId = parseInt(match[1]);
-          apRec = await client.query(
-            `SELECT id, appointment_id, payment_id FROM appointment_payment
-             WHERE appointment_id = $1 ORDER BY created_at DESC LIMIT 1`,
-            [apptId]
-          );
-          if (apRec.rowCount > 0) {
-            await client.query(
-              `UPDATE appointment_payment
-               SET flow_token = $1, commerce_order = $2, flow_order = $3, status = $4, updated_at = NOW()
-               WHERE id = $5`,
-              [token, flowStatus.commerceOrder, flowStatus.flowOrder ?? null, payStatus, apRec.rows[0].id]
-            );
-          }
-        }
-      }
-
-      if (apRec.rowCount > 0) {
-        const { appointment_id: apptId, payment_id: paymentId } = apRec.rows[0];
-
-        if (paymentId) {
-          const ledgerStatus = payStatus === "paid" ? "paid"
-                             : payStatus === "cancelled" ? "cancelled"
-                             : "pending";
-          await client.query(
-            `UPDATE payment SET status = $1 WHERE id = $2`,
-            [ledgerStatus, paymentId]
-          );
-        }
-
-        if (payStatus === "paid" && apptId) {
-          await client.query(
-            `UPDATE appointment SET status = 'confirmed' WHERE id = $1 AND status = 'scheduled'`,
-            [apptId]
-          );
-        }
-      }
-
+      const payStatus = flowStatusCodeToPayStatus(flowStatus.status);
+      await applyPaymentStatus(client, { token, commerceOrder: flowStatus.commerceOrder, flowOrder: flowStatus.flowOrder, payStatus });
       log("INFO", "Payment webhook handled", { token, payStatus, commerceOrder: flowStatus.commerceOrder });
     } catch (err) {
       log("ERROR", "Webhook processing error", { message: err.message, token });
@@ -332,16 +368,47 @@ async function route(client, method, rawPath, body, qs) {
     return { statusCode: 200, headers: { "Content-Type": "text/plain" }, body: "OK" };
   }
 
+  // ── Trusted status relay: POST /payment/apply-status ───────────────────────
+  // Called by dairi-payment (non-VPC, actually reachable from Flow) after it verifies
+  // the payment status directly with Flow's payment/getStatus. dairi-book only needs
+  // to persist the already-verified result to the DB — no outbound Flow call needed,
+  // so this works despite dairi-book having no internet egress. Authenticated with an
+  // HMAC over the payload using APP_SECRET (shared with dairi-payment) so this internal
+  // endpoint can't be used to arbitrarily flip payment/appointment status.
+  if (rawPath === "/payment/apply-status") {
+    if (method !== "POST") return { statusCode: 405, body: "Method Not Allowed" };
+    const { token, commerceOrder, flowOrder, status, sig } = body ?? {};
+    if (!token || !status) return resp(400, { message: "token y status son requeridos" });
+    if (!APP_SECRET) return resp(500, { message: "APP_SECRET no configurado" });
+    const expectedSig = createHmac("sha256", APP_SECRET)
+      .update(`${token}:${status}:${commerceOrder ?? ""}`)
+      .digest("hex");
+    if (sig !== expectedSig) {
+      log("WARN", "apply-status signature mismatch", { token });
+      return resp(401, { message: "Firma inválida" });
+    }
+    try {
+      const applied = await applyPaymentStatus(client, { token, commerceOrder, flowOrder, payStatus: status });
+      log("INFO", "Payment status applied", { token, status, commerceOrder, applied });
+      return resp(200, { success: true, applied });
+    } catch (err) {
+      log("ERROR", "apply-status error", { message: err.message, token });
+      return resp(500, { message: "Error aplicando estado de pago" });
+    }
+  }
+
   // ── Payment status: GET /api/book/payment/status?token= ───────────────────
+  // NOTE: same VPC/no-NAT limitation as /payment/confirm above — flowGet() here
+  // cannot reach Flow either. The frontend now queries payment status through
+  // dairi-payment's function URL instead (see PAYMENT_LAMBDA_URL in
+  // patient-booking.component.ts / payment-result.component.ts). Left in place
+  // as a legacy/manual-diagnostic path only.
   if (rawPath === "/api/book/payment/status" && method === "GET") {
     const token = qs.token;
     if (!token) return resp(400, { message: "token requerido" });
     try {
       const flowStatus = await flowGet("payment/getStatus", { token });
-      const payStatus = flowStatus.status === 2 ? "paid"
-                      : flowStatus.status === 3 ? "rejected"
-                      : flowStatus.status === 4 ? "cancelled"
-                      : "pending";
+      const payStatus = flowStatusCodeToPayStatus(flowStatus.status);
       return resp(200, {
         status:        payStatus,
         flowStatus:    flowStatus.status,
@@ -477,13 +544,41 @@ async function route(client, method, rawPath, body, qs) {
       const dbModality  = body.modality === "video" ? "video" : body.modality === "phone" ? "phone" : "in_person";
       const amount      = prof.consultation_price ?? prof.price ?? CONSULTATION_AMOUNT;
 
-      const appt = await client.query(
-        `INSERT INTO appointment
-           (patient_id, professional_id, datetime, duration_minutes, service, modality, status, reason, confirm_code)
-         VALUES ($1, $2, $3::timestamp AT TIME ZONE 'America/Santiago', $4, $5, $6, 'scheduled', $7, $8)
-         RETURNING id, confirm_code, modality`,
-        [patientId, prof.id, datetimeStr, prof.consultation_duration, prof.specialty, dbModality, reason, confirmCode]
-      );
+      // ON CONFLICT DO NOTHING against idx_appointment_no_double_book (partial unique
+      // index on professional_id+datetime for live appointments, created in ensureSchema)
+      // — this is the authoritative, race-safe guard against double-booking a slot.
+      // The /slots endpoint filters already-booked times for display, but two patients
+      // can still race each other between fetching slots and submitting; the DB
+      // constraint is what actually prevents the second INSERT from succeeding.
+      const insertParams = [patientId, prof.id, datetimeStr, prof.consultation_duration, prof.specialty, dbModality, reason, confirmCode];
+      let appt;
+      try {
+        appt = await client.query(
+          `INSERT INTO appointment
+             (patient_id, professional_id, datetime, duration_minutes, service, modality, status, reason, confirm_code)
+           VALUES ($1, $2, $3::timestamp AT TIME ZONE 'America/Santiago', $4, $5, $6, 'scheduled', $7, $8)
+           ON CONFLICT (professional_id, datetime) WHERE status NOT IN ('cancelled', 'no_show') DO NOTHING
+           RETURNING id, confirm_code, modality`,
+          insertParams
+        );
+      } catch (err) {
+        // 42P10 = "no unique or exclusion constraint matching the ON CONFLICT specification".
+        // Happens only if idx_appointment_no_double_book failed to create in ensureSchema
+        // (pre-existing duplicate rows) — fall back to a plain insert so booking still works,
+        // just without the race guard, rather than hard-failing every booking attempt.
+        if (err.code !== "42P10") throw err;
+        log("ERROR", "ON CONFLICT unsupported (index missing) — inserting without race guard", { message: err.message });
+        appt = await client.query(
+          `INSERT INTO appointment
+             (patient_id, professional_id, datetime, duration_minutes, service, modality, status, reason, confirm_code)
+           VALUES ($1, $2, $3::timestamp AT TIME ZONE 'America/Santiago', $4, $5, $6, 'scheduled', $7, $8)
+           RETURNING id, confirm_code, modality`,
+          insertParams
+        );
+      }
+      if (appt.rowCount === 0) {
+        return resp(409, { message: "Ese horario ya no está disponible. Por favor elige otro horario." });
+      }
       const row    = appt.rows[0];
       const apptId = row.id;
 

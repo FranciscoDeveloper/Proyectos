@@ -3,6 +3,12 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 
+// dairi-book (VPC-attached, no NAT Gateway/internet route) can't reach Flow.cl to check
+// payment status, so /api/book/payment/status always fails from there. dairi-payment is
+// not VPC-attached and already talks to Flow for payment/create — status checks go
+// through its function URL instead (read-only call to Flow, no charge/email side effects).
+const PAYMENT_LAMBDA_URL = 'https://koxzbg6zrjrlfvx2j2kqrlokv40jkzzp.lambda-url.us-east-1.on.aws/';
+
 type PaymentStatus = 'pending' | 'paid' | 'rejected' | 'cancelled';
 
 interface PaymentStatusResponse {
@@ -35,7 +41,7 @@ export class PaymentResultComponent implements OnInit {
       this.checking.set(false);
       return;
     }
-    this.http.get<PaymentStatusResponse>(`/api/book/payment/status?token=${encodeURIComponent(token)}`).subscribe({
+    this.http.post<PaymentStatusResponse>(PAYMENT_LAMBDA_URL, { action: 'status', token }).subscribe({
       next: res => {
         this.status.set(res);
         this.checking.set(false);
