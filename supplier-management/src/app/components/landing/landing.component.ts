@@ -107,6 +107,15 @@ export class LandingComponent implements OnInit, OnDestroy {
   private doc      = inject(DOCUMENT);
 
   activeView = 'dashboard';
+  private rotateInterval?: ReturnType<typeof setInterval>;
+  private readonly ROTATE_VIEWS = ['dashboard', 'citas', 'ficha'];
+  private rotateIdx = 0;
+
+  setActiveView(view: string): void {
+    this.activeView = view;
+    this.rotateIdx  = this.ROTATE_VIEWS.indexOf(view);
+    if (this.rotateInterval) { clearInterval(this.rotateInterval); this.rotateInterval = undefined; }
+  }
 
   ngOnInit(): void {
     this.titleSvc.setTitle(SEO_TITLE);
@@ -127,6 +136,11 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.metaSvc.updateTag({ name: 'twitter:description', content: SEO_DESCRIPTION });
     this.metaSvc.updateTag({ name: 'twitter:image',       content: SEO_IMAGE });
 
+    this.rotateInterval = setInterval(() => {
+      this.rotateIdx  = (this.rotateIdx + 1) % this.ROTATE_VIEWS.length;
+      this.activeView = this.ROTATE_VIEWS[this.rotateIdx];
+    }, 3200);
+
     for (const { id, content } of JSON_LD_SCRIPTS) {
       const existing = this.doc.getElementById(id);
       if (existing) existing.remove();
@@ -139,6 +153,7 @@ export class LandingComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.rotateInterval) clearInterval(this.rotateInterval);
     for (const { id } of JSON_LD_SCRIPTS) {
       this.doc.getElementById(id)?.remove();
     }
