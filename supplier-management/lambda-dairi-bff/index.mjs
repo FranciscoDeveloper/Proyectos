@@ -14,6 +14,7 @@ import { handleClinicalSummary }     from './handlers/clinicalHandler.mjs';
 import { handleUserConfig }          from './handlers/userConfigHandler.mjs';
 import { handleAdmin }               from './handlers/adminHandler.mjs';
 import { handleEntities }            from './handlers/entitiesHandler.mjs';
+import { handleAgenda }              from './handlers/agendaHandler.mjs';
 
 // Cold-start log so we know what environment is configured.
 const bootLog = getLogger();
@@ -65,6 +66,18 @@ export const handler = async (event, context) => {
     tokenPayload = verifyToken(event);
   } catch (err) {
     return response(401, { message: err.message });
+  }
+
+  // ── Agenda ("Starter" free plan) accounts: DynamoDB-only, deny-by-default ──
+  // These accounts have NO Postgres presence. Their JWT carries accountType:'agenda'.
+  // We hard-gate them here BEFORE any Postgres-touching route: they may reach ONLY the
+  // agenda calendar handler (DynamoDB), everything else is 403. This is independent of
+  // `role` — it does not rely on the per-module user_schema check that admin roles bypass.
+  if (tokenPayload.accountType === 'agenda') {
+    const agendaResult = await handleAgenda(rawPath, method, event, tokenPayload);
+    if (agendaResult) return agendaResult;
+    log.warn('Agenda account blocked from non-agenda route', { rawPath, method, sub: tokenPayload.sub });
+    return response(403, { message: 'Tu plan solo tiene acceso a la agenda de citas' });
   }
 
   // ── Routes that use DynamoDB only (no DB client needed) ───────────────────

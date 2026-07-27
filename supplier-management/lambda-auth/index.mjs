@@ -2,9 +2,43 @@ import pg     from "pg";
 import bcrypt from "bcryptjs";
 import jwt    from "jsonwebtoken";
 import crypto from "crypto";
+import { DynamoDBClient, GetItemCommand, PutItemCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 // Email is delegated to the frontend via /api/send-email (non-VPC path)
 
 const { Pool } = pg;
+
+// ── DynamoDB (agenda "Starter" free plan only) ─────────────────────────────────
+// The free "Starter" plan (plan === 'agenda') lives 100% in DynamoDB, isolated from
+// Postgres. Registration/login/activation for these accounts never touch app_user.
+// SDK v3 is provided by the Lambda Node 20 runtime; login runs outside the VPC and
+// reaches DynamoDB over the public endpoint. IAM role dairi-medical-agent-role grants
+// GetItem/PutItem/UpdateItem/Query on dairi-agenda-accounts.
+const ddb = new DynamoDBClient({ region: process.env.AWS_REGION || "us-east-1" });
+const AGENDA_ACCOUNTS_TABLE = process.env.AGENDA_ACCOUNTS_TABLE || "dairi-agenda-accounts";
+
+async function getAgendaAccount(email) {
+  try {
+    const r = await ddb.send(new GetItemCommand({
+      TableName: AGENDA_ACCOUNTS_TABLE,
+      Key: marshall({ email })
+    }));
+    return r.Item ? unmarshall(r.Item) : null;
+  } catch (err) {
+    // Never let a DynamoDB hiccup block the Postgres login path — treat as "no agenda account".
+    console.error("getAgendaAccount error:", err?.message);
+    return null;
+  }
+}
+
+// The single module an agenda account can see: the calendar. Same shape the BFF/login
+// build for Postgres users so the frontend renders the calendar identically.
+function agendaSchemas() {
+  return [{
+    entity: { key: "appointments", singular: "Cita", plural: "Citas", icon: "calendar", moduleType: "calendar" },
+    fields: []
+  }];
+}
 
 const pool = new Pool({
   host:     process.env.DB_HOST,
@@ -73,6 +107,14 @@ async function ensureColumns(client) {
 async function handleRefresh(body) {
   const rawToken = body?.refreshToken;
   if (!rawToken) return response(400, { message: "refreshToken requerido" });
+
+  // Agenda accounts use a stateless JWT refresh token (type 'agenda-refresh') so they
+  // never touch the Postgres refresh_token table. Postgres refresh tokens are random
+  // base64url strings, so jwt.verify throws on them → we fall through to the DB path.
+  try {
+    const p = jwt.verify(rawToken, JWT_SECRET);
+    if (p?.type === "agenda-refresh") return handleRefreshAgenda(p);
+  } catch { /* not an agenda JWT — fall through to Postgres refresh */ }
 
   const tokenHash = hashToken(rawToken);
   let client;
@@ -193,11 +235,75 @@ export const handler = async (event) => {
   return handleLogin(body);
 };
 
+// ── AGENDA (Starter free plan) auth helpers ────────────────────────────────────
+// Signs the access + refresh pair for an agenda account. The access token carries
+// accountType:'agenda' and sub = the DynamoDB accountId (a uuid, NOT a Postgres id).
+// The BFF router uses accountType:'agenda' to deny every Postgres route by default
+// (independent of role), so this claim is the security boundary for agenda accounts.
+function signAgendaSession(acct) {
+  const token = jwt.sign(
+    { sub: acct.accountId, email: acct.email, role: "agenda-owner", accountType: "agenda" },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+  const refreshToken = jwt.sign(
+    { sub: acct.accountId, email: acct.email, type: "agenda-refresh" },
+    JWT_SECRET,
+    { expiresIn: `${REFRESH_EXPIRES_DAYS}d` }
+  );
+  return { token, refreshToken };
+}
+
+async function handleLoginAgenda(acct, password) {
+  const passwordMatch = await bcrypt.compare(password, acct.passwordHash || "");
+  if (!passwordMatch)
+    return response(401, { message: "Credenciales inválidas. Verifique su email y contraseña." });
+
+  if (!acct.emailVerified)
+    return response(403, { message: "Debes activar tu cuenta. Revisa tu correo y haz clic en el enlace de activación." });
+
+  const { token, refreshToken } = signAgendaSession(acct);
+
+  return response(200, {
+    token,
+    refreshToken,
+    expiresAt: new Date(Date.now() + JWT_EXPIRES_IN_MS).toISOString(),
+    user: {
+      id: acct.accountId, name: acct.name, email: acct.email, role: "agenda-owner",
+      avatar: acct.avatar ?? "", accountType: "agenda", plan: "agenda",
+      // professionalId = accountId so the calendar (which scopes by professionalId)
+      // and the appointment rows (professionalId = accountId) agree.
+      professionalId: acct.accountId, professionalName: acct.name
+    },
+    zkEnabled: false,
+    schemas: agendaSchemas()
+  });
+}
+
+async function handleRefreshAgenda(payload) {
+  const acct = await getAgendaAccount(payload.email);
+  if (!acct || acct.accountId !== payload.sub)
+    return response(401, { message: "Sesión expirada. Por favor inicia sesión nuevamente." });
+
+  const { token, refreshToken } = signAgendaSession(acct);
+  return response(200, {
+    token,
+    refreshToken,
+    expiresAt: new Date(Date.now() + JWT_EXPIRES_IN_MS).toISOString()
+  });
+}
+
 // ── LOGIN ─────────────────────────────────────────────────────────────────────
 async function handleLogin(body) {
   const { email, password } = body ?? {};
   if (!email || !password)
     return response(400, { message: "Los campos 'email' y 'password' son requeridos" });
+
+  // Agenda accounts live in DynamoDB — check there first. A miss (or DynamoDB error)
+  // falls through to the unchanged Postgres login path, so Pro/Enterprise are untouched.
+  const emailNormEarly = email.toLowerCase().trim();
+  const agendaAcct = await getAgendaAccount(emailNormEarly);
+  if (agendaAcct) return handleLoginAgenda(agendaAcct, password);
 
   let client;
   try {
@@ -296,6 +402,14 @@ async function handleRegister(body) {
 
   const emailNorm = email.toLowerCase().trim();
 
+  // ── Agenda (Starter free plan) → DynamoDB, never Postgres ──────────────────
+  // plan === 'agenda' accounts are provisioned entirely in dairi-agenda-accounts.
+  // They have no app_user / professional / user_schema row (intentional trade-off:
+  // superadmin global listings over Postgres won't include them — they're isolated).
+  if (plan === "agenda") {
+    return handleRegisterAgenda({ nombre, apellidos, email: emailNorm, telefono, password });
+  }
+
   let client;
   try {
     client = await pool.connect();
@@ -364,6 +478,59 @@ async function handleRegister(body) {
   }
 }
 
+// ── REGISTER (agenda / Starter free plan → DynamoDB) ───────────────────────────
+async function handleRegisterAgenda({ nombre, apellidos, email, telefono, password }) {
+  try {
+    const existing = await getAgendaAccount(email);
+    if (existing)
+      return response(409, { message: "Ya existe una cuenta con ese correo electrónico." });
+
+    const accountId    = crypto.randomUUID();
+    const bookingToken = generateRawToken();       // public /book/{token} link identifier
+    const hash         = await bcrypt.hash(password, 12);
+    const name         = `${nombre.trim()} ${apellidos.trim()}`;
+    const avatar       = (nombre[0] + apellidos[0]).toUpperCase();
+    const now          = new Date().toISOString();
+
+    // Activation JWT carries accountType:'agenda' so handleActivate updates DynamoDB, not Postgres.
+    const activationToken = jwt.sign(
+      { sub: accountId, email, type: "activation", accountType: "agenda" },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    await ddb.send(new PutItemCommand({
+      TableName: AGENDA_ACCOUNTS_TABLE,
+      Item: marshall({
+        email, accountId, name, passwordHash: hash, role: "agenda-owner", avatar,
+        emailVerified: false, activationToken, plan: "agenda", bookingToken,
+        telefono: telefono ?? null,
+        specialty: "Consulta general", consultationDuration: 45,
+        workingDays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        videoConsultation: false, active: true,
+        createdAt: now, updatedAt: now
+      }, { removeUndefinedValues: true }),
+      // Race-safe uniqueness: fail if the email already exists.
+      ConditionExpression: "attribute_not_exists(email)"
+    }));
+
+    const activationUrl = `${APP_URL}/#/activate?token=${encodeURIComponent(activationToken)}`;
+    const emailContent  = buildActivationEmail({ name, email, activationUrl });
+
+    return response(201, {
+      message:      "Cuenta creada. Activa tu cuenta usando el enlace de activación.",
+      emailSent:    false,
+      activationUrl,
+      emailPayload: emailContent
+    });
+  } catch (err) {
+    if (err?.name === "ConditionalCheckFailedException")
+      return response(409, { message: "Ya existe una cuenta con ese correo electrónico." });
+    console.error("Register agenda error:", err);
+    return response(500, { message: "Error interno del servidor" });
+  }
+}
+
 // ── ACTIVATE ──────────────────────────────────────────────────────────────────
 async function handleActivate(body) {
   const { token } = body ?? {};
@@ -378,6 +545,9 @@ async function handleActivate(body) {
 
   if (payload.type !== "activation")
     return response(400, { message: "Token inválido." });
+
+  // Agenda accounts activate against DynamoDB, not app_user.
+  if (payload.accountType === "agenda") return handleActivateAgenda(payload, token);
 
   let client;
   try {
@@ -401,6 +571,24 @@ async function handleActivate(body) {
     return response(500, { message: "Error interno del servidor" });
   } finally {
     client?.release();
+  }
+}
+
+async function handleActivateAgenda(payload, token) {
+  try {
+    await ddb.send(new UpdateItemCommand({
+      TableName: AGENDA_ACCOUNTS_TABLE,
+      Key: marshall({ email: payload.email }),
+      UpdateExpression: "SET emailVerified = :t REMOVE activationToken",
+      ConditionExpression: "activationToken = :tok AND emailVerified = :f",
+      ExpressionAttributeValues: marshall({ ":t": true, ":tok": token, ":f": false })
+    }));
+    return response(200, { message: "Cuenta activada exitosamente. Ya puedes iniciar sesión." });
+  } catch (err) {
+    if (err?.name === "ConditionalCheckFailedException")
+      return response(400, { message: "El enlace ya fue utilizado o es inválido." });
+    console.error("Activate agenda error:", err);
+    return response(500, { message: "Error interno del servidor" });
   }
 }
 

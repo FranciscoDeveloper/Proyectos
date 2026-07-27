@@ -1,7 +1,18 @@
 import pg from "pg";
-import { createHmac } from "crypto";
+import { createHmac, randomUUID } from "crypto";
+import { DynamoDBClient, QueryCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 
 const { Pool } = pg;
+
+// ── DynamoDB (agenda "Starter" free plan professionals only) ───────────────────
+// Agenda accounts have NO Postgres row — their public booking is served straight from
+// DynamoDB. This is purely additive: Postgres is always tried first, so the Pro/Enterprise
+// booking path is byte-for-byte unchanged. dairi-book runs in the VPC and reaches DynamoDB
+// through the existing VPC Gateway Endpoint. Agenda plan has NO online payment (no Flow).
+const ddb = new DynamoDBClient({ region: process.env.AWS_REGION || "us-east-1" });
+const AGENDA_ACCOUNTS_TABLE     = process.env.AGENDA_ACCOUNTS_TABLE     || "dairi-agenda-accounts";
+const AGENDA_APPOINTMENTS_TABLE = process.env.AGENDA_APPOINTMENTS_TABLE || "dairi-agenda-appointments";
 
 // ── Logger ─────────────────────────────────────────────────────────────────────
 const log = (level, msg, data) => {
@@ -201,7 +212,131 @@ async function findProfessional(client, idOrToken) {
   const res = !isNaN(numId)
     ? await client.query("SELECT * FROM professional WHERE id = $1 AND active = true LIMIT 1", [numId])
     : await client.query("SELECT * FROM professional WHERE booking_token = $1 AND active = true LIMIT 1", [idOrToken]);
-  return res.rowCount > 0 ? res.rows[0] : null;
+  if (res.rowCount > 0) return res.rows[0];
+
+  // Fallback: agenda accounts (DynamoDB). The public identifier is the accountId (uuid),
+  // resolved via the accountId-index GSI. Only reached on a Postgres miss, so this never
+  // affects existing Pro/Enterprise professionals.
+  if (isNaN(numId)) {
+    const agenda = await findAgendaProfessional(idOrToken);
+    if (agenda) return agenda;
+  }
+  return null;
+}
+
+// Resolve an agenda account by accountId and normalize it to the `professional` row shape
+// the booking routes already consume (id, name, specialty, consultation_duration, ...).
+async function findAgendaProfessional(accountId) {
+  try {
+    const r = await ddb.send(new QueryCommand({
+      TableName: AGENDA_ACCOUNTS_TABLE,
+      IndexName: "accountId-index",
+      KeyConditionExpression: "accountId = :a",
+      ExpressionAttributeValues: marshall({ ":a": accountId }),
+      Limit: 1
+    }));
+    if (!r.Items || r.Items.length === 0) return null;
+    const a = unmarshall(r.Items[0]);
+    if (a.active === false || !a.emailVerified) return null;
+    return {
+      id:                    a.accountId,
+      _agenda:               true,
+      name:                  a.name,
+      specialty:             a.specialty ?? "Consulta general",
+      consultation_duration: Number(a.consultationDuration) || 45,
+      working_days:          a.workingDays ?? null,
+      video_consultation:    a.videoConsultation ?? false,
+      consultation_price:    a.consultationPrice != null ? Number(a.consultationPrice) : null,
+      active:                a.active !== false
+    };
+  } catch (err) {
+    log("ERROR", "findAgendaProfessional error", { message: err.message, accountId });
+    return null;
+  }
+}
+
+// Booked HH:MM times for an agenda professional on a given date (America/Santiago),
+// excluding cancelled/no_show. Query by partition key only — no Scan.
+async function agendaBookedTimes(professionalId, date) {
+  const r = await ddb.send(new QueryCommand({
+    TableName: AGENDA_APPOINTMENTS_TABLE,
+    KeyConditionExpression: "professionalId = :p",
+    ExpressionAttributeValues: marshall({ ":p": String(professionalId) })
+  }));
+  const set = new Set();
+  for (const it of (r.Items ?? [])) {
+    const a = unmarshall(it);
+    if (a.status === "cancelled" || a.status === "no_show") continue;
+    // dateTime stored as "YYYY-MM-DDTHH:MM[:SS]" in Santiago local time
+    if (typeof a.dateTime === "string" && a.dateTime.slice(0, 10) === date) {
+      set.add(a.dateTime.slice(11, 16));
+    }
+  }
+  return set;
+}
+
+// Create a public booking for an agenda professional directly in DynamoDB. No patient
+// table, no clinical_record, no payment ledger, no Flow — agenda is a free, no-online-pay
+// tier. Double-book guard is check-then-act (query booked slots, then conditional Put):
+// acceptable for a single-professional, low-concurrency tier (documented trade-off vs the
+// Postgres partial unique index used for Pro/Enterprise).
+async function bookAgenda(prof, { date, time, name, email, rut, phone, reason, modality }) {
+  const booked = await agendaBookedTimes(prof.id, date);
+  if (booked.has(time)) {
+    return resp(409, { message: "Ese horario ya no está disponible. Por favor elige otro horario." });
+  }
+
+  const appointmentId = randomUUID();
+  const confirmCode   = generateConfirmCode();
+  const dbModality    = modality === "video" ? "video" : modality === "phone" ? "phone" : "in_person";
+  const now           = new Date().toISOString();
+
+  const item = {
+    professionalId:   String(prof.id),
+    appointmentId,
+    status:           "scheduled",
+    service:          prof.specialty ?? "Consulta",
+    modality:         dbModality,
+    dateTime:         `${date}T${time}:00`,
+    durationMinutes:  prof.consultation_duration ?? 45,
+    reason:           reason ?? null,
+    confirmCode,
+    patientName:      name,
+    patientEmail:     email,
+    patientPhone:     phone ?? null,
+    patientRut:       rut,
+    professionalName: prof.name,
+    createdAt:        now,
+    updatedAt:        now
+  };
+
+  try {
+    await ddb.send(new PutItemCommand({
+      TableName: AGENDA_APPOINTMENTS_TABLE,
+      Item: marshall(item, { removeUndefinedValues: true }),
+      ConditionExpression: "attribute_not_exists(appointmentId)"
+    }));
+  } catch (err) {
+    log("ERROR", "Agenda booking put error", { message: err.message, appointmentId });
+    return resp(500, { message: "No se pudo registrar la cita. Intenta nuevamente." });
+  }
+
+  log("INFO", "Agenda booking created", { professionalId: prof.id, appointmentId });
+  return resp(201, {
+    appointmentId: String(appointmentId),
+    confirmCode,
+    doctorName:    prof.name,
+    clinicName:    "Dairi",
+    specialty:     prof.specialty,
+    date,
+    time,
+    patientName:   name,
+    modality:      dbModality,
+    meetLink:      null,
+    paymentLink:   null,
+    paymentAmount: null,
+    bookingToken:  undefined
+  });
 }
 
 // ── Applies a resolved Flow payment status to appointment_payment / payment / appointment ──
@@ -460,15 +595,20 @@ async function route(client, method, rawPath, body, qs) {
     const prof = await findProfessional(client, slotsMatch[1]);
     if (!prof) return resp(404, { message: "Profesional no encontrado" });
 
-    const booked = await client.query(
-      `SELECT to_char(datetime AT TIME ZONE 'America/Santiago', 'HH24:MI') AS t
-       FROM appointment
-       WHERE professional_id = $1
-         AND (datetime AT TIME ZONE 'America/Santiago')::date = $2::date
-         AND status NOT IN ('cancelled', 'no_show')`,
-      [prof.id, date]
-    );
-    const bookedSet = new Set(booked.rows.map((r) => r.t));
+    let bookedSet;
+    if (prof._agenda) {
+      bookedSet = await agendaBookedTimes(prof.id, date);
+    } else {
+      const booked = await client.query(
+        `SELECT to_char(datetime AT TIME ZONE 'America/Santiago', 'HH24:MI') AS t
+         FROM appointment
+         WHERE professional_id = $1
+           AND (datetime AT TIME ZONE 'America/Santiago')::date = $2::date
+           AND status NOT IN ('cancelled', 'no_show')`,
+        [prof.id, date]
+      );
+      bookedSet = new Set(booked.rows.map((r) => r.t));
+    }
     const dur = prof.consultation_duration || 45;
     const slots = [];
     for (let mins = 9 * 60; mins + dur <= 18 * 60; mins += dur) {
@@ -502,6 +642,11 @@ async function route(client, method, rawPath, body, qs) {
       if (errors.length > 0) {
         log("WARN", "Booking validation failed", { errors });
         return resp(400, { message: errors[0], errors });
+      }
+
+      // ── Agenda ("Starter") professional: DynamoDB-only, no payment, no clinical record ──
+      if (prof._agenda) {
+        return await bookAgenda(prof, { date, time, name, email, rut, phone, reason, modality: body.modality });
       }
 
       // Find or create patient by RUT
