@@ -8,8 +8,9 @@ import {
   DeleteObjectCommand
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { getLogger }    from '../lib/logger.mjs';
-import { response }     from '../lib/response.mjs';
+import { getLogger }         from '../lib/logger.mjs';
+import { response }          from '../lib/response.mjs';
+import * as profScopeService from '../services/profScopeService.mjs';
 
 const s3Client   = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
 const DOCS_BUCKET = process.env.DOCS_BUCKET || 'friquelme-firstpage';
@@ -19,10 +20,18 @@ const DOCS_PREFIX = 'patient-docs';
  * Handle /api/documents/{recordId}[/{subPath}] routes.
  * Returns null when the path does not match.
  *
- * @param {string} rawPath Normalized request path.
- * @param {string} method  HTTP method.
+ * `recordId` is a `clinical_record.id`. Scoped the same way the `clinical-records`
+ * entity is: the caller must own the record or have an appointment with that patient,
+ * unless their resolved scope bypasses row-level filtering (superadmin). Previously
+ * unscoped — any authenticated user could list/download/upload/delete any patient's
+ * documents by id (IDOR, found in a full-app security audit).
+ *
+ * @param {string}                   rawPath      Normalized request path.
+ * @param {string}                   method       HTTP method.
+ * @param {import('pg').PoolClient}  client       Active DB client.
+ * @param {object}                   tokenPayload Verified JWT payload.
  */
-export async function handleDocuments(rawPath, method) {
+export async function handleDocuments(rawPath, method, client, tokenPayload) {
   const docsMatch = rawPath.match(/^\/api\/documents\/(\d+)(\/(.+))?$/);
   if (!docsMatch) return null;
 
@@ -30,6 +39,21 @@ export async function handleDocuments(rawPath, method) {
   const recordId = docsMatch[1];
   const subPath  = docsMatch[3] ?? null;
   const prefix   = `${DOCS_PREFIX}/${recordId}/`;
+
+  const profScope = await profScopeService.resolveProfScope(client, tokenPayload.sub, tokenPayload.role);
+  const { clause, params } = profScopeService.buildProfWhere(
+    { profFilter: { idCol: 'c.professional_id', existsIn: { table: 'appointment', patientCol: 'patient_id', profCol: 'professional_id', pkCol: 'patient_id' } } },
+    profScope, 1
+  );
+  const andOrWhere = clause ? clause.replace(' WHERE ', ' AND ') : '';
+  const owns = await client.query(
+    `SELECT 1 FROM clinical_record c WHERE c.id = $1${andOrWhere} LIMIT 1`,
+    [recordId, ...params]
+  );
+  if (owns.rowCount === 0) {
+    log.warn('Documents access denied — record not owned by caller', { recordId, sub: tokenPayload.sub });
+    return response(404, { message: 'Registro no encontrado' });
+  }
 
   // GET /api/documents/{recordId} → list documents
   if (method === 'GET' && !subPath) {

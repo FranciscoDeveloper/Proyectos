@@ -75,8 +75,15 @@ export async function handleEntities(rawPath, method, event, tokenPayload, clien
     return await sendPresupuestoEmail(client, config, id, body);
   }
 
+  // ── user-management is a superadmin-only entity — writes app_user.role and
+  // email_verified, so any lesser role (including 'admin', which bypasses the
+  // module check above) could otherwise self-escalate to superadmin.
+  if (resolvedKey === 'user-management' && tokenPayload.role !== 'superadmin') {
+    return response(403, { message: 'Requiere permisos de superadministrador' });
+  }
+
   // ── Resolve professional scope ──────────────────────────────────────────────
-  const profScope = await profScopeService.resolveProfScope(client, tokenPayload.sub);
+  const profScope = await profScopeService.resolveProfScope(client, tokenPayload.sub, tokenPayload.role);
 
   // ── Special action: POST /api/entities/{clinicalKey}/{id}/encounters ─────────
   // Resolved after profScope so appending an encounter is subject to the same

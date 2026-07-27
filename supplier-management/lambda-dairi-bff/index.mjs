@@ -84,22 +84,17 @@ export const handler = async (event, context) => {
   const chatResult = await handleChat(rawPath, method, event, tokenPayload);
   if (chatResult) return chatResult;
 
-  // ── Documents (S3 only, no DB client needed) ──────────────────────────────
-  try {
-    const docsResult = await handleDocuments(rawPath, method);
-    if (docsResult) return docsResult;
-  } catch (s3Err) {
-    log.error('Documents S3 error', { message: s3Err.message, rawPath });
-    return response(500, { message: 'Error al acceder a documentos', error: s3Err.message });
-  }
-
   // ── Pre-check: paths that need a DB client must match a known prefix ───────
   // This avoids burning a pool.connect() (and hanging when RDS is stopped) on
   // unknown routes — those get a fast 404 without touching the DB.
+  // Documents now needs a DB client too — it used to serve S3 pre-signed URLs
+  // with no ownership check at all (IDOR, found in a full-app security audit);
+  // it now resolves profScope like clinical-summary/entities do.
   const needsDb =
     rawPath === '/api/chat/users' ||
     rawPath === '/api/user/config' ||
     /^\/api\/clinical-summary\/\d+$/.test(rawPath) ||
+    /^\/api\/documents\/\d+/.test(rawPath) ||
     rawPath.startsWith('/api/admin/') ||
     rawPath.startsWith('/api/entities/') ||
     rawPath.startsWith('/api/suppliers');
@@ -137,8 +132,17 @@ export const handler = async (event, context) => {
     if (cfgResult) return cfgResult;
 
     // GET /api/clinical-summary/{id}
-    const clinResult = await handleClinicalSummary(rawPath, method, client);
+    const clinResult = await handleClinicalSummary(rawPath, method, client, tokenPayload);
     if (clinResult) return clinResult;
+
+    // /api/documents/{recordId}[/...] — S3 pre-signed URLs, now ownership-scoped
+    try {
+      const docsResult = await handleDocuments(rawPath, method, client, tokenPayload);
+      if (docsResult) return docsResult;
+    } catch (s3Err) {
+      log.error('Documents S3 error', { message: s3Err.message, rawPath });
+      return response(500, { message: 'Error al acceder a documentos', error: s3Err.message });
+    }
 
     // /api/admin/*
     const adminResult = await handleAdmin(rawPath, method, event, tokenPayload, client);

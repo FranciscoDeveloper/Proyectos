@@ -152,7 +152,11 @@ async function bffPut(path, token, body) {
 // ── Handler ────────────────────────────────────────────────────────────────────
 
 export const handler = async (event) => {
-  const token = signJwt({ sub: SERVICE_USER_ID, email: "soap-processor@dairi.cl", role: "admin" }, JWT_SECRET);
+  // role:'superadmin' (not 'admin') is required so profScopeService.resolveProfScope
+  // bypasses row-level professional scoping — this pipeline writes to whichever
+  // patient's clinical_record a recording is about, not just SERVICE_USER_ID's own.
+  // 'admin' only bypasses the per-module check, not per-row scoping (see BFF audit).
+  const token = signJwt({ sub: SERVICE_USER_ID, email: "soap-processor@dairi.cl", role: "superadmin" }, JWT_SECRET);
 
   for (const record of event.Records) {
     const bucket = record.s3.bucket.name;

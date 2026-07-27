@@ -26,7 +26,7 @@ import { getLogger } from '../lib/logger.mjs';
  * @returns {{ conditions: string[], params: any[] }}
  */
 function buildProfConditions(config, profScope, existingParamCount = 0) {
-  if (!profScope || !config.profFilter) return { conditions: [], params: [] };
+  if (!profScope || !config.profFilter || profScope.bypass) return { conditions: [], params: [] };
 
   const f = config.profFilter;
   const params = [];
@@ -53,17 +53,24 @@ function buildProfConditions(config, profScope, existingParamCount = 0) {
 
 /**
  * Build a WHERE clause that restricts rows to the authenticated professional.
- * See buildProfConditions for the condition set. Fails closed (1=0) when the
- * entity declares a profFilter and the professional has a resolved scope but
- * none of the configured conditions could be built.
+ * See buildProfConditions for the condition set. Fails closed (1=0) whenever the
+ * entity declares a profFilter and there is no resolved scope to build a condition
+ * from — including when profScope itself is null (no linked professional row).
+ * A null profScope previously meant "no filter" (full table access); that was a
+ * real vulnerability (any authenticated account with no professional row — including
+ * a freshly self-registered one — saw every row of every profFilter-scoped entity).
+ * The one sanctioned bypass is profScope.bypass (see resolveProfScope), reserved for
+ * the superadmin role and trusted internal service accounts signed with it.
  *
  * @param {object} config             Entity config; may carry a `profFilter` descriptor.
- * @param {object|null} profScope     Resolved scope: { professionalId, professionalName }.
+ * @param {object|null} profScope     Resolved scope: { professionalId, professionalName } | { bypass: true } | null.
  * @param {number} existingParamCount Number of positional params already bound before this clause.
  * @returns {{ clause: string, params: any[] }} Clause already contains its WHERE prefix.
  */
 export function buildProfWhere(config, profScope, existingParamCount = 0) {
-  if (!profScope || !config.profFilter) return { clause: '', params: [] };
+  if (!config.profFilter) return { clause: '', params: [] };
+  if (profScope?.bypass) return { clause: '', params: [] };
+  if (!profScope) return { clause: ' WHERE (1=0)', params: [] };
 
   const { conditions, params } = buildProfConditions(config, profScope, existingParamCount);
   if (conditions.length === 0) return { clause: ' WHERE (1=0)', params: [] };
@@ -82,7 +89,9 @@ export function buildProfWhere(config, profScope, existingParamCount = 0) {
  * @returns {{ clause: string, params: any[] }} Clause already contains its AND prefix, or '' when unscoped.
  */
 export function buildProfAndClause(config, profScope, existingParamCount = 0) {
-  if (!profScope || !config.profFilter) return { clause: '', params: [] };
+  if (!config.profFilter) return { clause: '', params: [] };
+  if (profScope?.bypass) return { clause: '', params: [] };
+  if (!profScope) return { clause: ' AND (1=0)', params: [] };
 
   const { conditions, params } = buildProfConditions(config, profScope, existingParamCount);
   if (conditions.length === 0) return { clause: ' AND (1=0)', params: [] };
@@ -93,14 +102,23 @@ export function buildProfAndClause(config, profScope, existingParamCount = 0) {
  * Resolve the professional scope for a given user.
  * Looks up the `professional` row linked to the user and returns the scope
  * used for per-professional data filtering, or null when the user maps to
- * no professional (e.g. non-clinical admin accounts).
+ * no professional (e.g. non-clinical staff accounts) — which now means
+ * "no access" to profFilter-scoped entities (see buildProfWhere), not "full access".
+ *
+ * `role === 'superadmin'` is the one sanctioned full-table bypass (platform-level
+ * trust, not tenant-scoped) — used by the real superadmin account and by internal
+ * service callers signed with that role (e.g. the SOAP-note pipeline, which needs to
+ * write to whichever patient's record a recording is about, not just its own).
  *
  * @param {import('pg').PoolClient} client Active DB client.
  * @param {number|string} userId           Authenticated user id (token `sub`).
- * @returns {Promise<{ professionalId: number, professionalName: string }|null>}
+ * @param {string|null} [role=null]        Authenticated user role (token `role`).
+ * @returns {Promise<{ professionalId: number, professionalName: string }|{ bypass: true }|null>}
  */
-export async function resolveProfScope(client, userId) {
+export async function resolveProfScope(client, userId, role = null) {
   const log = getLogger();
+
+  if (role === 'superadmin') return { bypass: true };
 
   const { rows } = await client.query(
     `SELECT p.id AS prof_id, p.name AS prof_name
