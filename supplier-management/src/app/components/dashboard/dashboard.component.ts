@@ -63,19 +63,36 @@ export class DashboardComponent {
     this.auth.schemas().some(s => s.entity.key === 'appointments')
   );
 
+  // ── Free Starter plan (agenda-only): user_schema has only 'appointments' ──
+  // (assigned at registration via plan=agenda, see lambda-auth handleRegister).
+  // Dashboard shows a summary scoped to just that module — no revenue/patient
+  // KPIs, since those modules aren't part of this plan.
+  isAgendaOnly = computed(() => {
+    const schemas = this.auth.schemas();
+    return schemas.length === 1 && schemas[0].entity.key === 'appointments';
+  });
+
   // ── Today's date string (YYYY-MM-DD) ──────────────────────────────────────
   private readonly today = new Date().toISOString().slice(0, 10);
   private readonly monthYear = this.today.slice(0, 7);
 
   // ── Clinic KPI stats ──────────────────────────────────────────────────────
   clinicKpis = computed(() => {
-    const appts    = this.crudSvc.getAll('appointments')();
-    const patients = this.crudSvc.getAll('paciente')();
-    const payments = this.crudSvc.getAll('payments')();
+    const appts = this.crudSvc.getAll('appointments')();
 
     const todayAppts   = appts.filter(a => String(a['dateTime'] ?? '').startsWith(this.today));
     const pendingAppts = appts.filter(a => a['status'] === 'AGENDADA');
-    const monthRev     = payments
+
+    // Free Starter (agenda-only) users don't have the patients/payments modules —
+    // skip those calls entirely rather than firing requests that only 403 or return
+    // data outside this plan's scope (patients is skipAuth, would still respond).
+    if (this.isAgendaOnly()) {
+      return { todayCount: todayAppts.length, revenue: 0, totalPatients: 0, pendingCount: pendingAppts.length };
+    }
+
+    const patients = this.crudSvc.getAll('paciente')();
+    const payments = this.crudSvc.getAll('payments')();
+    const monthRev = payments
       .filter(p => String(p['date'] ?? '').startsWith(this.monthYear))
       .reduce((s, p) => s + (Number(p['amount']) || 0), 0);
 

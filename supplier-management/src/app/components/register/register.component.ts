@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 
 function passwordMatch(ctrl: AbstractControl): ValidationErrors | null {
@@ -28,8 +28,12 @@ function passwordStrength(ctrl: AbstractControl): ValidationErrors | null {
     styleUrl: './register.component.scss'
 })
 export class RegisterComponent {
-  private fb   = inject(FormBuilder);
-  private http = inject(HttpClient);
+  private fb    = inject(FormBuilder);
+  private http  = inject(HttpClient);
+  private route = inject(ActivatedRoute);
+
+  // ?plan=agenda → free Starter plan (agenda-only access, see handleRegister in lambda-auth)
+  readonly isFreePlan = this.route.snapshot.queryParamMap.get('plan') === 'agenda';
 
   showPass      = signal(false);
   showConfirm   = signal(false);
@@ -114,6 +118,7 @@ export class RegisterComponent {
       email:     v.email,
       telefono:  v.telefono,
       password:  v.password,
+      ...(this.isFreePlan ? { plan: 'agenda' } : {}),
     }).subscribe({
       next: (res: any) => {
         this.loading.set(false);

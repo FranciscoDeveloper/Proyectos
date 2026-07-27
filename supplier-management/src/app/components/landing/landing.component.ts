@@ -4,7 +4,7 @@ import { Title, Meta } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
 
 const SEO_TITLE = 'Dairi — Software clínico para Chile | Citas, fichas y pagos online';
-const SEO_DESCRIPTION = 'Dairi es un software de gestión clínica en la nube para clínicas médicas y dentales en Chile: agenda de citas, fichas clínicas electrónicas de 9 especialidades, reserva online con pago vía Flow.cl, transcripción de consultas con IA y sincronización con Google Calendar. Desde $6.990/mes. 30 días gratis.';
+const SEO_DESCRIPTION = 'Dairi es un software de gestión clínica en la nube para clínicas médicas y dentales en Chile: agenda de citas, fichas clínicas electrónicas de 9 especialidades, reserva online con pago vía Flow.cl, transcripción de consultas con IA y sincronización con Google Calendar. Plan Starter gratis para agenda de citas, planes pagos desde $6.990/mes con 30 días de prueba.';
 const SEO_URL = 'https://dairi.cl/';
 const SEO_IMAGE = 'https://dairi.cl/og-image.png';
 
@@ -35,13 +35,15 @@ const JSON_LD_SCRIPTS = [
       url: SEO_URL,
       areaServed: 'CL',
       offers: [
-        { '@type': 'Offer', name: 'Starter', price: '6990', priceCurrency: 'CLP',
+        { '@type': 'Offer', name: 'Starter', price: '0', priceCurrency: 'CLP',
+          priceSpecification: { '@type': 'UnitPriceSpecification', price: '0', priceCurrency: 'CLP', unitCode: 'MON' } },
+        { '@type': 'Offer', name: 'Pro', price: '6990', priceCurrency: 'CLP',
           priceSpecification: { '@type': 'UnitPriceSpecification', price: '6990', priceCurrency: 'CLP', unitCode: 'MON' } },
-        { '@type': 'Offer', name: 'Pro', price: '14990', priceCurrency: 'CLP',
+        { '@type': 'Offer', name: 'Enterprise', price: '14990', priceCurrency: 'CLP',
           priceSpecification: { '@type': 'UnitPriceSpecification', price: '14990', priceCurrency: 'CLP', unitCode: 'MON' } }
       ],
       featureList: [
-        'Gestión de pacientes', 'Calendario de citas', 'Fichas clínicas especializadas (9 especialidades)',
+        'Plan gratis de agenda de citas para 1 profesional', 'Gestión de pacientes', 'Calendario de citas', 'Fichas clínicas especializadas (9 especialidades)',
         'Reserva online con pago vía Flow.cl', 'Transcripción de consultas con IA (Deepgram Nova-3)',
         'Nota SOAP generada por IA (Dairi IA)', 'Sincronización con Google Calendar y Google Meet',
         'Reportes clínicos y comisiones', 'Presupuestos con cobro online',
@@ -62,12 +64,12 @@ const JSON_LD_SCRIPTS = [
         {
           '@type': 'Question',
           name: '¿Qué software clínico usar en Chile?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Dairi es un sistema de gestión clínica para Chile que incluye agenda de citas, fichas clínicas electrónicas de 9 especialidades, reserva de horas online con pago vía Flow.cl, transcripción de consultas con IA y reportes clínicos. Está diseñado para clínicas médicas, dentales y centros de especialidades, con precios desde $6.990 al mes.' }
+          acceptedAnswer: { '@type': 'Answer', text: 'Dairi es un sistema de gestión clínica para Chile que incluye agenda de citas, fichas clínicas electrónicas de 9 especialidades, reserva de horas online con pago vía Flow.cl, transcripción de consultas con IA y reportes clínicos. Está diseñado para clínicas médicas, dentales y centros de especialidades, con un plan gratis para agenda de citas y planes pagos desde $6.990 al mes.' }
         },
         {
           '@type': 'Question',
           name: '¿Cuánto cuesta Dairi?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Dairi tiene tres planes: Starter desde $6.990/mes (hasta 3 profesionales), Pro desde $14.990/mes (hasta 20 profesionales, todas las especialidades) y Enterprise a precio a consultar. Todos los planes incluyen 30 días de prueba gratuita sin tarjeta de crédito.' }
+          acceptedAnswer: { '@type': 'Answer', text: 'Dairi tiene tres planes: Starter, gratis para siempre (1 profesional, 1 especialidad, agenda de citas y reservas online), Pro desde $6.990/mes (hasta 3 profesionales, fichas clínicas y pagos online) y Enterprise desde $14.990/mes (hasta 20 profesionales, todas las especialidades). Los planes pagos incluyen 30 días de prueba gratuita sin tarjeta de crédito.' }
         },
         {
           '@type': 'Question',

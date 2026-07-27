@@ -280,7 +280,7 @@ async function handleLogin(body) {
 
 // ── REGISTER ──────────────────────────────────────────────────────────────────
 async function handleRegister(body) {
-  const { nombre, apellidos, email, telefono, password } = body ?? {};
+  const { nombre, apellidos, email, telefono, password, plan } = body ?? {};
 
   if (!nombre || !apellidos || !email || !password)
     return response(400, { message: "Faltan campos obligatorios: nombre, apellidos, email, password" });
@@ -334,12 +334,17 @@ async function handleRegister(body) {
 
     const activationUrl = `${APP_URL}/#/activate?token=${encodeURIComponent(activationToken)}`;
 
-    // Assign default modules for new users (keys must match app_schema.schema_key in DB)
+    // Assign modules for new users (keys must match app_schema.schema_key in DB).
+    // plan === 'agenda' is the free Starter tier (landing CTA links to
+    // /register?plan=agenda): agenda-only access, no clinical records/reports/budgets.
+    const defaultModules = plan === 'agenda'
+      ? ['appointments']
+      : ['clinicalRecords', 'appointments', 'reports', 'presupuestos'];
     await client.query(
       `INSERT INTO user_schema (user_id, schema_id)
        SELECT $1, s.id FROM app_schema s
        WHERE s.schema_key = ANY($2::text[])`,
-      [userId, ['clinicalRecords', 'appointments', 'reports', 'presupuestos']]
+      [userId, defaultModules]
     );
 
     // Build email content — frontend sends it via /api/send-email (internet-accessible)

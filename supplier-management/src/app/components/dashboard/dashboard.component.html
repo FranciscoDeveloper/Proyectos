@@ -32,14 +32,14 @@
           <div class="kpi-label">Citas hoy</div>
         </div>
       </div>
-      <div class="kpi-card">
+      <div class="kpi-card" *ngIf="!isAgendaOnly()">
         <div class="kpi-icon kpi-icon--green">💰</div>
         <div class="kpi-body">
           <div class="kpi-value kpi-value--green">{{ formatCurrency(clinicKpis().revenue) }}</div>
           <div class="kpi-label">Ingresos del mes</div>
         </div>
       </div>
-      <div class="kpi-card">
+      <div class="kpi-card" *ngIf="!isAgendaOnly()">
         <div class="kpi-icon kpi-icon--cyan">🧑‍⚕️</div>
         <div class="kpi-body">
           <div class="kpi-value kpi-value--cyan">{{ clinicKpis().totalPatients }}</div>

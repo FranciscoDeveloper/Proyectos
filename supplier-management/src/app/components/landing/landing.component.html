@@ -231,8 +231,8 @@
   </div>
   <div class="trust-div"></div>
   <div class="trust-item">
-    <span class="trust-num">US$3</span>
-    <span class="trust-lbl">plan Starter / mes</span>
+    <span class="trust-num">Gratis</span>
+    <span class="trust-lbl">plan Starter</span>
   </div>
   <div class="trust-div"></div>
   <div class="trust-item">
@@ -275,7 +275,7 @@
     <div class="feature-card">
       <div class="feature-icon">💬</div>
       <h3>Chat Interno con Asistente IA</h3>
-      <p>El asistente Dairi IA responde dudas operativas en todos los planes. Los planes Pro y Enterprise suman el chat de equipo completo: canales y mensajes directos entre el staff.</p>
+      <p>El asistente Dairi IA responde dudas operativas en todos los planes. El plan Enterprise suma el chat de equipo completo: canales y mensajes directos entre el staff.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📊</div>
@@ -290,7 +290,7 @@
     <div class="feature-card">
       <div class="feature-icon">💬</div>
       <h3>Asistente IA incluido</h3>
-      <p>Dairi IA responde dudas operativas en todos los planes. Los planes Pro y Enterprise suman el chat de equipo: canales y mensajes directos entre el staff de la clínica.</p>
+      <p>Dairi IA responde dudas operativas en todos los planes. El plan Enterprise suma el chat de equipo: canales y mensajes directos entre el staff de la clínica.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📱</div>
@@ -415,7 +415,7 @@
   <div class="faq-grid">
     <article class="faq-item">
       <h3>¿Qué software clínico usar en Chile?</h3>
-      <p>Dairi es un sistema de gestión clínica para Chile que incluye agenda de citas, fichas clínicas electrónicas, reserva de horas online con pago vía Flow.cl, transcripción de consultas con IA y reportes clínicos. Está diseñado para clínicas médicas, dentales y centros de especialidades, con precios desde $6.990 al mes.</p>
+      <p>Dairi es un sistema de gestión clínica para Chile que incluye agenda de citas, fichas clínicas electrónicas, reserva de horas online con pago vía Flow.cl, transcripción de consultas con IA y reportes clínicos. Está diseñado para clínicas médicas, dentales y centros de especialidades, con un plan gratis para agenda de citas y planes pagos desde $6.990 al mes.</p>
     </article>
     <article class="faq-item">
       <h3>¿Sirve Dairi para una clínica dental?</h3>
@@ -435,7 +435,7 @@
     </article>
     <article class="faq-item">
       <h3>¿Cuánto cuesta un software de gestión clínica?</h3>
-      <p>Dairi cuesta desde $6.990 al mes (plan Starter, hasta 3 profesionales) y $14.990 al mes (plan Pro, hasta 20 profesionales y todas las especialidades). Todos los planes incluyen 30 días de prueba gratis sin tarjeta de crédito.</p>
+      <p>Dairi tiene tres planes: Starter, gratis para siempre (1 profesional, 1 especialidad, agenda de citas y reservas online); Pro desde $6.990 al mes (hasta 3 profesionales, fichas clínicas y pagos online); y Enterprise desde $14.990 al mes (hasta 20 profesionales y todas las especialidades). Los planes pagos incluyen 30 días de prueba gratis sin tarjeta de crédito.</p>
     </article>
   </div>
 </section>
@@ -443,14 +443,36 @@
 <!-- CTA FINAL -->
 <div class="cta-section" id="cta">
   <div class="cta-urgency-badge">🔥 Cupos limitados — quedan pocos disponibles</div>
-  <h2>30 días gratis.<br>Sin tarjeta de crédito.</h2>
-  <p>Acceso completo a todas las funcionalidades durante 30 días. Sin compromisos, cancela cuando quieras.</p>
+  <h2>Empieza gratis.<br>Sin tarjeta de crédito.</h2>
+  <p>Un plan 100% gratis para agendar tus citas, o acceso completo a Dairi por 30 días sin costo en los planes pagos.</p>
 
   <div class="pricing-grid">
 
-    <!-- STARTER -->
+    <!-- STARTER (free) -->
     <div class="pricing-card">
       <div class="pricing-plan">Starter</div>
+      <div class="pricing-price">
+        <span class="p-consult">Gratis</span>
+      </div>
+      <p class="pricing-desc">Para un profesional independiente que solo necesita ordenar su agenda.</p>
+      <hr class="pricing-divider">
+      <ul class="pricing-features">
+        <li>1 profesional</li>
+        <li>1 especialidad médica</li>
+        <li>Agenda de citas</li>
+        <li>Los pacientes reservan su hora solos, las 24 hs</li>
+        <li>Resumen diario de reservas</li>
+        <li>Confirmaciones y recordatorios por email</li>
+        <li>Capacitaciones y soporte incluidos</li>
+        <li>Soporte por email</li>
+      </ul>
+      <a routerLink="/register" [queryParams]="{plan: 'agenda'}" class="pricing-btn solid" style="margin-top:1.25rem;">Empezar gratis</a>
+    </div>
+
+    <!-- PRO (was Starter) -->
+    <div class="pricing-card featured">
+      <div class="pricing-badge">MÁS POPULAR</div>
+      <div class="pricing-plan">Pro</div>
       <div class="pricing-price">
         <span class="p-currency">$</span>
         <span class="p-amount">6.990</span>
@@ -475,10 +497,9 @@
       <a routerLink="/register" class="pricing-btn solid" style="margin-top:1.25rem;">Empezar 30 días gratis</a>
     </div>
 
-    <!-- PRO -->
-    <div class="pricing-card featured">
-      <div class="pricing-badge">MÁS POPULAR</div>
-      <div class="pricing-plan">Pro</div>
+    <!-- ENTERPRISE (was Pro) -->
+    <div class="pricing-card">
+      <div class="pricing-plan">Enterprise</div>
       <div class="pricing-price">
         <span class="p-currency">$</span>
         <span class="p-amount">14.990</span>
@@ -488,7 +509,7 @@
       <hr class="pricing-divider">
       <ul class="pricing-features">
         <li>Hasta 20 profesionales</li>
-        <li>Todo lo del plan Starter</li>
+        <li>Todo lo del plan Pro</li>
         <li>Dental, psicología, kinesiología, nutrición y más</li>
         <li>Fichas especializadas según cada profesional</li>
         <li>Informes de rendimiento y facturación</li>
@@ -506,33 +527,6 @@
         <li>Confirmaciones y recordatorios por email</li>
         <li>Capacitaciones y soporte incluidos</li>
         <li>Soporte prioritario</li>
-      </ul>
-      <a href="mailto:contacto&#64;dairi.cl" class="pricing-btn solid" style="margin-top:1.25rem;">Contactar ventas</a>
-    </div>
-
-    <!-- ENTERPRISE -->
-    <div class="pricing-card">
-      <div class="pricing-plan">Enterprise</div>
-      <div class="pricing-price">
-        <span class="p-consult">Consultar</span>
-      </div>
-      <p class="pricing-desc">Para redes de clínicas y organizaciones con operación a gran escala.</p>
-      <hr class="pricing-divider">
-      <ul class="pricing-features">
-        <li>Profesionales ilimitados</li>
-        <li>Todo lo del plan Pro</li>
-        <li>Permisos diferenciados por cargo y rol</li>
-        <li>Recibe pagos directamente en la plataforma</li>
-        <li>Flujos clínicos adaptados a tu organización</li>
-        <li>Gestión de múltiples sucursales</li>
-        <li>Conecta Dairi con tus otros sistemas</li>
-        <li class="feature-highlight">✦ Dicta tus consultas con voz (200 h/mes)</li>
-        <li class="feature-commission">Sin comisión por cobros online</li>
-        <li>Confirmaciones y recordatorios por email</li>
-        <li>Capacitaciones y soporte incluidos</li>
-        <li>Incorporación guiada por nuestro equipo</li>
-        <li>Disponibilidad garantizada 99.9%</li>
-        <li>Soporte 24/7 con tiempo de respuesta garantizado</li>
       </ul>
       <a href="mailto:contacto&#64;dairi.cl" class="pricing-btn outline" style="margin-top:1.25rem;">Contactar ventas</a>
     </div>

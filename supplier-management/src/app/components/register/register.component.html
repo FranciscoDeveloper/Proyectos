@@ -18,27 +18,49 @@
     <!-- ── Left: plan info ───────────────────────────────────── -->
     <aside class="rp-info">
       <div class="rp-info-inner">
-        <div class="rp-plan-badge">Plan Starter · 30 días gratis</div>
-        <h2 class="rp-info-title">Empieza a gestionar<br>tu clínica hoy</h2>
-        <p class="rp-info-sub">Sin tarjeta de crédito. Cancela cuando quieras.</p>
+        @if (isFreePlan) {
+          <div class="rp-plan-badge">Plan Starter · Gratis para siempre</div>
+          <h2 class="rp-info-title">Ordena tu agenda<br>hoy mismo, gratis</h2>
+          <p class="rp-info-sub">Sin tarjeta de crédito. Sin límite de tiempo.</p>
 
-        <ul class="rp-features">
-          <li><span class="rp-check">✓</span> Hasta 3 profesionales</li>
-          <li><span class="rp-check">✓</span> Fichas de pacientes y atenciones</li>
-          <li><span class="rp-check">✓</span> Agenda y reserva online 24/7</li>
-          <li><span class="rp-check">✓</span> Dictado de consultas por voz</li>
-          <li><span class="rp-check">✓</span> Pagos online integrados</li>
-          <li><span class="rp-check">✓</span> Soporte por email</li>
-        </ul>
+          <ul class="rp-features">
+            <li><span class="rp-check">✓</span> 1 profesional, 1 especialidad</li>
+            <li><span class="rp-check">✓</span> Agenda de citas</li>
+            <li><span class="rp-check">✓</span> Reserva online 24/7</li>
+            <li><span class="rp-check">✓</span> Resumen diario de reservas</li>
+            <li><span class="rp-check">✓</span> Confirmaciones y recordatorios por email</li>
+            <li><span class="rp-check">✓</span> Soporte por email</li>
+          </ul>
 
-        <div class="rp-price-box">
-          <div class="rp-price-label">Después de la prueba</div>
-          <div class="rp-price">
-            <span class="rp-currency">US$</span>
-            <span class="rp-amount">3</span>
-            <span class="rp-period">/mes</span>
+          <div class="rp-price-box">
+            <div class="rp-price-label">Costo</div>
+            <div class="rp-price">
+              <span class="rp-amount">Gratis</span>
+            </div>
           </div>
-        </div>
+        } @else {
+          <div class="rp-plan-badge">Plan Pro · 30 días gratis</div>
+          <h2 class="rp-info-title">Empieza a gestionar<br>tu clínica hoy</h2>
+          <p class="rp-info-sub">Sin tarjeta de crédito. Cancela cuando quieras.</p>
+
+          <ul class="rp-features">
+            <li><span class="rp-check">✓</span> Hasta 3 profesionales</li>
+            <li><span class="rp-check">✓</span> Fichas de pacientes y atenciones</li>
+            <li><span class="rp-check">✓</span> Agenda y reserva online 24/7</li>
+            <li><span class="rp-check">✓</span> Dictado de consultas por voz</li>
+            <li><span class="rp-check">✓</span> Pagos online integrados</li>
+            <li><span class="rp-check">✓</span> Soporte por email</li>
+          </ul>
+
+          <div class="rp-price-box">
+            <div class="rp-price-label">Después de la prueba</div>
+            <div class="rp-price">
+              <span class="rp-currency">$</span>
+              <span class="rp-amount">6.990</span>
+              <span class="rp-period">/mes</span>
+            </div>
+          </div>
+        }
 
         <a routerLink="/" class="rp-back-link">← Volver a la landing</a>
       </div>
@@ -61,7 +83,11 @@
             <p>Hemos enviado un enlace de activación a</p>
             <div class="rp-email-pill">{{ registeredEmail }}</div>
             <p class="rp-email-hint">
-              Haz clic en el enlace del correo para activar tu cuenta y comenzar tu prueba gratuita de 30 días.<br>
+              @if (isFreePlan) {
+                Haz clic en el enlace del correo para activar tu cuenta y empezar a agendar citas gratis.<br>
+              } @else {
+                Haz clic en el enlace del correo para activar tu cuenta y comenzar tu prueba gratuita de 30 días.<br>
+              }
               Puede tardar unos minutos. Revisa también tu carpeta de spam.
             </p>
           } @else {
@@ -93,7 +119,11 @@
         <div class="rp-card">
           <div class="rp-card-header">
             <h1>Crear tu cuenta</h1>
-            <p>Plan Starter — 30 días sin costo</p>
+            @if (isFreePlan) {
+              <p>Plan Starter — gratis para siempre</p>
+            } @else {
+              <p>Plan Pro — 30 días sin costo</p>
+            }
           </div>
 
           <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
