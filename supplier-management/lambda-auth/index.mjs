@@ -31,6 +31,77 @@ async function getAgendaAccount(email) {
   }
 }
 
+// ── DynamoDB (generalized accounts — every plan except agenda) ─────────────────
+// Hybrid migration: accounts/auth for Pro/Enterprise/etc. move to DynamoDB, but
+// unlike the agenda plan this is a gradual, safe cutover, not an isolated store.
+// getDairiAccount is checked first (mirrors getAgendaAccount); a miss or DynamoDB
+// error falls through to the untouched Postgres app_user path, so only accounts
+// actually copied into dairi-accounts (or newly registered from now on) are
+// affected — every existing account keeps working exactly as today until copied.
+const ACCOUNTS_TABLE       = process.env.ACCOUNTS_TABLE       || "dairi-accounts";
+const REFRESH_TOKENS_TABLE = process.env.REFRESH_TOKENS_TABLE || "dairi-refresh-tokens";
+const COUNTERS_TABLE       = process.env.COUNTERS_TABLE       || "dairi-counters";
+
+async function getDairiAccount(email) {
+  try {
+    const r = await ddb.send(new GetItemCommand({
+      TableName: ACCOUNTS_TABLE,
+      Key: marshall({ email })
+    }));
+    return r.Item ? unmarshall(r.Item) : null;
+  } catch (err) {
+    console.error("getDairiAccount error:", err?.message);
+    return null;
+  }
+}
+
+// Numeric ids are preserved (not UUIDs) so a copied account's id keeps matching
+// its existing Postgres `professional.user_id` FK — the clinical core stays on
+// Postgres and still resolves professional scope by that same integer id.
+async function nextAccountId() {
+  const r = await ddb.send(new UpdateItemCommand({
+    TableName: COUNTERS_TABLE,
+    Key: marshall({ counterId: "accounts" }),
+    UpdateExpression: "ADD seq :one",
+    ExpressionAttributeValues: marshall({ ":one": 1 }),
+    ReturnValues: "UPDATED_NEW"
+  }));
+  return Number(unmarshall(r.Attributes).seq);
+}
+
+async function getDairiRefreshToken(tokenHash) {
+  try {
+    const r = await ddb.send(new GetItemCommand({
+      TableName: REFRESH_TOKENS_TABLE,
+      Key: marshall({ tokenHash })
+    }));
+    if (!r.Item) return null;
+    const item = unmarshall(r.Item);
+    if (item.revokedAt) return null;
+    if (new Date(item.expiresAt).getTime() <= Date.now()) return null;
+    return item;
+  } catch (err) {
+    console.error("getDairiRefreshToken error:", err?.message);
+    return null;
+  }
+}
+
+async function putDairiRefreshToken(acct) {
+  const rawToken = generateRawToken();
+  const tokenHash = hashToken(rawToken);
+  const expiry    = new Date(Date.now() + REFRESH_EXPIRES_DAYS * 86_400_000);
+  await ddb.send(new PutItemCommand({
+    TableName: REFRESH_TOKENS_TABLE,
+    Item: marshall({
+      tokenHash, userId: acct.id, email: acct.email,
+      expiresAt: expiry.toISOString(),
+      ttl: Math.floor(expiry.getTime() / 1000),
+      createdAt: new Date().toISOString()
+    })
+  }));
+  return rawToken;
+}
+
 // The single module an agenda account can see: the calendar. Same shape the BFF/login
 // build for Postgres users so the frontend renders the calendar identically.
 function agendaSchemas() {
@@ -39,6 +110,16 @@ function agendaSchemas() {
     fields: []
   }];
 }
+
+// Default modules assigned to new (non-agenda) registrations — mirrors the values
+// actually stored in Postgres `app_schema` (verified against the live table, not
+// guessed) so the DynamoDB path renders identically to the Postgres path.
+const DEFAULT_DAIRI_SCHEMAS = [
+  { key: "clinicalRecords", singular: "Paciente",    plural: "Pacientes",    icon: "clipboard",  moduleType: "clinical-record" },
+  { key: "appointments",    singular: "Cita",        plural: "Citas",        icon: "calendar",   moduleType: "calendar" },
+  { key: "reports",         singular: "Reporte",     plural: "Reportes",     icon: "bar-chart",  moduleType: "list" },
+  { key: "presupuestos",    singular: "Presupuesto", plural: "Presupuestos", icon: "file-text",  moduleType: "crud" },
+];
 
 const pool = new Pool({
   host:     process.env.DB_HOST,
@@ -117,6 +198,13 @@ async function handleRefresh(body) {
   } catch { /* not an agenda JWT — fall through to Postgres refresh */ }
 
   const tokenHash = hashToken(rawToken);
+
+  // Dairi (generalized) refresh tokens are opaque hashes just like Postgres's, stored
+  // in DynamoDB instead — check there first. A miss (or DynamoDB error) falls through
+  // to the unchanged Postgres lookup below.
+  const dairiRt = await getDairiRefreshToken(tokenHash);
+  if (dairiRt) return handleRefreshDairi(dairiRt);
+
   let client;
   try {
     client = await pool.connect();
@@ -176,6 +264,24 @@ async function handleLogout(body) {
   if (!rawToken) return response(200, { message: "Sesión cerrada" });
 
   const tokenHash = hashToken(rawToken);
+
+  // Best-effort revoke in DynamoDB (no-op if this token isn't a dairi one); always
+  // also try Postgres below since we can't cheaply know in advance which store
+  // issued it, and revoking a hash that isn't there is a harmless 0-row update.
+  try {
+    await ddb.send(new UpdateItemCommand({
+      TableName: REFRESH_TOKENS_TABLE,
+      Key: marshall({ tokenHash }),
+      UpdateExpression: "SET revokedAt = :now",
+      ConditionExpression: "attribute_exists(tokenHash)",
+      ExpressionAttributeValues: marshall({ ":now": new Date().toISOString() })
+    }));
+  } catch (err) {
+    if (err?.name !== "ConditionalCheckFailedException") {
+      console.error("Dairi logout revoke error:", err?.message);
+    }
+  }
+
   let client;
   try {
     client = await pool.connect();
@@ -293,6 +399,66 @@ async function handleRefreshAgenda(payload) {
   });
 }
 
+// ── DAIRI (generalized DynamoDB accounts — every plan except agenda) ───────────
+// acct.id is the preserved-from-Postgres numeric id (see nextAccountId), so
+// professionalId/professionalName here already agree with Postgres `professional`
+// rows for copied accounts. acct.schemas holds full denormalized {key,singular,
+// plural,icon,moduleType} objects — no Postgres app_schema join needed at login.
+async function handleLoginDairi(acct, password) {
+  const passwordMatch = await bcrypt.compare(password, acct.passwordHash || "");
+  if (!passwordMatch)
+    return response(401, { message: "Credenciales inválidas. Verifique su email y contraseña." });
+
+  if (!acct.emailVerified)
+    return response(403, { message: "Debes activar tu cuenta. Revisa tu correo y haz clic en el enlace de activación." });
+
+  const token = jwt.sign(
+    { sub: acct.id, email: acct.email, role: acct.role },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+  const refreshToken = await putDairiRefreshToken(acct);
+
+  return response(200, {
+    token,
+    refreshToken,
+    expiresAt: new Date(Date.now() + JWT_EXPIRES_IN_MS).toISOString(),
+    user: {
+      id: acct.id, name: acct.name, email: acct.email, role: acct.role, avatar: acct.avatar ?? "",
+      professionalId: acct.professionalId ?? null, professionalName: acct.professionalName ?? null
+    },
+    zkEnabled: acct.zkEnabled ?? false,
+    schemas: (acct.schemas ?? []).map(s => ({ entity: s, fields: [] }))
+  });
+}
+
+async function handleRefreshDairi(rt) {
+  const acct = await getDairiAccount(rt.email);
+  if (!acct || acct.id !== rt.userId)
+    return response(401, { message: "Sesión expirada. Por favor inicia sesión nuevamente." });
+
+  // Rotation: revoke old token, issue new one (same pattern as the Postgres path)
+  await ddb.send(new UpdateItemCommand({
+    TableName: REFRESH_TOKENS_TABLE,
+    Key: marshall({ tokenHash: rt.tokenHash }),
+    UpdateExpression: "SET revokedAt = :now",
+    ExpressionAttributeValues: marshall({ ":now": new Date().toISOString() })
+  }));
+  const refreshToken = await putDairiRefreshToken(acct);
+
+  const token = jwt.sign(
+    { sub: acct.id, email: acct.email, role: acct.role },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+
+  return response(200, {
+    token,
+    refreshToken,
+    expiresAt: new Date(Date.now() + JWT_EXPIRES_IN_MS).toISOString()
+  });
+}
+
 // ── LOGIN ─────────────────────────────────────────────────────────────────────
 async function handleLogin(body) {
   const { email, password } = body ?? {};
@@ -304,6 +470,11 @@ async function handleLogin(body) {
   const emailNormEarly = email.toLowerCase().trim();
   const agendaAcct = await getAgendaAccount(emailNormEarly);
   if (agendaAcct) return handleLoginAgenda(agendaAcct, password);
+
+  // Generalized DynamoDB accounts — check before Postgres. A miss (or DynamoDB
+  // error) falls through to the unchanged Postgres path below.
+  const dairiAcct = await getDairiAccount(emailNormEarly);
+  if (dairiAcct) return handleLoginDairi(dairiAcct, password);
 
   let client;
   try {
@@ -410,72 +581,10 @@ async function handleRegister(body) {
     return handleRegisterAgenda({ nombre, apellidos, email: emailNorm, telefono, password });
   }
 
-  let client;
-  try {
-    client = await pool.connect();
-    await ensureColumns(client);
-
-    const existing = await client.query(
-      "SELECT id FROM app_user WHERE email = $1 LIMIT 1",
-      [emailNorm]
-    );
-    if (existing.rowCount > 0)
-      return response(409, { message: "Ya existe una cuenta con ese correo electrónico." });
-
-    const hash   = await bcrypt.hash(password, 12);
-    const name   = `${nombre.trim()} ${apellidos.trim()}`;
-    const avatar = (nombre[0] + apellidos[0]).toUpperCase();
-
-    const insertResult = await client.query(
-      `INSERT INTO app_user (name, email, password, role, avatar, email_verified)
-       VALUES ($1, $2, $3, 'admin', $4, false)
-       RETURNING id`,
-      [name, emailNorm, hash, avatar]
-    );
-    const userId = insertResult.rows[0].id;
-
-    // JWT activation token válido 24h
-    const activationToken = jwt.sign(
-      { sub: userId, email: emailNorm, type: "activation" },
-      JWT_SECRET,
-      { expiresIn: "24h" }
-    );
-
-    await client.query(
-      "UPDATE app_user SET activation_token = $1 WHERE id = $2",
-      [activationToken, userId]
-    );
-
-    const activationUrl = `${APP_URL}/#/activate?token=${encodeURIComponent(activationToken)}`;
-
-    // Assign modules for new users (keys must match app_schema.schema_key in DB).
-    // plan === 'agenda' is the free Starter tier (landing CTA links to
-    // /register?plan=agenda): agenda-only access, no clinical records/reports/budgets.
-    const defaultModules = plan === 'agenda'
-      ? ['appointments']
-      : ['clinicalRecords', 'appointments', 'reports', 'presupuestos'];
-    await client.query(
-      `INSERT INTO user_schema (user_id, schema_id)
-       SELECT $1, s.id FROM app_schema s
-       WHERE s.schema_key = ANY($2::text[])`,
-      [userId, defaultModules]
-    );
-
-    // Build email content — frontend sends it via /api/send-email (internet-accessible)
-    const emailContent = buildActivationEmail({ name, email: emailNorm, activationUrl });
-
-    return response(201, {
-      message:      "Cuenta creada. Activa tu cuenta usando el enlace de activación.",
-      emailSent:    false,
-      activationUrl,
-      emailPayload: emailContent,   // frontend uses this to call /api/send-email
-    });
-  } catch (err) {
-    console.error("Register error:", err);
-    return response(500, { message: "Error interno del servidor" });
-  } finally {
-    client?.release();
-  }
+  // Every other plan registers straight into DynamoDB from now on (existing
+  // pre-migration accounts still live in — and log in from — Postgres via the
+  // getDairiAccount-miss fallback in handleLogin; this only affects new signups).
+  return handleRegisterDairi({ nombre, apellidos, email: emailNorm, telefono, password });
 }
 
 // ── REGISTER (agenda / Starter free plan → DynamoDB) ───────────────────────────
@@ -531,6 +640,57 @@ async function handleRegisterAgenda({ nombre, apellidos, email, telefono, passwo
   }
 }
 
+// ── REGISTER (generalized DynamoDB accounts) ────────────────────────────────────
+async function handleRegisterDairi({ nombre, apellidos, email, telefono, password }) {
+  try {
+    const existing = await getDairiAccount(email);
+    if (existing)
+      return response(409, { message: "Ya existe una cuenta con ese correo electrónico." });
+
+    const id     = await nextAccountId();
+    const hash   = await bcrypt.hash(password, 12);
+    const name   = `${nombre.trim()} ${apellidos.trim()}`;
+    const avatar = (nombre[0] + apellidos[0]).toUpperCase();
+    const now    = new Date().toISOString();
+
+    // Activation JWT carries accountType:'dairi' so handleActivate updates dairi-accounts.
+    const activationToken = jwt.sign(
+      { sub: id, email, type: "activation", accountType: "dairi" },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    await ddb.send(new PutItemCommand({
+      TableName: ACCOUNTS_TABLE,
+      Item: marshall({
+        email, id, name, passwordHash: hash, role: "admin", avatar,
+        emailVerified: false, activationToken,
+        schemas: DEFAULT_DAIRI_SCHEMAS, zkEnabled: false,
+        professionalId: null, professionalName: null,
+        telefono: telefono ?? null,
+        createdAt: now, updatedAt: now
+      }, { removeUndefinedValues: true }),
+      // Race-safe uniqueness: fail if the email already exists.
+      ConditionExpression: "attribute_not_exists(email)"
+    }));
+
+    const activationUrl = `${APP_URL}/#/activate?token=${encodeURIComponent(activationToken)}`;
+    const emailContent  = buildActivationEmail({ name, email, activationUrl });
+
+    return response(201, {
+      message:      "Cuenta creada. Activa tu cuenta usando el enlace de activación.",
+      emailSent:    false,
+      activationUrl,
+      emailPayload: emailContent
+    });
+  } catch (err) {
+    if (err?.name === "ConditionalCheckFailedException")
+      return response(409, { message: "Ya existe una cuenta con ese correo electrónico." });
+    console.error("Register dairi error:", err);
+    return response(500, { message: "Error interno del servidor" });
+  }
+}
+
 // ── ACTIVATE ──────────────────────────────────────────────────────────────────
 async function handleActivate(body) {
   const { token } = body ?? {};
@@ -546,8 +706,9 @@ async function handleActivate(body) {
   if (payload.type !== "activation")
     return response(400, { message: "Token inválido." });
 
-  // Agenda accounts activate against DynamoDB, not app_user.
+  // Agenda / dairi accounts activate against DynamoDB, not app_user.
   if (payload.accountType === "agenda") return handleActivateAgenda(payload, token);
+  if (payload.accountType === "dairi")  return handleActivateDairi(payload, token);
 
   let client;
   try {
@@ -588,6 +749,24 @@ async function handleActivateAgenda(payload, token) {
     if (err?.name === "ConditionalCheckFailedException")
       return response(400, { message: "El enlace ya fue utilizado o es inválido." });
     console.error("Activate agenda error:", err);
+    return response(500, { message: "Error interno del servidor" });
+  }
+}
+
+async function handleActivateDairi(payload, token) {
+  try {
+    await ddb.send(new UpdateItemCommand({
+      TableName: ACCOUNTS_TABLE,
+      Key: marshall({ email: payload.email }),
+      UpdateExpression: "SET emailVerified = :t REMOVE activationToken",
+      ConditionExpression: "activationToken = :tok AND emailVerified = :f",
+      ExpressionAttributeValues: marshall({ ":t": true, ":tok": token, ":f": false })
+    }));
+    return response(200, { message: "Cuenta activada exitosamente. Ya puedes iniciar sesión." });
+  } catch (err) {
+    if (err?.name === "ConditionalCheckFailedException")
+      return response(400, { message: "El enlace ya fue utilizado o es inválido." });
+    console.error("Activate dairi error:", err);
     return response(500, { message: "Error interno del servidor" });
   }
 }
