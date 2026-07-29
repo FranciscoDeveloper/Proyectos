@@ -67,8 +67,14 @@ export class ShellComponent {
       s.entity.key === 'clinicalRecords'  ||
       s.entity.moduleType === 'clinical-record'
     );
-    const hasImportable  = schemas.some(s => /patient|pacient|appointment|cita/i.test(s.entity.key));
-    const hasBudgets     = schemas.some(s => /patient|pacient|payment|appointment/i.test(s.entity.key));
+    // Matching on "appointment" here used to also match the Starter/agenda plan's
+    // sole module (key: "appointments"), incorrectly showing "Importar" and
+    // "Presupuestos" to accounts that only have a calendar and no patient/clinical
+    // module at all. Both features require actual patient/clinical-record access
+    // (hasRecords) — Pro/Enterprise schemas don't literally contain "patient" as a
+    // key (e.g. "clinicalRecords"), so gate on hasRecords instead of a key substring.
+    const hasImportable  = hasRecords;
+    const hasBudgets     = hasRecords || schemas.some(s => s.entity.key === 'payments');
     return [
       { label: 'Dashboard',     icon: 'grid',         route: '/app/dashboard'     },
       ...schemas
