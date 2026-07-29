@@ -723,8 +723,21 @@ async function handleActivate(body) {
       [payload.sub, token]
     );
 
-    if (result.rowCount === 0)
+    if (result.rowCount === 0) {
+      // Not a no-op on a bad token: email scanners (Gmail/Outlook Safe Links, corporate
+      // AV) commonly pre-visit activation links before the real user clicks, consuming
+      // the one-time token first. If THIS token's own account is already verified, treat
+      // it as a harmless repeat rather than an error — the JWT signature already proved
+      // it's genuine (jwt.verify above), we're just being lenient about who "used" it.
+      const already = await client.query(
+        `SELECT email_verified FROM app_user WHERE id = $1 LIMIT 1`,
+        [payload.sub]
+      );
+      if (already.rowCount > 0 && already.rows[0].email_verified) {
+        return response(200, { message: "Tu cuenta ya estaba activada. Puedes iniciar sesión." });
+      }
       return response(400, { message: "El enlace ya fue utilizado o es inválido." });
+    }
 
     return response(200, { message: "Cuenta activada exitosamente. Ya puedes iniciar sesión." });
   } catch (err) {
@@ -735,10 +748,13 @@ async function handleActivate(body) {
   }
 }
 
-async function handleActivateAgenda(payload, token) {
+// Shared by handleActivateAgenda/Dairi: on a ConditionalCheckFailedException, tell a
+// harmless repeat (email scanner pre-visited the link, account is already verified)
+// apart from a genuinely bad/foreign token — see the Postgres path for the full why.
+async function activateDynamoAccount(table, payload, token) {
   try {
     await ddb.send(new UpdateItemCommand({
-      TableName: AGENDA_ACCOUNTS_TABLE,
+      TableName: table,
       Key: marshall({ email: payload.email }),
       UpdateExpression: "SET emailVerified = :t REMOVE activationToken",
       ConditionExpression: "activationToken = :tok AND emailVerified = :f",
@@ -746,29 +762,25 @@ async function handleActivateAgenda(payload, token) {
     }));
     return response(200, { message: "Cuenta activada exitosamente. Ya puedes iniciar sesión." });
   } catch (err) {
-    if (err?.name === "ConditionalCheckFailedException")
+    if (err?.name === "ConditionalCheckFailedException") {
+      const r = await ddb.send(new GetItemCommand({ TableName: table, Key: marshall({ email: payload.email }) }));
+      const acct = r.Item ? unmarshall(r.Item) : null;
+      if (acct?.emailVerified) {
+        return response(200, { message: "Tu cuenta ya estaba activada. Puedes iniciar sesión." });
+      }
       return response(400, { message: "El enlace ya fue utilizado o es inválido." });
-    console.error("Activate agenda error:", err);
+    }
+    console.error("Activate dynamo error:", err, { table });
     return response(500, { message: "Error interno del servidor" });
   }
 }
 
+async function handleActivateAgenda(payload, token) {
+  return activateDynamoAccount(AGENDA_ACCOUNTS_TABLE, payload, token);
+}
+
 async function handleActivateDairi(payload, token) {
-  try {
-    await ddb.send(new UpdateItemCommand({
-      TableName: ACCOUNTS_TABLE,
-      Key: marshall({ email: payload.email }),
-      UpdateExpression: "SET emailVerified = :t REMOVE activationToken",
-      ConditionExpression: "activationToken = :tok AND emailVerified = :f",
-      ExpressionAttributeValues: marshall({ ":t": true, ":tok": token, ":f": false })
-    }));
-    return response(200, { message: "Cuenta activada exitosamente. Ya puedes iniciar sesión." });
-  } catch (err) {
-    if (err?.name === "ConditionalCheckFailedException")
-      return response(400, { message: "El enlace ya fue utilizado o es inválido." });
-    console.error("Activate dairi error:", err);
-    return response(500, { message: "Error interno del servidor" });
-  }
+  return activateDynamoAccount(ACCOUNTS_TABLE, payload, token);
 }
 
 // ── SES email ─────────────────────────────────────────────────────────────────
