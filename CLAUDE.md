@@ -81,20 +81,21 @@ npm run build
 ```
 
 ```powershell
-# Sync al bucket — excluir patient-docs/ (archivos de pacientes, no forman parte del build)
-python -m awscli s3 sync "dist/supplier-management/browser" "s3://friquelme-firstpage" --delete --exclude "patient-docs/*" --region us-east-1
+python -m awscli s3 sync "dist/supplier-management/browser" "s3://friquelme-firstpage" --delete --region us-east-1
 ```
-
-> **IMPORTANTE**: Siempre usar `--exclude "patient-docs/*"` en el sync. Sin eso, el `--delete` borra los documentos de pacientes del bucket.
 
 ## Bucket S3 — friquelme-firstpage
 
-- Bucket de hosting web: `friquelme-firstpage` (us-east-1)
+- Bucket de hosting web: `friquelme-firstpage` (**sa-east-1** — ojo, distinta región que el resto de la infraestructura)
+- Solo sirve el build del frontend. Los documentos de pacientes **ya no viven aquí** (ver `dairi-medical-documents` abajo) — se migraron porque `dairi-bff`, VPC-attached en us-east-1 sin NAT Gateway, no puede alcanzar S3 en otra región (los VPC Gateway Endpoints de S3 son exclusivos de una región, no hay forma de arreglarlo con configuración).
+
+## Bucket S3 — dairi-medical-documents
+
+- Bucket dedicado a documentos de pacientes: `dairi-medical-documents` (us-east-1 — misma región que `dairi-bff` y su VPC Gateway Endpoint de S3)
 - `patient-docs/{id}/` — documentos de pacientes, acceso restringido (solo pre-signed URLs)
-- Política de bucket: acceso público al sitio, Deny directo a `patient-docs/*`, Allow al rol BFF Lambda
-- CORS configurado para permitir PUT desde el browser (subida de documentos)
-- Rol BFF que tiene acceso S3: `dairi-medical-agent-role-x9s7v66c` (concedido vía bucket policy, no IAM)
-- **No usar `--delete` sin `--exclude "patient-docs/*"`** en el sync
+- Bloqueo público total (`BlockPublicAcls`/`IgnorePublicAcls`/`BlockPublicPolicy`/`RestrictPublicBuckets` = true). Sin acceso público de ningún tipo.
+- Política de bucket: Allow exclusivo al rol `dairi-medical-agent-role-x9s7v66c` (`ListBucket`/`GetObject`/`PutObject`/`DeleteObject`) — concedido vía bucket policy, no IAM
+- `documentsHandler.mjs` en `dairi-bff` habla directo con este bucket (sin Lambda intermedia) usando el S3 Gateway Endpoint de la VPC
 
 ## Esquema de autorización (BFF)
 
