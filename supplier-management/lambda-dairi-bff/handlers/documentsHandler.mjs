@@ -12,8 +12,14 @@ import { getLogger }         from '../lib/logger.mjs';
 import { response }          from '../lib/response.mjs';
 import * as profScopeService from '../services/profScopeService.mjs';
 
-const s3Client   = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
-const DOCS_BUCKET = process.env.DOCS_BUCKET || 'friquelme-firstpage';
+// dairi-medical-documents lives in us-east-1, same region as this VPC and its S3
+// Gateway Endpoint — patient documents used to live under friquelme-firstpage/
+// patient-docs/ (the frontend hosting bucket), which is in sa-east-1 and therefore
+// unreachable from this VPC-attached Lambda (no NAT Gateway, and S3 Gateway
+// Endpoints are region-locked). Documents were migrated to this dedicated,
+// same-region, non-public bucket instead of adding a Lambda-to-Lambda hop.
+const s3Client    = new S3Client({ region: process.env.DOCS_BUCKET_REGION || 'us-east-1' });
+const DOCS_BUCKET = process.env.DOCS_BUCKET || 'dairi-medical-documents';
 const DOCS_PREFIX = 'patient-docs';
 
 /**
