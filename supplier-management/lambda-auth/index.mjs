@@ -2,7 +2,7 @@ import pg     from "pg";
 import bcrypt from "bcryptjs";
 import jwt    from "jsonwebtoken";
 import crypto from "crypto";
-import { DynamoDBClient, GetItemCommand, PutItemCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, GetItemCommand, PutItemCommand, UpdateItemCommand, ScanCommand } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 // Email is delegated to the frontend via /api/send-email (non-VPC path)
 
@@ -41,6 +41,12 @@ async function getAgendaAccount(email) {
 const ACCOUNTS_TABLE       = process.env.ACCOUNTS_TABLE       || "dairi-accounts";
 const REFRESH_TOKENS_TABLE = process.env.REFRESH_TOKENS_TABLE || "dairi-refresh-tokens";
 const COUNTERS_TABLE       = process.env.COUNTERS_TABLE       || "dairi-counters";
+// Cached mirror of Postgres `professional` (id/name/specialty only) — lets the Pro
+// registration form list/validate professionals without needing RDS running at all.
+// professional rows are only ever created by a manual DB insert today (no self-serve
+// flow exists yet), so this has no live sync: whoever adds a professional to Postgres
+// must also add it here (see the audit finding this stopgap is patching around).
+const PROFESSIONALS_TABLE  = process.env.PROFESSIONALS_TABLE  || "dairi-professionals";
 
 async function getDairiAccount(email) {
   try {
@@ -564,21 +570,31 @@ async function handleLogin(body) {
 // ── PROFESSIONAL DIRECTORY (public, no auth) ────────────────────────────────────
 // Backs the Pro registration form's professional select. Only name/specialty —
 // no patient or account data — so it's safe to expose pre-signup.
+// Confirmed live with raw-byte inspection: this bundled AWS SDK version's
+// ScanCommand response parsing mangles non-ASCII UTF-8 -- the raw `Items[].name.S`
+// string is *already* wrong before unmarshall() or any of our code runs
+// (GetItemCommand, used elsewhere in this file for the same table, is unaffected).
+// The corruption is exactly "UTF-8 bytes decoded as Latin-1": each original UTF-8
+// byte became its own Latin-1 character. That's reversible byte-for-byte, since
+// every character in the corrupted string has a codepoint <= 255 (a real accented
+// character wouldn't).
+function fixScanMojibake(str) {
+  // Safe to apply unconditionally: pure-ASCII strings round-trip through
+  // latin1->utf8 unchanged, so this only affects the actually-corrupted ones.
+  return Buffer.from(str, "latin1").toString("utf8");
+}
+
 async function handleListProfessionals() {
-  let client;
   try {
-    client = await pool.connect();
-    const result = await client.query(
-      `SELECT id, name, specialty FROM professional ORDER BY name ASC`
-    );
-    return response(200, result.rows.map(r => ({
-      id: r.id, nombre: r.name, especialidad: r.specialty ?? null
+    const result = await ddb.send(new ScanCommand({ TableName: PROFESSIONALS_TABLE }));
+    const rows    = (result.Items ?? []).map(i => unmarshall(i));
+    rows.sort((a, b) => a.name.localeCompare(b.name));
+    return response(200, rows.map(r => ({
+      id: r.id, nombre: fixScanMojibake(r.name), especialidad: r.specialty ? fixScanMojibake(r.specialty) : null
     })));
   } catch (err) {
     console.error("List professionals error:", err);
     return response(500, { message: "Error interno del servidor" });
-  } finally {
-    client?.release();
   }
 }
 
@@ -670,34 +686,32 @@ async function handleRegisterAgenda({ nombre, apellidos, email, telefono, passwo
 // ── REGISTER (generalized DynamoDB accounts) ────────────────────────────────────
 // Pro registration currently has no self-serve way to actually provision a working
 // `professional` row (that's a bigger, separate fix). As a stopgap, the caller must
-// pick an existing professional from the RDS directory (see handleListProfessionals)
-// so the request captures which professional/specialty the signup is for; it's stored
-// as `requestedProfessionalId/Name` — deliberately NOT the `professionalId/Name` fields
-// login responses use for real profScope-linked accounts, since selecting one here does
-// NOT grant access to that professional's data. An admin finishes real provisioning
-// manually afterward (see the distinct activation message below).
+// pick an existing professional from the cached directory (see handleListProfessionals
+// / PROFESSIONALS_TABLE) so the request captures which professional/specialty the
+// signup is for; it's stored as `requestedProfessionalId/Name` — deliberately NOT the
+// `professionalId/Name` fields login responses use for real profScope-linked accounts,
+// since selecting one here does NOT grant access to that professional's data. An admin
+// finishes real provisioning manually afterward (see the distinct activation message
+// below). Validated against DynamoDB, not Postgres, so registration never needs RDS
+// running at all.
 async function handleRegisterDairi({ nombre, apellidos, email, telefono, password, professionalId }) {
   if (!professionalId) {
     return response(400, { message: "Debes seleccionar un profesional." });
   }
 
   let requestedProfessionalName;
-  let client;
   try {
-    client = await pool.connect();
-    const profResult = await client.query(
-      `SELECT name FROM professional WHERE id = $1 LIMIT 1`,
-      [professionalId]
-    );
-    if (profResult.rowCount === 0) {
+    const profResult = await ddb.send(new GetItemCommand({
+      TableName: PROFESSIONALS_TABLE,
+      Key: marshall({ id: Number(professionalId) })
+    }));
+    if (!profResult.Item) {
       return response(400, { message: "El profesional seleccionado no es válido." });
     }
-    requestedProfessionalName = profResult.rows[0].name;
+    requestedProfessionalName = unmarshall(profResult.Item).name;
   } catch (err) {
     console.error("Register dairi — professional lookup error:", err);
     return response(500, { message: "Error interno del servidor" });
-  } finally {
-    client?.release();
   }
 
   try {
@@ -1032,14 +1046,22 @@ async function handleAdminRequest(rawPath, method, body) {
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 function response(statusCode, body) {
+  // Base64-encoding the body (+ isBase64Encoded) is a defensive measure against
+  // encoding ambiguity anywhere further down the Lambda/API Gateway pipeline. It
+  // did NOT turn out to be the fix for the ScanCommand mojibake bug found while
+  // building this (that bug was upstream, inside the AWS SDK's own response
+  // parsing -- see fixScanMojibake) -- but it's a safe, standard practice to keep
+  // regardless, since plain-text bodies rely on every intermediary correctly
+  // assuming UTF-8, which nothing here should have to trust blindly.
   return {
     statusCode,
     headers: {
-      "Content-Type":                 "application/json",
+      "Content-Type":                 "application/json; charset=utf-8",
       "Access-Control-Allow-Origin":  "*",
       "Access-Control-Allow-Headers": "Content-Type,Authorization",
       "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
     },
-    body: JSON.stringify(body),
+    body: Buffer.from(JSON.stringify(body), "utf8").toString("base64"),
+    isBase64Encoded: true,
   };
 }
