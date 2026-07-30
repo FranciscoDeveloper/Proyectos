@@ -1,8 +1,14 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+
+interface ProfessionalOption {
+  id: number;
+  nombre: string;
+  especialidad: string | null;
+}
 
 function passwordMatch(ctrl: AbstractControl): ValidationErrors | null {
   const pass    = ctrl.get('password')?.value;
@@ -27,7 +33,7 @@ function passwordStrength(ctrl: AbstractControl): ValidationErrors | null {
     templateUrl: './register.component.html',
     styleUrl: './register.component.scss'
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
   private fb    = inject(FormBuilder);
   private http  = inject(HttpClient);
   private route = inject(ActivatedRoute);
@@ -44,6 +50,12 @@ export class RegisterComponent {
   emailSent      = signal(true);
   activationUrl  = signal('');
 
+  // Pro plan only: no self-serve way (yet) to provision a real professional record,
+  // so the signup captures which existing professional/specialty it's for — an admin
+  // finishes real account setup manually afterward (see the distinct activation
+  // message this produces, in lambda-auth's handleActivateDairi).
+  professionals = signal<ProfessionalOption[]>([]);
+
   form = this.fb.group({
     nombre:          ['', [Validators.required, Validators.minLength(2)]],
     apellidos:       ['', [Validators.required, Validators.minLength(2)]],
@@ -51,8 +63,17 @@ export class RegisterComponent {
     telefono:        ['', [Validators.required, Validators.pattern(/^\+?[\d\s\-]{7,15}$/)]],
     password:        ['', [Validators.required, passwordStrength]],
     confirmPassword: ['', [Validators.required]],
+    professionalId:  [null as number | null, this.isFreePlan ? [] : [Validators.required]],
     termsAccepted:   [false, [Validators.requiredTrue]]
   }, { validators: passwordMatch });
+
+  ngOnInit(): void {
+    if (this.isFreePlan) return;
+    this.http.get<ProfessionalOption[]>('/api/auth/professionals').subscribe({
+      next:  (list) => this.professionals.set(list ?? []),
+      error: () => this.professionals.set([])
+    });
+  }
 
   isInvalid(field: string): boolean {
     const ctrl = this.form.get(field);
@@ -118,7 +139,7 @@ export class RegisterComponent {
       email:     v.email,
       telefono:  v.telefono,
       password:  v.password,
-      ...(this.isFreePlan ? { plan: 'agenda' } : {}),
+      ...(this.isFreePlan ? { plan: 'agenda' } : { professionalId: v.professionalId }),
     }).subscribe({
       next: (res: any) => {
         this.loading.set(false);

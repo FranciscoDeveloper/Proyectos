@@ -180,6 +180,24 @@
               }
             </div>
 
+            <!-- Profesional (solo plan Pro) -->
+            @if (!isFreePlan) {
+              <div class="rp-field">
+                <label for="professionalId">Profesional</label>
+                <select
+                  id="professionalId" formControlName="professionalId"
+                  [class.rp-invalid]="isInvalid('professionalId')">
+                  <option [ngValue]="null" disabled>Selecciona un profesional</option>
+                  @for (prof of professionals(); track prof.id) {
+                    <option [ngValue]="prof.id">{{ prof.nombre }}{{ prof.especialidad ? ' — ' + prof.especialidad : '' }}</option>
+                  }
+                </select>
+                @if (isInvalid('professionalId')) {
+                  <span class="rp-error">Selecciona un profesional</span>
+                }
+              </div>
+            }
+
             <!-- Contraseña -->
             <div class="rp-field">
               <label for="password">Contraseña</label>

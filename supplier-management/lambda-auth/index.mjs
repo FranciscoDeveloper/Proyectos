@@ -306,6 +306,12 @@ export const handler = async (event) => {
 
   if (method === "OPTIONS") return response(204, {});
 
+  // ── Public professional directory (GET, no auth — used by the Pro registration
+  //    form's professional select; see handleRegisterDairi) ──────────────────
+  if (method === "GET" && rawPath.endsWith("/auth/professionals")) {
+    return handleListProfessionals();
+  }
+
   // ── Admin routes (GET + PUT, require superadmin JWT) ─────────────────────
   if (rawPath.startsWith("/api/admin/")) {
     const authHeader = event.headers?.["authorization"] || event.headers?.["Authorization"] || "";
@@ -555,9 +561,30 @@ async function handleLogin(body) {
   }
 }
 
+// ── PROFESSIONAL DIRECTORY (public, no auth) ────────────────────────────────────
+// Backs the Pro registration form's professional select. Only name/specialty —
+// no patient or account data — so it's safe to expose pre-signup.
+async function handleListProfessionals() {
+  let client;
+  try {
+    client = await pool.connect();
+    const result = await client.query(
+      `SELECT id, name, specialty FROM professional ORDER BY name ASC`
+    );
+    return response(200, result.rows.map(r => ({
+      id: r.id, nombre: r.name, especialidad: r.specialty ?? null
+    })));
+  } catch (err) {
+    console.error("List professionals error:", err);
+    return response(500, { message: "Error interno del servidor" });
+  } finally {
+    client?.release();
+  }
+}
+
 // ── REGISTER ──────────────────────────────────────────────────────────────────
 async function handleRegister(body) {
-  const { nombre, apellidos, email, telefono, password, plan } = body ?? {};
+  const { nombre, apellidos, email, telefono, password, plan, professionalId } = body ?? {};
 
   if (!nombre || !apellidos || !email || !password)
     return response(400, { message: "Faltan campos obligatorios: nombre, apellidos, email, password" });
@@ -584,7 +611,7 @@ async function handleRegister(body) {
   // Every other plan registers straight into DynamoDB from now on (existing
   // pre-migration accounts still live in — and log in from — Postgres via the
   // getDairiAccount-miss fallback in handleLogin; this only affects new signups).
-  return handleRegisterDairi({ nombre, apellidos, email: emailNorm, telefono, password });
+  return handleRegisterDairi({ nombre, apellidos, email: emailNorm, telefono, password, professionalId });
 }
 
 // ── REGISTER (agenda / Starter free plan → DynamoDB) ───────────────────────────
@@ -641,7 +668,38 @@ async function handleRegisterAgenda({ nombre, apellidos, email, telefono, passwo
 }
 
 // ── REGISTER (generalized DynamoDB accounts) ────────────────────────────────────
-async function handleRegisterDairi({ nombre, apellidos, email, telefono, password }) {
+// Pro registration currently has no self-serve way to actually provision a working
+// `professional` row (that's a bigger, separate fix). As a stopgap, the caller must
+// pick an existing professional from the RDS directory (see handleListProfessionals)
+// so the request captures which professional/specialty the signup is for; it's stored
+// as `requestedProfessionalId/Name` — deliberately NOT the `professionalId/Name` fields
+// login responses use for real profScope-linked accounts, since selecting one here does
+// NOT grant access to that professional's data. An admin finishes real provisioning
+// manually afterward (see the distinct activation message below).
+async function handleRegisterDairi({ nombre, apellidos, email, telefono, password, professionalId }) {
+  if (!professionalId) {
+    return response(400, { message: "Debes seleccionar un profesional." });
+  }
+
+  let requestedProfessionalName;
+  let client;
+  try {
+    client = await pool.connect();
+    const profResult = await client.query(
+      `SELECT name FROM professional WHERE id = $1 LIMIT 1`,
+      [professionalId]
+    );
+    if (profResult.rowCount === 0) {
+      return response(400, { message: "El profesional seleccionado no es válido." });
+    }
+    requestedProfessionalName = profResult.rows[0].name;
+  } catch (err) {
+    console.error("Register dairi — professional lookup error:", err);
+    return response(500, { message: "Error interno del servidor" });
+  } finally {
+    client?.release();
+  }
+
   try {
     const existing = await getDairiAccount(email);
     if (existing)
@@ -667,6 +725,7 @@ async function handleRegisterDairi({ nombre, apellidos, email, telefono, passwor
         emailVerified: false, activationToken,
         schemas: DEFAULT_DAIRI_SCHEMAS, zkEnabled: false,
         professionalId: null, professionalName: null,
+        requestedProfessionalId: Number(professionalId), requestedProfessionalName,
         telefono: telefono ?? null,
         createdAt: now, updatedAt: now
       }, { removeUndefinedValues: true }),
@@ -751,7 +810,7 @@ async function handleActivate(body) {
 // Shared by handleActivateAgenda/Dairi: on a ConditionalCheckFailedException, tell a
 // harmless repeat (email scanner pre-visited the link, account is already verified)
 // apart from a genuinely bad/foreign token — see the Postgres path for the full why.
-async function activateDynamoAccount(table, payload, token) {
+async function activateDynamoAccount(table, payload, token, messages) {
   try {
     await ddb.send(new UpdateItemCommand({
       TableName: table,
@@ -760,13 +819,13 @@ async function activateDynamoAccount(table, payload, token) {
       ConditionExpression: "activationToken = :tok AND emailVerified = :f",
       ExpressionAttributeValues: marshall({ ":t": true, ":tok": token, ":f": false })
     }));
-    return response(200, { message: "Cuenta activada exitosamente. Ya puedes iniciar sesión." });
+    return response(200, { message: messages.success });
   } catch (err) {
     if (err?.name === "ConditionalCheckFailedException") {
       const r = await ddb.send(new GetItemCommand({ TableName: table, Key: marshall({ email: payload.email }) }));
       const acct = r.Item ? unmarshall(r.Item) : null;
       if (acct?.emailVerified) {
-        return response(200, { message: "Tu cuenta ya estaba activada. Puedes iniciar sesión." });
+        return response(200, { message: messages.alreadyActive });
       }
       return response(400, { message: "El enlace ya fue utilizado o es inválido." });
     }
@@ -776,11 +835,20 @@ async function activateDynamoAccount(table, payload, token) {
 }
 
 async function handleActivateAgenda(payload, token) {
-  return activateDynamoAccount(AGENDA_ACCOUNTS_TABLE, payload, token);
+  return activateDynamoAccount(AGENDA_ACCOUNTS_TABLE, payload, token, {
+    success:      "Cuenta activada exitosamente. Ya puedes iniciar sesión.",
+    alreadyActive: "Tu cuenta ya estaba activada. Puedes iniciar sesión."
+  });
 }
 
+// Pro accounts aren't actually usable right after activation yet (see
+// handleRegisterDairi — no self-serve professional provisioning exists), so this
+// intentionally does not say "ya puedes iniciar sesión" the way Starter's does.
 async function handleActivateDairi(payload, token) {
-  return activateDynamoAccount(ACCOUNTS_TABLE, payload, token);
+  return activateDynamoAccount(ACCOUNTS_TABLE, payload, token, {
+    success:      "Gracias por suscribirte con nosotros, en unas horas habilitaremos su cuenta.",
+    alreadyActive: "Gracias por suscribirte con nosotros, en unas horas habilitaremos su cuenta."
+  });
 }
 
 // ── SES email ─────────────────────────────────────────────────────────────────
