@@ -39,8 +39,7 @@ const JSON_LD_SCRIPTS = [
           priceSpecification: { '@type': 'UnitPriceSpecification', price: '0', priceCurrency: 'CLP', unitCode: 'MON' } },
         { '@type': 'Offer', name: 'Pro', price: '6990', priceCurrency: 'CLP',
           priceSpecification: { '@type': 'UnitPriceSpecification', price: '6990', priceCurrency: 'CLP', unitCode: 'MON' } },
-        { '@type': 'Offer', name: 'Enterprise', price: '14990', priceCurrency: 'CLP',
-          priceSpecification: { '@type': 'UnitPriceSpecification', price: '14990', priceCurrency: 'CLP', unitCode: 'MON' } }
+        { '@type': 'Offer', name: 'Enterprise', description: 'Precio a medida, contactar ventas' }
       ],
       featureList: [
         'Plan gratis de agenda de citas para 1 profesional', 'Gestión de pacientes', 'Calendario de citas', 'Fichas clínicas especializadas (9 especialidades)',
@@ -69,7 +68,7 @@ const JSON_LD_SCRIPTS = [
         {
           '@type': 'Question',
           name: '¿Cuánto cuesta Dairi?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Dairi tiene tres planes: Starter, gratis para siempre (1 profesional, 1 especialidad, agenda de citas y reservas online), Pro desde $6.990/mes (hasta 3 profesionales, fichas clínicas y pagos online) y Enterprise desde $14.990/mes (hasta 20 profesionales, todas las especialidades). Los planes pagos incluyen 30 días de prueba gratuita sin tarjeta de crédito.' }
+          acceptedAnswer: { '@type': 'Answer', text: 'Dairi tiene tres planes: Starter, gratis para siempre (1 profesional, 1 especialidad, agenda de citas y reservas online), Pro desde $6.990/mes (hasta 3 profesionales, fichas clínicas y pagos online) y Enterprise con precio a medida (hasta 20 profesionales, todas las especialidades). Los planes pagos incluyen 30 días de prueba gratuita sin tarjeta de crédito.' }
         },
         {
           '@type': 'Question',
