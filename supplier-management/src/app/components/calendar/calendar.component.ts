@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SchemaService } from '../../services/schema.service';
@@ -22,11 +22,18 @@ interface CalEvent {
   initials: string;
 }
 
+interface CalEventLayout extends CalEvent {
+  colIdx:   number;  // horizontal column within day (0-based)
+  colCount: number;  // total columns in this time cluster
+  leftPct:  number;  // left% within the day column
+  widthPct: number;  // width% within the day column
+}
+
 interface WeekDay {
   date: Date;
   dow: number;      // 0=Mon … 6=Sun
   isToday: boolean;
-  events: CalEvent[];
+  events: CalEventLayout[];
 }
 
 interface CalDay {
@@ -54,13 +61,33 @@ const GRID_END    = 20;   // 20:00 (exclusive)
     templateUrl: './calendar.component.html',
     styleUrl: './calendar.component.scss'
 })
-export class CalendarComponent {
+export class CalendarComponent implements OnInit, OnDestroy {
   private route     = inject(ActivatedRoute);
   private schemaSvc = inject(SchemaService);
   private crudSvc   = inject(GenericCrudService);
   private auth      = inject(AuthService);
   readonly gcalSvc  = inject(GoogleCalendarService);
   gcalConnecting    = signal(false);
+
+  private nowTimer?: ReturnType<typeof setInterval>;
+  private readonly _nowLinePx = signal(-1);
+  readonly nowLinePx = this._nowLinePx.asReadonly();
+
+  private computeNowPx(): number {
+    const now  = new Date();
+    const mins = now.getHours() * 60 + now.getMinutes();
+    const px   = (mins - GRID_START * 60) * HOUR_HEIGHT / 60;
+    return px >= 0 && px <= this.GRID_H ? px : -1;
+  }
+
+  ngOnInit(): void {
+    this._nowLinePx.set(this.computeNowPx());
+    this.nowTimer = setInterval(() => this._nowLinePx.set(this.computeNowPx()), 60_000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.nowTimer) clearInterval(this.nowTimer);
+  }
 
   connectGcal(): void {
     this.gcalConnecting.set(true);
@@ -72,10 +99,10 @@ export class CalendarComponent {
   readonly entityKey = this.route.snapshot.paramMap.get('entityKey')!;
   readonly schema    = this.schemaSvc.getSchema(this.entityKey);
 
-  viewDate          = signal(new Date());
-  viewMode          = signal<'day' | 'week' | 'month'>('week');
-  miniCalMonth      = signal(new Date());
-  searchTerm        = signal('');
+  viewDate           = signal(new Date());
+  viewMode           = signal<'day' | 'week' | 'month'>('week');
+  miniCalMonth       = signal(new Date());
+  searchTerm         = signal('');
   activeStatusFilter = signal('');
 
   private readonly titleField    = this.schema?.fields.find(f => f.isTitle)         ?? null;
@@ -91,13 +118,6 @@ export class CalendarComponent {
                          'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   readonly HOURS      = Array.from({ length: GRID_END - GRID_START }, (_, i) => GRID_START + i);
   readonly GRID_H     = (GRID_END - GRID_START) * HOUR_HEIGHT;
-
-  readonly nowLinePx = (() => {
-    const now  = new Date();
-    const mins = now.getHours() * 60 + now.getMinutes();
-    const px   = (mins - GRID_START * 60) * HOUR_HEIGHT / 60;
-    return px >= 0 && px <= this.GRID_H ? px : -1;
-  })();
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -127,6 +147,52 @@ export class CalendarComponent {
   fmtShortDate(d: Date): string {
     const dows = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
     return `${dows[d.getDay()]} ${d.getDate()} ${this.MONTHS[d.getMonth()].slice(0, 3)}`;
+  }
+
+  // Assigns side-by-side columns to overlapping events
+  private assignLayout(events: CalEvent[]): CalEventLayout[] {
+    if (!events.length) return [];
+    const sorted = [...events].sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+    const columns: Date[] = [];
+    const result: CalEventLayout[] = sorted.map(ev => {
+      let col = columns.findIndex(end => end <= ev.startDate);
+      if (col === -1) col = columns.length;
+      columns[col] = ev.endDate;
+      return { ...ev, colIdx: col, colCount: 1, leftPct: 0, widthPct: 100 };
+    });
+    // Determine the cluster width for each event
+    for (let i = 0; i < result.length; i++) {
+      let maxCol = result[i].colIdx;
+      for (let j = 0; j < result.length; j++) {
+        if (i !== j &&
+            result[i].startDate < result[j].endDate &&
+            result[i].endDate   > result[j].startDate) {
+          maxCol = Math.max(maxCol, result[j].colIdx);
+        }
+      }
+      result[i].colCount = maxCol + 1;
+      result[i].leftPct  = result[i].colIdx / result[i].colCount * 100;
+      result[i].widthPct = 1 / result[i].colCount * 100;
+    }
+    return result;
+  }
+
+  eventStyle(ev: CalEventLayout, isDayView = false): Record<string, string> {
+    const pad = isDayView ? 8 : 3;
+    const base: Record<string, string> = {
+      top:                 ev.topPx + 'px',
+      height:              ev.heightPx + 'px',
+      background:          ev.statusColor + '18',
+      'border-left-color': ev.statusColor
+    };
+    if (ev.colCount > 1) {
+      return { ...base,
+        left:  `calc(${ev.leftPct}% + ${pad}px)`,
+        width: `calc(${ev.widthPct}% - ${pad * 2}px)`,
+        right: 'auto'
+      };
+    }
+    return { ...base, left: `${pad}px`, right: `${pad}px` };
   }
 
   // ── Raw events (all items mapped to CalEvent) ─────────────────────────────
@@ -219,13 +285,14 @@ export class CalendarComponent {
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(monday);
       date.setDate(monday.getDate() + i);
-      const events = evs
+      const raw = evs
         .filter(e =>
           e.startDate.getFullYear() === date.getFullYear() &&
           e.startDate.getMonth()    === date.getMonth()    &&
           e.startDate.getDate()     === date.getDate()
         )
         .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+      const events = this.assignLayout(raw);
       return { date, dow: i, isToday: date.toDateString() === today.toDateString(), events };
     });
   });
@@ -243,16 +310,17 @@ export class CalendarComponent {
 
   // ── Day view ──────────────────────────────────────────────────────────────
 
-  readonly dayEvents = computed(() => {
+  readonly dayEvents = computed<CalEventLayout[]>(() => {
     const d   = this.viewDate();
     const evs = this.allEvents();
-    return evs
+    const raw = evs
       .filter(e =>
         e.startDate.getFullYear() === d.getFullYear() &&
         e.startDate.getMonth()    === d.getMonth()    &&
         e.startDate.getDate()     === d.getDate()
       )
       .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+    return this.assignLayout(raw);
   });
 
   readonly dayLabel = computed(() => {
@@ -344,7 +412,8 @@ export class CalendarComponent {
   jumpToDate(date: Date) {
     this.viewDate.set(new Date(date));
     this.miniCalMonth.set(new Date(date));
-    if (this.viewMode() !== 'month') this.viewMode.set('day');
+    // In week mode, stay in week mode and jump to the week containing date
+    if (this.viewMode() === 'month') this.viewMode.set('day');
   }
 
   // ── Stats & upcoming ──────────────────────────────────────────────────────

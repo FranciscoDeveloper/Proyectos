@@ -70,6 +70,7 @@
         <button *ngFor="let s of statusOptions()"
                 class="chip"
                 [class.chip-active]="activeStatusFilter() === s.label"
+                [style.background]="activeStatusFilter() === s.label ? s.color : ''"
                 (click)="setStatusFilter(s.label)">
           <span class="chip-dot" [style.background]="activeStatusFilter() === s.label ? 'white' : s.color"></span>
           {{ s.label }}
@@ -234,16 +235,13 @@
                  [style.height.px]="GRID_H">
               <div *ngFor="let h of HOURS; let i = index" class="hour-line"      [style.top.px]="i * 72"></div>
               <div *ngFor="let h of HOURS; let i = index" class="half-hour-line" [style.top.px]="i * 72 + 36"></div>
-              <div *ngIf="isDayToday() && nowLinePx >= 0" class="now-line" [style.top.px]="nowLinePx">
+              <div *ngIf="isDayToday() && nowLinePx() >= 0" class="now-line" [style.top.px]="nowLinePx()">
                 <span class="now-dot"></span>
               </div>
               <a *ngFor="let ev of dayEvents()"
                  [routerLink]="['/app/entity', ev.entityKey, ev.id]"
                  class="week-event day-event"
-                 [style.top.px]="ev.topPx"
-                 [style.height.px]="ev.heightPx"
-                 [style.background]="ev.statusColor + '18'"
-                 [style.border-left-color]="ev.statusColor">
+                 [style]="eventStyle(ev, true)">
                 <div class="we-inner">
                   <div class="we-avatar" [style.background]="ev.statusColor">{{ ev.initials }}</div>
                   <div class="we-info">
@@ -279,6 +277,7 @@
           <div *ngFor="let day of weekDays()"
                class="day-head"
                [class.today-head]="day.isToday"
+               [class.weekend-head]="day.dow >= 5"
                (click)="jumpToDate(day.date)"
                style="cursor:pointer">
             <span class="dh-dow">{{ WEEK_DAYS[day.dow] }}</span>
@@ -295,19 +294,17 @@
             <div *ngFor="let day of weekDays()"
                  class="day-col"
                  [class.today-col]="day.isToday"
+                 [class.weekend-col]="day.dow >= 5"
                  [style.height.px]="GRID_H">
               <div *ngFor="let h of HOURS; let i = index" class="hour-line"      [style.top.px]="i * 72"></div>
               <div *ngFor="let h of HOURS; let i = index" class="half-hour-line" [style.top.px]="i * 72 + 36"></div>
-              <div *ngIf="day.isToday && nowLinePx >= 0" class="now-line" [style.top.px]="nowLinePx">
+              <div *ngIf="day.isToday && nowLinePx() >= 0" class="now-line" [style.top.px]="nowLinePx()">
                 <span class="now-dot"></span>
               </div>
               <a *ngFor="let ev of day.events"
                  [routerLink]="['/app/entity', ev.entityKey, ev.id]"
                  class="week-event"
-                 [style.top.px]="ev.topPx"
-                 [style.height.px]="ev.heightPx"
-                 [style.background]="ev.statusColor + '18'"
-                 [style.border-left-color]="ev.statusColor"
+                 [style]="eventStyle(ev)"
                  [title]="ev.timeLabel + '–' + ev.endTimeLabel + ' · ' + ev.title">
                 <span class="we-time">{{ ev.timeLabel }}–{{ ev.endTimeLabel }}</span>
                 <span class="we-title">{{ ev.title }}</span>

@@ -578,7 +578,9 @@ $text-4:        #9ca3af;
 
 // Scrollable time grid
 .week-scroll {
-  max-height: 620px;
+  height: calc(100vh - 340px);
+  min-height: 400px;
+  max-height: 860px;
   overflow-y: auto;
   overflow-x: hidden;
 
@@ -633,6 +635,13 @@ $text-4:        #9ca3af;
   border-right: none !important;
 }
 
+.weekend-col  { background: rgba($primary, 0.013); }
+
+.weekend-head {
+  background: rgba($primary, 0.022);
+  .dh-dow { color: lighten($text-4, 8%); }
+}
+
 .hour-line {
   position: absolute;
   left: 0;
@@ -675,11 +684,9 @@ $text-4:        #9ca3af;
   box-shadow: 0 0 0 2px #ef4444;
 }
 
-// Event blocks — week view
+// Event blocks — week view (left/right/width set via inline style to support overlap columns)
 .week-event {
   position: absolute;
-  left: 3px;
-  right: 3px;
   border-radius: 6px;
   border-left: 4px solid;
   padding: 3px 6px;
@@ -697,10 +704,8 @@ $text-4:        #9ca3af;
   }
 }
 
-// Event blocks — day view (wider, richer)
+// Event blocks — day view (wider, richer; left/right set via inline style)
 .day-event {
-  left: 8px;
-  right: 8px;
   border-radius: 10px;
   border-left: 5px solid;
   padding: 8px 10px;
