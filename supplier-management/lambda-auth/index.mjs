@@ -570,14 +570,13 @@ async function handleLogin(body) {
 // ── PROFESSIONAL DIRECTORY (public, no auth) ────────────────────────────────────
 // Backs the Pro registration form's professional select. Only name/specialty —
 // no patient or account data — so it's safe to expose pre-signup.
-// Confirmed live with raw-byte inspection: this bundled AWS SDK version's
-// ScanCommand response parsing mangles non-ASCII UTF-8 -- the raw `Items[].name.S`
-// string is *already* wrong before unmarshall() or any of our code runs
-// (GetItemCommand, used elsewhere in this file for the same table, is unaffected).
-// The corruption is exactly "UTF-8 bytes decoded as Latin-1": each original UTF-8
-// byte became its own Latin-1 character. That's reversible byte-for-byte, since
-// every character in the corrupted string has a codepoint <= 255 (a real accented
-// character wouldn't).
+// Confirmed live (see git history/commit message): the DynamoDB SDK's ScanCommand
+// response parsing mangles non-ASCII UTF-8 in this bundled SDK version — the raw
+// `Items[].name.S` string is *already* wrong before unmarshall() or any of our code
+// runs (GetItemCommand, used elsewhere in this file, is unaffected). The corruption
+// is exactly "UTF-8 bytes decoded as Latin-1": each original UTF-8 byte became its
+// own Latin-1 character. That's reversible byte-for-byte, since every character in
+// the corrupted string has a codepoint ≤ 255 (a real accented character wouldn't).
 function fixScanMojibake(str) {
   // Safe to apply unconditionally: pure-ASCII strings round-trip through
   // latin1->utf8 unchanged, so this only affects the actually-corrupted ones.
@@ -1046,13 +1045,12 @@ async function handleAdminRequest(rawPath, method, body) {
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 function response(statusCode, body) {
-  // Base64-encoding the body (+ isBase64Encoded) is a defensive measure against
-  // encoding ambiguity anywhere further down the Lambda/API Gateway pipeline. It
-  // did NOT turn out to be the fix for the ScanCommand mojibake bug found while
-  // building this (that bug was upstream, inside the AWS SDK's own response
-  // parsing -- see fixScanMojibake) -- but it's a safe, standard practice to keep
-  // regardless, since plain-text bodies rely on every intermediary correctly
-  // assuming UTF-8, which nothing here should have to trust blindly.
+  // Base64-encoding the body (+ isBase64Encoded) sidesteps a known Lambda/API Gateway
+  // proxy-integration quirk that mangles non-ASCII UTF-8 text (á/é/í/ó/ú/ñ) into
+  // mojibake when a plain-text body is returned directly — confirmed live (DynamoDB
+  // had the correct bytes for "Ramírez", but the plain-text HTTP response corrupted
+  // it to "RamÃ­rez"). Base64 is unambiguous regardless of any encoding assumptions
+  // further down the pipeline.
   return {
     statusCode,
     headers: {
