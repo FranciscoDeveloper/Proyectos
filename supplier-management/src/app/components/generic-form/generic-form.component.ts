@@ -257,6 +257,10 @@ export class GenericFormComponent implements OnInit {
         const profName = this.auth.user()?.name;
         const encounter: Record<string, any> = {
           encounterDate: raw['encounterDate'],
+          // Escrita a mano por el profesional ⇒ nace certificada (sólo la transcripción
+          // de voz deja la ficha pendiente de validación). Las entidades que no tienen
+          // la columna simplemente lo ignoran en su toDb.
+          certified: true,
           ...(profName ? { encounterDoctor: profName } : {})
         };
         (this.schema()!.fields.filter(f => !f.isStable && f.type !== 'object-list' && f.type !== 'dental-chart' && f.type !== 'periodontal-chart')).forEach(f => {

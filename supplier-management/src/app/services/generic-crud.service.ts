@@ -96,6 +96,24 @@ export class GenericCrudService {
     );
   }
 
+  /**
+   * "Rechazar" on the certification banner: asks the backend to erase the SOAP content
+   * written by the voice-transcription pipeline and re-certify the record. The server
+   * returns the resulting record, which is decrypted and merged into the store so the
+   * view refreshes without a full reload.
+   */
+  rejectAiContent(key: string, id: number): Observable<Record<string, any>> {
+    return this.http.post<Record<string, any>>(`/api/entities/${key}/${id}/reject-ai`, {}).pipe(
+      switchMap(async updated => {
+        const decrypted = await this.crypto.decryptRecord(updated, key);
+        this.stores.get(key)?.update(
+          list => list.map(item => item['id'] === id ? decrypted : item)
+        );
+        return decrypted;
+      })
+    );
+  }
+
   async decryptAndUpdate(key: string, id: number, updated: Record<string, any>): Promise<Record<string, any>> {
     const decrypted = await this.crypto.decryptRecord(updated, key);
     this.stores.get(key)?.update(list => list.map(item => item['id'] === id ? decrypted : item));

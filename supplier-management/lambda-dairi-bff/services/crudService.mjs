@@ -321,3 +321,105 @@ export async function appendEncounter(client, config, id, encounter, profScope) 
   }
   return response(201, config.fromDb(result.rows[0]));
 }
+
+/** Marker written by lambda-soap-processor on every encounter it generates. */
+const AI_ENCOUNTER_SOURCE = 'audio-transcription';
+
+/**
+ * Reject the AI-generated content of a clinical record ("Rechazar" in the ficha
+ * clínica): erases everything the voice-transcription pipeline wrote and leaves the
+ * record certified again, since nothing uncertified remains afterwards.
+ *
+ * Concretely it:
+ *  1. Nulls the flat SOAP columns mirrored from the AI write (soap_*, ai_summary,
+ *     soap_source), plus diagnosis_label when that same AI encounter carried one.
+ *     diagnosis_code is never touched — lambda-soap-processor does not write it, so it
+ *     can only hold a value the professional entered by hand.
+ *  2. Drops the newest encounter from the `encounters` JSONB array, but only when it is
+ *     actually the AI one (entries are prepended, so the AI write is always index 0).
+ *  3. Sets certified = true.
+ *
+ * The operation is idempotent-ish and defensive: if the record is already certified or
+ * the newest encounter is not AI-sourced, only the certification flag is normalised and
+ * no clinical content is destroyed.
+ *
+ * @param {import('pg').PoolClient} client Active DB client.
+ * @param {object} config                  Entity descriptor.
+ * @param {number|string} id               Primary key value.
+ * @param {object|null} profScope          Resolved professional scope, or null.
+ * @returns {Promise<object>} HTTP response with the updated record or a 404.
+ */
+export async function rejectAiContent(client, config, id, profScope) {
+  const log = getLogger();
+
+  const pkCol = config.pkCol ?? 'id';
+
+  // Scope the read exactly like getEntity/appendEncounter do — otherwise any professional
+  // with module access could wipe the SOAP note of a record they have no relationship to,
+  // just by guessing the id. This is a destructive action, so the check matters even more.
+  const { clause, params: scopeParams } = profScopeService.buildProfWhere(config, profScope, 1);
+  const andOrWhere = clause ? clause.replace(' WHERE ', ' AND ') : '';
+  const current = await client.query(
+    `SELECT encounters FROM ${config.table} AS c WHERE c.${pkCol} = $1${andOrWhere}`,
+    [id, ...scopeParams]
+  );
+  if (current.rowCount === 0) {
+    log.warn('rejectAiContent — not found', { table: config.table, id });
+    return response(404, { message: 'Ficha clínica no encontrada' });
+  }
+
+  const raw      = current.rows[0].encounters;
+  const existing = Array.isArray(raw) ? raw : (raw ? JSON.parse(raw) : []);
+
+  // New encounters are always prepended, so the AI write — if it is still the latest — is
+  // at index 0. Anything else means the professional already wrote over it manually and
+  // there is no AI content left to remove.
+  const newest   = existing[0] ?? null;
+  const isAi     = !!newest && newest.source === AI_ENCOUNTER_SOURCE;
+  const remaining = isAi ? existing.slice(1) : existing;
+
+  const sets   = ['certified = true', 'updated_at = NOW()'];
+  const values = [];
+
+  if (isAi) {
+    sets.push(
+      'soap_subjective = NULL',
+      'soap_objective  = NULL',
+      'soap_assessment = NULL',
+      'soap_plan       = NULL',
+      'ai_summary      = NULL',
+      'soap_source     = NULL'
+    );
+    // Only clear the diagnosis when it came from this very AI write.
+    if (newest.diagnosisLabel != null && newest.diagnosisLabel !== '') {
+      sets.push('diagnosis_label = NULL');
+    }
+    values.push(JSON.stringify(remaining));
+    sets.push(`encounters = $${values.length}`);
+  }
+
+  values.push(id);
+  const result = await client.query(
+    `UPDATE ${config.table} AS c
+     SET ${sets.join(', ')}
+     WHERE c.${pkCol} = $${values.length}
+     RETURNING c.*`,
+    values
+  );
+
+  if (result.rowCount === 0) {
+    log.warn('rejectAiContent — update matched no row', { table: config.table, id });
+    return response(404, { message: 'Ficha clínica no encontrada' });
+  }
+
+  log.info('rejectAiContent — success', {
+    table: config.table, id, aiContentRemoved: isAi, remainingEncounters: remaining.length
+  });
+
+  // Re-fetch with JOIN so patient demographics are not lost in the response
+  if (config.joinSelect) {
+    const full = await client.query(`${config.joinSelect} WHERE c.${pkCol} = $1 LIMIT 1`, [id]);
+    if (full.rowCount > 0) return response(200, config.fromDb(full.rows[0]));
+  }
+  return response(200, config.fromDb(result.rows[0]));
+}

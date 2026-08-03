@@ -276,6 +276,9 @@ export const handler = async (event) => {
         soapAssessment: soap.assessment  || null,
         soapPlan:       soap.plan        || null,
         soapSource:     'ai-transcription',
+        // La nota la rellenó la IA, no el profesional: queda pendiente de validación
+        // hasta que él la apruebe (o la rechace) desde la ficha clínica.
+        certified:      false,
         aiSummary:      soap.summary     || null,
         ...(soap.diagnosis ? { diagnosisLabel: soap.diagnosis } : {}),
         professionalId: meta.doctorId,

@@ -217,17 +217,57 @@ export class ClinicalDetailComponent implements OnInit {
   readonly diagnosisLabel = computed(() => String(this.record()?.['diagnosisLabel'] ?? ''));
   readonly differentialDx = computed(() => String(this.record()?.['differentialDx'] ?? ''));
 
-  readonly soapIsAi = computed(() => this.record()?.['soapSource'] === 'ai-transcription');
   readonly soapReviewed = computed(() => this.record()?.['soapSource'] === 'ai-reviewed');
-  aiReviewConfirmed = signal(false);
-  confirmingReview  = signal(false);
 
-  confirmAiReview(): void {
-    if (!this.aiReviewConfirmed()) return;
-    this.confirmingReview.set(true);
-    this.crudSvc.update(this.entityKey, this.id, { soapSource: 'ai-reviewed' }).subscribe({
-      next: () => { this.confirmingReview.set(false); this.aiReviewConfirmed.set(false); },
-      error: () => { this.confirmingReview.set(false); }
+  // ── Certificación de la ficha ─────────────────────────────────────────────
+  // `certified` es un booleano persistido en clinical_record: true cuando el SOAP lo
+  // escribió el profesional a mano, false cuando lo rellenó la transcripción de voz.
+  // Al vivir en la BD, la alerta reaparece en cada apertura de la ficha mientras el
+  // profesional no apruebe ni rechace — no hace falta ninguna marca de "descartado".
+  // Se asume certificada cuando el campo no viene, para no alarmar por fichas antiguas.
+  readonly needsCertification = computed(() => {
+    const r = this.record();
+    return !!r && r['certified'] === false;
+  });
+
+  certifying    = signal(false);
+  rejecting     = signal(false);
+  certifyError  = signal<string | null>(null);
+
+  /** "Aprobar": el profesional valida el contenido generado por IA tal cual está. */
+  approveCertification(): void {
+    if (this.certifying() || this.rejecting()) return;
+    this.certifying.set(true);
+    this.certifyError.set(null);
+    // soapSource pasa a 'ai-reviewed' junto con la certificación para conservar la
+    // semántica ya existente de la columna (y mostrar el badge de nota revisada).
+    this.crudSvc.update(this.entityKey, this.id, { certified: true, soapSource: 'ai-reviewed' }).subscribe({
+      next:  () => this.certifying.set(false),
+      error: () => {
+        this.certifying.set(false);
+        this.certifyError.set('No se pudo aprobar la nota. Intenta de nuevo.');
+      }
+    });
+  }
+
+  /** "Rechazar": borra el contenido que escribió la IA. Destructivo y sin deshacer. */
+  rejectCertification(): void {
+    if (this.certifying() || this.rejecting()) return;
+    const ok = confirm(
+      'Se eliminará la nota clínica generada por reconocimiento de voz ' +
+      '(secciones SOAP, resumen y la atención asociada). Esta acción no se puede deshacer.\n\n' +
+      '¿Deseas rechazarla?'
+    );
+    if (!ok) return;
+
+    this.rejecting.set(true);
+    this.certifyError.set(null);
+    this.crudSvc.rejectAiContent(this.entityKey, this.id).subscribe({
+      next:  () => { this.rejecting.set(false); this.loadAiSummary(); },
+      error: () => {
+        this.rejecting.set(false);
+        this.certifyError.set('No se pudo rechazar la nota. Intenta de nuevo.');
+      }
     });
   }
 

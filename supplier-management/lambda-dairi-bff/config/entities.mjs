@@ -679,6 +679,7 @@ export const ENTITY_CONFIG = {
         c.soap_assessment         AS "soapAssessment",
         c.soap_plan               AS "soapPlan",
         c.soap_source             AS "soapSource",
+        c.certified,
         c.ai_summary              AS "aiSummary",
         pr.name                   AS "doctorName",
         c.last_visit              AS "lastVisit",
@@ -725,6 +726,11 @@ export const ENTITY_CONFIG = {
       if (d.soapAssessment       !== undefined) cols.soap_assessment        = d.soapAssessment;
       if (d.soapPlan             !== undefined) cols.soap_plan              = d.soapPlan;
       if (d.soapSource           !== undefined) cols.soap_source            = d.soapSource;
+      // Validación profesional del SOAP: true cuando lo escribió el profesional a mano
+      // (o cuando lo aprobó), false cuando lo rellenó la transcripción de voz/IA.
+      // Se escribe tanto por el PUT genérico (lambda-soap-processor) como por
+      // appendEncounter (formulario manual), que también pasa por este toDb.
+      if (d.certified            !== undefined) cols.certified              = d.certified;
       if (d.aiSummary            !== undefined) cols.ai_summary             = d.aiSummary;
       if (d.professionalId       !== undefined) cols.professional_id        = d.professionalId;
       // doctorName is read-only (resolved server-side via JOIN to professional.name in
@@ -779,6 +785,10 @@ export const ENTITY_CONFIG = {
         soapAssessment:       r.soapAssessment       ?? r.soap_assessment      ?? null,
         soapPlan:             r.soapPlan             ?? r.soap_plan            ?? null,
         soapSource:           r.soapSource           ?? r.soap_source          ?? null,
+        // Ante ausencia de valor se asume certificada: la ficha sólo queda pendiente de
+        // validación cuando algo escribió explícitamente false (la IA), de modo que una
+        // fila antigua o un SELECT sin la columna nunca dispara la alerta por error.
+        certified:            r.certified            ?? true,
         aiSummary:            r.aiSummary            ?? r.ai_summary           ?? null,
         encounters:           Array.isArray(r.encounters) ? r.encounters : (r.encounters ? JSON.parse(r.encounters) : []),
         insurance:            r.insurance            ?? '',

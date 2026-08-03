@@ -93,6 +93,14 @@ export async function handleEntities(rawPath, method, event, tokenPayload, clien
     return await crudService.appendEncounter(client, config, id, body, profScope);
   }
 
+  // ── Special action: POST /api/entities/{clinicalKey}/{id}/reject-ai ──────────
+  // "Rechazar" on the certification banner: erases the SOAP content written by the
+  // voice-transcription pipeline. Destructive, so it sits after profScope for the same
+  // row-level ownership check as the encounters action above.
+  if (rawPath.endsWith('/reject-ai') && method === 'POST' && id) {
+    return await crudService.rejectAiContent(client, config, id, profScope);
+  }
+
   // ── CRUD dispatch ───────────────────────────────────────────────────────────
   if (method === 'GET'    && !id) return await crudService.listEntities(client, config, entityKey, profScope);
   if (method === 'GET'    &&  id) return await crudService.getEntity(client, config, id, entityKey, profScope);

@@ -535,6 +535,13 @@
     input { cursor: pointer; accent-color: #f59e0b; width: 15px; height: 15px; }
   }
 
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 2px;
+  }
+
   &__btn {
     align-self: flex-start;
     padding: 6px 16px;
@@ -548,6 +555,16 @@
     transition: opacity .15s;
     &:disabled { opacity: .45; cursor: not-allowed; }
     &:not(:disabled):hover { opacity: .85; }
+
+    /* Rechazar borra contenido clínico sin vuelta atrás: se separa en rojo del
+       botón de aprobar para que no se pulse por inercia. */
+    &--danger { background: #dc2626; }
+  }
+
+  &__error {
+    font-size: .78rem;
+    font-weight: 500;
+    color: #b91c1c !important;
   }
 }
 
@@ -557,7 +574,8 @@
     border-color: #b45309;
     &__body { strong { color: #fcd34d; } p { color: #fde68a; } }
     &__check { color: #fde68a; }
-    &__btn { background: #b45309; }
+    &__btn { background: #b45309; &--danger { background: #b91c1c; } }
+    &__error { color: #fca5a5 !important; }
   }
 }
 

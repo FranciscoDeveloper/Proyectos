@@ -311,7 +311,11 @@ export class ClinicalEncounterFormComponent implements OnInit {
       this.crudSvc.update(this.entityKey(), this.recordId()!, backgroundData).subscribe();
     }
 
-    const encounter: Record<string, any> = { encounterDate: raw['encounterDate'], status: 'active', soapSource: 'manual' };
+    // `certified: true` — la nota la escribe el profesional a mano, así que nace validada.
+    // appendEncounter la refleja en la columna clinical_record.certified vía toDb, con lo
+    // que una ficha que estaba pendiente por una transcripción de voz queda certificada al
+    // ser reescrita manualmente.
+    const encounter: Record<string, any> = { encounterDate: raw['encounterDate'], status: 'active', soapSource: 'manual', certified: true };
     this.schema()!.fields
       .filter(f =>
         !f.isStable &&
