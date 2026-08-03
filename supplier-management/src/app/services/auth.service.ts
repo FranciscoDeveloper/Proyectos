@@ -1104,6 +1104,36 @@ export class AuthService {
     );
   }
 
+  /** POST /api/auth/mfa-verify — step 2 of MFA login */
+  verifyMfa(challengeToken: string, totpCode: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>('/api/auth/mfa-verify', { challengeToken, totpCode }).pipe(
+      catchError(err => throwError(() =>
+        new Error(err.error?.message ?? 'Código incorrecto. Inténtalo de nuevo.')
+      ))
+    );
+  }
+
+  /** POST /api/auth/mfa/setup — generate TOTP secret + QR URI */
+  mfaSetup(): Observable<{ secret: string; otpAuthUri: string }> {
+    return this.http.post<{ secret: string; otpAuthUri: string }>('/api/auth/mfa/setup', {}).pipe(
+      catchError(err => throwError(() => new Error(err.error?.message ?? 'Error al iniciar configuración de MFA')))
+    );
+  }
+
+  /** POST /api/auth/mfa/confirm — activate MFA, returns recovery codes */
+  mfaConfirm(totpCode: string): Observable<{ message: string; recoveryCodes: string[] }> {
+    return this.http.post<{ message: string; recoveryCodes: string[] }>('/api/auth/mfa/confirm', { totpCode }).pipe(
+      catchError(err => throwError(() => new Error(err.error?.message ?? 'Código incorrecto')))
+    );
+  }
+
+  /** POST /api/auth/mfa/disable — deactivate MFA */
+  mfaDisable(password: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>('/api/auth/mfa/disable', { password }).pipe(
+      catchError(err => throwError(() => new Error(err.error?.message ?? 'Error al desactivar MFA')))
+    );
+  }
+
   /**
    * POST /api/auth/google — validates Google ID token server-side and returns the same
    * AuthResponse format as /api/auth/login (token + user + authorized schemas).

@@ -192,6 +192,22 @@
   text-overflow: ellipsis;
 }
 
+.profile-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: rgba(255,255,255,0.06);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.5);
+  text-decoration: none;
+  svg { width: 18px; height: 18px; }
+  &:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.9); }
+}
+
 .logout-btn {
   width: 34px;
   height: 34px;

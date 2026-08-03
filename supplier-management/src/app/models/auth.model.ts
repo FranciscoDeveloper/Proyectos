@@ -29,6 +29,10 @@ export interface AuthResponse {
   zkEnabled?: boolean;
   /** Schemas authorized for this user — drives the entire frontend */
   schemas: EntitySchema[];
+  /** If true, a second MFA step is required before a full token is issued */
+  requiresMfa?: boolean;
+  /** Short-lived token passed to /mfa-verify to complete login */
+  challengeToken?: string;
 }
 
 export interface AuthState {

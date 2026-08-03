@@ -1,0 +1,166 @@
+<div class="profile-page">
+  <div class="page-header">
+    <h1>Mi Perfil</h1>
+    <p>Gestiona tu cuenta y configuración de seguridad</p>
+  </div>
+
+  <!-- User card -->
+  <div class="card user-card">
+    <div class="user-avatar-lg">{{ user()?.avatar ?? '?' }}</div>
+    <div class="user-info">
+      <h2>{{ user()?.name }}</h2>
+      <span class="role-badge">{{ user()?.role }}</span>
+      <p class="user-email">{{ user()?.email }}</p>
+    </div>
+  </div>
+
+  <!-- MFA section -->
+  <div class="card mfa-card">
+    <div class="section-head">
+      <div class="section-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="24" height="24">
+          <rect x="5" y="11" width="14" height="10" rx="2"/>
+          <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+          <circle cx="12" cy="16" r="1" fill="currentColor"/>
+        </svg>
+      </div>
+      <div>
+        <h3>Autenticación en dos pasos (2FA)</h3>
+        <p>Protege tu cuenta exigiendo un código TOTP además de la contraseña.</p>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div class="alert alert-success" *ngIf="success()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+        <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+      </svg>
+      {{ success() }}
+    </div>
+
+    <!-- Error -->
+    <div class="alert alert-error" *ngIf="error()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      {{ error() }}
+    </div>
+
+    <!-- ── IDLE ── -->
+    @if (mfaView() === 'idle') {
+    <div class="mfa-idle">
+      <div class="status-row">
+        <span class="status-dot inactive"></span>
+        <span>2FA no está activado en tu cuenta</span>
+      </div>
+      <button class="btn-primary" (click)="startSetup()" [disabled]="loading()">
+        Activar autenticación en dos pasos
+      </button>
+    </div>
+    }
+
+    <!-- ── SETUP: show QR ── -->
+    @if (mfaView() === 'setup') {
+    <div class="mfa-setup">
+      <p class="step-label">Paso 1 de 2 — Escanea el código QR</p>
+      <ol class="setup-steps">
+        <li>Instala una app autenticadora (Google Authenticator, Authy, Microsoft Authenticator)</li>
+        <li>Escanea el código QR con la app</li>
+        <li>Si no puedes escanear, ingresa el código manualmente</li>
+      </ol>
+
+      <div class="qr-wrap">
+        <img [src]="qrUri()" alt="Código QR para autenticador" width="200" height="200" />
+      </div>
+
+      <div class="secret-box">
+        <span class="secret-label">Clave manual</span>
+        <code class="secret-code">{{ rawSecret() }}</code>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-outline" (click)="cancel()">Cancelar</button>
+        <button class="btn-primary" (click)="goToConfirm()">Ya lo agregué → Verificar</button>
+      </div>
+    </div>
+    }
+
+    <!-- ── CONFIRM: enter first TOTP code ── -->
+    @if (mfaView() === 'confirm') {
+    <form [formGroup]="confirmForm" (ngSubmit)="submitConfirm()" class="mfa-confirm">
+      <p class="step-label">Paso 2 de 2 — Confirma el código de tu app</p>
+      <div class="field-group">
+        <label class="field-label">Código de 6 dígitos</label>
+        <input
+          type="text"
+          inputmode="numeric"
+          formControlName="totpCode"
+          placeholder="000000"
+          class="field-input totp-input"
+          [class.invalid]="confirmForm.get('totpCode')?.invalid && confirmForm.get('totpCode')?.touched"
+          maxlength="6"
+          autocomplete="one-time-code" />
+        <span class="field-error" *ngIf="confirmForm.get('totpCode')?.invalid && confirmForm.get('totpCode')?.touched">
+          Ingresa los 6 dígitos.
+        </span>
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn-outline" (click)="cancel()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="loading()">
+          {{ loading() ? 'Verificando...' : 'Confirmar y activar 2FA' }}
+        </button>
+      </div>
+    </form>
+    }
+
+    <!-- ── CODES: recovery codes ── -->
+    @if (mfaView() === 'codes') {
+    <div class="mfa-codes">
+      <div class="codes-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <strong>Guarda estos códigos de recuperación — se muestran una única vez</strong>
+      </div>
+      <p class="codes-desc">Si pierdes acceso a tu app autenticadora, usa uno de estos códigos para entrar. Cada código es de un solo uso.</p>
+      <div class="codes-grid">
+        <code *ngFor="let code of recoveryCodes()">{{ code }}</code>
+      </div>
+      <div class="btn-row">
+        <button class="btn-outline" (click)="copyCodes()">
+          {{ copiedCodes() ? '✓ Copiado' : 'Copiar todos' }}
+        </button>
+        <button class="btn-primary" (click)="finishSetup()">Listo — ya los guardé</button>
+      </div>
+    </div>
+    }
+
+    <!-- ── DISABLE: confirm password ── -->
+    @if (mfaView() === 'disable') {
+    <form [formGroup]="disableForm" (ngSubmit)="submitDisable()" class="mfa-disable">
+      <p class="disable-warn">Ingresa tu contraseña para confirmar que deseas desactivar la autenticación en dos pasos.</p>
+      <div class="field-group">
+        <label class="field-label">Contraseña actual</label>
+        <input
+          type="password"
+          formControlName="password"
+          placeholder="••••••••"
+          class="field-input"
+          [class.invalid]="disableForm.get('password')?.invalid && disableForm.get('password')?.touched"
+          autocomplete="current-password" />
+        <span class="field-error" *ngIf="disableForm.get('password')?.invalid && disableForm.get('password')?.touched">
+          Ingresa tu contraseña.
+        </span>
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn-outline" (click)="cancel()">Cancelar</button>
+        <button type="submit" class="btn-danger" [disabled]="loading()">
+          {{ loading() ? 'Desactivando...' : 'Desactivar 2FA' }}
+        </button>
+      </div>
+    </form>
+    }
+
+  </div>
+</div>

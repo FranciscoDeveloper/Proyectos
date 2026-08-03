@@ -389,3 +389,40 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 0.8s linear infinite; }
+
+/* ── MFA Step ── */
+.mfa-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+  color: #0ea5e9;
+}
+
+.mfa-input {
+  letter-spacing: 0.3em;
+  font-size: 1.4rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.mfa-back {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #0ea5e9;
+  cursor: pointer;
+  font-size: 0.875rem;
+  padding: 0;
+  text-decoration: underline;
+  &:hover { color: #0284c7; }
+}
+
+.mfa-recovery-hint {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}

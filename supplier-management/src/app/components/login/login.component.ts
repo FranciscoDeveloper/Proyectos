@@ -39,10 +39,16 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild('googleBtnRef') googleBtnRef!: ElementRef<HTMLDivElement>;
 
-  loading      = signal(false);
-  error        = signal('');
-  showPass     = signal(false);
-  googleReady  = signal(false);
+  loading         = signal(false);
+  error           = signal('');
+  showPass        = signal(false);
+  googleReady     = signal(false);
+  mfaStep         = signal(false);
+  private challengeToken = '';
+
+  mfaForm = this.fb.group({
+    code: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
+  });
 
   form = this.fb.group({
     email:    ['', [Validators.required, Validators.email]],
@@ -137,6 +143,12 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
 
     this.sub = this.auth.login({ email: email!, password: password! }).subscribe({
       next: response => {
+        if (response.requiresMfa && response.challengeToken) {
+          this.challengeToken = response.challengeToken;
+          this.mfaStep.set(true);
+          this.loading.set(false);
+          return;
+        }
         this.auth.handleAuthResponse(response);
         this.redirectAfterLogin();
       },
@@ -145,6 +157,33 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
         this.error.set(err.message ?? 'Credenciales inválidas.');
       }
     });
+  }
+
+  submitMfa() {
+    this.mfaForm.markAllAsTouched();
+    if (this.mfaForm.invalid) return;
+
+    this.loading.set(true);
+    this.error.set('');
+
+    const code = this.mfaForm.getRawValue().code!.trim();
+    this.sub = this.auth.verifyMfa(this.challengeToken, code).subscribe({
+      next: response => {
+        this.auth.handleAuthResponse(response);
+        this.redirectAfterLogin();
+      },
+      error: (err: Error) => {
+        this.loading.set(false);
+        this.error.set(err.message ?? 'Código incorrecto.');
+      }
+    });
+  }
+
+  backToLogin() {
+    this.mfaStep.set(false);
+    this.challengeToken = '';
+    this.mfaForm.reset();
+    this.error.set('');
   }
 
   isInvalid(field: string): boolean {

@@ -4,6 +4,58 @@ import jwt    from "jsonwebtoken";
 import crypto from "crypto";
 // Email is delegated to the frontend via /api/send-email (non-VPC path)
 
+// ── TOTP helpers (RFC 6238 / RFC 4226 — no external deps) ─────────────────────
+
+function base32Decode(encoded) {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  const cleaned  = encoded.toUpperCase().replace(/=+$/, "");
+  let bits = 0, value = 0;
+  const output = [];
+  for (const char of cleaned) {
+    const idx = alphabet.indexOf(char);
+    if (idx === -1) continue;
+    value = (value << 5) | idx;
+    bits += 5;
+    if (bits >= 8) { bits -= 8; output.push((value >> bits) & 0xff); }
+  }
+  return Buffer.from(output);
+}
+
+function base32Encode(buf) {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  let bits = 0, value = 0, out = "";
+  for (const byte of buf) { value = (value << 8) | byte; bits += 8; while (bits >= 5) { bits -= 5; out += alphabet[(value >> bits) & 0x1f]; } }
+  if (bits > 0) out += alphabet[(value << (5 - bits)) & 0x1f];
+  return out;
+}
+
+function generateTotpSecret() {
+  return base32Encode(crypto.randomBytes(20));
+}
+
+function computeTotp(secret, counter) {
+  const key = base32Decode(secret);
+  const buf = Buffer.alloc(8);
+  buf.writeUInt32BE(Math.floor(counter / 0x100000000), 0);
+  buf.writeUInt32BE(counter >>> 0, 4);
+  const hmac  = crypto.createHmac("sha1", key).update(buf).digest();
+  const offset = hmac[hmac.length - 1] & 0x0f;
+  const code   = ((hmac[offset] & 0x7f) << 24 | hmac[offset+1] << 16 | hmac[offset+2] << 8 | hmac[offset+3]) % 1_000_000;
+  return String(code).padStart(6, "0");
+}
+
+function verifyTotp(secret, token, window = 1) {
+  const counter = Math.floor(Date.now() / 1000 / 30);
+  for (let i = -window; i <= window; i++) {
+    if (computeTotp(secret, counter + i) === token) return true;
+  }
+  return false;
+}
+
+function totpKeyUri(email, issuer, secret) {
+  return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(email)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}`;
+}
+
 const { Pool } = pg;
 
 const pool = new Pool({
@@ -51,8 +103,11 @@ async function ensureColumns(client) {
   if (schemaReady) return;
   await client.query(`
     ALTER TABLE app_user
-      ADD COLUMN IF NOT EXISTS email_verified  BOOLEAN NOT NULL DEFAULT true,
-      ADD COLUMN IF NOT EXISTS activation_token TEXT
+      ADD COLUMN IF NOT EXISTS email_verified    BOOLEAN NOT NULL DEFAULT true,
+      ADD COLUMN IF NOT EXISTS activation_token  TEXT,
+      ADD COLUMN IF NOT EXISTS mfa_enabled       BOOLEAN NOT NULL DEFAULT false,
+      ADD COLUMN IF NOT EXISTS mfa_secret        TEXT,
+      ADD COLUMN IF NOT EXISTS mfa_recovery_codes JSONB
   `);
   await client.query(`
     CREATE TABLE IF NOT EXISTS refresh_token (
@@ -186,10 +241,14 @@ export const handler = async (event) => {
     return response(400, { message: "Body inválido: se esperaba JSON" });
   }
 
-  if (rawPath.endsWith("/register")) return handleRegister(body);
-  if (rawPath.endsWith("/activate")) return handleActivate(body);
-  if (rawPath.endsWith("/refresh"))  return handleRefresh(body);
-  if (rawPath.endsWith("/logout"))   return handleLogout(body);
+  if (rawPath.endsWith("/register"))       return handleRegister(body);
+  if (rawPath.endsWith("/activate"))       return handleActivate(body);
+  if (rawPath.endsWith("/refresh"))        return handleRefresh(body);
+  if (rawPath.endsWith("/logout"))         return handleLogout(body);
+  if (rawPath.endsWith("/mfa-verify"))     return handleMfaVerify(body);
+  if (rawPath.endsWith("/mfa/setup"))      return handleMfaSetup(event.headers);
+  if (rawPath.endsWith("/mfa/confirm"))    return handleMfaConfirm(body, event.headers);
+  if (rawPath.endsWith("/mfa/disable"))    return handleMfaDisable(body, event.headers);
   return handleLogin(body);
 };
 
@@ -206,6 +265,7 @@ async function handleLogin(body) {
 
     const userResult = await client.query(
       `SELECT u.id, u.name, u.email, u.password, u.role, u.avatar, u.email_verified,
+              u.mfa_enabled,
               COALESCE(uc.zk_enabled, false) AS zk_enabled,
               p.id   AS professional_id,
               p.name AS professional_name
@@ -227,6 +287,16 @@ async function handleLogin(body) {
 
     if (!user.email_verified)
       return response(403, { message: "Debes activar tu cuenta. Revisa tu correo y haz clic en el enlace de activación." });
+
+    // ── MFA challenge ──────────────────────────────────────────────────────────
+    if (user.mfa_enabled) {
+      const challengeToken = jwt.sign(
+        { sub: user.id, mfaChallenge: true },
+        JWT_SECRET,
+        { expiresIn: "5m" }
+      );
+      return response(200, { requiresMfa: true, challengeToken });
+    }
 
     const schemasResult = user.role === 'superadmin'
       ? await client.query(
@@ -390,6 +460,237 @@ async function handleActivate(body) {
     return response(500, { message: "Error interno del servidor" });
   } finally {
     client?.release();
+  }
+}
+
+// ── MFA: verify challenge (step 2 of login) ───────────────────────────────────
+async function handleMfaVerify(body) {
+  const { challengeToken, totpCode } = body ?? {};
+  if (!challengeToken || !totpCode)
+    return response(400, { message: "challengeToken y totpCode son requeridos" });
+
+  let payload;
+  try {
+    payload = jwt.verify(challengeToken, JWT_SECRET);
+  } catch {
+    return response(401, { message: "El código de verificación ha expirado. Inicia sesión de nuevo." });
+  }
+  if (!payload.mfaChallenge)
+    return response(401, { message: "Token inválido." });
+
+  let client;
+  try {
+    client = await pool.connect();
+    await ensureColumns(client);
+
+    const r = await client.query(
+      `SELECT u.id, u.name, u.email, u.role, u.avatar, u.mfa_secret, u.mfa_recovery_codes,
+              COALESCE(uc.zk_enabled, false) AS zk_enabled,
+              p.id AS professional_id, p.name AS professional_name
+       FROM app_user u
+       LEFT JOIN user_config  uc ON uc.user_id = u.id
+       LEFT JOIN professional p  ON p.user_id  = u.id
+       WHERE u.id = $1 AND u.mfa_enabled = true LIMIT 1`,
+      [payload.sub]
+    );
+    if (r.rowCount === 0)
+      return response(401, { message: "Usuario no encontrado o MFA no activo." });
+
+    const user = r.rows[0];
+
+    // Check TOTP first
+    const codeClean = String(totpCode).replace(/\s/g, "");
+    let valid = false;
+
+    if (/^\d{6}$/.test(codeClean)) {
+      valid = verifyTotp(user.mfa_secret, codeClean);
+    }
+
+    // Check recovery code if TOTP failed
+    if (!valid && user.mfa_recovery_codes?.length) {
+      for (let i = 0; i < user.mfa_recovery_codes.length; i++) {
+        const match = await bcrypt.compare(codeClean.toUpperCase(), user.mfa_recovery_codes[i]);
+        if (match) {
+          // Burn the used recovery code
+          const remaining = [...user.mfa_recovery_codes];
+          remaining.splice(i, 1);
+          await client.query(
+            `UPDATE app_user SET mfa_recovery_codes = $1 WHERE id = $2`,
+            [JSON.stringify(remaining), user.id]
+          );
+          valid = true;
+          break;
+        }
+      }
+    }
+
+    if (!valid)
+      return response(401, { message: "Código incorrecto. Inténtalo de nuevo." });
+
+    // Issue full session
+    const schemasResult = user.role === 'superadmin'
+      ? await client.query(`SELECT schema_key AS "schemaKey", singular, plural, icon, module_type AS "moduleType" FROM app_schema ORDER BY id`)
+      : await client.query(
+          `SELECT s.schema_key AS "schemaKey", s.singular, s.plural, s.icon, s.module_type AS "moduleType"
+           FROM app_schema s INNER JOIN user_schema us ON us.schema_id = s.id
+           WHERE us.user_id = $1 ORDER BY s.id`,
+          [user.id]
+        );
+
+    const schemas = schemasResult.rows.map(s => ({
+      entity: { key: s.schemaKey, singular: s.singular, plural: s.plural, icon: s.icon, moduleType: s.moduleType },
+      fields: []
+    }));
+
+    const token = jwt.sign(
+      { sub: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
+
+    const rawRefresh = generateRawToken();
+    const refreshExpiry = new Date(Date.now() + REFRESH_EXPIRES_DAYS * 86_400_000);
+    await client.query(
+      `INSERT INTO refresh_token (user_id, token_hash, expires_at) VALUES ($1, $2, $3)`,
+      [user.id, hashToken(rawRefresh), refreshExpiry]
+    );
+
+    return response(200, {
+      token,
+      refreshToken: rawRefresh,
+      expiresAt: new Date(Date.now() + JWT_EXPIRES_IN_MS).toISOString(),
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar,
+              professionalId: user.professional_id ?? null, professionalName: user.professional_name ?? null },
+      zkEnabled: user.zk_enabled,
+      schemas,
+    });
+  } catch (err) {
+    console.error("MFA verify error:", err);
+    return response(500, { message: "Error interno del servidor" });
+  } finally {
+    client?.release();
+  }
+}
+
+// ── MFA: generate setup secret (requires valid access token) ──────────────────
+async function handleMfaSetup(headers) {
+  const userId = requireAuth(headers);
+  if (!userId) return response(401, { message: "Token de autenticación requerido" });
+
+  const secret   = generateTotpSecret();
+  let client;
+  try {
+    client = await pool.connect();
+    await ensureColumns(client);
+
+    const r = await client.query(`SELECT email, mfa_enabled FROM app_user WHERE id = $1`, [userId]);
+    if (r.rowCount === 0) return response(404, { message: "Usuario no encontrado" });
+    if (r.rows[0].mfa_enabled)
+      return response(409, { message: "MFA ya está activo. Desactívalo primero." });
+
+    // Store pending secret (not yet confirmed)
+    await client.query(`UPDATE app_user SET mfa_secret = $1 WHERE id = $2`, [secret, userId]);
+
+    const otpAuthUri = totpKeyUri(r.rows[0].email, "Dairi", secret);
+    return response(200, { secret, otpAuthUri });
+  } catch (err) {
+    console.error("MFA setup error:", err);
+    return response(500, { message: "Error interno del servidor" });
+  } finally {
+    client?.release();
+  }
+}
+
+// ── MFA: confirm first TOTP code and activate MFA ─────────────────────────────
+async function handleMfaConfirm(body, headers) {
+  const userId = requireAuth(headers);
+  if (!userId) return response(401, { message: "Token de autenticación requerido" });
+
+  const { totpCode } = body ?? {};
+  if (!totpCode) return response(400, { message: "totpCode requerido" });
+
+  let client;
+  try {
+    client = await pool.connect();
+    await ensureColumns(client);
+
+    const r = await client.query(
+      `SELECT mfa_secret, mfa_enabled FROM app_user WHERE id = $1`, [userId]
+    );
+    if (r.rowCount === 0) return response(404, { message: "Usuario no encontrado" });
+    if (r.rows[0].mfa_enabled) return response(409, { message: "MFA ya está activo" });
+    if (!r.rows[0].mfa_secret) return response(400, { message: "Primero genera el secreto con /mfa/setup" });
+
+    const valid = verifyTotp(r.rows[0].mfa_secret, String(totpCode).trim());
+    if (!valid) return response(401, { message: "Código incorrecto. Escanea el QR de nuevo e intenta." });
+
+    // Generate 8 recovery codes
+    const rawCodes    = Array.from({ length: 8 }, () => {
+      const raw = crypto.randomBytes(5).toString("hex").toUpperCase();
+      return raw.slice(0, 4) + "-" + raw.slice(4, 8) + "-" + raw.slice(8, 12);
+    });
+    const hashedCodes = await Promise.all(rawCodes.map(c => bcrypt.hash(c, 10)));
+
+    await client.query(
+      `UPDATE app_user SET mfa_enabled = true, mfa_recovery_codes = $1 WHERE id = $2`,
+      [JSON.stringify(hashedCodes), userId]
+    );
+
+    return response(200, {
+      message:       "MFA activado correctamente",
+      recoveryCodes: rawCodes, // shown once — user must save them
+    });
+  } catch (err) {
+    console.error("MFA confirm error:", err);
+    return response(500, { message: "Error interno del servidor" });
+  } finally {
+    client?.release();
+  }
+}
+
+// ── MFA: disable (requires current password) ──────────────────────────────────
+async function handleMfaDisable(body, headers) {
+  const userId = requireAuth(headers);
+  if (!userId) return response(401, { message: "Token de autenticación requerido" });
+
+  const { password } = body ?? {};
+  if (!password) return response(400, { message: "password requerido para desactivar MFA" });
+
+  let client;
+  try {
+    client = await pool.connect();
+    await ensureColumns(client);
+
+    const r = await client.query(`SELECT password, mfa_enabled FROM app_user WHERE id = $1`, [userId]);
+    if (r.rowCount === 0) return response(404, { message: "Usuario no encontrado" });
+    if (!r.rows[0].mfa_enabled) return response(400, { message: "MFA no está activo" });
+
+    const match = await bcrypt.compare(password, r.rows[0].password);
+    if (!match) return response(401, { message: "Contraseña incorrecta" });
+
+    await client.query(
+      `UPDATE app_user SET mfa_enabled = false, mfa_secret = NULL, mfa_recovery_codes = NULL WHERE id = $1`,
+      [userId]
+    );
+
+    return response(200, { message: "MFA desactivado correctamente" });
+  } catch (err) {
+    console.error("MFA disable error:", err);
+    return response(500, { message: "Error interno del servidor" });
+  } finally {
+    client?.release();
+  }
+}
+
+// ── Auth helper: extract userId from Bearer JWT ───────────────────────────────
+function requireAuth(headers) {
+  const authHeader = headers?.["authorization"] || headers?.["Authorization"] || "";
+  if (!authHeader.startsWith("Bearer ")) return null;
+  try {
+    const payload = jwt.verify(authHeader.slice(7), JWT_SECRET);
+    return payload.sub ? Number(payload.sub) : null;
+  } catch {
+    return null;
   }
 }
 
