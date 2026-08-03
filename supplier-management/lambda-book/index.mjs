@@ -414,7 +414,7 @@ function resp(statusCode, body) {
     headers: {
       "Content-Type":                 "application/json",
       "Access-Control-Allow-Origin":  APP_URL,
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers": "Content-Type,Authorization",
       "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
     },
     body: JSON.stringify(body),
