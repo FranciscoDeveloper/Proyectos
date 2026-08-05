@@ -10,6 +10,7 @@ import { AuthService } from '../../services/auth.service';
 import { OdontogramComponent, OdontogramData } from '../odontogram/odontogram.component';
 import { PeriodontogramComponent, PeriodontogramData } from '../periodontogram/periodontogram.component';
 import { MobileService } from '../../services/mobile.service';
+import { NativeIoService } from '../../services/native-io.service';
 
 interface VitalSign {
   label: string;
@@ -41,6 +42,7 @@ export class ClinicalDetailComponent implements OnInit {
   private auth = inject(AuthService);
   /** Used by the template to show the "Tomar foto" capture button only in the native app. */
   protected mobile = inject(MobileService);
+  private nativeIo = inject(NativeIoService);
 
   readonly entityKey = this.route.snapshot.paramMap.get('entityKey')!;
   readonly id        = Number(this.route.snapshot.paramMap.get('id')!);
@@ -428,7 +430,12 @@ export class ClinicalDetailComponent implements OnInit {
     this.http.get<{ url: string }>(
       `/api/documents/${this.id}/${encodeURIComponent(fileName)}/url`
     ).subscribe({
-      next: ({ url }) => window.open(url, '_blank'),
+      // Was window.open(url, '_blank') — returns null and does nothing in a
+      // Capacitor WebView (no onCreateWindow on Android, no createWebViewWith
+      // on iOS), so tapping a patient document did literally nothing on a
+      // phone. openExternal uses a Custom Tab / SFSafariViewController natively,
+      // which renders the pre-signed S3 URL and lets the user get back.
+      next: ({ url }) => void this.nativeIo.openExternal(url),
       error: () => alert('No se pudo obtener el enlace de descarga.')
     });
   }
@@ -787,7 +794,7 @@ export class ClinicalDetailComponent implements OnInit {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  openPrescriptionTab(): void {
+  async openPrescriptionTab(): Promise<void> {
     const p  = this.patient();
     const rx = this.prescriptionField();
     if (!p || !rx) return;
@@ -864,6 +871,27 @@ export class ClinicalDetailComponent implements OnInit {
   </div>
 </body>
 </html>`;
+
+    // Native and web need genuinely different mechanisms here.
+    //
+    // Web (unchanged): open the blob in a new tab so the user can hit Ctrl+P.
+    //
+    // Native: window.open is a no-op in the WebView, and a blob: URL could not
+    // be handed to an external browser anyway — blob URLs are scoped to the
+    // WebView's own origin, so a Custom Tab / SFSafariViewController (a separate
+    // process) cannot resolve one. Instead the HTML is written to a real file
+    // and passed to the system share sheet, from which the user can print,
+    // save to Files/Drive, or open it in another app.
+    if (this.nativeIo.isNative) {
+      const safeName = `${docType.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${p.rut || p.fullName}.html`
+        .replace(/[^a-zA-Z0-9.\-]/g, '-');
+      const ok = await this.nativeIo.saveOrShareText(html, safeName, {
+        title:       docTitle,
+        dialogTitle: 'Imprimir o guardar',
+      });
+      if (!ok) this.printBlocked.set(true);
+      return;
+    }
 
     const blob = new Blob([html], { type: 'text/html' });
     const url  = URL.createObjectURL(blob);

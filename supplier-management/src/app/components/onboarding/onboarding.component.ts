@@ -263,14 +263,27 @@ export class OnboardingComponent implements OnInit {
 
   async saveZkAndProceed(): Promise<void> {
     this.savingZk.set(true);
-    const enabled = this.zkEnabled();
+    let enabled = this.zkEnabled();
     try {
-      await firstValueFrom(this.http.patch('/api/user/config', { zkEnabled: enabled }));
-      this.auth.updateZkEnabled(enabled);
+      // The certificate is generated BEFORE zkEnabled is persisted. The previous
+      // order flipped the server flag first, so if the certificate never reached
+      // the user (which it never did on native — the blob download was a silent
+      // no-op in a WebView) the account was left marked ZK-enabled with no key
+      // in existence anywhere.
       if (enabled) {
         const email = this.auth.user()?.email ?? '';
-        await this.cryptoSvc.generateAndDownloadCertificate(email);
+        const delivered = await this.cryptoSvc.generateAndDownloadCertificate(email);
+        if (!delivered) {
+          enabled = false;
+          this.zkEnabled.set(false);
+          alert(
+            'No se pudo guardar el certificado, así que el cifrado no fue activado.\n\n' +
+            'Puedes activarlo más tarde desde la configuración.'
+          );
+        }
       }
+      await firstValueFrom(this.http.patch('/api/user/config', { zkEnabled: enabled }));
+      this.auth.updateZkEnabled(enabled);
     } catch {
       // proceed even if config save fails
     }

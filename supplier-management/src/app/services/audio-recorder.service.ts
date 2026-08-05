@@ -1,6 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { Capacitor } from '@capacitor/core';
 
 export type RecordingState = 'idle' | 'recording' | 'saving' | 'uploading' | 'done' | 'error';
 
@@ -53,10 +54,14 @@ export class AudioRecorderService {
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
     } catch (err: any) {
+      // The old copy said "configuración del navegador", which is meaningless
+      // inside the native app — there is no browser UI to open. On a phone the
+      // grant lives in the OS app-permissions screen.
+      const nativeHint = Capacitor.isNativePlatform()
+        ? 'Permiso de micrófono denegado. Actívalo en Ajustes → Dairi → Micrófono.'
+        : 'Permiso de micrófono denegado. Actívalo en la configuración del navegador.';
       this.error.set(
-        err?.name === 'NotAllowedError'
-          ? 'Permiso de micrófono denegado. Actívalo en la configuración del navegador.'
-          : 'No se pudo acceder al micrófono.'
+        err?.name === 'NotAllowedError' ? nativeHint : 'No se pudo acceder al micrófono.'
       );
       return;
     }
@@ -98,7 +103,7 @@ export class AudioRecorderService {
 
     this.state.set('uploading');
 
-    const ext       = mimeType.includes('ogg') ? 'ogg' : 'webm';
+    const ext       = this._extFor(mimeType);
     const sanitize  = (s: string) => s.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '').trim().replace(/\s+/g, '_') || 'desconocido';
     const rut       = ctx.patientRut.replace(/\./g, '').replace(/\s/g, '') || `id${ctx.recordId}`;
     const patient   = sanitize(ctx.patientName);
@@ -154,14 +159,49 @@ export class AudioRecorderService {
     this.chunks        = [];
   }
 
+  /**
+   * iOS/WKWebView supports NONE of webm/ogg — WebKit's MediaRecorder only
+   * produces MP4/AAC. The original list therefore matched nothing on iOS and
+   * returned '', leaving MediaRecorder to pick its own default (audio/mp4).
+   * Listing audio/mp4 explicitly makes that choice visible in `mimeType` and in
+   * the upload's Content-Type instead of depending on an implicit fallback;
+   * the resulting recording is byte-identical either way.
+   */
   private _bestMime(): string {
     const candidates = [
       'audio/webm;codecs=opus',
       'audio/webm',
       'audio/ogg;codecs=opus',
       'audio/ogg',
+      'audio/mp4',          // Safari / iOS WKWebView
+      'audio/mp4;codecs=mp4a.40.2',
     ];
     return candidates.find(m => MediaRecorder.isTypeSupported(m)) ?? '';
+  }
+
+  /**
+   * Maps the recorder's MIME type to the uploaded file's extension.
+   *
+   * DO NOT "correct" this to emit .m4a for audio/mp4 recordings, however wrong
+   * the label looks. The extension is load-bearing infrastructure, not
+   * cosmetics: the S3 bucket `budget-riquelmetapia` fires the transcription
+   * Lambda (`transcribe-nova-3`) from a notification whose filter is
+   * {Prefix: "recordings/", Suffix: ".webm"}. An object uploaded as .m4a
+   * matches no rule, so no event fires and the encounter is never transcribed —
+   * silently, with no error anywhere.
+   *
+   * The mislabelling is harmless downstream because the handler passes the raw
+   * buffer to Deepgram's transcribeFile() without any format hint, and Deepgram
+   * detects the container from the bytes. So an iOS MP4/AAC recording named
+   * .webm transcribes correctly today.
+   *
+   * To make the extension honest, the S3 notification must gain a matching
+   * suffix rule (or drop the suffix filter) FIRST — an AWS change, not a
+   * frontend one.
+   */
+  private _extFor(mimeType: string): string {
+    if (mimeType.includes('ogg')) return 'ogg';
+    return 'webm';
   }
 
   static formatDuration(s: number): string {

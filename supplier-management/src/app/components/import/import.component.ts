@@ -8,6 +8,7 @@ import { GenericCrudService } from '../../services/generic-crud.service';
 import { OnboardingService } from '../../services/onboarding.service';
 import { Workbook } from 'exceljs';
 import { firstValueFrom } from 'rxjs';
+import { NativeIoService } from '../../services/native-io.service';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -94,6 +95,7 @@ export class ImportComponent implements OnInit {
   private route        = inject(ActivatedRoute);
   private router       = inject(Router);
   private onboardingSvc = inject(OnboardingService);
+  private nativeIo     = inject(NativeIoService);
 
   fromOnboarding = signal(false);
 
@@ -391,12 +393,15 @@ export class ImportComponent implements OnInit {
     ws.addRow(headers);
     const buffer = await wb.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = this.activeTab() === 'patients' ? 'plantilla_pacientes.xlsx' : 'plantilla_citas.xlsx';
-    a.click();
-    URL.revokeObjectURL(url);
+    const filename = this.activeTab() === 'patients' ? 'plantilla_pacientes.xlsx' : 'plantilla_citas.xlsx';
+
+    // Was `<a download>` on a blob: URL — a silent no-op inside the Capacitor
+    // WebView (no DownloadListener on Android, no WKDownloadDelegate on iOS).
+    // saveOrShare keeps that exact path on web and writes + shares natively.
+    await this.nativeIo.saveOrShare(blob, filename, {
+      title:       'Plantilla de importación Dairi',
+      dialogTitle: 'Guardar plantilla',
+    });
   }
 
   ngOnInit(): void {

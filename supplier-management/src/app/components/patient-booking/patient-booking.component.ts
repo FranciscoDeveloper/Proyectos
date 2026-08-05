@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { switchMap, of, map, catchError } from 'rxjs';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
+import { NativeIoService } from '../../services/native-io.service';
 
 const PAYMENT_LAMBDA_URL = 'https://koxzbg6zrjrlfvx2j2kqrlokv40jkzzp.lambda-url.us-east-1.on.aws/';
 
@@ -74,6 +75,7 @@ export class PatientBookingComponent implements OnInit {
   private route    = inject(ActivatedRoute);
   private http     = inject(HttpClient);
   readonly gcalSvc = inject(GoogleCalendarService);
+  private nativeIo = inject(NativeIoService);
 
   // Step 0: professional list
   professionals = signal<ProfessionalSummary[]>([]);
@@ -416,8 +418,14 @@ export class PatientBookingComponent implements OnInit {
 
     const isVideo = this.modality() === 'video';
 
-    if (!this.gcalSvc.isConfigured) {
-      window.open(this.buildGcalUrl(), '_blank', 'noopener');
+    // canUseOAuth (not isConfigured): on native the popup OAuth flow can never
+    // complete and connect() would hang, so native always takes this branch.
+    // It is a complete solution rather than a degradation — the render URL adds
+    // the event using whatever Google session the browser already has, and
+    // openExternal shows it in a real browser (Custom Tab / SFSafariViewController)
+    // instead of window.open, which a WebView ignores entirely.
+    if (!this.gcalSvc.canUseOAuth) {
+      await this.nativeIo.openExternal(this.buildGcalUrl());
       this.gcalStatus.set('url_opened');
       return;
     }

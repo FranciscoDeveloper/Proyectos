@@ -7,6 +7,7 @@ import { HttpClient } from '@angular/common/http';
 import { switchMap, of, catchError } from 'rxjs';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { AuthService } from '../../services/auth.service';
+import { NativeIoService } from '../../services/native-io.service';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -90,6 +91,7 @@ export class PresupuestosComponent implements OnInit {
   private http    = inject(HttpClient);
   private crudSvc = inject(GenericCrudService);
   private auth = inject(AuthService);
+  private nativeIo = inject(NativeIoService);
 
   // ── State ──────────────────────────────────────────────────────────────────
   presupuestos = signal<Presupuesto[]>([]);
@@ -591,6 +593,23 @@ export class PresupuestosComponent implements OnInit {
     this.selected.set(p);
     this.printMode.set(true);
     setTimeout(() => {
+      if (this.nativeIo.isNative) {
+        // window.print() is a no-op in both native WebViews (see
+        // NativeIoService.sharePrintableNode) — this button did nothing at all
+        // on a phone. Share the rendered sheet as a real HTML file instead; the
+        // system share sheet exposes Print among its targets.
+        const node = document.querySelector('.print-sheet') as HTMLElement | null;
+        if (node) {
+          const safe = `presupuesto-${String(p.id ?? '')}`.replace(/[^a-zA-Z0-9.\-]/g, '-');
+          void this.nativeIo
+            .sharePrintableNode(node, `${safe}.html`, {
+              title:       'Presupuesto',
+              dialogTitle: 'Imprimir o guardar presupuesto',
+            })
+            .finally(() => this.printMode.set(false));
+          return;
+        }
+      }
       window.print();
       this.printMode.set(false);
     }, 200);

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CAPACITOR_DEBUG</key>
+	<string>$(CAPACITOR_DEBUG)</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+        <string>Dairi</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
+	<!--
+	  Purpose strings. These were absent, which on iOS is not a soft failure:
+	  the moment a process touches a protected resource without the matching
+	  Info.plist key, TCC terminates it. So the first tap on "grabar atención"
+	  (getUserMedia -> microphone) or on the camera capture input crashed the
+	  app outright rather than showing a permission prompt. App Review also
+	  rejects binaries that access these APIs without a purpose string.
+
+	  Wording matters for review: each string must say what the app does with
+	  the data and why, in the user's language. Vague strings ("needs access to
+	  your microphone") are a common rejection reason.
+	-->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Dairi usa el micrófono para grabar la atención clínica y transcribirla automáticamente en la ficha del paciente. La grabación solo comienza cuando el profesional la inicia.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Dairi usa la cámara para fotografiar documentos clínicos (exámenes, informes, recetas) y adjuntarlos a la ficha del paciente.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Dairi accede a tus fotos para que puedas adjuntar imágenes de documentos clínicos ya existentes a la ficha del paciente.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Dairi guarda en tu galería los documentos e imágenes clínicas que decidas exportar.</string>
+</dict>
+</plist>

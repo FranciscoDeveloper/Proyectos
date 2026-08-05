@@ -78,7 +78,10 @@
       </div>
 
       <!-- Google Calendar connect -->
-      <div class="gcal-wrap" *ngIf="gcalSvc.isConfigured">
+      <!-- canUseOAuth, not isConfigured: the popup OAuth flow cannot complete
+           inside a native WebView, so the button is hidden there rather than
+           left to hang on "Conectando...". See GoogleCalendarService.canUseOAuth. -->
+      <div class="gcal-wrap" *ngIf="gcalSvc.canUseOAuth">
         <button *ngIf="!gcalSvc.isConnected()"
                 class="gcal-connect-btn"
                 [disabled]="gcalConnecting()"

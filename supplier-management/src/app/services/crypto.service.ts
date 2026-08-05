@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { NativeIoService } from './native-io.service';
 
 const ZK_PREFIX = 'zk1:';
 const THUMB_SK  = 'zk_thumb';
@@ -70,6 +71,7 @@ interface ZkCertificate {
 
 @Injectable({ providedIn: 'root' })
 export class CryptoService {
+  private readonly nativeIo  = inject(NativeIoService);
   private readonly _key      = signal<CryptoKey | null>(null);
   private readonly _hasThumb = signal(!!localStorage.getItem(THUMB_SK));
   private readonly _zkEnabled = signal(false);
@@ -110,10 +112,27 @@ export class CryptoService {
 
   /**
    * Generates a random AES-256-GCM key, wraps it in a JSON certificate file,
-   * triggers a browser download, and activates the key in memory.
+   * hands it to the user, and activates the key in memory.
    * The certificate file is the only copy of the key — the user must keep it safe.
+   *
+   * @returns true if the certificate was actually delivered to the user. When
+   *          false, NO key is activated and no thumbprint is stored: see below.
+   *
+   * Two bugs were fixed here.
+   *
+   * 1. Native delivery. This used `<a download>` on a blob: URL, which is a
+   *    silent no-op inside a Capacitor WebView (no DownloadListener on Android,
+   *    no WKDownloadDelegate on iOS — neither is installed by Capacitor). On a
+   *    phone the user got no file at all.
+   *
+   * 2. Committing on failure. The key was activated and the thumbprint written
+   *    to localStorage *unconditionally*, before anyone knew whether the file
+   *    reached the user. Combined with (1) that is unrecoverable data loss: the
+   *    app would start encrypting clinical records under a key whose only copy
+   *    was never saved anywhere. Delivery is now confirmed first, and the key is
+   *    only committed on success.
    */
-  async generateAndDownloadCertificate(email: string): Promise<void> {
+  async generateAndDownloadCertificate(email: string): Promise<boolean> {
     // Generate an extractable key so we can write it to the certificate
     const key = await crypto.subtle.generateKey(
       { name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']
@@ -130,14 +149,21 @@ export class CryptoService {
       key:     keyB64,
     };
 
-    // Download the certificate
+    // Deliver the certificate (browser download on web, share sheet on native)
     const blob = new Blob([JSON.stringify(cert, null, 2)], { type: 'application/json' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = `dairi-zk-${email.split('@')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const delivered = await this.nativeIo.saveOrShare(
+      blob,
+      `dairi-zk-${email.split('@')[0]}.json`,
+      {
+        title:       'Certificado Dairi Zero-Knowledge',
+        dialogTitle: 'Guarda tu certificado en un lugar seguro',
+      }
+    );
+
+    // Do NOT activate the key if the user never received the certificate —
+    // encrypting data under a key nobody holds a copy of is worse than not
+    // enabling ZK at all.
+    if (!delivered) return false;
 
     // Re-import as non-extractable for in-memory use
     const importedKey = await crypto.subtle.importKey(
@@ -146,6 +172,7 @@ export class CryptoService {
     this._key.set(importedKey);
     localStorage.setItem(THUMB_SK, thumb);
     this._hasThumb.set(true);
+    return true;
   }
 
   /**

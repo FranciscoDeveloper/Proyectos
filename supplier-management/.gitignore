@@ -53,5 +53,8 @@ dairi-oferta-comercial.html
 index.html
 
 # Capacitor platforms (generadas — ejecutar cap add android/ios para restaurar)
-android/
-ios/
+# Anclados con "/" inicial: sin la barra, el patrón "android/" ignora CUALQUIER
+# directorio llamado android en cualquier nivel — incluido native-config/android/,
+# que es justamente lo que NO se debe perder (ver native-config/README.md).
+/android/
+/ios/

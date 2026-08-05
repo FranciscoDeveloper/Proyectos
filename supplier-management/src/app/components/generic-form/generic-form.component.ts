@@ -330,6 +330,12 @@ export class GenericFormComponent implements OnInit {
     const startF = schema.fields.find(f => f.isCalendarStart);
     if (!startF) return;
 
+    // On native there is no way to connect (the popup OAuth flow cannot run in
+    // a WebView — see GoogleCalendarService.canUseOAuth), so the "conéctalo
+    // desde la agenda" banner would point at a button that is deliberately
+    // hidden there. Stay silent instead of giving an instruction that dead-ends.
+    if (!this.gcalSvc.canUseOAuth) return;
+
     if (!this.gcalSvc.isConnected()) {
       this.gcalStatus.set('not_connected');
       return;

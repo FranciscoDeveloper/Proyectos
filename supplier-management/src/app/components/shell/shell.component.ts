@@ -54,7 +54,16 @@ export class ShellComponent {
     if (!email) return;
     this.zkSetting.set(true);
     try {
-      await this.cryptoSvc.generateAndDownloadCertificate(email);
+      const delivered = await this.cryptoSvc.generateAndDownloadCertificate(email);
+      if (!delivered) {
+        // Delivery failed or the user dismissed the native share sheet. No key
+        // was activated, so ZK is still off and retrying is safe.
+        alert(
+          'No se pudo guardar el certificado, así que el cifrado no fue activado.\n\n' +
+          'Vuelve a intentarlo y elige dónde guardar el archivo: sin ese ' +
+          'certificado no habría forma de recuperar tus datos cifrados.'
+        );
+      }
     } finally {
       this.zkSetting.set(false);
     }

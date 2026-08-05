@@ -1,4 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
+import { Capacitor } from '@capacitor/core';
 
 /**
  * Google OAuth 2.0 Client ID.
@@ -53,6 +54,43 @@ export class GoogleCalendarService {
   /** true si el CLIENT_ID fue configurado (no es el placeholder) */
   readonly isConfigured = GCAL_CLIENT_ID !== 'YOUR_GOOGLE_OAUTH_CLIENT_ID' && GCAL_CLIENT_ID.length > 20;
 
+  /**
+   * Whether the popup-based OAuth flow below can actually run.
+   *
+   * FALSE ON NATIVE — deliberately. Two independent blockers, either alone
+   * fatal:
+   *
+   *  1. No popup. `initTokenClient().requestAccessToken()` from Google Identity
+   *     Services opens Google's consent screen with `window.open`. A Capacitor
+   *     WebView cannot create a second window (Android's WebView needs
+   *     `setSupportMultipleWindows(true)` + an `onCreateWindow` implementation,
+   *     neither of which Capacitor's BridgeWebChromeClient provides; iOS
+   *     WKWebView needs `createWebViewWith:`, also not implemented). The popup
+   *     therefore never appears and — this is the damaging part — the
+   *     `callback` passed to initTokenClient is never invoked, in error or
+   *     otherwise. The Promise in connect() then never settles, so callers that
+   *     `await` it hang forever behind a "Conectando con Google…" spinner.
+   *
+   *  2. Google blocks it anyway. Google's OAuth policy refuses authorization
+   *     requests coming from embedded user-agents and answers with
+   *     `403 disallowed_useragent`. That is a server-side policy, not something
+   *     client code can work around — so even a WebView that did support
+   *     popups would not complete this flow.
+   *
+   * Callers must branch on this rather than on isConfigured. The supported
+   * native alternative for adding a single event is the plain
+   * calendar.google.com/render URL opened in a real browser (Custom Tab /
+   * SFSafariViewController) — see patient-booking.component.ts, which uses the
+   * user's existing Google session and needs no OAuth at all.
+   *
+   * Making the API-backed flow work natively requires a different
+   * architecture — an authorization-code + PKCE flow in a Custom Tab with a
+   * custom-scheme redirect caught by @capacitor/app's appUrlOpen listener, plus
+   * new Android/iOS OAuth client IDs in Google Cloud Console. Not implemented;
+   * see MOBILE_STORE_PUBLISHING.md ("Pendiente conocido").
+   */
+  readonly canUseOAuth = this.isConfigured && !Capacitor.isNativePlatform();
+
   // ── Script loader ────────────────────────────────────────────────────────
 
   private loadScript(): Promise<void> {
@@ -80,6 +118,11 @@ export class GoogleCalendarService {
         'Edita GCAL_CLIENT_ID en src/app/services/google-calendar.service.ts'
       );
       return;
+    }
+    // Fail fast instead of hanging forever — see canUseOAuth for why this flow
+    // cannot work inside a native WebView.
+    if (!this.canUseOAuth) {
+      throw new Error('native_unsupported');
     }
     await this.loadScript();
     return new Promise((resolve, reject) => {

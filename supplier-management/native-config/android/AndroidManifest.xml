@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:launchMode="singleTask"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"></meta-data>
+        </provider>
+    </application>
+
+    <!-- Permissions -->
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+      Audio recording (clinical encounter capture, audio-recorder.service.ts).
+
+      REQUIRED, and its absence was a hard failure. The service calls
+      navigator.mediaDevices.getUserMedia({audio:true}) from the WebView.
+      Capacitor's BridgeWebChromeClient.onPermissionRequest maps the WebView's
+      AUDIO_CAPTURE resource request onto these two Android runtime permissions
+      and launches a permission request for them. Requesting a permission that
+      is not declared in the manifest does not prompt the user — Android returns
+      PERMISSION_DENIED immediately — so the bridge called request.deny(),
+      getUserMedia rejected with NotAllowedError, and encounter recording was
+      dead on every Android device with no way for the user to fix it.
+    -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <!--
+      Push notifications. Declared explicitly rather than relying on manifest
+      merging: PushNotificationsPlugin requests POST_NOTIFICATIONS at runtime
+      via its @Permission annotation, but @capacitor/push-notifications' own
+      AndroidManifest.xml only declares the MessagingService, not the
+      permission. firebase-messaging's AAR is believed to contribute it, but
+      that is an implicit dependency on a transitive manifest — and with
+      targetSdk 36 (Android 13+ enforces POST_NOTIFICATIONS) getting this wrong
+      means the runtime prompt never appears and notifications are silently
+      dropped. Declaring it here is harmless if it merges in anyway.
+    -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
+      CAMERA is deliberately NOT declared.
+
+      The clinical document flow captures photos through an <input type="file"
+      accept="image/*" capture="environment">, which Capacitor handles in
+      BridgeWebChromeClient.onShowFileChooser. That path calls
+      isMediaCaptureSupported(), which returns true when CAMERA is granted OR
+      when CAMERA is not declared at all (PermissionHelper.hasDefinedPermission).
+      Leaving it undeclared therefore lets the capture intent launch straight
+      away with no permission prompt.
+
+      Declaring it would flip that check and force a runtime CAMERA grant before
+      the camera opens — an extra prompt, an extra Play Console permission to
+      justify, and a new failure mode, all for no capability the app uses. The
+      app never calls getUserMedia({video:true}), which is the only thing that
+      would genuinely require CAMERA.
+    -->
+</manifest>
