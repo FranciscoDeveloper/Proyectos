@@ -1191,3 +1191,47 @@ footer {
 @media (max-width: 640px) {
   .faq-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Acuse de eliminación de cuenta ─────────────────────────────────────────
+   Banner que aparece sobre la nav al volver desde /app/cuenta con
+   ?cuenta=eliminada. ViewEncapsulation.None en este componente hace que estos
+   estilos sean globales, de ahí el nombre de clase específico. */
+.account-deleted-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 28px;
+  background: #ecfdf5;
+  border-bottom: 1.5px solid #a7f3d0;
+  color: #065f46;
+
+  svg {
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    margin-top: 2px;
+    color: #059669;
+  }
+
+  strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 800;
+    margin-bottom: 3px;
+  }
+
+  span {
+    display: block;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #047857;
+    max-width: 720px;
+  }
+}
+
+@media (max-width: 640px) {
+  .account-deleted-banner {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+}

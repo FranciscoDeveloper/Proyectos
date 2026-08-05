@@ -1,0 +1,120 @@
+<div class="da-page">
+
+  <header class="da-nav">
+    <a routerLink="/" class="da-logo">Dairi<span>.</span></a>
+    <a routerLink="/" class="da-back">Volver al inicio</a>
+  </header>
+
+  <main class="da-main">
+
+    <!-- ══ Estado: pedir credenciales ══════════════════════════════════════ -->
+    <ng-container *ngIf="state() === 'auth'">
+      <h1>Eliminar tu cuenta de Dairi</h1>
+      <p class="da-lead">
+        Puedes eliminar tu cuenta desde aquí, sin necesidad de instalar la aplicación.
+        Por seguridad, primero tienes que iniciar sesión con la cuenta que quieres
+        eliminar: solo tú puedes eliminar tu propia cuenta.
+      </p>
+
+      <section class="da-summary">
+        <h2>Antes de continuar, en resumen</h2>
+        <dl>
+          <dt>Se elimina</dt>
+          <dd>
+            Tu acceso y tus datos de identificación como usuario (correo, nombre,
+            contraseña y todas tus sesiones abiertas). No podrás volver a entrar.
+          </dd>
+          <dt>Se conserva</dt>
+          <dd>
+            Las fichas clínicas de tus pacientes y sus atenciones. La ley obliga a
+            conservar los registros clínicos por un plazo determinado, así que no se
+            borran — pero tu nombre y tu correo se eliminan de ellos y se reemplazan
+            por «Profesional eliminado».
+          </dd>
+          <dt>No se toca</dt>
+          <dd>Los datos de tus pacientes, que no dependen de tu cuenta.</dd>
+        </dl>
+      </section>
+
+      <section class="da-login">
+        <h2>Inicia sesión para continuar</h2>
+        <form [formGroup]="loginForm" (ngSubmit)="submitLogin()" novalidate>
+          <div class="field">
+            <label for="da-email">Correo electrónico</label>
+            <input id="da-email" type="email" formControlName="email"
+                   autocomplete="username" placeholder="tucorreo@ejemplo.cl" />
+          </div>
+          <div class="field">
+            <label for="da-pass">Contraseña</label>
+            <div class="pass-wrap">
+              <input id="da-pass" [type]="showPass() ? 'text' : 'password'"
+                     formControlName="password" autocomplete="current-password"
+                     placeholder="Tu contraseña" />
+              <button type="button" class="pass-toggle" (click)="showPass.set(!showPass())"
+                      [attr.aria-label]="showPass() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                  <line *ngIf="!showPass()" x1="3" y1="3" x2="21" y2="21"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <p class="da-error" *ngIf="loginError()">{{ loginError() }}</p>
+
+          <button type="submit" class="da-btn" [disabled]="loginLoading()">
+            <span class="spinner-sm" *ngIf="loginLoading()"></span>
+            {{ loginLoading() ? 'Verificando…' : 'Continuar' }}
+          </button>
+        </form>
+
+        <p class="da-help">
+          ¿No recuerdas tu contraseña o no puedes iniciar sesión? Escríbenos a
+          <a href="mailto:contacto@dairi.cl">contacto&#64;dairi.cl</a> desde el correo de
+          tu cuenta y gestionaremos la eliminación por ti.
+        </p>
+      </section>
+    </ng-container>
+
+    <!-- ══ Estado: sesión iniciada, mostrar el control ═════════════════════ -->
+    <ng-container *ngIf="state() === 'ready'">
+      <h1>Eliminar tu cuenta de Dairi</h1>
+      <p class="da-lead">
+        Sesión iniciada como <strong>{{ auth.user()?.email }}</strong>.
+        Lee con atención qué ocurre antes de confirmar.
+      </p>
+
+      <app-delete-account-panel (deleted)="onDeleted()" />
+    </ng-container>
+
+    <!-- ══ Estado: hecho ═══════════════════════════════════════════════════ -->
+    <ng-container *ngIf="state() === 'done'">
+      <div class="da-done">
+        <div class="da-done-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <h1>Tu cuenta fue eliminada</h1>
+        <p class="da-lead">
+          Ya no podrás iniciar sesión en Dairi con este correo y todas tus sesiones
+          fueron cerradas.
+        </p>
+        <p class="da-note">
+          Las fichas clínicas de tus pacientes se conservan, como exige la normativa de
+          retención de registros clínicos, pero tus datos de identificación fueron
+          eliminados de ellas.
+        </p>
+        <a routerLink="/" class="da-btn da-btn-quiet">Volver al inicio</a>
+      </div>
+    </ng-container>
+
+  </main>
+
+  <footer class="da-foot">
+    <p>© {{ 2026 }} Dairi · Plataforma clínica inteligente</p>
+  </footer>
+
+</div>

@@ -1,0 +1,23 @@
+<div class="account-page">
+
+  <header class="account-head">
+    <h1>Mi cuenta</h1>
+    <p>Datos de tu cuenta y opciones de cierre definitivo.</p>
+  </header>
+
+  <section class="account-card" *ngIf="auth.user() as u">
+    <div class="account-identity">
+      <div class="account-avatar">{{ u.avatar || '?' }}</div>
+      <div>
+        <span class="account-name">{{ u.name }}</span>
+        <span class="account-email">{{ u.email }}</span>
+      </div>
+      <span class="account-role">{{ u.role }}</span>
+    </div>
+  </section>
+
+  <section class="account-danger">
+    <app-delete-account-panel (deleted)="onDeleted()" />
+  </section>
+
+</div>

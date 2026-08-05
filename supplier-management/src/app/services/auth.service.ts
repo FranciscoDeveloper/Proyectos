@@ -1098,6 +1098,15 @@ function sessionStore(): Storage {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** Shape returned by DELETE /api/auth/account (see lambda-auth handleDeleteAccount). */
+export interface DeleteAccountResponse {
+  message: string;
+  alreadyDeleted?: boolean;
+  deleted?:    { account: string | null; refreshTokens: number; moduleGrants?: boolean; encryptionSettings?: boolean };
+  anonymized?: { appUser?: number; professionals?: number; professionalIds?: number[] };
+  retained?:   { note?: string; clinicalRecords?: string };
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private _state  = signal<AuthState>(this.loadFromStorage());
@@ -1200,6 +1209,42 @@ export class AuthService {
     this.clearRefreshToken();
     this.cryptoSvc.clearKey();
     this.router.navigate(['/login']);
+  }
+
+  /**
+   * DELETE /api/auth/account — permanent, irreversible account deletion.
+   *
+   * Required by Apple App Review 5.1.1(v) and Google Play's data-deletion policy
+   * (see MOBILE_STORE_PUBLISHING.md §0.3). The backend identifies the account
+   * from the JWT alone — no id is sent — and re-verifies the password, so a
+   * stolen access token is not by itself enough to destroy an account.
+   *
+   * The account's login identity is destroyed; the clinical records the
+   * professional created are retained, and their `professional` row is
+   * anonymized in place so those records stay internally consistent.
+   */
+  deleteAccount(password: string): Observable<DeleteAccountResponse> {
+    return this.http.request<DeleteAccountResponse>('DELETE', '/api/auth/account', {
+      body: { password }
+    }).pipe(
+      catchError(err => throwError(() =>
+        new Error(err.error?.message ?? 'No se pudo eliminar la cuenta. Vuelve a intentarlo.')
+      ))
+    );
+  }
+
+  /**
+   * Drops all local session state without calling /api/auth/logout and without
+   * navigating anywhere. Used after account deletion: the server-side session is
+   * already gone, so a logout call would be a guaranteed 401, and the caller
+   * needs to choose its own destination (the deletion acknowledgment) rather
+   * than being bounced to /login.
+   */
+  clearLocalSession(): void {
+    this._state.set({ authenticated: false, token: null, user: null, schemas: [] });
+    try { sessionStore().removeItem(SESSION_KEY); } catch { /* storage unavailable */ }
+    this.clearRefreshToken();
+    this.cryptoSvc.clearKey();
   }
 
   /**

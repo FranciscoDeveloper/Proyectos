@@ -1,0 +1,115 @@
+<div class="danger-panel">
+
+  <div class="danger-head">
+    <div class="danger-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </div>
+    <div>
+      <h2>Eliminar mi cuenta</h2>
+      <p class="danger-sub">Esta acción es permanente y no se puede deshacer.</p>
+    </div>
+  </div>
+
+  <!-- ── Qué se elimina y qué se conserva ─────────────────────────────────── -->
+  <div class="what-happens">
+
+    <div class="wh-block wh-delete">
+      <h3>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+        Se elimina para siempre
+      </h3>
+      <ul>
+        <li>Tu acceso a Dairi: no volverás a poder iniciar sesión con este correo.</li>
+        <li>Tu correo, tu nombre y tu contraseña como usuario del sistema.</li>
+        <li>Todas tus sesiones abiertas, en este y en cualquier otro dispositivo.</li>
+        <li>Tu enlace público de reservas: tus pacientes ya no podrán agendar contigo.</li>
+      </ul>
+    </div>
+
+    <div class="wh-block wh-keep">
+      <h3>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Se conserva por obligación legal
+      </h3>
+      <ul>
+        <li>
+          Las <strong>fichas clínicas de tus pacientes</strong>, sus atenciones, citas y
+          presupuestos <strong>no se borran</strong>.
+        </li>
+        <li>
+          La ley obliga a conservar los registros clínicos durante un plazo determinado,
+          aunque el profesional deje de usar el sistema. Por eso no podemos eliminarlos
+          junto con tu cuenta.
+        </li>
+        <li>
+          En esos registros tu nombre y tu correo se reemplazan por
+          <em>«Profesional eliminado»</em>, de modo que la ficha del paciente sigue
+          completa pero ya no queda información que te identifique.
+        </li>
+        <li>
+          Los datos de tus pacientes no se ven afectados de ninguna forma por eliminar
+          tu cuenta.
+        </li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- ── Confirmación ──────────────────────────────────────────────────────── -->
+  <form [formGroup]="form" (ngSubmit)="submit()" class="danger-form" novalidate>
+
+    <div class="field">
+      <label for="del-confirm">
+        Para confirmar, escribe <strong>{{ confirmPhrase }}</strong>
+      </label>
+      <input id="del-confirm"
+             type="text"
+             formControlName="confirm"
+             (input)="onConfirmInput($event)"
+             autocomplete="off"
+             autocapitalize="characters"
+             spellcheck="false"
+             [placeholder]="confirmPhrase" />
+    </div>
+
+    <div class="field">
+      <label for="del-password">Confirma tu contraseña</label>
+      <div class="pass-wrap">
+        <input id="del-password"
+               [type]="showPass() ? 'text' : 'password'"
+               formControlName="password"
+               autocomplete="current-password"
+               placeholder="Tu contraseña actual" />
+        <button type="button" class="pass-toggle" (click)="showPass.set(!showPass())"
+                [attr.aria-label]="showPass() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+            <line *ngIf="!showPass()" x1="3" y1="3" x2="21" y2="21"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <p class="danger-error" *ngIf="error()">{{ error() }}</p>
+
+    <button type="submit" class="danger-btn" [disabled]="!canSubmit()">
+      <span class="spinner-sm" *ngIf="loading()"></span>
+      {{ loading() ? 'Eliminando…' : 'Eliminar mi cuenta definitivamente' }}
+    </button>
+
+    <p class="danger-foot">
+      ¿Solo quieres dejar de usar Dairi por un tiempo? Puedes cerrar sesión y volver
+      cuando quieras — no necesitas eliminar la cuenta.
+    </p>
+  </form>
+
+</div>

@@ -122,33 +122,62 @@ Guardar el keystore fuera del repo (por ejemplo `C:\claves\dairi.keystore`) y
 apuntar `keystorePath` a esa ruta absoluta, o pasar la ruta por línea de comandos
 al firmar.
 
-### [ ] 0.3 — La app NO permite eliminar la cuenta (rechazo garantizado en iOS)
+### [x] 0.3 — Eliminación de cuenta — ✅ RESUELTO (2026-08-05)
 
-**Estado verificado:** no existe ninguna funcionalidad de borrado de cuenta.
-No hay coincidencias de `deleteAccount` / "eliminar cuenta" ni en el frontend
-(`src/`) ni en `lambda-auth` / `lambda-dairi-bff`.
+**Estado:** implementado, desplegado y probado end-to-end. Ya no bloquea el envío.
 
-Esto choca con dos reglas obligatorias:
+Cubre las dos reglas obligatorias: **Apple 5.1.1(v)** (borrado desde dentro de la
+app) y la **política de eliminación de datos de Google Play** (borrado en la app
+**más** una URL pública utilizable sin instalarla).
 
-- **Apple, App Review Guideline 5.1.1(v)**: toda app que permita **crear** una
-  cuenta debe permitir **eliminarla desde dentro de la app**. No basta con un
-  email de contacto ni con "escríbenos para darte de baja". Es de los motivos de
-  rechazo más frecuentes y no es negociable.
-- **Google Play — Política de eliminación de datos**: las apps con creación de
-  cuenta deben ofrecer borrado de cuenta dentro de la app **y** una URL pública
-  donde solicitar el borrado sin instalar la app.
+**Qué se construyó:**
 
-**Qué hay que construir antes de enviar a revisión:**
-1. Un endpoint autenticado (p. ej. `DELETE /api/user/account`) en `dairi-bff` que
-   borre o anonimice al usuario y sus datos asociados.
-2. Una opción visible en la app (Configuración → Eliminar cuenta), con
-   confirmación explícita y aviso de qué se borra.
-3. Una página web pública (p. ej. `https://dairi.cl/eliminar-cuenta`) con las
-   instrucciones, para el formulario de Play.
-4. Decidir y documentar qué pasa con los **registros clínicos** al borrar: en
-   salud suele existir obligación legal de retención. Si se retienen datos
-   clínicos anonimizados, **hay que declararlo** en ambas fichas de privacidad y
-   explicarlo en la política de privacidad.
+| Pieza | Dónde |
+|---|---|
+| Endpoint | `DELETE /api/auth/account` — Lambda `login` (`lambda-auth/index.mjs`, `handleDeleteAccount`) |
+| Ruta API Gateway | `cwhwahvqr0`, route id `b3848kp` → `integrations/tfm6c1r`; permiso `allow-apigw-delete-account` |
+| Control **dentro de la app** (Apple) | `https://dairi.cl/#/app/cuenta` — botón ⚙ "Mi cuenta" en el pie de la barra lateral, junto a "Cerrar sesión" |
+| **URL pública** (Play) | **`https://dairi.cl/#/eliminar-cuenta`** ← es la que va en el formulario de Play |
+| Componentes | `src/app/components/account/`, `src/app/components/delete-account/` |
+
+El endpoint está en `lambda-auth` y **no** en `dairi-bff` (como sugería la versión
+anterior de esta nota): todo lo que destruye es estado de autenticación que esa
+función ya administra — cuentas DynamoDB, refresh tokens y la fila `app_user`.
+
+**Decisión de producto: "anonimizar y conservar", no borrado total.**
+Dairi almacena registros clínicos sujetos a obligación legal de retención, así que
+un borrado en cascada podría ser ilegal. Concretamente:
+
+- **Se destruye** (el profesional no puede volver a entrar nunca):
+  el ítem de cuenta en `dairi-accounts` / `dairi-agenda-accounts` (borrado real,
+  no tombstone), todos sus refresh tokens (DynamoDB y Postgres), sus permisos de
+  módulo (`user_schema`) y su configuración de cifrado (`user_config`).
+- **Se anonimiza en su sitio** (la fila sobrevive, la identidad no):
+  `app_user` (nombre/correo/contraseña/avatar) — no se borra porque `audit_log` y
+  `data_request` tienen FK reales hacia ella; y `professional`
+  (nombre → «Profesional eliminado», email/`booking_token`/`google_calendar_id`
+  a NULL, `active` = false). `professional.id` **nunca** se borra.
+- **Se conserva intacto**: `patient`, `clinical_record`, `appointment`,
+  `presupuesto`, `payment`, `session` y `professional_rating`. Ningún dato de
+  pacientes se toca.
+
+Seguridad: la identidad sale **solo** del JWT verificado (`sub` + `email`); nunca
+de un id en el body, así que no se puede borrar la cuenta de otro. Además se
+re-verifica la contraseña en el servidor, de modo que un token de acceso robado no
+basta. El endpoint es idempotente: repetirlo sobre una cuenta ya eliminada
+devuelve 200, no 500.
+
+> ⚠️ **Pendiente asociado (paso 1.1 y 2.8):** esta retención de registros clínicos
+> anonimizados **hay que declararla** en la política de privacidad y en las fichas
+> de Data Safety (Play) y App Privacy (Apple). El texto que ve el usuario al
+> eliminar ya lo explica; las fichas de las tiendas todavía no.
+
+> **Nota sobre RDS:** las cuentas de plan Pro/Enterprise necesitan que la base RDS
+> esté encendida para completar la anonimización (si no, el endpoint responde 503 y
+> no destruye nada, para que el reintento sea seguro). Las cuentas Starter/agenda
+> viven 100 % en DynamoDB y se eliminan aunque RDS esté apagada. **Mantener la RDS
+> encendida durante toda la revisión de las tiendas**, o un revisor que pruebe el
+> borrado verá un error.
 
 ### [ ] 0.4 — Las notificaciones push no están terminadas (no prometerlas)
 
@@ -237,7 +266,11 @@ Como Dairi maneja **datos de salud**, la política debe decir, como mínimo:
   Omitir los subprocesadores es un problema legal y también de la ficha de
   Data Safety.
 - Base legal y consentimiento del paciente para grabar la atención.
-- Cuánto tiempo se conservan los datos y cómo se eliminan (enlaza con 0.3).
+- Cuánto tiempo se conservan los datos y cómo se eliminan. Debe describir el
+  comportamiento real ya implementado (0.3): al eliminar la cuenta se destruye la
+  identidad del profesional pero **se conservan los registros clínicos**, con los
+  datos identificatorios del profesional sustituidos por «Profesional eliminado».
+  Mencionar la URL pública `https://dairi.cl/#/eliminar-cuenta`.
 - Cifrado: la app tiene un modo Zero-Knowledge (`src/app/services/crypto.service.ts`,
   AES-256-GCM con certificado en poder del usuario). Es un punto **a favor** y
   conviene explicarlo, aclarando que si el usuario pierde su certificado los
@@ -408,7 +441,13 @@ Google puede ayudar a resetearla — sin esto, perder el keystore es terminal
   - que los datos **se comparten con terceros** (Deepgram, AWS Bedrock) para
     transcripción y generación de notas;
   - que los datos van **cifrados en tránsito**;
-  - si el usuario puede **pedir la eliminación** de sus datos (enlaza con 0.3).
+  - que el usuario **sí** puede pedir la eliminación de su cuenta, y que existe
+    tanto en la app como en la web. **URL a pegar en el formulario:**
+    `https://dairi.cl/#/eliminar-cuenta` (ver 0.3).
+  - que **parte de los datos se retienen tras eliminar la cuenta**: los registros
+    clínicos se conservan de forma anonimizada por obligación legal de retención.
+    Play ofrece exactamente esa opción ("algunos datos no se pueden eliminar");
+    **no** declarar borrado total, porque no es lo que hace la app.
   > Google contrasta esta declaración con el comportamiento real de la app. Una
   > declaración incompleta puede provocar la **retirada** de la app, no sólo un
   > rechazo.
@@ -554,7 +593,8 @@ recetas/presupuestos y el guardado del certificado Zero-Knowledge.
   seguimiento. Usar la tabla del paso 1.2 y **mantener la coherencia con lo
   declarado en Play**.
 - **Account deletion**: Apple pregunta explícitamente por el borrado de cuenta.
-  Sin lo del paso 0.3, aquí no hay respuesta válida.
+  Responder que **sí**, y que está dentro de la app en **Mi cuenta → Eliminar mi
+  cuenta** (icono ⚙ en el pie de la barra lateral). Ver paso 0.3 — ya implementado.
 
 ### [ ] 3.9 — Escrutinio adicional por datos de salud
 
@@ -619,7 +659,10 @@ revisión del 2026-08-05:
 
 Ordenados por probabilidad:
 
-1. **Sin eliminación de cuenta** (0.3) — rechazo seguro en iOS.
+1. ~~**Sin eliminación de cuenta**~~ — **resuelto** (0.3). Lo que queda de este
+   riesgo es *declararlo mal*: si en Data Safety / App Privacy no se menciona que
+   se retienen registros clínicos anonimizados, la contradicción con el
+   comportamiento real es motivo de retirada.
 2. **Revisor sin poder entrar** — faltan credenciales de demo o están caducadas (1.4).
 3. **Metadata inexacta** — prometer push (0.4) o sincronización de calendario en
    móvil (0.5) que la app no hace.
@@ -664,7 +707,10 @@ Cosas que **no** están resueltas y que conviene tener presentes al planificar:
    `@capacitor/app` (ambos paquetes ya están instalados), **más** client IDs
    nuevos de tipo Android e iOS en Google Cloud Console. No implementado; en
    nativo la funcionalidad está deshabilitada de forma explícita y controlada.
-3. **Eliminación de cuenta** — no existe (0.3). Bloqueante.
+3. ~~**Eliminación de cuenta**~~ — **hecho** (0.3): `DELETE /api/auth/account`,
+   `/#/app/cuenta` (en la app) y `/#/eliminar-cuenta` (público). Lo que sigue
+   pendiente es reflejarlo en la política de privacidad y en las fichas de
+   Data Safety / App Privacy.
 4. **Lambda `db-access`** — sigue desplegada y sin JWT (0.6).
 5. **Extensión de los audios** — los archivos se suben como `.webm` incluso en
    iOS, donde el contenido real es MP4/AAC. **Es intencional**: la notificación

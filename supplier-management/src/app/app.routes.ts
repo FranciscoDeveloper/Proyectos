@@ -33,6 +33,17 @@ export const routes: Routes = [
       import('./components/docs/docs.component').then(m => m.DocsComponent)
   },
 
+  // ── Public: account deletion (Google Play requirement) ───────────────────────
+  // Deliberately guard-free. Google Play requires a web-reachable deletion path
+  // usable WITHOUT installing the app, so a logged-out visitor must be able to
+  // land here and sign in on the page itself; guestGuard would bounce a
+  // logged-in user to the dashboard, which would break the in-app flow's twin.
+  {
+    path: 'eliminar-cuenta',
+    loadComponent: () =>
+      import('./components/delete-account/delete-account.component').then(m => m.DeleteAccountComponent)
+  },
+
   // ── Protected: onboarding (post-registration) ─────────────────────────────
   {
     path: 'onboarding',
@@ -140,6 +151,14 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () =>
           import('./components/user-management/user-management.component').then(m => m.UserManagementComponent)
+      },
+      {
+        // Account settings — hosts the in-app "Eliminar cuenta" control that
+        // Apple App Review 5.1.1(v) requires.
+        path: 'cuenta',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./components/account/account.component').then(m => m.AccountComponent)
       }
     ]
   },

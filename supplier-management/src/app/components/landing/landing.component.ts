@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewEncapsulation, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
 
@@ -67,6 +67,16 @@ export class LandingComponent implements OnInit, OnDestroy {
   private titleSvc = inject(Title);
   private metaSvc  = inject(Meta);
   private doc      = inject(DOCUMENT);
+  private route    = inject(ActivatedRoute);
+
+  /**
+   * Set when the user arrives here right after deleting their account
+   * (/app/cuenta navigates to `/?cuenta=eliminada`). Drives the acknowledgment
+   * banner at the top of the template — a silent redirect after an irreversible
+   * action reads like the action failed.
+   */
+  readonly accountDeleted =
+    this.route.snapshot.queryParamMap.get('cuenta') === 'eliminada';
 
   activeView = 'dashboard';
   private rotateInterval?: ReturnType<typeof setInterval>;

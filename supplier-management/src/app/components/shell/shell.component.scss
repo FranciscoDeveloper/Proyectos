@@ -219,6 +219,13 @@
   &:hover { background: rgba(239,68,68,0.15); color: #f87171; }
 }
 
+/* "Mi cuenta" sits next to logout but is not a destructive action — it is an
+   <a> (it navigates), so it also needs the anchor defaults cleared. */
+.account-btn {
+  text-decoration: none;
+  &:hover { background: rgba(255,255,255,0.14); color: #e2e8f0; }
+}
+
 /* ===== TOP BAR ===== */
 .main-wrapper {
   flex: 1;

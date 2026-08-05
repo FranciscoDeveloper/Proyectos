@@ -2,7 +2,7 @@ import pg     from "pg";
 import bcrypt from "bcryptjs";
 import jwt    from "jsonwebtoken";
 import crypto from "crypto";
-import { DynamoDBClient, GetItemCommand, PutItemCommand, UpdateItemCommand, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, GetItemCommand, PutItemCommand, UpdateItemCommand, DeleteItemCommand, ScanCommand } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 // Email is delegated to the frontend via /api/send-email (non-VPC path)
 
@@ -335,6 +335,19 @@ export const handler = async (event) => {
       catch { return response(400, { message: "Body inválido" }); }
     }
     return handleAdminRequest(rawPath, method, body);
+  }
+
+  // ── Account deletion (DELETE, requires the caller's own JWT + password) ──
+  //    Store-compliance endpoint: Apple 5.1.1(v) and Google Play both require a
+  //    real in-app account deletion path. Lives here (not in the BFF) because
+  //    everything it destroys is auth state this function already owns.
+  if (method === "DELETE" && rawPath.endsWith("/auth/account")) {
+    let delBody = {};
+    if (event.body) {
+      try { delBody = typeof event.body === "string" ? JSON.parse(event.body) : event.body; }
+      catch { return response(400, { message: "Body inválido: se esperaba JSON" }); }
+    }
+    return handleDeleteAccount(event, delBody);
   }
 
   if (method !== "POST")    return response(405, { message: "Método no permitido" });
@@ -862,6 +875,276 @@ async function handleActivateDairi(payload, token) {
     success:      "Gracias por suscribirte con nosotros, en unas horas habilitaremos su cuenta.",
     alreadyActive: "Gracias por suscribirte con nosotros, en unas horas habilitaremos su cuenta."
   });
+}
+
+// ── DELETE ACCOUNT ────────────────────────────────────────────────────────────
+//
+// Compliance context (see MOBILE_STORE_PUBLISHING.md §0.3): Apple App Review
+// 5.1.1(v) requires that any app which lets you *create* an account also lets you
+// *delete* it from inside the app, and Google Play additionally requires a
+// web-reachable deletion path that works without installing the app. Both are
+// served by this one endpoint (frontend routes /app/cuenta and /eliminar-cuenta).
+//
+// Product decision — "anonymize and retain", not "erase everything". Dairi stores
+// clinical records, which are subject to medical record-retention obligations, so
+// a true cascade delete could itself be unlawful. What that means concretely:
+//
+//   DESTROYED (the professional can never log in again, and no PII identifies
+//   them as a *user* of the system):
+//     · the DynamoDB account item (dairi-accounts / dairi-agenda-accounts) — hard
+//       delete, not a tombstone. A tombstone would have to keep the email as its
+//       partition key, i.e. keep exactly the PII we are supposed to destroy, and
+//       would buy nothing: nothing in this codebase reads a deleted account, and
+//       the retention obligation attaches to the clinical rows in Postgres, which
+//       we keep. Hard delete is both simpler and strictly more private.
+//     · every dairi-refresh-tokens item for that user (kills live sessions)
+//     · every Postgres refresh_token row for that user
+//     · user_schema grants (module access) and user_config (ZK flag)
+//
+//   ANONYMIZED IN PLACE (row survives, identity does not):
+//     · app_user  — name/email/password/avatar scrubbed. Not deleted, because
+//       audit_log.user_id and data_request.resolved_by carry real FKs to it and a
+//       DELETE would either fail or destroy an audit trail.
+//     · professional — name/email/booking_token/google_calendar_id scrubbed and
+//       active=false. Never deleted: patient, clinical_record, appointment,
+//       presupuesto, payment, session and professional_rating all FK to
+//       professional.id, and every one of those rows must survive intact.
+//
+//   UNTOUCHED: everything clinical. No patient row is read or written here.
+//
+// Identity always comes from the verified JWT (`sub` + `email`); a body-supplied
+// id is never trusted, so this endpoint can only ever delete the caller's own
+// account. The password is re-verified server-side on top of the JWT so that a
+// stolen access token alone is not enough to destroy an account.
+
+const DELETED_USER_NAME  = "Cuenta eliminada";
+const DELETED_PROF_NAME  = "Profesional eliminado";
+// Not a valid bcrypt hash. bcryptjs.compareSync returns false for any hash whose
+// length !== 60, so this can never match a password — it does not merely make
+// login unlikely, it makes it arithmetically impossible.
+const UNUSABLE_PASSWORD  = "ACCOUNT_DELETED";
+
+function deletedEmailFor(id) {
+  // app_user.email is UNIQUE, so the placeholder must be unique per row.
+  // .invalid is reserved by RFC 2606 and can never route anywhere.
+  return `eliminado+${id}@cuenta-eliminada.dairi.invalid`;
+}
+
+async function handleDeleteAccount(event, body) {
+  const authHeader = event.headers?.["authorization"] || event.headers?.["Authorization"] || "";
+  if (!authHeader.startsWith("Bearer "))
+    return response(401, { message: "Token de autenticación requerido" });
+
+  let payload;
+  try { payload = jwt.verify(authHeader.slice(7), JWT_SECRET); }
+  catch { return response(401, { message: "Token inválido o expirado" }); }
+
+  const password = body?.password;
+  if (!password)
+    return response(400, { message: "Debes confirmar tu contraseña para eliminar la cuenta." });
+
+  const email = String(payload.email ?? "").toLowerCase().trim();
+  if (!email || payload.sub === undefined || payload.sub === null)
+    return response(401, { message: "Token inválido o expirado" });
+
+  try {
+    // Starter/agenda accounts live 100% in DynamoDB and have no Postgres row at
+    // all, so their deletion never needs RDS to be reachable.
+    if (payload.accountType === "agenda") return await deleteAgendaAccount(payload, email, password);
+    return await deleteDairiAccount(payload, email, password);
+  } catch (err) {
+    console.error("Delete account error:", err);
+    return response(500, { message: "No se pudo completar la eliminación. Vuelve a intentarlo." });
+  }
+}
+
+// Removes every stored refresh token belonging to this account. The table is
+// keyed only by tokenHash (no userId index), so a filtered Scan is the only way
+// to enumerate them; it stays cheap because entries carry a 7-day TTL.
+async function purgeDairiRefreshTokens({ userId, email }) {
+  let purged = 0;
+  let startKey;
+  do {
+    const page = await ddb.send(new ScanCommand({
+      TableName: REFRESH_TOKENS_TABLE,
+      FilterExpression: "userId = :uid OR email = :em",
+      ExpressionAttributeValues: marshall({ ":uid": userId ?? -1, ":em": email }),
+      ExclusiveStartKey: startKey
+    }));
+    for (const item of page.Items ?? []) {
+      const { tokenHash } = unmarshall(item);
+      await ddb.send(new DeleteItemCommand({
+        TableName: REFRESH_TOKENS_TABLE,
+        Key: marshall({ tokenHash })
+      }));
+      purged++;
+    }
+    startKey = page.LastEvaluatedKey;
+  } while (startKey);
+  return purged;
+}
+
+// Agenda (Starter) accounts: DynamoDB only. Their refresh tokens are stateless
+// JWTs, so there is nothing to revoke — but handleRefreshAgenda re-reads the
+// account on every refresh and 401s when it is gone, so removing the item is
+// what actually ends those sessions. The stored-token purge below is belt-and-
+// braces in case an agenda account ever gets a stored token.
+async function deleteAgendaAccount(payload, email, password) {
+  const acct = await getAgendaAccount(email);
+  if (!acct) {
+    // Idempotent: a retry (or a double-tap on a flaky connection) must not 500.
+    return response(200, {
+      message: "Tu cuenta ya fue eliminada.",
+      alreadyDeleted: true
+    });
+  }
+  if (acct.accountId !== payload.sub)
+    return response(403, { message: "No puedes eliminar una cuenta que no es la tuya." });
+
+  const ok = await bcrypt.compare(password, acct.passwordHash || "");
+  if (!ok) return response(401, { message: "La contraseña no es correcta." });
+
+  await ddb.send(new DeleteItemCommand({
+    TableName: AGENDA_ACCOUNTS_TABLE,
+    Key: marshall({ email })
+  }));
+  const purged = await purgeDairiRefreshTokens({ userId: null, email });
+
+  return response(200, {
+    message: "Tu cuenta fue eliminada. Ya no podrás iniciar sesión.",
+    deleted:   { account: "dairi-agenda-accounts", refreshTokens: purged },
+    anonymized: {},
+    retained:  { clinicalRecords: "no aplica — el plan Starter no almacena fichas clínicas" }
+  });
+}
+
+// Every other plan: DynamoDB account (dairi-accounts) plus whatever Postgres
+// footprint the same numeric id has.
+//
+// Ordering is deliberate: Postgres anonymization runs BEFORE the DynamoDB item is
+// deleted. Both halves are idempotent, so if Postgres fails nothing has been
+// destroyed yet and the caller can safely retry; if the DynamoDB delete fails
+// afterwards, a retry re-runs the (now no-op) anonymization and retries the
+// delete. The reverse order would leave an account that cannot log in but whose
+// professional row still carries their name, with no way to finish the job.
+async function deleteDairiAccount(payload, email, password) {
+  const userId = Number(payload.sub);
+  if (!Number.isFinite(userId))
+    return response(401, { message: "Token inválido o expirado" });
+
+  const acct = await getDairiAccount(email);
+  if (acct && Number(acct.id) !== userId)
+    return response(403, { message: "No puedes eliminar una cuenta que no es la tuya." });
+
+  let client;
+  try {
+    client = await pool.connect();
+  } catch (err) {
+    console.error("Delete account — RDS unreachable:", err?.message);
+    return response(503, {
+      message: "El servicio no está disponible en este momento. Vuelve a intentarlo en unos minutos."
+    });
+  }
+
+  try {
+    await ensureColumns(client);
+
+    // The legacy Postgres row is matched on id AND email, never id alone. The
+    // DynamoDB account-id counter (dairi-counters) was seeded below the highest
+    // existing app_user.id, so a bare `id = $1` could match a completely
+    // different person's legacy row. Requiring the email to agree makes the
+    // match unambiguous in both directions (a migrated account has both; a
+    // pure-Postgres account has both; a colliding stranger has neither).
+    const pgUser = await client.query(
+      `SELECT id, password FROM app_user WHERE id = $1 AND LOWER(email) = $2 LIMIT 1`,
+      [userId, email]
+    );
+    const hasPgUser = pgUser.rowCount > 0;
+
+    if (!acct && !hasPgUser) {
+      // Nothing left anywhere with this identity → already deleted.
+      return response(200, { message: "Tu cuenta ya fue eliminada.", alreadyDeleted: true });
+    }
+
+    // Password check against whichever store actually holds this identity.
+    const storedHash = acct ? (acct.passwordHash || "") : (pgUser.rows[0].password || "");
+    const ok = await bcrypt.compare(password, storedHash);
+    if (!ok) return response(401, { message: "La contraseña no es correcta." });
+
+    // ── Postgres: anonymize identity, keep the clinical graph ────────────────
+    await client.query("BEGIN");
+
+    let anonymizedUser = 0;
+    if (hasPgUser) {
+      const r = await client.query(
+        `UPDATE app_user
+            SET name = $2,
+                email = $3,
+                password = $4,
+                avatar = NULL,
+                activation_token = NULL,
+                email_verified = false
+          WHERE id = $1
+          RETURNING id`,
+        [userId, DELETED_USER_NAME, deletedEmailFor(userId), UNUSABLE_PASSWORD]
+      );
+      anonymizedUser = r.rowCount;
+      await client.query(`DELETE FROM refresh_token WHERE user_id = $1`, [userId]);
+      await client.query(`DELETE FROM user_schema   WHERE user_id = $1`, [userId]);
+      await client.query(`DELETE FROM user_config   WHERE user_id = $1`, [userId]);
+    }
+
+    // professional.user_id is the linkage profScopeService.resolveProfScope()
+    // uses to grant clinical access, so it is by definition this account's
+    // professional row. user_id is NOT NULL and stays as-is; only the
+    // identifying columns are scrubbed. booking_token is cleared on purpose —
+    // it backs the public /book/{token} page, which must stop resolving.
+    const prof = await client.query(
+      `UPDATE professional
+          SET name = $2,
+              email = NULL,
+              booking_token = NULL,
+              google_calendar_id = NULL,
+              active = false
+        WHERE user_id = $1
+        RETURNING id`,
+      [userId, DELETED_PROF_NAME]
+    );
+
+    await client.query("COMMIT");
+
+    // ── DynamoDB: destroy the login identity ────────────────────────────────
+    if (acct) {
+      await ddb.send(new DeleteItemCommand({
+        TableName: ACCOUNTS_TABLE,
+        Key: marshall({ email })
+      }));
+    }
+    const purged = await purgeDairiRefreshTokens({ userId, email });
+
+    return response(200, {
+      message: "Tu cuenta fue eliminada. Ya no podrás iniciar sesión.",
+      deleted: {
+        account:            acct ? ACCOUNTS_TABLE : null,
+        refreshTokens:      purged,
+        moduleGrants:       hasPgUser,
+        encryptionSettings: hasPgUser
+      },
+      anonymized: {
+        appUser:       anonymizedUser,
+        professionals: prof.rowCount,
+        professionalIds: prof.rows.map(r => r.id)
+      },
+      retained: {
+        note: "Las fichas clínicas, pacientes, citas y presupuestos se conservan por obligación legal de retención de registros clínicos."
+      }
+    });
+  } catch (err) {
+    try { await client.query("ROLLBACK"); } catch { /* connection may already be gone */ }
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 // ── SES email ─────────────────────────────────────────────────────────────────
