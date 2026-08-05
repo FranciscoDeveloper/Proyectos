@@ -14,7 +14,13 @@ import { Injectable, signal, computed } from '@angular/core';
 const GCAL_CLIENT_ID: string = '549490430485-97crbjoma2gjrusacjmlsif2q9irbku3.apps.googleusercontent.com';
 
 const STORAGE_KEY = 'gcal_access_token';
-const SCOPE       = 'https://www.googleapis.com/auth/calendar.events';
+// calendar.app.created (no calendar.events): este servicio solo crea eventos nuevos, nunca
+// lee/edita/borra eventos existentes del calendario del usuario — ver createEvent() más abajo,
+// es la única llamada a la API. calendar.events es un scope "sensible" para Google (dispara la
+// advertencia "Google no ha verificado esta app" y exige pasar el proceso de verificación).
+// calendar.app.created cubre exactamente lo que se necesita (crear + gestionar solo los eventos
+// que la propia app creó) y Google lo clasifica como no sensible, así que no requiere verificación.
+const SCOPE       = 'https://www.googleapis.com/auth/calendar.app.created';
 const API_URL     = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
 
 export interface GcalEventParams {
