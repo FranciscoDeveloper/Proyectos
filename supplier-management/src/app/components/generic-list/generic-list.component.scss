@@ -375,3 +375,72 @@
     .btn-danger { flex: 1; }
   }
 }
+
+/* ── Mobile ───────────────────────────────────────────────────────────────────
+   This list is the generic CRUD surface behind Pacientes and most entities, so
+   it is one of the most-visited screens on a phone. It previously had no
+   responsive rules at all. */
+@media (max-width: 768px) {
+  .list-page {
+    /* 2rem here sat inside .page-content's own padding, burning ~96px of a
+       360px-wide screen on margins alone. */
+    padding: 0.75rem 0;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+
+    .page-title { font-size: 1.35rem; }
+
+    /* Primary action goes full-width rather than being squeezed next to the title. */
+    .btn-primary { justify-content: center; width: 100%; }
+  }
+
+  .filters-bar {
+    gap: 0.5rem;
+
+    /* Search takes the full row; selects share the next one. */
+    .search-wrap { flex: 1 1 100%; min-width: 0; }
+    .filter-select { flex: 1 1 calc(50% - 0.25rem); min-width: 0; }
+  }
+
+  /* The table still scrolls horizontally (.table-wrapper is overflow-x:auto).
+     Tighten the cells so more than two columns are visible at once. */
+  .data-table {
+    th, td { padding: 0.7rem 0.6rem; }
+  }
+
+  /* 32px squares sitting side by side is well under the 44px minimum and the
+     single most mis-tappable thing on the screen — an accidental hit lands on
+     Delete. Give them real targets and space between. */
+  .td-actions {
+    white-space: nowrap;
+    .action-btn { width: 44px; height: 44px; }
+    .action-btn + .action-btn { margin-left: 0.25rem; }
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    padding: 0.75rem 0.5rem;
+
+    .page-btn { min-width: 44px; height: 44px; }
+    /* "Mostrando X de Y" pushes the pager off-centre on a narrow row. */
+    .page-info { flex: 1 1 100%; margin-left: 0; text-align: center; }
+  }
+
+  .empty-state { padding: 2.5rem 1rem; }
+
+  .modal {
+    width: 100%;
+    max-width: none;
+    padding: 1.5rem 1.25rem;
+    /* Stacked buttons — side-by-side Cancelar/Eliminar at ~150px each is a
+       destructive action sitting one thumb-width from the safe one. */
+    .modal-actions { flex-direction: column-reverse; }
+  }
+
+  .modal-backdrop { padding: 1rem; align-items: flex-end; }
+}

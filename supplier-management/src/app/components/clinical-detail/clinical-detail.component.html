@@ -581,6 +581,26 @@
             Seleccionar archivo
           </label>
           <input id="doc-file-input" type="file" class="file-input-hidden" (change)="onFileSelected($event)">
+
+          <!--
+            Direct camera capture, native app only. Photographing a lab result,
+            referral or ID is the most common way a document enters a patient
+            record from a phone, and the plain picker above buries the camera
+            behind the OS file browser. capture="environment" opens the rear
+            camera straight away and still returns a normal File, so it reuses
+            onFileSelected() unchanged — no native plugin required.
+          -->
+          <label class="btn btn-outline btn-sm file-picker-btn" for="doc-camera-input" *ngIf="mobile.isNative">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            Tomar foto
+          </label>
+          <input id="doc-camera-input" type="file" class="file-input-hidden"
+                 accept="image/*" capture="environment"
+                 (change)="onFileSelected($event)" *ngIf="mobile.isNative">
+
           <span class="file-selected-info" [class.file-selected-info--set]="!!selectedFile()">
             <ng-container *ngIf="selectedFile(); else noFile">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

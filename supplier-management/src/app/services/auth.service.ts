@@ -1,6 +1,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { Capacitor } from '@capacitor/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { LoginCredentials, AuthResponse, AuthState, AuthUser } from '../models/auth.model';
@@ -1071,9 +1072,29 @@ const SESSION_KEY  = 'auth_session';
 const REFRESH_KEY  = 'dairi_refresh';
 /**
  * Increment this whenever the schema structure changes so that any cached
- * session in sessionStorage is invalidated and the user must re-login.
+ * session is invalidated and the user must re-login.
  */
 const SESSION_VERSION = 17;
+
+/**
+ * Where the session lives.
+ *
+ * On the web this stays sessionStorage: the session dies with the tab, which is
+ * the safer default on a shared or public computer.
+ *
+ * In the Capacitor app that behaviour is wrong. Android destroys backgrounded
+ * WebView processes routinely to reclaim memory, and sessionStorage goes with
+ * them — so leaving the app to take a phone call was enough to log the user out.
+ * The refresh token (7-day, strictly more powerful than the 2h access token) is
+ * already persisted to localStorage on this same device, so keeping the session
+ * alongside it does not widen the exposure; it only stops the app throwing users
+ * back to the login screen for no reason. There is no startup silent-refresh
+ * path to fall back on — refreshAccessToken() only runs when a 401 comes back
+ * from a request an unauthenticated app never makes.
+ */
+function sessionStore(): Storage {
+  return Capacitor.isNativePlatform() ? localStorage : sessionStorage;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1152,7 +1173,7 @@ export class AuthService {
     this._state.set(state);
     this.cryptoSvc.setZkEnabled(state.zkEnabled ?? false);
     try {
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ ...state, _v: SESSION_VERSION }));
+      sessionStore().setItem(SESSION_KEY, JSON.stringify({ ...state, _v: SESSION_VERSION }));
     } catch { /* storage unavailable (private mode, quota exceeded) */ }
     if (response.refreshToken) {
       this.saveRefreshToken(response.refreshToken);
@@ -1164,7 +1185,7 @@ export class AuthService {
     this._state.update(s => ({ ...s, zkEnabled: enabled }));
     this.cryptoSvc.setZkEnabled(enabled);
     try {
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ ...this._state(), _v: SESSION_VERSION }));
+      sessionStore().setItem(SESSION_KEY, JSON.stringify({ ...this._state(), _v: SESSION_VERSION }));
     } catch { /* storage unavailable */ }
   }
 
@@ -1175,7 +1196,7 @@ export class AuthService {
       this.http.post('/api/auth/logout', { refreshToken }).subscribe({ error: () => {} });
     }
     this._state.set({ authenticated: false, token: null, user: null, schemas: [] });
-    sessionStorage.removeItem(SESSION_KEY);
+    sessionStore().removeItem(SESSION_KEY);
     this.clearRefreshToken();
     this.cryptoSvc.clearKey();
     this.router.navigate(['/login']);
@@ -1224,12 +1245,12 @@ export class AuthService {
 
   private loadFromStorage(): AuthState {
     try {
-      const raw = sessionStorage.getItem(SESSION_KEY);
+      const raw = sessionStore().getItem(SESSION_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as AuthState & { _v?: number };
         // Stale session from a previous deploy → force re-login so new schemas apply
         if (parsed._v !== SESSION_VERSION) {
-          sessionStorage.removeItem(SESSION_KEY);
+          sessionStore().removeItem(SESSION_KEY);
           return { authenticated: false, token: null, user: null, schemas: [] };
         }
         return parsed;

@@ -1,7 +1,17 @@
 .app-shell {
   display: flex;
   height: 100vh;
+  /* dvh tracks the viewport when mobile browser chrome shows/hides. Declared
+     second so browsers that don't support it keep the 100vh above. */
+  height: 100dvh;
   overflow: hidden;
+}
+
+/* Scrim for the mobile sidebar overlay. The sidebar is position:fixed under
+   768px with nothing behind it, so there was previously no way to dismiss it
+   except finding the hamburger again. Desktop keeps it hidden. */
+.sidebar-backdrop {
+  display: none;
 }
 
 /* ===== SIDEBAR ===== */
@@ -502,6 +512,28 @@
   to { transform: rotate(360deg); }
 }
 
+/* ===== SAFE AREAS (notch / status bar / gesture pill) =====
+   targetSdk 36 means Android 15+ renders the WebView edge-to-edge, so the top
+   bar would otherwise sit underneath the status bar clock and the page content
+   underneath the navigation pill. iOS notch + home indicator likewise. */
+.top-bar {
+  padding-top: var(--safe-top, 0px);
+  height: calc(64px + var(--safe-top, 0px));
+  padding-left: calc(24px + var(--safe-left, 0px));
+  padding-right: calc(24px + var(--safe-right, 0px));
+}
+
+.sidebar {
+  padding-top: var(--safe-top, 0px);
+  padding-bottom: var(--safe-bottom, 0px);
+}
+
+.page-content {
+  padding-bottom: calc(28px + var(--safe-bottom, 0px));
+  padding-left: calc(28px + var(--safe-left, 0px));
+  padding-right: calc(28px + var(--safe-right, 0px));
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .sidebar {
@@ -510,15 +542,60 @@
     height: 100%;
     z-index: 200;
     transform: translateX(-100%);
+    /* The overlay is not part of the flex row, so it must not be squeezed by it. */
+    width: min(280px, 82vw);
 
     &:not(.collapsed) { transform: translateX(0); }
 
     &.collapsed {
-      width: 260px;
+      width: min(280px, 82vw);
       transform: translateX(-100%);
     }
   }
 
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 150;   /* above content (100), below the sidebar (200) */
+  }
+
   .mobile-toggle { display: flex; }
-  .page-content { padding: 16px; }
+
+  .page-content {
+    padding: 16px;
+    padding-bottom: calc(16px + var(--safe-bottom, 0px));
+  }
+
+  .top-bar {
+    padding-left: calc(12px + var(--safe-left, 0px));
+    padding-right: calc(12px + var(--safe-right, 0px));
+    gap: 8px;
+  }
+
+  /* The top bar packs a ZK badge, a role pill, a divider, the user's name and a
+     logout button into a row that needs ~320px before the hamburger is added.
+     On a 360px phone that overflowed. Drop the decorative items and keep the
+     ones that are actionable or convey security state. */
+  .role-badge,
+  .divider,
+  .top-user span { display: none; }
+
+  .zk-badge span { display: none; }   /* keep the padlock icon, drop the "ZK" text */
+
+  .top-bar-actions { gap: 8px; }
+
+  /* Banners are laid out as a single flex row with a 200px-min text block plus
+     a button; below ~420px that forces horizontal overflow. */
+  .zk-setup-banner,
+  .zk-unlock-banner {
+    padding: 12px 16px;
+    gap: 12px;
+
+    .zk-banner-text { min-width: 0; }
+  }
+
+  .zk-setup-btn,
+  .cert-upload-label { width: 100%; justify-content: center; }
 }

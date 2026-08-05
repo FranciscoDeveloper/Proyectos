@@ -14,7 +14,9 @@ export class AppComponent implements OnInit {
   private mobile  = inject(MobileService);
 
   ngOnInit() {
-    this.mobile.init();
+    // Never let native bootstrap failures surface as an unhandled rejection —
+    // the app is fully usable on web and degrades gracefully without them.
+    this.mobile.init().catch(err => console.error('[Mobile] init failed:', err));
 
     this.router.events.subscribe(event => {
       if (event instanceof NavigationError) {

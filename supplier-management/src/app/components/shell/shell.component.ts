@@ -14,7 +14,17 @@ export class ShellComponent {
   readonly auth      = inject(AuthService);
   readonly cryptoSvc = inject(CryptoService);
 
-  sidebarOpen = signal(true);
+  /**
+   * On desktop the sidebar is a persistent 260px column, so it starts expanded.
+   * Under 768px the same "expanded" state renders as a fixed overlay covering
+   * ~2/3 of a phone screen — starting open meant the app booted with its own
+   * navigation hiding the page. Start closed on narrow viewports instead.
+   */
+  sidebarOpen = signal(!ShellComponent.isNarrowViewport());
+
+  private static isNarrowViewport(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
 
   // ZK setup state
   zkSetting   = signal(false);
@@ -24,6 +34,14 @@ export class ShellComponent {
   zkCertError  = signal(false);
 
   toggleSidebar() { this.sidebarOpen.update(v => !v); }
+
+  /**
+   * Dismiss the sidebar after navigating on a phone. On desktop the sidebar is
+   * not an overlay, so it must stay put — otherwise every click would collapse it.
+   */
+  onNavigate(): void {
+    if (ShellComponent.isNarrowViewport()) this.sidebarOpen.set(false);
+  }
 
   logout() { this.auth.logout(); }
 
@@ -78,7 +96,12 @@ export class ShellComponent {
     return [
       { label: 'Dashboard',     icon: 'grid',         route: '/app/dashboard'     },
       ...schemas
-        .filter(s => s.entity.moduleType !== 'presupuestos' && s.entity.moduleType !== 'admin' && s.entity.key !== 'reports')
+        // presupuestos siempre tiene moduleType 'crud' (tanto en app_schema como en
+        // DEFAULT_DAIRI_SCHEMAS), nunca 'presupuestos' — ese moduleType nunca ocurre
+        // en los datos reales, así que comparar contra él no filtraba nada y el
+        // módulo aparecía dos veces: una desde este loop genérico y otra desde el
+        // bloque de "Presupuestos" más abajo (hasBudgets). Se filtra por key en su lugar.
+        .filter(s => s.entity.key !== 'presupuestos' && s.entity.moduleType !== 'admin' && s.entity.key !== 'reports')
         .map(s => ({
           label: s.entity.plural,
           icon: s.entity.icon,

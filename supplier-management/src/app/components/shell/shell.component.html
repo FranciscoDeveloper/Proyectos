@@ -1,5 +1,9 @@
 <div class="app-shell">
 
+  <!-- Scrim behind the mobile sidebar overlay — tapping it closes the nav.
+       Hidden entirely at >768px, where the sidebar is a normal column. -->
+  <div class="sidebar-backdrop" *ngIf="sidebarOpen()" (click)="sidebarOpen.set(false)"></div>
+
   <!-- ── Sidebar ── -->
   <aside class="sidebar" [class.collapsed]="!sidebarOpen()">
     <div class="sidebar-header">
@@ -29,6 +33,7 @@
         <li *ngFor="let item of navItems()">
           <a [routerLink]="item.route" routerLinkActive="active"
              [routerLinkActiveOptions]="{exact: item.route === '/app/dashboard'}"
+             (click)="onNavigate()"
              class="nav-item">
             <span class="nav-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="item.icon === 'grid'">

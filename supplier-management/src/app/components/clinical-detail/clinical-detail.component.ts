@@ -9,6 +9,7 @@ import { ChatService, ChatUser } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
 import { OdontogramComponent, OdontogramData } from '../odontogram/odontogram.component';
 import { PeriodontogramComponent, PeriodontogramData } from '../periodontogram/periodontogram.component';
+import { MobileService } from '../../services/mobile.service';
 
 interface VitalSign {
   label: string;
@@ -38,6 +39,8 @@ export class ClinicalDetailComponent implements OnInit {
   private http      = inject(HttpClient);
   protected chatSvc = inject(ChatService);
   private auth = inject(AuthService);
+  /** Used by the template to show the "Tomar foto" capture button only in the native app. */
+  protected mobile = inject(MobileService);
 
   readonly entityKey = this.route.snapshot.paramMap.get('entityKey')!;
   readonly id        = Number(this.route.snapshot.paramMap.get('id')!);
