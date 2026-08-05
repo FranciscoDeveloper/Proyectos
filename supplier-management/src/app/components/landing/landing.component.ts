@@ -53,45 +53,6 @@ const JSON_LD_SCRIPTS = [
       availableOnDevice: 'Desktop, Mobile, Tablet',
       softwareVersion: '2.0'
     }
-  },
-  {
-    id: 'ld-faq',
-    content: {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: [
-        {
-          '@type': 'Question',
-          name: '¿Qué software clínico usar en Chile?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Dairi es un sistema de gestión clínica para Chile que incluye agenda de citas, fichas clínicas electrónicas de 9 especialidades, reserva de horas online con pago vía Flow.cl, transcripción de consultas con IA y reportes clínicos. Está diseñado para clínicas médicas, dentales y centros de especialidades, con un plan gratis para agenda de citas y planes pagos desde $6.990 al mes.' }
-        },
-        {
-          '@type': 'Question',
-          name: '¿Cuánto cuesta Dairi?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Dairi tiene tres planes: Starter, gratis para siempre (1 profesional, 1 especialidad, agenda de citas y reservas online), Pro desde $6.990/mes (hasta 3 profesionales, fichas clínicas y pagos online) y Enterprise con precio a medida (hasta 20 profesionales, todas las especialidades). Los planes pagos incluyen 30 días de prueba gratuita sin tarjeta de crédito.' }
-        },
-        {
-          '@type': 'Question',
-          name: '¿Cómo pagan los pacientes sus horas médicas online?',
-          acceptedAnswer: { '@type': 'Answer', text: 'El paciente reserva su hora en el portal público de la clínica y paga en el mismo paso mediante Flow.cl, la pasarela de pagos chilena. El pago se verifica automáticamente y la cita queda confirmada en la agenda sin intervención manual.' }
-        },
-        {
-          '@type': 'Question',
-          name: '¿Se sincroniza la agenda médica con Google Calendar?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Sí. Las citas de Dairi se sincronizan con Google Calendar, y las videoconsultas generan automáticamente su enlace de Google Meet, disponible para el profesional y para el paciente.' }
-        },
-        {
-          '@type': 'Question',
-          name: '¿Dónde se almacenan los datos clínicos y son seguros?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Los datos se alojan en la nube de Amazon Web Services (Lambda, S3, RDS PostgreSQL, CloudFront) con arquitectura serverless HIPAA-ready. Dairi aplica cifrado Zero-Knowledge AES-256-GCM, autenticación JWT y aislamiento de datos por profesional aplicado en el servidor.' }
-        },
-        {
-          '@type': 'Question',
-          name: '¿Funciona Dairi para una clínica dental?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Sí. Dairi incluye ficha odontológica con odontograma interactivo y periodontograma, agenda dental por sillón, diagnóstico ICDAS/CIE, plan de tratamiento por sesión y presupuestos con envío por email y cobro online.' }
-        }
-      ]
-    }
   }
 ];
 
