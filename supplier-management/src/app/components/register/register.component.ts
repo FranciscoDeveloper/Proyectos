@@ -10,6 +10,14 @@ interface ProfessionalOption {
   especialidad: string | null;
 }
 
+// Etiqueta de conversión de Google Ads para el registro — misma etiqueta para
+// Starter (gratis) y Pro, ambos cuentan como la misma conversión en Ads.
+// gtag.js ya se carga globalmente en index.html (config AW-736089910); esto solo
+// dispara el evento de conversión puntual, en el punto donde el registro realmente
+// se completó con éxito — no en el clic crudo del botón, para no contar como
+// conversión un intento que falló por validación o error del servidor.
+const GADS_SIGNUP_CONVERSION = 'AW-736089910/i6FKCKmSmtwcELau_94C';
+
 function passwordMatch(ctrl: AbstractControl): ValidationErrors | null {
   const pass    = ctrl.get('password')?.value;
   const confirm = ctrl.get('confirmPassword')?.value;
@@ -145,6 +153,7 @@ export class RegisterComponent implements OnInit {
         this.loading.set(false);
         this.activationUrl.set(res?.activationUrl ?? '');
         this.submitted.set(true);
+        this.trackSignupConversion();
         // Send email via public send-email Lambda (not blocked by VPC)
         if (res?.emailPayload) {
           this.http.post('/api/send-email', res.emailPayload).subscribe({
@@ -162,5 +171,11 @@ export class RegisterComponent implements OnInit {
         );
       },
     });
+  }
+
+  // gtag puede no existir si un bloqueador de anuncios impidió que cargara gtag.js —
+  // no debe romper el flujo de registro si eso pasa.
+  private trackSignupConversion(): void {
+    (window as any).gtag?.('event', 'conversion', { send_to: GADS_SIGNUP_CONVERSION });
   }
 }
