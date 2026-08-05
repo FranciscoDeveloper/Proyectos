@@ -1095,6 +1095,40 @@ textarea {
   font-weight: 600;
   svg { width: 12px; height: 12px; }
   &.video { background: #dcfce7; color: #15803d; }
+  &.rating { background: #fef3c7; color: #b45309; }
+}
+
+/* ── Calificación (estrellas) ──
+   Dos capas de 5 estrellas: las grises de fondo y las doradas encima, recortadas por
+   width en % — así 4.3 se pinta como 86% sin dibujar medias estrellas. */
+.stars {
+  position: relative;
+  display: inline-block;
+  line-height: 1;
+  white-space: nowrap;
+  letter-spacing: .5px;
+}
+
+.stars-bg { color: #e5e7eb; }
+
+.stars-fg {
+  position: absolute;
+  top: 0; left: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: #f59e0b;
+}
+
+.rating-count { font-weight: 500; opacity: .75; }
+
+.doctor-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  margin-top: .3rem;
+  font-size: .82rem;
+  font-weight: 600;
+  color: #b45309;
 }
 
 .prof-arrow { width: 18px; height: 18px; color: var(--muted); flex-shrink: 0; }

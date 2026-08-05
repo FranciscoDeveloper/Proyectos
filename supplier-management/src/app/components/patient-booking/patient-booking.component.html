@@ -75,6 +75,17 @@
           <div class="prof-name">{{ prof.nombre }}</div>
           <div class="prof-spec">{{ prof.especialidad }}</div>
           <div class="prof-meta">
+            <!-- Sin calificaciones (ratingCount = 0) no se muestra nada: 5 estrellas vacías
+                 se leerían como una mala evaluación. -->
+            <span class="meta-chip rating" *ngIf="hasRating(prof)"
+                  [attr.aria-label]="prof.ratingAvg + ' de 5 estrellas, ' + prof.ratingCount + ' calificaciones'">
+              <span class="stars" aria-hidden="true">
+                <span class="stars-bg">★★★★★</span>
+                <span class="stars-fg" [style.width.%]="starPct(prof.ratingAvg)">★★★★★</span>
+              </span>
+              {{ prof.ratingAvg }}
+              <span class="rating-count">({{ prof.ratingCount }})</span>
+            </span>
             <span class="meta-chip">{{ prof.duration }} min</span>
             <span class="meta-chip video" *ngIf="prof.videoconsulta">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -112,6 +123,15 @@
       <div class="doctor-info">
         <div class="doctor-name-lg">{{ bookingInfo()!.doctorName }}</div>
         <div class="doctor-specialty">{{ bookingInfo()!.specialty }} · {{ bookingInfo()!.duration }} min</div>
+        <div class="doctor-rating" *ngIf="hasRating(bookingInfo()!)"
+             [attr.aria-label]="bookingInfo()!.ratingAvg + ' de 5 estrellas, ' + bookingInfo()!.ratingCount + ' calificaciones'">
+          <span class="stars" aria-hidden="true">
+            <span class="stars-bg">★★★★★</span>
+            <span class="stars-fg" [style.width.%]="starPct(bookingInfo()!.ratingAvg)">★★★★★</span>
+          </span>
+          {{ bookingInfo()!.ratingAvg }}
+          <span class="rating-count">({{ bookingInfo()!.ratingCount }})</span>
+        </div>
       </div>
       <div class="duration-chip">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

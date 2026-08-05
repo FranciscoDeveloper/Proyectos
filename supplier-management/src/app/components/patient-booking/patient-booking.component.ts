@@ -18,6 +18,9 @@ interface ProfessionalSummary {
   workDays:      number[];
   videoconsulta: boolean;
   photoUrl?:     string;
+  // Calificación agregada (migración 015). ratingAvg es null cuando ratingCount === 0.
+  ratingAvg?:    number | null;
+  ratingCount?:  number;
 }
 
 interface BookingInfo {
@@ -28,6 +31,8 @@ interface BookingInfo {
   duration:       number;
   workDays:       number[];
   videoconsulta:  boolean;
+  ratingAvg?:     number | null;
+  ratingCount?:   number;
 }
 
 interface CalDay {
@@ -238,9 +243,25 @@ export class PatientBookingComponent implements OnInit {
       clinicName:     'Dairi Clínica',
       duration:       prof.duration,
       workDays:       prof.workDays,
-      videoconsulta:  prof.videoconsulta
+      videoconsulta:  prof.videoconsulta,
+      ratingAvg:      prof.ratingAvg ?? null,
+      ratingCount:    prof.ratingCount ?? 0
     });
     this.step.set(1);
+  }
+
+  /**
+   * Ancho (en %) de la capa de estrellas doradas sobre las grises, para pintar
+   * calificaciones fraccionarias (4.3 → 86%) sin tener que dibujar medias estrellas.
+   */
+  starPct(avg: number | null | undefined): number {
+    if (avg == null || isNaN(avg)) return 0;
+    return Math.max(0, Math.min(100, (avg / 5) * 100));
+  }
+
+  /** Sólo se muestran estrellas si el profesional tiene al menos una calificación real. */
+  hasRating(p: { ratingAvg?: number | null; ratingCount?: number }): boolean {
+    return (p.ratingCount ?? 0) > 0 && p.ratingAvg != null;
   }
 
   private loadBookingInfo(id: string): void {

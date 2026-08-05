@@ -207,6 +207,20 @@ async function flowGet(endpoint, params) {
 }
 
 // ── Book helpers ───────────────────────────────────────────────────────────────
+// professional.rating_avg / rating_count son columnas materializadas que mantiene el trigger
+// `trg_professional_rating_refresh` sobre `professional_rating` (migración 015). pg devuelve
+// NUMERIC como string, así que hay que convertirlo o el frontend recibe "4.3" en vez de 4.3.
+// Un profesional sin calificaciones queda en { ratingAvg: null, ratingCount: 0 } — el frontend
+// oculta el bloque de estrellas en ese caso, no muestra 0 estrellas.
+function ratingFields(prof) {
+  const count = Number(prof?.rating_count) || 0;
+  const avg = prof?.rating_avg == null ? null : Number(prof.rating_avg);
+  return {
+    ratingAvg:   count > 0 && avg != null && !isNaN(avg) ? avg : null,
+    ratingCount: count,
+  };
+}
+
 async function findProfessional(client, idOrToken) {
   const numId = parseInt(idOrToken);
   const res = !isNaN(numId)
@@ -246,6 +260,10 @@ async function findAgendaProfessional(accountId) {
       consultation_duration: Number(a.consultationDuration) || 45,
       working_days:          a.workingDays ?? null,
       video_consultation:    a.videoConsultation ?? false,
+      // Las cuentas agenda (Starter) viven sólo en DynamoDB, no tienen fila en `professional`
+      // y por lo tanto no tienen calificaciones. Se normalizan a "sin calificaciones".
+      rating_avg:            null,
+      rating_count:          0,
       consultation_price:    a.consultationPrice != null ? Number(a.consultationPrice) : null,
       active:                a.active !== false
     };
@@ -561,7 +579,8 @@ async function route(client, method, rawPath, body, qs) {
   // ── GET /api/book → list active professionals ─────────────────────────────
   if (rawPath === "/api/book" && method === "GET") {
     const r = await client.query(`
-      SELECT id, name, specialty, consultation_duration, working_days, video_consultation
+      SELECT id, name, specialty, consultation_duration, working_days, video_consultation,
+             rating_avg, rating_count
       FROM professional WHERE active = true ORDER BY name
     `);
     return resp(200, r.rows.map((p) => ({
@@ -571,6 +590,7 @@ async function route(client, method, rawPath, body, qs) {
       duration:      p.consultation_duration,
       workDays:      p.working_days,
       videoconsulta: p.video_consultation,
+      ...ratingFields(p),
     })));
   }
 
@@ -634,6 +654,7 @@ async function route(client, method, rawPath, body, qs) {
         duration:       prof.consultation_duration,
         workDays:       prof.working_days,
         videoconsulta:  prof.video_consultation,
+        ...ratingFields(prof),
       });
     }
 
