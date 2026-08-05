@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
@@ -100,6 +100,34 @@ export class ClinicalEncounterFormComponent implements OnInit {
   stableFields = computed(() =>
     this.schema()?.fields.filter(f => f.isStable && f.type !== 'entity-select' && !f.displayOnly) ?? []
   );
+
+  constructor() {
+    // El banner "el ingreso manual está deshabilitado" solo era cierto para el botón
+    // de enviar (ver el [disabled] del submit) — los campos del formulario seguían
+    // editables porque nada los deshabilitaba realmente. Reactive Forms refleja el
+    // estado disabled de cada control en el DOM automáticamente (sin bindings
+    // [disabled] por campo), así que basta con controlar el FormControl.
+    // No se usa form.disable()/enable() a nivel de grupo: bmi (autocalculado) y los
+    // campos isStable ya se dejan deshabilitados permanentemente al construir el
+    // formulario (línea ~161/169) — un enable() de grupo los reactivaría por error
+    // si el estado de grabación vuelve a 'idle' (p. ej. al presionar "Grabar" de
+    // nuevo). Por eso se recorren los controles uno a uno, sin tocar los ya
+    // permanentemente deshabilitados.
+    effect(() => {
+      if (!this.form) return;
+      const locked = this.recorder.state() === 'done';
+      const permanentlyDisabled = new Set<string>([
+        'bmi',
+        ...(this.schema()?.fields.filter(f => f.isStable).map(f => f.name) ?? [])
+      ]);
+      Object.keys(this.form.controls).forEach(name => {
+        if (permanentlyDisabled.has(name)) return;
+        const ctrl = this.form.get(name)!;
+        if (locked) ctrl.disable({ emitEvent: false });
+        else ctrl.enable({ emitEvent: false });
+      });
+    });
+  }
 
   ngOnInit() {
     const key    = this.route.snapshot.paramMap.get('entityKey') ?? '';
