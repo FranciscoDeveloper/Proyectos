@@ -163,6 +163,13 @@ export class RegisterComponent implements OnInit {
         } else {
           this.emailSent.set(res?.emailSent !== false);
         }
+        // Internal "new Pro signup" notification to contacto@dairi.cl — same
+        // path as the activation email above (login can't send this itself,
+        // it's VPC-attached with no route to invoke another Lambda directly).
+        // Fire-and-forget: nothing in the UI depends on this succeeding.
+        if (res?.notifyPayload) {
+          this.http.post('/api/send-email', res.notifyPayload).subscribe({ error: () => {} });
+        }
       },
       error: (err) => {
         this.loading.set(false);

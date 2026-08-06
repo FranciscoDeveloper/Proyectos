@@ -4,16 +4,25 @@ import jwt    from "jsonwebtoken";
 import crypto from "crypto";
 import { DynamoDBClient, GetItemCommand, PutItemCommand, UpdateItemCommand, DeleteItemCommand, ScanCommand } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-// Email is delegated to the frontend via /api/send-email (non-VPC path)
+// All outbound email (activation links, internal notifications) is BUILT here
+// but SENT by the frontend via HTTP POST /api/send-email — never invoked
+// directly from this function. login is VPC-attached with no NAT Gateway and
+// no VPC interface endpoint for the Lambda service (only DynamoDB/S3 gateway
+// endpoints exist), so a direct server-side Lambda invoke has no network path
+// out; see buildProSignupNotificationEmail()'s comment for how that was
+// actually confirmed (a live 50s timeout), not just theorized.
+//
+// NOTE: despite older comments in this file claiming "login runs outside the
+// VPC", it is in fact VPC-attached (verified against the live function
+// configuration) — CLAUDE.md is stale on this point too.
 
 const { Pool } = pg;
 
 // ── DynamoDB (agenda "Starter" free plan only) ─────────────────────────────────
 // The free "Starter" plan (plan === 'agenda') lives 100% in DynamoDB, isolated from
 // Postgres. Registration/login/activation for these accounts never touch app_user.
-// SDK v3 is provided by the Lambda Node 20 runtime; login runs outside the VPC and
-// reaches DynamoDB over the public endpoint. IAM role dairi-medical-agent-role grants
-// GetItem/PutItem/UpdateItem/Query on dairi-agenda-accounts.
+// SDK v3 is provided by the Lambda Node 20 runtime. IAM role dairi-medical-agent-role
+// grants GetItem/PutItem/UpdateItem/Query on dairi-agenda-accounts.
 const ddb = new DynamoDBClient({ region: process.env.AWS_REGION || "us-east-1" });
 const AGENDA_ACCOUNTS_TABLE = process.env.AGENDA_ACCOUNTS_TABLE || "dairi-agenda-accounts";
 
@@ -762,11 +771,21 @@ async function handleRegisterDairi({ nombre, apellidos, email, telefono, passwor
     const activationUrl = `${APP_URL}/#/activate?token=${encodeURIComponent(activationToken)}`;
     const emailContent  = buildActivationEmail({ name, email, activationUrl });
 
+    // Internal notification to contacto@dairi.cl — not shown to the user, no
+    // bearing on their response. handleRegisterDairi is the Pro/Enterprise
+    // signup path (Starter registers through handleRegisterAgenda instead), so
+    // every account created here is what "cuenta pro" means from the backend's
+    // point of view. The frontend sends this the same way it sends emailPayload
+    // — see buildProSignupNotificationEmail()'s comment for why this isn't sent
+    // from here directly.
+    const notifyPayload = buildProSignupNotificationEmail({ nombre, apellidos, email, telefono, requestedProfessionalName });
+
     return response(201, {
       message:      "Cuenta creada. Activa tu cuenta usando el enlace de activación.",
       emailSent:    false,
       activationUrl,
-      emailPayload: emailContent
+      emailPayload: emailContent,
+      notifyPayload
     });
   } catch (err) {
     if (err?.name === "ConditionalCheckFailedException")
@@ -1206,6 +1225,35 @@ function buildActivationEmail({ name, email, activationUrl }) {
   const text = `Hola ${firstName},\n\nActiva tu cuenta Dairi haciendo clic en este enlace:\n${activationUrl}\n\nEl enlace es válido por 24 horas.\n\n— Equipo Dairi`;
 
   return { to: email, subject: "Activa tu cuenta Dairi", html, text };
+}
+
+// Pure content builder, same responsibility shape as buildActivationEmail above:
+// given the signup's data, return an email payload — no I/O, no knowledge of how
+// it gets sent.
+//
+// Sending it: this function ONLY builds the payload — it does NOT call send-email
+// itself. login is VPC-attached (verified against the live function config; the
+// "runs outside the VPC" claim in CLAUDE.md and elsewhere in this file is stale)
+// with no NAT Gateway and no VPC interface endpoint for the Lambda service (only
+// DynamoDB/S3 gateway endpoints exist — verified via ec2 describe-vpc-endpoints),
+// so a direct server-side Lambda invoke has no network path out and hangs until
+// the caller's own timeout kills the whole request — confirmed live: a Pro
+// registration timed out at 50s when this was first wired as a direct
+// lambdaClient.send(InvokeCommand) call. Instead this follows the exact same
+// pattern already used for the activation email: the payload rides back in the
+// register response (see handleRegisterDairi) and the FRONTEND sends it via its
+// existing HTTP POST /api/send-email call, which does have a working path out.
+function buildProSignupNotificationEmail({ nombre, apellidos, email, telefono, requestedProfessionalName }) {
+  const text =
+    `Nuevo registro plan Pro en Dairi\n\n` +
+    `Nombre: ${nombre} ${apellidos}\n` +
+    `Email: ${email}\n` +
+    `Teléfono: ${telefono || "(no informado)"}\n` +
+    `Profesional solicitado: ${requestedProfessionalName || "(no encontrado)"}\n\n` +
+    `Este usuario todavía debe activar su cuenta y ser aprovisionado manualmente ` +
+    `(ver el flujo de activación Pro documentado en CLAUDE.md).`;
+
+  return { to: "contacto@dairi.cl", subject: `Nuevo registro Pro: ${nombre} ${apellidos}`, text };
 }
 
 // ── Admin: gestión de usuarios (solo superadmin) ──────────────────────────────
