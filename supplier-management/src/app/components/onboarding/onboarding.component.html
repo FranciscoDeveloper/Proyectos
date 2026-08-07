@@ -124,8 +124,8 @@
                   [value]="especialidad()"
                   (change)="especialidad.set($any($event.target).value)">
             <option value="">Selecciona tu especialidad…</option>
-            @for (esp of especialidades; track esp) {
-              <option [value]="esp">{{ esp }}</option>
+            @for (esp of especialidades(); track esp.value) {
+              <option [value]="esp.value">{{ esp.label }}</option>
             }
           </select>
           @if (errors()['especialidad']) {
@@ -152,6 +152,24 @@
             <option [value]="60">60 minutos</option>
             <option [value]="90">90 minutos</option>
           </select>
+        </div>
+
+        <!-- Precio por consulta -->
+        <div class="ob-field">
+          <label class="ob-label">Precio por consulta <span class="optional-tag">Opcional</span></label>
+          <input class="ob-input" type="number" min="1" step="1000" inputmode="numeric"
+                 [class.ob-input-err]="errors()['precioConsulta']"
+                 [value]="precioConsulta() ?? ''"
+                 (input)="setPrecio($any($event.target).value)"
+                 placeholder="Ej: 35000">
+          @if (errors()['precioConsulta']) {
+            <span class="ob-error">{{ errors()['precioConsulta'] }}</span>
+          } @else {
+            <span class="ob-hint">
+              Monto en pesos chilenos que se cobrará al reservar por tu página pública.
+              Si lo dejas vacío se usa el valor por defecto del sistema.
+            </span>
+          }
         </div>
 
         <!-- Videoconsulta -->
@@ -262,8 +280,8 @@
                     [value]="prof.especialidad"
                     (change)="updateExtraField($index, 'especialidad', $any($event.target).value)">
               <option value="">Selecciona…</option>
-              @for (esp of especialidades; track esp) {
-                <option [value]="esp">{{ esp }}</option>
+              @for (esp of especialidades(); track esp.value) {
+                <option [value]="esp.value">{{ esp.label }}</option>
               }
             </select>
             @if (prof.errors['especialidad']) {
@@ -293,6 +311,18 @@
           ({{ extraProfs().length + 1 }} / 5)
         </span>
       </button>
+    }
+
+    <!-- Error de guardado. Antes un fallo del POST se tragaba en silencio y la UI
+         avanzaba igual; ahora se muestra y el usuario permanece en el paso 1. -->
+    @if (saveError()) {
+      <div class="ob-save-error" role="alert">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>{{ saveError() }}</span>
+      </div>
     }
 
     <!-- ── Action buttons ─────────────────────────────────────────────────────── -->

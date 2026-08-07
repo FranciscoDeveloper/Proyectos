@@ -580,7 +580,7 @@ async function route(client, method, rawPath, body, qs) {
   if (rawPath === "/api/book" && method === "GET") {
     const r = await client.query(`
       SELECT id, name, specialty, consultation_duration, working_days, video_consultation,
-             rating_avg, rating_count
+             rating_avg, rating_count, consultation_price
       FROM professional WHERE active = true ORDER BY name
     `);
     return resp(200, r.rows.map((p) => ({
@@ -590,6 +590,8 @@ async function route(client, method, rawPath, body, qs) {
       duration:      p.consultation_duration,
       workDays:      p.working_days,
       videoconsulta: p.video_consultation,
+      consultationPrice: p.consultation_price == null
+        ? null : Math.round(Number(p.consultation_price)),
       ...ratingFields(p),
     })));
   }
@@ -654,6 +656,11 @@ async function route(client, method, rawPath, body, qs) {
         duration:       prof.consultation_duration,
         workDays:       prof.working_days,
         videoconsulta:  prof.video_consultation,
+        // Precio real del profesional para mostrarlo antes de reservar. null cuando
+        // no lo ha fijado: el cobro cae al default plano y la UI no muestra monto.
+        // Number() por el mismo motivo NUMERIC→string explicado en el POST.
+        consultationPrice: prof.consultation_price == null
+          ? null : Math.round(Number(prof.consultation_price)),
         ...ratingFields(prof),
       });
     }
@@ -708,7 +715,18 @@ async function route(client, method, rawPath, body, qs) {
       const datetimeStr = `${date}T${time}:00`;
       const confirmCode = generateConfirmCode();
       const dbModality  = body.modality === "video" ? "video" : body.modality === "phone" ? "phone" : "in_person";
-      const amount      = prof.consultation_price ?? prof.price ?? CONSULTATION_AMOUNT;
+      // `professional.consultation_price` (migración 016) es NUMERIC, y el driver pg
+      // devuelve NUMERIC como *string* ("40000.00"), no como number — el mismo motivo
+      // por el que ratingFields() ya hace Number() sobre rating_avg. Sin coerción el
+      // monto se propagaba como string a tres lugares donde importa:
+      //   · lambda-payment lo manda a Flow como String(amount) → "40000.00", y CLP no
+      //     admite decimales;
+      //   · entra en el HMAC de generateBookingToken(), así que el formato debe ser
+      //     estable entre emisión y verificación;
+      //   · el SPA lo tipa como number y lo pasa por el pipe `currency`.
+      // Math.round deja un entero CLP, idéntico en forma al fallback CONSULTATION_AMOUNT.
+      const rawAmount   = prof.consultation_price ?? prof.price ?? CONSULTATION_AMOUNT;
+      const amount      = Math.round(Number(rawAmount)) || CONSULTATION_AMOUNT;
 
       // ON CONFLICT DO NOTHING against idx_appointment_no_double_book (partial unique
       // index on professional_id+datetime for live appointments, created in ensureSchema)

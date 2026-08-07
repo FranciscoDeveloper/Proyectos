@@ -15,6 +15,7 @@ import { handleUserConfig }          from './handlers/userConfigHandler.mjs';
 import { handleAdmin }               from './handlers/adminHandler.mjs';
 import { handleEntities }            from './handlers/entitiesHandler.mjs';
 import { handleAgenda }              from './handlers/agendaHandler.mjs';
+import { handleProfessionals }       from './handlers/professionalsHandler.mjs';
 
 // Cold-start log so we know what environment is configured.
 const bootLog = getLogger();
@@ -97,6 +98,7 @@ export const handler = async (event, context) => {
     /^\/api\/documents\/\d+/.test(rawPath) ||
     rawPath.startsWith('/api/admin/') ||
     rawPath.startsWith('/api/entities/') ||
+    rawPath.startsWith('/api/professionals/') ||
     rawPath.startsWith('/api/suppliers');
 
   if (!needsDb) {
@@ -142,6 +144,16 @@ export const handler = async (event, context) => {
     } catch (s3Err) {
       log.error('Documents S3 error', { message: s3Err.message, rawPath });
       return response(500, { message: 'Error al acceder a documentos', error: s3Err.message });
+    }
+
+    // /api/professionals/* — perfil profesional del onboarding (+ catálogo de
+    // especialidades y pre-signed URL para la foto).
+    try {
+      const profResult = await handleProfessionals(rawPath, method, event, tokenPayload, client);
+      if (profResult) return profResult;
+    } catch (s3Err) {
+      log.error('Professionals S3 error', { message: s3Err.message, rawPath });
+      return response(500, { message: 'Error al preparar la subida de la foto', error: s3Err.message });
     }
 
     // /api/admin/*

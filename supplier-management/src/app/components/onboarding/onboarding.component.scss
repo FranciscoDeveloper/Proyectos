@@ -388,6 +388,34 @@
   &::before { content: '⚠ '; }
 }
 
+.ob-hint {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+// Banner de error de guardado (fallo del POST de onboarding).
+.ob-save-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 20px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 14px;
+  line-height: 1.45;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
 // ── Checkbox ───────────────────────────────────────────────────────────────
 
 .ob-checkbox-label {

@@ -152,7 +152,11 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
     return !!(ctrl?.invalid && ctrl.touched);
   }
 
-  private redirectAfterLogin() {
+  // needsOnboarding() es asíncrono desde que la finalización del onboarding se
+  // verifica también contra el servidor (antes vivía sólo en localStorage). Debe
+  // esperarse: una Promise es siempre truthy, así que sin el await TODO login
+  // terminaría redirigido a /onboarding.
+  private async redirectAfterLogin() {
     const raw      = this.route.snapshot.queryParamMap.get('returnUrl') ?? '';
     const hasReturn = raw && raw.startsWith('/') && !raw.startsWith('//') && raw !== '/';
     let target: string;
@@ -161,7 +165,7 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
       target = raw;
     } else {
       const user = this.auth.user();
-      target = (user && this.onboarding.needsOnboarding(user.id))
+      target = (user && await this.onboarding.needsOnboarding(user.id))
         ? '/onboarding'
         : '/app/dashboard';
     }

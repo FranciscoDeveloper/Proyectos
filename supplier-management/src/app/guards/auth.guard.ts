@@ -49,14 +49,14 @@ export const guestGuard: CanActivateFn = () => {
  * Redirects to /onboarding when the authenticated user hasn't completed onboarding yet.
  * Applied to the /app shell so any attempt to enter the app triggers the check.
  */
-export const onboardingGuard: CanActivateFn = () => {
+export const onboardingGuard: CanActivateFn = async () => {
   const auth         = inject(AuthService);
   const onboarding   = inject(OnboardingService);
   const router       = inject(Router);
 
   const user = auth.user();
   if (user?.role === 'superadmin') return true;
-  if (user && onboarding.needsOnboarding(user.id)) {
+  if (user && await onboarding.needsOnboarding(user.id)) {
     router.navigate(['/onboarding']);
     return false;
   }
@@ -67,13 +67,13 @@ export const onboardingGuard: CanActivateFn = () => {
  * Prevents a user who has already completed onboarding from accessing /onboarding again.
  * Redirects to /app/dashboard if onboarding is already complete.
  */
-export const completedOnboardingGuard: CanActivateFn = () => {
+export const completedOnboardingGuard: CanActivateFn = async () => {
   const auth         = inject(AuthService);
   const onboarding   = inject(OnboardingService);
   const router       = inject(Router);
 
   const user = auth.user();
-  if (user && !onboarding.needsOnboarding(user.id)) {
+  if (user && !(await onboarding.needsOnboarding(user.id))) {
     router.navigate(['/app/dashboard']);
     return false;
   }

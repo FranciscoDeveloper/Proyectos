@@ -20,13 +20,33 @@ interface ExtraProf {
   errors: Record<string, string>;
 }
 
-const ESPECIALIDADES = [
-  'Medicina General', 'Pediatría', 'Ginecología y Obstetricia', 'Cardiología',
-  'Dermatología', 'Traumatología y Ortopedia', 'Neurología', 'Psiquiatría',
-  'Psicología', 'Kinesiología', 'Fonoaudiología', 'Nutrición y Dietética',
-  'Odontología', 'Oftalmología', 'Urología', 'Gastroenterología',
-  'Otorrinolaringología', 'Reumatología', 'Endocrinología', 'Anestesiología',
-  'Medicina del Deporte', 'Geriatría', 'Medicina Interna', 'Otra especialidad'
+interface Specialty {
+  value: string;
+  label: string;
+}
+
+/**
+ * Catálogo de especialidades: se carga desde GET /api/professionals/specialties,
+ * que lee la tabla `professional_specialty` de RDS (migración 013) — la MISMA
+ * fuente que usa el selector del registro Pro.
+ *
+ * Antes este componente tenía su propio array de 24 especialidades escritas a mano
+ * ('Pediatría', 'Cardiología', 'Otra especialidad'…) que no coincidía con el
+ * catálogo canónico de 9 valores ni con ningún otro punto de la app, así que la
+ * especialidad elegida en el onboarding no era comparable con la del resto del
+ * sistema. Este fallback existe sólo para que el formulario siga siendo usable si
+ * la petición falla; refleja exactamente las filas de `professional_specialty`.
+ */
+const FALLBACK_ESPECIALIDADES: Specialty[] = [
+  { value: 'medicina-general',    label: 'Medicina General' },
+  { value: 'psicologia',          label: 'Psicología' },
+  { value: 'odontologia',         label: 'Odontología' },
+  { value: 'kinesiologia',        label: 'Kinesiología' },
+  { value: 'nutricion',           label: 'Nutrición' },
+  { value: 'fonoaudiologia',      label: 'Fonoaudiología' },
+  { value: 'terapia-ocupacional', label: 'Terapia Ocupacional' },
+  { value: 'matrona',             label: 'Matrona' },
+  { value: 'tecnologia-medica',   label: 'Tecnología Médica' }
 ];
 
 const DIAS = [
@@ -69,7 +89,7 @@ export class OnboardingComponent implements OnInit {
 
   @ViewChild('photoInputRef') photoInputRef!: ElementRef<HTMLInputElement>;
 
-  readonly especialidades = ESPECIALIDADES;
+  especialidades = signal<Specialty[]>(FALLBACK_ESPECIALIDADES);
   readonly dias = DIAS;
 
   // ── Primary professional ───────────────────────────────────────────────────
@@ -78,11 +98,16 @@ export class OnboardingComponent implements OnInit {
   especialidad = signal('');
   telefono     = signal('');
   duracion     = signal<number>(45);
+  precioConsulta = signal<number | null>(null);
   videoconsulta = signal(false);
   diasDisponibles = signal<number[]>([1, 2, 3, 4, 5]);
   photoPreview = signal<string | null>(null);
   photoFile    = signal<File | null>(null);
   errors       = signal<Record<string, string>>({});
+
+  /** Error de guardado a nivel de formulario. Antes el fallo del POST se tragaba
+   *  en silencio y la UI avanzaba igual; ahora se muestra y NO se avanza. */
+  saveError    = signal<string | null>(null);
 
   // ── Extra professionals (max 4) ────────────────────────────────────────────
   extraProfs = signal<ExtraProf[]>([]);
@@ -102,6 +127,19 @@ export class OnboardingComponent implements OnInit {
   ngOnInit(): void {
     const name = this.auth.user()?.name ?? '';
     this.nombre.set(name);
+    this.loadSpecialties();
+  }
+
+  /** Catálogo canónico desde el servidor; ante fallo se conserva el fallback local. */
+  private async loadSpecialties(): Promise<void> {
+    try {
+      const list = await firstValueFrom(
+        this.http.get<Specialty[]>('/api/professionals/specialties')
+      );
+      if (Array.isArray(list) && list.length > 0) this.especialidades.set(list);
+    } catch {
+      // Se mantiene FALLBACK_ESPECIALIDADES — el formulario sigue usable.
+    }
   }
 
   // ── Photo ──────────────────────────────────────────────────────────────────
@@ -145,6 +183,12 @@ export class OnboardingComponent implements OnInit {
         list.map((p, i) => i === profIndex ? { ...p, photoFile: null, photoPreview: null } : p)
       );
     }
+  }
+
+  /** Vacío ⇒ null (sin precio fijado ⇒ el backend cae al default), no 0. */
+  setPrecio(raw: string): void {
+    const trimmed = (raw ?? '').trim();
+    this.precioConsulta.set(trimmed === '' ? null : Number(trimmed));
   }
 
   // ── Days toggle ────────────────────────────────────────────────────────────
@@ -195,6 +239,14 @@ export class OnboardingComponent implements OnInit {
     if (!this.especialidad()) {
       errs['especialidad'] = 'Selecciona una especialidad';
     }
+    const precio = this.precioConsulta();
+    if (precio !== null && precio !== undefined) {
+      if (!Number.isFinite(precio) || precio <= 0) {
+        errs['precioConsulta'] = 'El precio debe ser mayor a 0';
+      } else if (precio > 9999999) {
+        errs['precioConsulta'] = 'El precio es demasiado alto';
+      }
+    }
 
     this.errors.set(errs);
 
@@ -221,40 +273,91 @@ export class OnboardingComponent implements OnInit {
 
   // ── Submit / skip ──────────────────────────────────────────────────────────
 
+  /**
+   * Sube una foto a S3 con el patrón de pre-signed URL que ya usa el módulo de
+   * documentos de pacientes (documentsHandler.mjs): el backend firma una URL PUT,
+   * el archivo va DIRECTO a S3 y sólo la `key` resultante viaja en el JSON.
+   *
+   * Se usa `fetch` y no HttpClient a propósito (igual que clinical-detail): la URL
+   * firmada es absoluta y no debe pasar por el apiInterceptor, que le adosaría el
+   * header Authorization y rompería la firma de S3.
+   */
+  private async uploadPhoto(file: File): Promise<string> {
+    const { url, key } = await firstValueFrom(
+      this.http.post<{ url: string; key: string }>(
+        '/api/professionals/photo-upload-url',
+        { contentType: file.type }
+      )
+    );
+    const res = await fetch(url, {
+      method: 'PUT',
+      body: file,
+      headers: { 'Content-Type': file.type }
+    });
+    if (!res.ok) throw new Error('No se pudo subir la foto');
+    return key;
+  }
+
+  /**
+   * Guarda el perfil profesional.
+   *
+   * Antes esta función hacía POST de un FormData a /api/professionals/onboarding —
+   * un endpoint que NO existía en ninguna Lambda ni en API Gateway — y su catch
+   * decía literalmente "Backend endpoint may not exist yet; proceed anyway": el
+   * fallo se tragaba y la UI avanzaba al paso 2 como si hubiera guardado. Nada se
+   * persistía nunca. Ahora el endpoint existe (dairi-bff), el envío es JSON, las
+   * fotos van por pre-signed URL, y un fallo se muestra y DETIENE el avance.
+   */
   async save(): Promise<void> {
+    this.saveError.set(null);
     if (!this.validate()) return;
     this.saving.set(true);
 
     try {
-      const formData = new FormData();
-      formData.append('nombre', this.nombre().trim());
-      formData.append('rut', this.rut().trim());
-      formData.append('especialidad', this.especialidad());
-      formData.append('telefono', this.telefono().trim());
-      formData.append('duracion', String(this.duracion()));
-      formData.append('videoconsulta', String(this.videoconsulta()));
-      formData.append('diasDisponibles', JSON.stringify(this.diasDisponibles()));
-      if (this.photoFile()) {
-        formData.append('photo', this.photoFile()!);
+      // 1. Fotos primero: si algo falla acá no se escribe nada en la base.
+      let photoKey: string | null = null;
+      if (this.photoFile()) photoKey = await this.uploadPhoto(this.photoFile()!);
+
+      const extras = [];
+      for (const p of this.extraProfs()) {
+        extras.push({
+          nombre:       p.nombre.trim(),
+          rut:          p.rut.trim(),
+          especialidad: p.especialidad,
+          telefono:     p.telefono.trim(),
+          photoKey:     p.photoFile ? await this.uploadPhoto(p.photoFile) : null
+        });
       }
 
-      const extras = this.extraProfs().map((p, i) => {
-        const obj: Record<string, any> = {
-          nombre: p.nombre.trim(), rut: p.rut.trim(),
-          especialidad: p.especialidad, telefono: p.telefono.trim()
-        };
-        if (p.photoFile) formData.append(`photo_extra_${i}`, p.photoFile);
-        return obj;
-      });
-      formData.append('extraProfessionals', JSON.stringify(extras));
+      // 2. Perfil completo como JSON.
+      await firstValueFrom(this.http.post('/api/professionals/onboarding', {
+        nombre:            this.nombre().trim(),
+        rut:               this.rut().trim(),
+        especialidad:      this.especialidad(),
+        telefono:          this.telefono().trim(),
+        duracion:          this.duracion(),
+        consultationPrice: this.precioConsulta(),
+        videoconsulta:     this.videoconsulta(),
+        diasDisponibles:   this.diasDisponibles(),
+        photoKey,
+        extraProfessionals: extras
+      }));
 
-      await firstValueFrom(this.http.post('/api/professionals/onboarding', formData));
-    } catch {
-      // Backend endpoint may not exist yet; proceed anyway
+      this.saving.set(false);
+      this.step.set(2);
+    } catch (err: any) {
+      this.saving.set(false);
+
+      // Errores de validación por campo devueltos por el backend.
+      const serverErrors = err?.error?.errors;
+      if (serverErrors && typeof serverErrors === 'object') {
+        this.errors.set({ ...this.errors(), ...serverErrors });
+      }
+      this.saveError.set(
+        err?.error?.message ??
+        'No se pudo guardar tu perfil profesional. Revisa tu conexión e inténtalo de nuevo.'
+      );
     }
-
-    this.saving.set(false);
-    this.step.set(2);
   }
 
   skip(): void {
@@ -282,7 +385,10 @@ export class OnboardingComponent implements OnInit {
           );
         }
       }
-      await firstValueFrom(this.http.patch('/api/user/config', { zkEnabled: enabled }));
+      await firstValueFrom(this.http.patch('/api/user/config', {
+        zkEnabled: enabled,
+        onboardingCompleted: true
+      }));
       this.auth.updateZkEnabled(enabled);
     } catch {
       // proceed even if config save fails
@@ -295,9 +401,21 @@ export class OnboardingComponent implements OnInit {
     this.proceed();
   }
 
+  /**
+   * Cierra el onboarding. Marca la finalización en el SERVIDOR además de la caché
+   * local: antes sólo se escribía localStorage, así que limpiar el navegador o
+   * entrar desde otro dispositivo re-disparaba el onboarding. El PATCH es
+   * best-effort — si falla, la caché local igual evita el bucle en este navegador
+   * y el guard reintentará la consulta en el próximo.
+   */
   private proceed(): void {
     const user = this.auth.user();
-    if (user) this.onboardingSvc.markComplete(user.id);
+    if (user) this.onboardingSvc.markCompleteLocally(user.id);
+
+    firstValueFrom(
+      this.http.patch('/api/user/config', { onboardingCompleted: true })
+    ).catch(() => { /* best-effort */ });
+
     this.router.navigate(['/app/import'], { queryParams: { from: 'onboarding' } });
   }
 
