@@ -438,6 +438,33 @@ async function handleRefreshAgenda(payload) {
 // professionalId/professionalName here already agree with Postgres `professional`
 // rows for copied accounts. acct.schemas holds full denormalized {key,singular,
 // plural,icon,moduleType} objects — no Postgres app_schema join needed at login.
+const PENDING_PROVISIONING_MESSAGE =
+  "Tu cuenta todavía está siendo activada por nuestro equipo. Te avisaremos por correo apenas puedas ingresar.";
+
+// Pro/Enterprise accounts don't get an app_user Postgres row until an admin manually
+// provisions them (see handleActivateDairi's "en unas horas habilitaremos su cuenta").
+// Letting them log in (or keep refreshing an already-issued session) before that just
+// strands them looping on /onboarding with a 409 from professionalsHandler/
+// userConfigHandler (both FK-precheck on app_user) — gate login and refresh on it
+// instead so the wait is explicit. Starter (agenda) never touches app_user and is
+// unaffected. Returns null on success, or a response() object to return immediately.
+async function checkDairiProvisioned(userId) {
+  let client;
+  try {
+    client = await pool.connect();
+    const provisioned = await client.query(
+      "SELECT 1 FROM app_user WHERE id = $1 LIMIT 1", [userId]
+    );
+    if (provisioned.rowCount === 0) return response(403, { message: PENDING_PROVISIONING_MESSAGE });
+    return null;
+  } catch (err) {
+    console.error("Dairi provisioning check error:", err);
+    return response(500, { message: "Error interno del servidor" });
+  } finally {
+    client?.release();
+  }
+}
+
 async function handleLoginDairi(acct, password) {
   const passwordMatch = await bcrypt.compare(password, acct.passwordHash || "");
   if (!passwordMatch)
@@ -445,6 +472,9 @@ async function handleLoginDairi(acct, password) {
 
   if (!acct.emailVerified)
     return response(403, { message: "Debes activar tu cuenta. Revisa tu correo y haz clic en el enlace de activación." });
+
+  const provisionError = await checkDairiProvisioned(acct.id);
+  if (provisionError) return provisionError;
 
   const token = jwt.sign(
     { sub: acct.id, email: acct.email, role: acct.role },
@@ -470,6 +500,9 @@ async function handleRefreshDairi(rt) {
   const acct = await getDairiAccount(rt.email);
   if (!acct || acct.id !== rt.userId)
     return response(401, { message: "Sesión expirada. Por favor inicia sesión nuevamente." });
+
+  const provisionError = await checkDairiProvisioned(acct.id);
+  if (provisionError) return provisionError;
 
   // Rotation: revoke old token, issue new one (same pattern as the Postgres path)
   await ddb.send(new UpdateItemCommand({
