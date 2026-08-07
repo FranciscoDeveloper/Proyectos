@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard, onboardingGuard, completedOnboardingGuard } from './guards/auth.guard';
+import { authGuard, guestGuard, onboardingGuard, completedOnboardingGuard, docsAuthGuard } from './guards/auth.guard';
 import { CLINICAL_ROUTES } from './components/clinical/clinical.routes';
 
 export const routes: Routes = [
@@ -26,11 +26,22 @@ export const routes: Routes = [
       import('./components/activate/activate.component').then(m => m.ActivateComponent)
   },
 
-  // ── Public: docs ─────────────────────────────────────────────────────────────
+  // ── Docs: own login, same auth backend ────────────────────────────────────────
+  // Documentation used to be fully public. It's now gated behind docsAuthGuard,
+  // which sends an unauthenticated visitor to /docs-login — a distinct interface
+  // (see docs-login.component.ts) that authenticates through the exact same
+  // AuthService.login() / POST /api/auth/login as the main app. Any authenticated
+  // account can read the docs; this doesn't add a new role or permission tier.
   {
     path: 'docs',
+    canActivate: [docsAuthGuard],
     loadComponent: () =>
       import('./components/docs/docs.component').then(m => m.DocsComponent)
+  },
+  {
+    path: 'docs-login',
+    loadComponent: () =>
+      import('./components/docs-login/docs-login.component').then(m => m.DocsLoginComponent)
   },
 
   // ── Public: account deletion (Google Play requirement) ───────────────────────

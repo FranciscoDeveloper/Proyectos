@@ -1,0 +1,142 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.docs-login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(160deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.docs-login-card {
+  width: 100%;
+  max-width: 380px;
+  background: #fff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 40px -12px rgba(15, 23, 42, 0.12);
+  padding: 40px 36px;
+  text-align: center;
+}
+
+.docs-login-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.docs-login-sub {
+  margin: 0 0 28px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.docs-login-form {
+  text-align: left;
+}
+
+.field-group {
+  margin-bottom: 18px;
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+  }
+
+  input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #0f172a;
+    background: #f8fafc;
+    transition: border-color .15s, background .15s;
+
+    &:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      background: #fff;
+    }
+
+    &.invalid {
+      border-color: #ef4444;
+    }
+  }
+}
+
+.password-wrap {
+  position: relative;
+
+  input { padding-right: 76px; }
+
+  .toggle-pass {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: #0ea5e9;
+    cursor: pointer;
+    padding: 6px 8px;
+  }
+}
+
+.field-error {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #ef4444;
+}
+
+.form-error {
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 10px;
+  background: #0ea5e9;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .15s;
+
+  &:hover:not(:disabled) { background: #0284c7; }
+  &:disabled { opacity: .6; cursor: not-allowed; }
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: 22px;
+  font-size: 13px;
+  color: #64748b;
+  text-decoration: none;
+
+  &:hover { color: #0ea5e9; }
+}

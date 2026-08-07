@@ -31,6 +31,28 @@ export const authGuard: CanActivateFn = (
 };
 
 /**
+ * Protects /docs. Documentation used to be fully public; it now requires a
+ * session, but through its own login screen (/docs-login) rather than the
+ * main app's — same AuthService.login() call, same JWT, just a distinct entry
+ * point so a documentation visitor isn't shown the main app's demo-account
+ * login UI. Any authenticated session satisfies this, regardless of role —
+ * this gates *access*, it doesn't add a new permission tier.
+ */
+export const docsAuthGuard: CanActivateFn = (
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot
+) => {
+  const auth   = inject(AuthService);
+  const router = inject(Router);
+
+  if (!auth.isAuthenticated()) {
+    router.navigate(['/docs-login'], { queryParams: { returnUrl: state.url } });
+    return false;
+  }
+  return true;
+};
+
+/**
  * Prevents authenticated users from accessing the login page.
  */
 export const guestGuard: CanActivateFn = () => {
