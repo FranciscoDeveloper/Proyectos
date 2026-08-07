@@ -185,13 +185,20 @@
         <!-- Duración consulta -->
         <div class="ob-field">
           <label class="ob-label">Duración de consulta <span class="optional-tag">Opcional</span></label>
+          <!-- Los `value` de las opciones son atributos ESTÁTICOS a propósito.
+               Con `[value]="20"` (property binding) Angular asigna el `value` del
+               <select> padre ANTES de que las opciones hijas tengan el suyo, así
+               que no hay ninguna opción que coincida y el navegador deja el
+               selectedIndex en -1: el desplegable se veía VACÍO aunque la señal
+               `duracion` valía 45. Con el atributo estático el valor ya está en
+               el DOM cuando se evalúa el binding del padre y la opción coincide. -->
           <select class="ob-select" [value]="duracion()"
                   (change)="duracion.set(+$any($event.target).value)">
-            <option [value]="20">20 minutos</option>
-            <option [value]="30">30 minutos</option>
-            <option [value]="45">45 minutos</option>
-            <option [value]="60">60 minutos</option>
-            <option [value]="90">90 minutos</option>
+            <option value="20">20 minutos</option>
+            <option value="30">30 minutos</option>
+            <option value="45">45 minutos</option>
+            <option value="60">60 minutos</option>
+            <option value="90">90 minutos</option>
           </select>
         </div>
 

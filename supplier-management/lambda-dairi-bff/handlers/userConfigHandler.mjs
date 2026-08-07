@@ -69,6 +69,22 @@ export async function handleUserConfig(rawPath, method, event, userId, client) {
   // a ver en cada navegador o dispositivo nuevo.
   const markOnboarded = body?.onboardingCompleted === true;
 
+  // user_config.user_id tiene FK a app_user(id). Las cuentas Pro nacen en
+  // DynamoDB y NO obtienen fila en app_user hasta que un admin las aprovisiona,
+  // así que este INSERT reventaba con violación de FK y devolvía un 500 opaco
+  // que además ensuciaba los logs como si fuera un fallo del servidor. Es una
+  // condición del cliente perfectamente previsible: se responde con el mismo
+  // 409 explicativo que ya usa POST /api/professionals/onboarding.
+  const { rows: userRows } = await client.query(
+    'SELECT 1 FROM app_user WHERE id = $1 LIMIT 1', [userId]
+  );
+  if (userRows.length === 0) {
+    log.warn('user config PATCH by account without app_user row', { sub: userId });
+    return response(409, {
+      message: 'Tu cuenta aún no está habilitada. Te avisaremos en cuanto esté lista.'
+    });
+  }
+
   try {
     const { rows } = await client.query(
       `INSERT INTO user_config (user_id, zk_enabled, onboarding_completed_at, updated_at)
