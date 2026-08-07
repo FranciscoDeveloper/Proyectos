@@ -88,6 +88,47 @@
         </div>
       </div>
 
+      <!-- Clinic logo ---------------------------------------------------------
+           Logo de la CUENTA, no del profesional: reemplaza el texto "Dairi
+           Clínica" en recetas, planes e informes imprimibles y en el encabezado
+           de los presupuestos. Oculto en Starter: ese plan no tiene módulo
+           clínico (el BFF le responde 403 a todo lo que no sea el calendario),
+           así que no emite ninguno de esos documentos. -->
+      @if (!isStarter()) {
+        <div class="photo-section">
+          <div class="photo-label">Logo de tu clínica <span class="optional-tag">Opcional</span></div>
+          <div class="photo-row">
+            <div class="photo-drop-zone"
+                 [class.has-photo]="logoPreview()"
+                 [class.drag-over]="logoDragOver()"
+                 (dragover)="$event.preventDefault(); logoDragOver.set(true)"
+                 (dragleave)="logoDragOver.set(false)"
+                 (drop)="onLogoDrop($event)">
+              @if (logoPreview()) {
+                <img [src]="logoPreview()!" class="photo-preview" alt="Logo de la clínica">
+                <button class="photo-remove" (click)="removeLogo()" title="Quitar logo">✕</button>
+              } @else {
+                <div class="photo-placeholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                  <span>Arrastra o<br>haz clic</span>
+                </div>
+              }
+              <label class="photo-input-overlay">
+                <input type="file" accept="image/*" (change)="onLogoChange($event)">
+              </label>
+            </div>
+            <div class="photo-hint">
+              <p>Aparecerá en las recetas, planes e informes que imprimas, en lugar del texto «Dairi Clínica».</p>
+              <p>Formatos: JPG, PNG, WEBP · Se recomienda fondo transparente</p>
+            </div>
+          </div>
+        </div>
+      }
+
       <!-- Form grid ----------------------------------------------------------- -->
       <div class="ob-grid">
 
@@ -201,7 +242,9 @@
       </div><!-- /ob-grid -->
     </div><!-- /ob-card -->
 
-    <!-- ── Extra professionals ────────────────────────────────────────────────── -->
+    <!-- ── Extra professionals ──────────────────────────────────────────────────
+         Sólo si el plan admite adicionales. En Starter maxExtra() es 0, así que
+         ni las tarjetas ni el botón "Agregar otro profesional" se renderizan. -->
     @for (prof of extraProfs(); track $index) {
       <div class="ob-card ob-card-extra">
         <div class="ob-card-header">
@@ -298,8 +341,9 @@
       </div>
     }
 
-    <!-- ── Add professional button ───────────────────────────────────────────── -->
-    @if (extraProfs().length < MAX_EXTRA) {
+    <!-- ── Add professional button ─────────────────────────────────────────────
+         El contador ya no está fijo en "/ 5": refleja el máximo real del plan. -->
+    @if (extraProfs().length < maxExtra()) {
       <button type="button" class="add-prof-btn" (click)="addExtraProf()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/>
@@ -308,9 +352,18 @@
         </svg>
         Agregar otro profesional
         <span class="add-prof-counter">
-          ({{ extraProfs().length + 1 }} / 5)
+          ({{ extraProfs().length + 1 }} / {{ maxTotalProfs() }})
         </span>
       </button>
+    } @else if (maxExtra() > 0) {
+      <p class="plan-limit-note">
+        Alcanzaste el máximo de {{ maxTotalProfs() }} profesionales de tu plan.
+      </p>
+    } @else {
+      <p class="plan-limit-note">
+        Tu plan incluye 1 profesional. Para trabajar con más profesionales
+        necesitas actualizar tu plan.
+      </p>
     }
 
     <!-- Error de guardado. Antes un fallo del POST se tragaba en silencio y la UI

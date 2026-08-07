@@ -13,6 +13,22 @@ export interface AuthUser {
   avatar: string;
   professionalId?: number | null;
   professionalName?: string | null;
+
+  /**
+   * Tipo de cuenta / plan. Lo emite el backend y ya llegaba en la respuesta de
+   * login — `handleAuthResponse` guarda `response.user` entero, así que el valor
+   * estaba disponible en runtime pero no declarado acá.
+   *
+   * Sólo las sesiones Starter lo traen: lambda-auth `signAgendaSession` firma con
+   * `accountType:'agenda'`, mientras que `handleLoginDairi` (Pro/Enterprise) y el
+   * login legacy contra Postgres firman SIN el campo. Por eso la comprobación
+   * correcta es `accountType === 'agenda'` para Starter y "ausente" para Pro, y
+   * NO al revés: no existe ningún `accountType:'dairi'` en un token de sesión
+   * (sólo en los JWT de activación).
+   */
+  accountType?: 'agenda' | 'dairi' | string;
+  /** Alias que el backend manda junto a accountType en las cuentas Starter. */
+  plan?: string;
 }
 
 /**

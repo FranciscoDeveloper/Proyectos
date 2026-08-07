@@ -633,9 +633,15 @@
 <ng-template #printTemplate let-p="p">
   <div class="print-doc">
     <div class="print-header">
+      <!-- Mismo logo de cuenta que el membrete de las recetas (migración 017).
+           Sin logo se conserva la marca "Dairi." de siempre. -->
       <div class="print-brand">
-        <strong>Dairi</strong><span>.</span>
-        <div class="print-brand-sub">Plataforma clínica inteligente</div>
+        @if (clinicLogoUri()) {
+          <img class="print-brand-logo" [src]="clinicLogoUri()!" alt="">
+        } @else {
+          <strong>Dairi</strong><span>.</span>
+          <div class="print-brand-sub">Plataforma clínica inteligente</div>
+        }
       </div>
       <div class="print-doc-info">
         <h2>PRESUPUESTO</h2>

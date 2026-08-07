@@ -9,6 +9,7 @@ import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { CryptoService } from '../../services/crypto.service';
 import { OnboardingService } from '../../services/onboarding.service';
+import { ClinicLogoService } from '../../services/clinic-logo.service';
 
 interface ExtraProf {
   nombre: string;
@@ -86,6 +87,7 @@ export class OnboardingComponent implements OnInit {
   private http         = inject(HttpClient);
   private onboardingSvc = inject(OnboardingService);
   private cryptoSvc   = inject(CryptoService);
+  private clinicLogo  = inject(ClinicLogoService);
 
   @ViewChild('photoInputRef') photoInputRef!: ElementRef<HTMLInputElement>;
 
@@ -109,9 +111,22 @@ export class OnboardingComponent implements OnInit {
    *  en silencio y la UI avanzaba igual; ahora se muestra y NO se avanza. */
   saveError    = signal<string | null>(null);
 
-  // ── Extra professionals (max 4) ────────────────────────────────────────────
+  // ── Extra professionals (límite por plan) ──────────────────────────────────
+  // Antes era `readonly MAX_EXTRA = 4` para todos. Ahora depende del plan de la
+  // cuenta: Starter 1 profesional en total (0 adicionales), Pro 3 en total
+  // (titular + 2). El servidor aplica el mismo límite en el endpoint de
+  // onboarding, así que esto es UX, no la barrera real.
   extraProfs = signal<ExtraProf[]>([]);
-  readonly MAX_EXTRA = 4;
+  readonly maxExtra       = this.auth.maxExtraProfessionals;
+  readonly maxTotalProfs  = this.auth.maxProfessionals;
+  readonly isStarter      = this.auth.isStarterPlan;
+
+  // ── Clinic logo (nivel cuenta) ─────────────────────────────────────────────
+  // Reemplaza el texto "Dairi Clínica" en la papelería imprimible. Es de la
+  // cuenta, no de un profesional, por eso vive aparte de photoFile/photoPreview.
+  logoPreview = signal<string | null>(null);
+  logoFile    = signal<File | null>(null);
+  logoDragOver = signal(false);
 
   // ── UI ──────────────────────────────────────────────────────────────────────
   step     = signal<1 | 2>(1);
@@ -185,6 +200,36 @@ export class OnboardingComponent implements OnInit {
     }
   }
 
+  // ── Clinic logo ────────────────────────────────────────────────────────────
+
+  onLogoChange(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    (event.target as HTMLInputElement).value = '';
+    this.setLogo(file);
+  }
+
+  onLogoDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.logoDragOver.set(false);
+    const file = event.dataTransfer?.files?.[0];
+    if (file && file.type.startsWith('image/')) this.setLogo(file);
+  }
+
+  private setLogo(file: File): void {
+    const reader = new FileReader();
+    reader.onload = e => {
+      this.logoFile.set(file);
+      this.logoPreview.set(e.target!.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeLogo(): void {
+    this.logoFile.set(null);
+    this.logoPreview.set(null);
+  }
+
   /** Vacío ⇒ null (sin precio fijado ⇒ el backend cae al default), no 0. */
   setPrecio(raw: string): void {
     const trimmed = (raw ?? '').trim();
@@ -206,7 +251,7 @@ export class OnboardingComponent implements OnInit {
   // ── Extra professionals ────────────────────────────────────────────────────
 
   addExtraProf(): void {
-    if (this.extraProfs().length >= this.MAX_EXTRA) return;
+    if (this.extraProfs().length >= this.maxExtra()) return;
     this.extraProfs.update(list => [
       ...list,
       { nombre: '', rut: '', especialidad: '', telefono: '', photoPreview: null, photoFile: null, errors: {} }
@@ -282,11 +327,11 @@ export class OnboardingComponent implements OnInit {
    * firmada es absoluta y no debe pasar por el apiInterceptor, que le adosaría el
    * header Authorization y rompería la firma de S3.
    */
-  private async uploadPhoto(file: File): Promise<string> {
+  private async uploadPhoto(file: File, kind: 'photo' | 'logo' = 'photo'): Promise<string> {
     const { url, key } = await firstValueFrom(
       this.http.post<{ url: string; key: string }>(
         '/api/professionals/photo-upload-url',
-        { contentType: file.type }
+        { contentType: file.type, kind }
       )
     );
     const res = await fetch(url, {
@@ -311,12 +356,27 @@ export class OnboardingComponent implements OnInit {
   async save(): Promise<void> {
     this.saveError.set(null);
     if (!this.validate()) return;
+
+    // Cuentas Starter: no hay nada que guardar server-side. Viven 100% en
+    // DynamoDB y el BFF las bloquea con 403 antes de cualquier ruta Postgres
+    // (index.mjs), así que este POST NO puede tener éxito jamás — su "profesional"
+    // es la propia cuenta en dairi-agenda-accounts, siempre exactamente uno.
+    // Antes esto dejaba al usuario Starter atrapado en el paso 1 con un error de
+    // guardado del que no podía salir. Se avanza sin llamar al backend.
+    if (this.isStarter()) {
+      this.step.set(2);
+      return;
+    }
+
     this.saving.set(true);
 
     try {
       // 1. Fotos primero: si algo falla acá no se escribe nada en la base.
       let photoKey: string | null = null;
       if (this.photoFile()) photoKey = await this.uploadPhoto(this.photoFile()!);
+
+      let clinicLogoKey: string | null = null;
+      if (this.logoFile()) clinicLogoKey = await this.uploadPhoto(this.logoFile()!, 'logo');
 
       const extras = [];
       for (const p of this.extraProfs()) {
@@ -340,8 +400,12 @@ export class OnboardingComponent implements OnInit {
         videoconsulta:     this.videoconsulta(),
         diasDisponibles:   this.diasDisponibles(),
         photoKey,
+        clinicLogoKey,
         extraProfessionals: extras
       }));
+
+      // El logo cacheado en memoria quedó obsoleto si se acaba de subir uno.
+      if (clinicLogoKey) this.clinicLogo.reset();
 
       this.saving.set(false);
       this.step.set(2);

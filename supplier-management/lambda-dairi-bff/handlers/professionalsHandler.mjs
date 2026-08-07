@@ -18,7 +18,7 @@
 // aislamiento por profesional funcione. Por eso escribimos user_id = tokenPayload.sub.
 
 import { randomUUID } from 'crypto';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { getLogger } from '../lib/logger.mjs';
 import { response }  from '../lib/response.mjs';
@@ -30,8 +30,38 @@ import { response }  from '../lib/response.mjs';
 const s3Client     = new S3Client({ region: process.env.DOCS_BUCKET_REGION || 'us-east-1' });
 const DOCS_BUCKET  = process.env.DOCS_BUCKET || 'dairi-medical-documents';
 const PHOTO_PREFIX = 'professional-photos';
+const LOGO_PREFIX  = 'clinic-logos';
 
-const MAX_EXTRA        = 4;
+// ── Límite de profesionales por plan ─────────────────────────────────────────
+// Antes era una constante plana MAX_EXTRA = 4 para todo el mundo (5 profesionales
+// en total). El producto define ahora:
+//
+//   Starter → 1 profesional en total (0 adicionales)
+//   Pro     → 3 profesionales en total (titular + 2 adicionales)
+//
+// Cómo se distingue el plano server-side: el ÚNICO discriminador de plan que
+// existe hoy en el JWT es `accountType`, y sólo las sesiones Starter lo llevan
+// (lambda-auth signAgendaSession → accountType:'agenda'). handleLoginDairi firma
+// sin accountType, igual que el login legacy contra Postgres. No existe ningún
+// campo de plan que separe Pro de Enterprise: ambos se registran por el mismo
+// handleRegisterDairi y no hay alta self-serve de Enterprise (la tarjeta de
+// precios de Enterprise apunta a "Cotiza aquí"/contacto comercial). Por eso:
+// 'agenda' → Starter, cualquier otra cosa que llegue hasta aquí → Pro.
+//
+// En la práctica el caso 'agenda' es inalcanzable en esta Lambda: index.mjs
+// bloquea las cuentas Starter con 403 ANTES de cualquier ruta que toque Postgres
+// (sólo pueden hablar con el calendario DynamoDB de agendaHandler). Se deja de
+// todos modos como defensa en profundidad: si algún día se abre una ruta
+// Postgres a Starter, el límite viaja con el handler y no con el router.
+const MAX_EXTRA_BY_PLAN = { agenda: 0 };
+const MAX_EXTRA_DEFAULT = 2;   // Pro
+
+/** Adicionales permitidos para el titular de este token. */
+function maxExtraFor(tokenPayload) {
+  const t = tokenPayload?.accountType;
+  return t && Object.hasOwn(MAX_EXTRA_BY_PLAN, t) ? MAX_EXTRA_BY_PLAN[t] : MAX_EXTRA_DEFAULT;
+}
+
 const MIN_PRICE        = 1;
 const MAX_PRICE        = 9_999_999;   // CLP; la columna es NUMERIC(10,2)
 const ALLOWED_IMAGE_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -123,15 +153,49 @@ export async function handleProfessionals(rawPath, method, event, tokenPayload, 
       return response(400, { message: 'Formato de imagen no permitido. Usa JPG, PNG o WEBP.' });
     }
 
+    // `kind` distingue la foto de un profesional del logo de la clínica. Se
+    // reutiliza este endpoint en vez de crear uno nuevo porque el mecanismo es
+    // idéntico (firmar un PUT); lo único que cambia es el prefijo de la key, y
+    // así el cliente tiene un solo camino de subida que mantener.
+    const isLogo = String(body.kind ?? '').toLowerCase() === 'logo';
+    const prefix = isLogo ? LOGO_PREFIX : PHOTO_PREFIX;
+
     // La key la genera el servidor. Nunca se usa un nombre de archivo del cliente:
     // evita path traversal y que una cuenta escriba en el prefijo de otra.
-    const key = `${PHOTO_PREFIX}/${userId}/${randomUUID()}.${MIME_EXT[contentType]}`;
+    const key = `${prefix}/${userId}/${randomUUID()}.${MIME_EXT[contentType]}`;
     const url = await getSignedUrl(
       s3Client,
       new PutObjectCommand({ Bucket: DOCS_BUCKET, Key: key, ContentType: contentType }),
       { expiresIn: 300 }
     );
     return response(200, { url, key });
+  }
+
+  // ── GET /api/professionals/clinic-logo → URL firmada del logo de la cuenta ──
+  // El bucket tiene bloqueo público total, así que la key guardada no es
+  // directamente utilizable como src: hay que firmarla en cada lectura. Mismo
+  // patrón exacto que documentsHandler.mjs (GetObjectCommand + 300s).
+  //
+  // Devuelve siempre 200: `key: null` significa "esta cuenta no tiene logo" y el
+  // cliente cae al texto "Dairi Clínica" de siempre. Un 404 obligaría a cada
+  // llamador a distinguir "sin logo" de "falló la petición", y ambos casos deben
+  // degradar al mismo fallback.
+  if (rawPath === '/api/professionals/clinic-logo') {
+    if (method !== 'GET') return response(405, { message: 'Método no permitido' });
+
+    const { rows } = await client.query(
+      'SELECT clinic_logo_key FROM user_config WHERE user_id = $1 LIMIT 1',
+      [userId]
+    );
+    const key = rows[0]?.clinic_logo_key ?? null;
+    if (!key) return response(200, { key: null, url: null });
+
+    const url = await getSignedUrl(
+      s3Client,
+      new GetObjectCommand({ Bucket: DOCS_BUCKET, Key: key }),
+      { expiresIn: 300 }
+    );
+    return response(200, { key, url });
   }
 
   // ── POST /api/professionals/onboarding ─────────────────────────────────────
@@ -168,9 +232,15 @@ export async function handleProfessionals(rawPath, method, event, tokenPayload, 
     if (!Array.isArray(dias)) dias = [];
     dias = [...new Set(dias.map(Number).filter(d => Number.isInteger(d) && d >= 0 && d <= 6))];
 
+    // Límite por plan (ver maxExtraFor). El chequeo del cliente es UX: este
+    // endpoint es alcanzable con un curl y un token válido, así que el límite
+    // real se aplica acá.
+    const maxExtra  = maxExtraFor(tokenPayload);
     const extrasRaw = Array.isArray(body.extraProfessionals) ? body.extraProfessionals : [];
-    if (extrasRaw.length > MAX_EXTRA) {
-      errors.extraProfessionals = `Máximo ${MAX_EXTRA} profesionales adicionales`;
+    if (extrasRaw.length > maxExtra) {
+      errors.extraProfessionals = maxExtra === 0
+        ? 'Tu plan incluye 1 profesional. Para agregar más profesionales necesitas actualizar tu plan.'
+        : `Tu plan permite ${maxExtra + 1} profesionales en total (${maxExtra} adicionales).`;
     }
 
     // La especialidad debe existir en el catálogo canónico.
@@ -185,7 +255,7 @@ export async function handleProfessionals(rawPath, method, event, tokenPayload, 
     // ── Validación de los extra ──────────────────────────────────────────────
     const extras = [];
     const extraErrors = [];
-    for (const [i, raw] of extrasRaw.slice(0, MAX_EXTRA).entries()) {
+    for (const [i, raw] of extrasRaw.slice(0, maxExtra).entries()) {
       const e = {};
       const eNombre = String(raw?.nombre ?? '').trim();
       const eRut    = String(raw?.rut ?? '').trim();
@@ -229,6 +299,29 @@ export async function handleProfessionals(rawPath, method, event, tokenPayload, 
 
     const telefono = String(body.telefono ?? '').trim() || null;
     const photoKey = body.photoKey ? String(body.photoKey) : null;
+
+    // Logo de la clínica: opcional y de alcance CUENTA (una clínica, un membrete),
+    // por eso va a user_config y no a `professional` — ver migración 017.
+    const clinicLogoKey = body.clinicLogoKey ? String(body.clinicLogoKey) : null;
+
+    // user_config.user_id tiene FK a app_user(id); `professional` no tiene FK
+    // ninguna. Las cuentas Pro nacen en DynamoDB (handleRegisterDairi) con un id
+    // de contador propio y NO obtienen fila en app_user hasta que un admin las
+    // aprovisiona a mano — de ahí el mensaje de activación "en unas horas
+    // habilitaremos su cuenta". Sin este chequeo, esa cuenta escribía las filas
+    // de `professional` y después reventaba con violación de FK al llegar al
+    // upsert de user_config, haciendo ROLLBACK de todo y devolviendo un 500
+    // opaco. Se comprueba antes de abrir la transacción para poder explicar el
+    // motivo real.
+    const { rows: userRows } = await client.query(
+      'SELECT 1 FROM app_user WHERE id = $1 LIMIT 1', [userId]
+    );
+    if (userRows.length === 0) {
+      log.warn('Onboarding attempted by account without app_user row', { sub: userId });
+      return response(409, {
+        message: 'Tu cuenta aún no está habilitada. Te avisaremos en cuanto esté lista.'
+      });
+    }
 
     try {
       await client.query('BEGIN');
@@ -322,24 +415,30 @@ export async function handleProfessionals(rawPath, method, event, tokenPayload, 
       // ── Onboarding completado (server-side) ────────────────────────────────
       // Antes esto vivía sólo en localStorage, así que limpiar el navegador o
       // entrar desde otro dispositivo re-disparaba el onboarding.
+      // clinic_logo_key usa COALESCE igual que photo_key: reenviar el formulario
+      // sin adjuntar un logo nuevo NO debe borrar el que ya estaba guardado.
       await client.query(
-        `INSERT INTO user_config (user_id, zk_enabled, onboarding_completed_at, updated_at)
-         VALUES ($1, false, NOW(), NOW())
+        `INSERT INTO user_config (user_id, zk_enabled, onboarding_completed_at, clinic_logo_key, updated_at)
+         VALUES ($1, false, NOW(), $2, NOW())
          ON CONFLICT (user_id) DO UPDATE
            SET onboarding_completed_at = COALESCE(user_config.onboarding_completed_at, NOW()),
+               clinic_logo_key         = COALESCE(EXCLUDED.clinic_logo_key, user_config.clinic_logo_key),
                updated_at = NOW()`,
-        [userId]
+        [userId, clinicLogoKey]
       );
 
       await client.query('COMMIT');
 
       log.info('Onboarding saved', {
         sub: userId, professionalId, extras: extraIds.length,
-        deactivated: deactivated.rowCount, price
+        deactivated: deactivated.rowCount, price,
+        maxExtra, hasLogo: clinicLogoKey != null
       });
 
       return response(200, {
         professionalId,
+        maxExtraProfessionals: maxExtra,
+        clinicLogoKey,
         // pg devuelve NUMERIC como string; se normaliza a number para el cliente.
         consultationPrice: primary.rows[0].consultation_price == null
           ? null : Number(primary.rows[0].consultation_price),

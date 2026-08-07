@@ -876,6 +876,8 @@ $font-numeric: var(--font-numeric, 'Inter', sans-serif);
   font-size: 22px; font-weight: 900; color: #0ea5e9;
   span { color: #06b6d4; }
   .print-brand-sub { font-size: 11px; color: #64748b; font-weight: 400; margin-top: 2px; }
+  // Logo de la cuenta cuando existe (sustituye a la marca "Dairi.").
+  .print-brand-logo { max-height: 56px; max-width: 220px; object-fit: contain; display: block; }
 }
 
 .print-doc-info {

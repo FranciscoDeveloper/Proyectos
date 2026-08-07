@@ -1130,6 +1130,26 @@ export class AuthService {
   readonly hasTeamChat = computed(() =>
     this._state().schemas.some(s => s.entity.key === 'user-management') || this.isSuperAdmin()
   );
+  /**
+   * Plan Starter (cuenta "agenda"): vive 100% en DynamoDB y el BFF la bloquea
+   * fuera del calendario. Es el único plan que el backend marca explícitamente
+   * — Pro/Enterprise no llevan `accountType`, así que la ausencia del campo
+   * significa Pro. Ver AuthUser.accountType.
+   */
+  readonly isStarterPlan = computed(() =>
+    this._state().user?.accountType === 'agenda'
+  );
+
+  /**
+   * Profesionales que el plan permite en total, y adicionales sobre el titular.
+   *   Starter → 1 en total (0 adicionales)
+   *   Pro     → 3 en total (titular + 2 adicionales)
+   * El servidor aplica el mismo límite en POST /api/professionals/onboarding
+   * (`maxExtraFor`); esto es sólo la cara visible.
+   */
+  readonly maxExtraProfessionals = computed(() => this.isStarterPlan() ? 0 : 2);
+  readonly maxProfessionals      = computed(() => this.maxExtraProfessionals() + 1);
+
   readonly isProfessionalView = computed(() =>
     this._state().user?.professionalId != null
   );

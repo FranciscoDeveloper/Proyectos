@@ -519,6 +519,20 @@
   font-weight: 400;
 }
 
+// Nota que sustituye al botón "Agregar otro profesional" cuando el plan ya no
+// admite más (Starter siempre; Pro al llegar a 3).
+.plan-limit-note {
+  margin: 4px 0 0;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  text-align: center;
+}
+
 // ── Actions ────────────────────────────────────────────────────────────────
 
 .ob-actions {

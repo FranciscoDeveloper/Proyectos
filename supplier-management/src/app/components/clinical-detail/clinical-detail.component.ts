@@ -11,6 +11,7 @@ import { OdontogramComponent, OdontogramData } from '../odontogram/odontogram.co
 import { PeriodontogramComponent, PeriodontogramData } from '../periodontogram/periodontogram.component';
 import { MobileService } from '../../services/mobile.service';
 import { NativeIoService } from '../../services/native-io.service';
+import { ClinicLogoService } from '../../services/clinic-logo.service';
 
 interface VitalSign {
   label: string;
@@ -43,6 +44,8 @@ export class ClinicalDetailComponent implements OnInit {
   /** Used by the template to show the "Tomar foto" capture button only in the native app. */
   protected mobile = inject(MobileService);
   private nativeIo = inject(NativeIoService);
+  /** Logo de la clínica para el membrete de recetas/planes/informes. */
+  private clinicLogo = inject(ClinicLogoService);
 
   readonly entityKey = this.route.snapshot.paramMap.get('entityKey')!;
   readonly id        = Number(this.route.snapshot.paramMap.get('id')!);
@@ -818,6 +821,18 @@ export class ClinicalDetailComponent implements OnInit {
     })();
     const dateStr = new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
 
+    // Logo de la clínica (user_config.clinic_logo_key, migración 017). Llega como
+    // data: URI y no como URL firmada a propósito: este HTML se abre como blob en
+    // otra pestaña o, en nativo, se guarda como archivo real que el usuario
+    // imprime más tarde — una URL pre-firmada de S3 (300s) estaría muerta para
+    // entonces. Ver ClinicLogoService. Si no hay logo se conserva el texto de
+    // siempre, así que las cuentas que no subieron ninguno no cambian en nada.
+    const logo = await this.clinicLogo.get();
+    const letterhead = logo
+      ? `<img class="clinic-logo" src="${logo}" alt="">
+     <div class="clinic-doctype">${this.esc(docType)}</div>`
+      : `<div class="clinic-name">Dairi Clínica — ${this.esc(docType)}</div>`;
+
     const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -829,6 +844,8 @@ export class ClinicalDetailComponent implements OnInit {
     .hint{font-family:-apple-system,sans-serif;font-size:12px;color:#6b7280;text-align:center;margin-bottom:28px;padding:10px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb}
     .letterhead{text-align:center;padding-bottom:14px}
     .clinic-name{font-size:20px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+    .clinic-logo{max-height:72px;max-width:280px;object-fit:contain;display:block;margin:0 auto 8px}
+    .clinic-doctype{font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
     .clinic-sub{font-size:13px;color:#555;margin-top:4px}
     hr{border:none;border-top:1px solid #aaa;margin:14px 0}
     .section-label{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#6b7280;margin-bottom:10px}
@@ -847,7 +864,7 @@ export class ClinicalDetailComponent implements OnInit {
 <body>
   <p class="hint">Usa Ctrl+P / Cmd+P para imprimir o guardar como PDF</p>
   <div class="letterhead">
-    <div class="clinic-name">Dairi Clínica — ${this.esc(docType)}</div>
+    ${letterhead}
     <div class="clinic-sub">${this.esc(profLabel)}: ${this.esc(profName)}</div>
   </div>
   <hr/>

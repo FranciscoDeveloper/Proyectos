@@ -1,0 +1,33 @@
+-- Migration 017: logo de la clínica a nivel de cuenta.
+--
+-- Contexto: el onboarding ahora permite subir un logo que reemplaza el texto
+-- "Dairi Clínica" en la papelería clínica imprimible (receta / plan terapéutico /
+-- plan dental / informe de examen en clinical-detail.component.ts, y el
+-- encabezado .print-brand de los presupuestos). Antes ese texto estaba escrito a
+-- mano en dos lugares distintos y no había forma de personalizarlo.
+--
+-- ── Por qué user_config y no professional ────────────────────────────────────
+-- El logo es de la CLÍNICA (la cuenta), no de cada profesional: una cuenta con
+-- un titular + 2 profesionales adicionales imprime un único membrete. Ponerlo en
+-- `professional` obligaría a elegir arbitrariamente de qué fila leerlo al
+-- imprimir (¿la del titular? ¿la del profesional que firma?) y a mantener N
+-- copias sincronizadas del mismo archivo.
+--
+-- `user_config` ya es exactamente eso: la tabla de ajustes con una fila por
+-- cuenta (UNIQUE user_id) donde ya viven zk_enabled y onboarding_completed_at,
+-- ambos también de alcance cuenta. El logo es un ajuste más de la cuenta.
+--
+-- Se guarda la KEY de S3, no una URL: las URLs de este bucket son pre-signed y
+-- expiran a los 300s (dairi-medical-documents tiene bloqueo público total), así
+-- que almacenar una URL guardaría un valor muerto. La key se resuelve a una URL
+-- firmada en el momento de leer, igual que hace documentsHandler.mjs con
+-- patient-docs/.
+--
+-- NOTA sobre el alcance por plan: las cuentas Starter (accountType 'agenda')
+-- viven 100% en DynamoDB y el BFF las bloquea antes de cualquier ruta Postgres
+-- (index.mjs), así que NUNCA escriben en esta tabla. El logo es, de hecho, una
+-- función de las cuentas Pro — que además son las únicas con módulo clínico y
+-- por lo tanto las únicas que emiten recetas.
+
+ALTER TABLE user_config
+  ADD COLUMN IF NOT EXISTS clinic_logo_key TEXT;

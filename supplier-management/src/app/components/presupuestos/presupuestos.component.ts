@@ -8,6 +8,7 @@ import { switchMap, of, catchError } from 'rxjs';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { AuthService } from '../../services/auth.service';
 import { NativeIoService } from '../../services/native-io.service';
+import { ClinicLogoService } from '../../services/clinic-logo.service';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -92,6 +93,15 @@ export class PresupuestosComponent implements OnInit {
   private crudSvc = inject(GenericCrudService);
   private auth = inject(AuthService);
   private nativeIo = inject(NativeIoService);
+
+  /**
+   * Logo de la clínica para el encabezado imprimible. Se resuelve una vez y se
+   * guarda como data: URI — printPresupuesto serializa este nodo a un archivo
+   * HTML suelto (sharePrintableNode), así que una URL firmada de S3 quedaría
+   * rota al abrirlo. Ver ClinicLogoService.
+   */
+  private clinicLogoSvc = inject(ClinicLogoService);
+  readonly clinicLogoUri = this.clinicLogoSvc.dataUri;
 
   // ── State ──────────────────────────────────────────────────────────────────
   presupuestos = signal<Presupuesto[]>([]);
@@ -206,6 +216,9 @@ export class PresupuestosComponent implements OnInit {
   ngOnInit() {
     this.load();
     this.loadProfessionals();
+    // Se resuelve en segundo plano; si no hay logo el encabezado usa la marca
+    // "Dairi." de siempre. Nunca lanza (ver ClinicLogoService.get).
+    void this.clinicLogoSvc.get();
     // Pre-warm stores used for professional-scoped patient filtering and specialty lookup
     this.crudSvc.initStore('patients');
     this.crudSvc.initStore('appointments');
