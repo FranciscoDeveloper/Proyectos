@@ -71,6 +71,29 @@ export class ClinicalEncounterFormComponent implements OnInit {
     )
   );
 
+  /**
+   * False as soon as any vital-sign control (heartRate, temperature, bp, etc.)
+   * is invalid — e.g. bp "700000" used to save without complaint because it's a
+   * text field with no pattern, unlike the number fields next to it which do
+   * enforce min/max. Blocking the button on this, rather than only showing an
+   * inline error, is what actually stops an incoherent value from being saved
+   * (the inline errors already existed for the number fields but nothing
+   * consulted them before calling saveVitals()).
+   *
+   * Deliberately a plain method, not a computed() — FormControl.valid is a
+   * plain mutable property, not a signal, so a computed() here would go stale
+   * as soon as the user typed and never notice the control became valid/invalid
+   * again. This component has no OnPush change detection, so a plain method
+   * re-runs on every change-detection cycle — the same reason isInvalid()/
+   * getError() below are plain methods rather than computed signals too.
+   */
+  vitalsValid(): boolean {
+    if (!this.form) return true;
+    return this.editableFields()
+      .filter(f => f.section === 'vitals')
+      .every(f => this.form.get(f.name)?.valid ?? true);
+  }
+
   private static readonly SECTION_HEADINGS: Record<string, string> = {
     vitals:       'Signos Vitales',
     diagnosis:    'Diagnóstico',

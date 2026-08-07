@@ -185,7 +185,9 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
     { name: 'alertNotes',         type: 'textarea', label: 'Notas de Alerta',       required: false, isAlert: true, showInList: false, showInDetail: true, section: 'alerts', hideInForm: true },
 
     // ── Signos vitales (contexto de atención médica) ──────────────────────
-    { name: 'bp',              type: 'text',   label: 'Presión Arterial',   required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', hideInForm: true },
+    { name: 'bp',              type: 'text',   label: 'Presión Arterial',   required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', hideInForm: true,
+      pattern: '^\\s*([6-9]\\d|1\\d\\d|2[0-5]\\d|260)\\s*\\/\\s*([3-9]\\d|1[0-5]\\d|160)\\s*$',
+      patternMessage: 'Formato sistólica/diastólica, ej. 120/80 (sistólica 60–260, diastólica 30–160).' },
     { name: 'heartRate',       type: 'number', label: 'Frec. Cardíaca',     required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 300, hideInForm: true },
     { name: 'temperature',     type: 'number', label: 'Temperatura',        required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 30, max: 45,  hideInForm: true },
     { name: 'o2Saturation',    type: 'number', label: 'Saturación O₂',     required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals', min: 0, max: 100,  hideInForm: true },
@@ -842,7 +844,9 @@ export const SCHEMA_MATRONA_RECORDS: EntitySchema = {
     { name: 'alertNotes',        type: 'textarea', label: 'Notas de Alerta',    required: false, isAlert: true, showInList: false, showInDetail: true, section: 'alerts' },
 
     // ── Obstetric parameters (vital-sign grid) ────────────────────────────
-    { name: 'bp',             type: 'text',   label: 'Presión Arterial',  required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals' },
+    { name: 'bp',             type: 'text',   label: 'Presión Arterial',  required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals',
+      pattern: '^\\s*([6-9]\\d|1\\d\\d|2[0-5]\\d|260)\\s*\\/\\s*([3-9]\\d|1[0-5]\\d|160)\\s*$',
+      patternMessage: 'Formato sistólica/diastólica, ej. 120/80 (sistólica 60–260, diastólica 30–160).' },
     { name: 'heartRate',      type: 'text',   label: 'Frec. Cardíaca',    required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals' },
     { name: 'temperature',    type: 'text',   label: 'Temperatura (°C)',  required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals' },
     { name: 'o2Saturation',   type: 'text',   label: 'Saturación O₂',    required: false, isVitalSign: true, showInList: false, showInDetail: true, section: 'vitals' },

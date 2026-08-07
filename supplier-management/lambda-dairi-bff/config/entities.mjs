@@ -330,7 +330,9 @@ export const ENTITY_CONFIG = {
       if (d.phone            !== undefined) cols.phone             = d.phone;
       if (d.telefono         !== undefined) cols.phone             = d.telefono;
       if (d.rut              !== undefined) cols.rut               = d.rut;
-      if (d.birthDate        !== undefined) cols.birth_date        = d.birthDate;
+      // Same '' -> null fix as clinical-records.birthDate/lastVisit: the generic edit
+      // form sends '' for an unset date, which Postgres rejects for a DATE column.
+      if (d.birthDate        !== undefined) cols.birth_date        = d.birthDate || null;
       if (d.gender           !== undefined) cols.gender            = d.gender;
       if (d.bloodType        !== undefined) cols.blood_type        = d.bloodType;
       if (d.address          !== undefined) cols.address           = d.address;
@@ -736,7 +738,11 @@ export const ENTITY_CONFIG = {
       // doctorName is read-only (resolved server-side via JOIN to professional.name in
       // joinSelect) — clinical_record has no `doctor` column since the professional_id
       // FK migration, so it must never be written here even if the caller sends it.
-      if (d.lastVisit            !== undefined) cols.last_visit             = d.lastVisit;
+      // '' -> null: the generic edit form patches an absent date with '' (see
+      // patchValue in generic-form.component.ts), and last_visit is a DATE column —
+      // Postgres rejects '' outright ("invalid input syntax for type date"), which is
+      // exactly what broke editing any clinical record with no recorded last visit.
+      if (d.lastVisit            !== undefined) cols.last_visit             = d.lastVisit || null;
       if (d.encounters           !== undefined) cols.encounters             = JSON.stringify(d.encounters);
       if (d.status               !== undefined) cols.status                 = d.status;
       return cols;
