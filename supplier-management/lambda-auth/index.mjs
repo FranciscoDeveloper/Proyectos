@@ -63,11 +63,35 @@ async function getDairiAccount(email) {
       TableName: ACCOUNTS_TABLE,
       Key: marshall({ email })
     }));
-    return r.Item ? unmarshall(r.Item) : null;
+    return r.Item ? repairAccountText(unmarshall(r.Item)) : null;
   } catch (err) {
     console.error("getDairiAccount error:", err?.message);
     return null;
   }
+}
+
+// Undoes the SDK's UTF-8→Latin-1 mangling (see fixDdbMojibake) on the account's
+// user-facing text. Applied here, at the single point every account read passes
+// through, so login and refresh both return correct accents without each caller
+// having to remember. Deliberately field-by-field rather than a blanket walk of
+// every string: `passwordHash` and the token/email fields must reach bcrypt and
+// DynamoDB byte-identical, and while they're pure ASCII today (so the repair
+// would be a no-op), rewriting a credential on the way out of the store is not a
+// behaviour worth leaving lying around for a future non-ASCII value to trip on.
+function repairAccountText(acct) {
+  if (acct.name)             acct.name             = fixDdbMojibake(acct.name);
+  if (acct.professionalName) acct.professionalName = fixDdbMojibake(acct.professionalName);
+  if (acct.requestedProfessionalName)
+    acct.requestedProfessionalName = fixDdbMojibake(acct.requestedProfessionalName);
+  // Module labels are rendered straight into the sidebar ("Sesión", "Presupuestos").
+  if (Array.isArray(acct.schemas)) {
+    for (const s of acct.schemas) {
+      if (s?.singular)    s.singular    = fixDdbMojibake(s.singular);
+      if (s?.plural)      s.plural      = fixDdbMojibake(s.plural);
+      if (s?.description) s.description = fixDdbMojibake(s.description);
+    }
+  }
+  return acct;
 }
 
 // Numeric ids are preserved (not UUIDs) so a copied account's id keeps matching
@@ -625,14 +649,22 @@ async function handleLogin(body) {
 // ── PROFESSIONAL DIRECTORY (public, no auth) ────────────────────────────────────
 // Backs the Pro registration form's professional select. Only name/specialty —
 // no patient or account data — so it's safe to expose pre-signup.
-// Confirmed live (see git history/commit message): the DynamoDB SDK's ScanCommand
-// response parsing mangles non-ASCII UTF-8 in this bundled SDK version — the raw
-// `Items[].name.S` string is *already* wrong before unmarshall() or any of our code
-// runs (GetItemCommand, used elsewhere in this file, is unaffected). The corruption
-// is exactly "UTF-8 bytes decoded as Latin-1": each original UTF-8 byte became its
-// own Latin-1 character. That's reversible byte-for-byte, since every character in
-// the corrupted string has a codepoint ≤ 255 (a real accented character wouldn't).
-function fixScanMojibake(str) {
+// Confirmed live (see git history/commit message): the DynamoDB SDK's response
+// parsing mangles non-ASCII UTF-8 in this bundled SDK version (@aws-sdk/client-
+// dynamodb 3.1095.0) — the raw `name.S` string is *already* wrong before
+// unmarshall() or any of our code runs. The corruption is exactly "UTF-8 bytes
+// decoded as Latin-1": each original UTF-8 byte became its own Latin-1 character.
+// That's reversible byte-for-byte, since every character in the corrupted string
+// has a codepoint ≤ 255 (a real accented character wouldn't).
+//
+// This was previously believed to affect ScanCommand only, with GetItemCommand
+// assumed safe. That assumption was wrong: verified 2026-08-08 against the
+// account `test.dental@dairi.cl`, whose name "Test Odontología" is stored in
+// DynamoDB as correct UTF-8 (bytes `\xc3\xad` for í, confirmed by reading the
+// item with the Python AWS CLI) but came back out of a GetItemCommand login as
+// `\xc3\x83\xc2\xad` — i.e. "Ã­", the double-encoded form. Both commands need
+// the repair, hence the name change from fixScanMojibake.
+function fixDdbMojibake(str) {
   // Safe to apply unconditionally: pure-ASCII strings round-trip through
   // latin1->utf8 unchanged, so this only affects the actually-corrupted ones.
   return Buffer.from(str, "latin1").toString("utf8");
@@ -644,7 +676,7 @@ async function handleListProfessionals() {
     const rows    = (result.Items ?? []).map(i => unmarshall(i));
     rows.sort((a, b) => a.name.localeCompare(b.name));
     return response(200, rows.map(r => ({
-      id: r.id, nombre: fixScanMojibake(r.name), especialidad: r.specialty ? fixScanMojibake(r.specialty) : null
+      id: r.id, nombre: fixDdbMojibake(r.name), especialidad: r.specialty ? fixDdbMojibake(r.specialty) : null
     })));
   } catch (err) {
     console.error("List professionals error:", err);
