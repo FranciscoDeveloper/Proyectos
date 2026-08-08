@@ -774,14 +774,21 @@ export const ENTITY_CONFIG = {
         lastVisit:            r.lastVisit           ?? r.last_visit      ?? null,
         status:               r.status              ?? null,
         profession:           r.profession          ?? null,
+        // migración 018: estas 7 columnas pasaron de integer/numeric a text porque 8
+        // de las 9 fichas de especialidad las reutilizan como texto libre (p.ej.
+        // "Sangrado al Sondaje" en dental, "Afecto" en psicología) — solo medicina
+        // general las usa como signos vitales numéricos reales. Forzar parseInt/
+        // parseFloat aquí convertía cualquier texto no numérico en NaN → null al
+        // leer, perdiendo el dato silenciosamente. Se devuelven tal cual, igual que
+        // `bp` (que ya era text desde antes).
         bp:                   r.bp                  ?? null,
-        heartRate:            (r.heartRate      ?? r.heart_rate)       != null ? parseInt(r.heartRate      ?? r.heart_rate)       : null,
-        temperature:          (r.temperature)                           != null ? parseFloat(r.temperature)                        : null,
-        o2Saturation:         (r.o2Saturation   ?? r.o2_saturation)    != null ? parseFloat(r.o2Saturation ?? r.o2_saturation)    : null,
-        weight:               (r.weight)                                != null ? parseFloat(r.weight)                             : null,
-        height:               (r.height)                                != null ? parseFloat(r.height)                             : null,
-        bmi:                  (r.bmi)                                   != null ? parseFloat(r.bmi)                                : null,
-        respiratoryRate:      (r.respiratoryRate ?? r.respiratory_rate) != null ? parseInt(r.respiratoryRate ?? r.respiratory_rate) : null,
+        heartRate:            (r.heartRate      ?? r.heart_rate)       ?? null,
+        temperature:          r.temperature                             ?? null,
+        o2Saturation:         (r.o2Saturation   ?? r.o2_saturation)    ?? null,
+        weight:               r.weight                                  ?? null,
+        height:               r.height                                  ?? null,
+        bmi:                  r.bmi                                     ?? null,
+        respiratoryRate:      (r.respiratoryRate ?? r.respiratory_rate) ?? null,
         currentMedications:   r.currentMedications  ?? r.current_medications  ?? null,
         diagnosisCode:        r.diagnosisCode        ?? r.diagnosis_code       ?? null,
         diagnosisLabel:       r.diagnosisLabel       ?? r.diagnosis_label      ?? null,
