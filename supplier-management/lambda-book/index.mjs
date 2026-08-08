@@ -221,6 +221,34 @@ function ratingFields(prof) {
   };
 }
 
+// `professional.specialty` holds the catalog *value* ("odontologia") when the row
+// came from self-serve onboarding, which validates against and stores
+// professional_specialty.value (professionalsHandler.mjs). Hand-provisioned rows
+// predate that flow and hold the *label* ("Odontología"). Both forms are live in
+// the table today, and the value form is a lowercase hyphenated slug that must
+// never reach a patient — the public booking page was rendering "odontologia" and
+// "medicina-general" as the professional's specialty.
+//
+// This maps value→label for display only. Nothing is rewritten in the database:
+// the column keeps whatever form it already has, and onboarding keeps storing the
+// value. Rows that already hold a label simply miss the lookup and pass through
+// unchanged, so the two historical forms converge on the same rendered text.
+async function specialtyLabels(client) {
+  try {
+    const r = await client.query("SELECT value, label FROM professional_specialty");
+    return new Map(r.rows.map((x) => [x.value, x.label]));
+  } catch (err) {
+    // Never fail a booking over a cosmetic lookup — fall back to the raw value.
+    log("ERROR", "specialtyLabels lookup failed", { message: err.message });
+    return new Map();
+  }
+}
+
+function displaySpecialty(labels, raw) {
+  if (!raw) return raw;
+  return labels.get(raw) ?? raw;
+}
+
 async function findProfessional(client, idOrToken) {
   const numId = parseInt(idOrToken);
   const res = !isNaN(numId)
@@ -475,6 +503,11 @@ export const handler = async (event) => {
     return await route(client, method, rawPath, body, qs);
   } catch (err) {
     log("ERROR", "Unhandled error", { message: err.message, rawPath, method });
+    // The booking path runs inside an explicit transaction. Releasing a client
+    // back to the pool with a transaction still open would poison it for the next
+    // request, so unwind before the finally hands it back. ROLLBACK with no
+    // transaction in progress is a harmless no-op warning in Postgres.
+    try { await client?.query("ROLLBACK"); } catch { /* nothing to unwind */ }
     return resp(500, { message: "Error interno del servidor" });
   } finally {
     client?.release();
@@ -583,10 +616,11 @@ async function route(client, method, rawPath, body, qs) {
              rating_avg, rating_count, consultation_price
       FROM professional WHERE active = true ORDER BY name
     `);
+    const labels = await specialtyLabels(client);
     return resp(200, r.rows.map((p) => ({
       id:            String(p.id),
       nombre:        p.name,
-      especialidad:  p.specialty,
+      especialidad:  displaySpecialty(labels, p.specialty),
       duration:      p.consultation_duration,
       workDays:      p.working_days,
       videoconsulta: p.video_consultation,
@@ -651,7 +685,7 @@ async function route(client, method, rawPath, body, qs) {
       return resp(200, {
         professionalId: String(prof.id),
         doctorName:     prof.name,
-        specialty:      prof.specialty,
+        specialty:      displaySpecialty(await specialtyLabels(client), prof.specialty),
         clinicName:     "Dairi Clínica",
         duration:       prof.consultation_duration,
         workDays:       prof.working_days,
@@ -677,6 +711,21 @@ async function route(client, method, rawPath, body, qs) {
         return await bookAgenda(prof, { date, time, name, email, rut, phone, reason, modality: body.modality });
       }
 
+      // Everything from the patient row through the payment ledger is one
+      // transaction. Before this was transactional, a booking that lost the slot
+      // race (ON CONFLICT DO NOTHING → rowCount 0 → 409) had already committed the
+      // patient row and an initial clinical record, leaving an empty "Ficha" in the
+      // professional's list for someone who never actually got an appointment.
+      // Confirmed live on 2026-08-08: a deliberate double-book against a taken slot
+      // returned 409 and still created patient 102 + clinical_record 54.
+      //
+      // The steps that are deliberately non-fatal (clinical record, payment ledger)
+      // keep that behaviour via SAVEPOINTs. Without one, a single failed INSERT
+      // aborts the whole transaction in Postgres and every later statement dies with
+      // "current transaction is aborted" — which would turn a cosmetic, already-
+      // tolerated failure into a hard booking failure.
+      await client.query("BEGIN");
+
       // Find or create patient by RUT
       let patientId;
       const existing = await client.query("SELECT id FROM patient WHERE rut = $1 LIMIT 1", [rut]);
@@ -697,6 +746,7 @@ async function route(client, method, rawPath, body, qs) {
       // whichever professionals treat them), so the existence check is patient-only —
       // it must not also filter by professional_id or a second booking with a
       // different doctor would try to INSERT a duplicate and violate that constraint.
+      await client.query("SAVEPOINT sp_clinical_record");
       try {
         const crExisting = await client.query(
           "SELECT id FROM clinical_record WHERE patient_id = $1 LIMIT 1",
@@ -708,12 +758,20 @@ async function route(client, method, rawPath, body, qs) {
             [patientId, prof.id]
           );
         }
+        await client.query("RELEASE SAVEPOINT sp_clinical_record");
       } catch (err) {
+        await client.query("ROLLBACK TO SAVEPOINT sp_clinical_record");
         log("ERROR", "Initial clinical_record insert error", { message: err.message, patientId });
       }
 
       const datetimeStr = `${date}T${time}:00`;
       const confirmCode = generateConfirmCode();
+      // `appointment.service` and the payment concept are denormalized display
+      // strings, not keys — they are shown verbatim in the professional's calendar
+      // and on the patient's receipt. Resolving the label here keeps new rows
+      // consistent with the ones already in the table, which were written when
+      // professionals were hand-provisioned with the label form.
+      const specialtyText = displaySpecialty(await specialtyLabels(client), prof.specialty);
       const dbModality  = body.modality === "video" ? "video" : body.modality === "phone" ? "phone" : "in_person";
       // `professional.consultation_price` (migración 016) es NUMERIC, y el driver pg
       // devuelve NUMERIC como *string* ("40000.00"), no como number — el mismo motivo
@@ -734,8 +792,12 @@ async function route(client, method, rawPath, body, qs) {
       // The /slots endpoint filters already-booked times for display, but two patients
       // can still race each other between fetching slots and submitting; the DB
       // constraint is what actually prevents the second INSERT from succeeding.
-      const insertParams = [patientId, prof.id, datetimeStr, prof.consultation_duration, prof.specialty, dbModality, reason, confirmCode];
+      const insertParams = [patientId, prof.id, datetimeStr, prof.consultation_duration, specialtyText, dbModality, reason, confirmCode];
       let appt;
+      // SAVEPOINT so the 42P10 fallback below is still reachable: inside a
+      // transaction the failed INSERT would otherwise leave the transaction in an
+      // aborted state and the retry would fail too.
+      await client.query("SAVEPOINT sp_appointment");
       try {
         appt = await client.query(
           `INSERT INTO appointment
@@ -745,7 +807,9 @@ async function route(client, method, rawPath, body, qs) {
            RETURNING id, confirm_code, modality`,
           insertParams
         );
+        await client.query("RELEASE SAVEPOINT sp_appointment");
       } catch (err) {
+        await client.query("ROLLBACK TO SAVEPOINT sp_appointment");
         // 42P10 = "no unique or exclusion constraint matching the ON CONFLICT specification".
         // Happens only if idx_appointment_no_double_book failed to create in ensureSchema
         // (pre-existing duplicate rows) — fall back to a plain insert so booking still works,
@@ -761,6 +825,8 @@ async function route(client, method, rawPath, body, qs) {
         );
       }
       if (appt.rowCount === 0) {
+        // Lost the slot race — discard the patient/clinical-record work too.
+        await client.query("ROLLBACK");
         return resp(409, { message: "Ese horario ya no está disponible. Por favor elige otro horario." });
       }
       const row    = appt.rows[0];
@@ -768,6 +834,7 @@ async function route(client, method, rawPath, body, qs) {
 
       // Ledger payment row (non-fatal)
       let paymentId = null;
+      await client.query("SAVEPOINT sp_payment");
       try {
         const payRec = await client.query(
           `INSERT INTO payment
@@ -778,26 +845,35 @@ async function route(client, method, rawPath, body, qs) {
             patientId, prof.id,
             `RCV-${apptId}`,
             date,
-            `Consulta ${prof.specialty} - ${prof.name}`,
+            `Consulta ${specialtyText} - ${prof.name}`,
             amount,
             `Cita agendada online. Código: ${confirmCode}`,
           ]
         );
         paymentId = payRec.rows[0].id;
+        await client.query("RELEASE SAVEPOINT sp_payment");
         log("INFO", "Ledger payment created", { paymentId, apptId });
       } catch (err) {
+        await client.query("ROLLBACK TO SAVEPOINT sp_payment");
+        paymentId = null;
         log("ERROR", "Ledger payment insert error", { message: err.message, apptId });
       }
 
+      await client.query("SAVEPOINT sp_appointment_payment");
       try {
         await client.query(
           `INSERT INTO appointment_payment (appointment_id, payment_id, amount, currency, status)
            VALUES ($1, $2, $3, 'CLP', 'pending')`,
           [apptId, paymentId, amount]
         );
+        await client.query("RELEASE SAVEPOINT sp_appointment_payment");
       } catch (err) {
+        await client.query("ROLLBACK TO SAVEPOINT sp_appointment_payment");
         log("ERROR", "appointment_payment insert error", { message: err.message, apptId });
       }
+
+      // The booking is only real once this commits.
+      await client.query("COMMIT");
 
       const bookingToken = APP_SECRET ? generateBookingToken(apptId, amount) : undefined;
 
@@ -806,7 +882,7 @@ async function route(client, method, rawPath, body, qs) {
         confirmCode:   row.confirm_code,
         doctorName:    prof.name,
         clinicName:    "Dairi Clínica",
-        specialty:     prof.specialty,
+        specialty:     specialtyText,
         date,
         time,
         patientName:   name,
