@@ -30,7 +30,7 @@ Qué módulos (`schemas`) debe tener cada especialidad en su cuenta Pro, y por q
 
 Ejemplo real: a Constanza Jimenez (odontología) se le dio por defecto `clinicalRecords` al registrarse (es el default de toda cuenta Pro nueva, `DEFAULT_DAIRI_SCHEMAS` en `lambda-auth/index.mjs`) y después se le agregó `dental-records` a mano. Se le quitó `clinicalRecords` el 2026-08-08 — se queda solo con `dental-records`, que además incluye odontograma y periodontograma que `clinicalRecords` no tiene.
 
-Su cuenta **todavía tiene la agenda genérica `appointments` junto con `dental-sessions`** (verificado en DynamoDB el 2026-08-09): el mismo duplicado que la regla prohíbe, pero del lado de la agenda. Queda pendiente quitárselo; no se tocó en el cambio del 2026-08-09 para no alterar la única cuenta Pro real sin avisar.
+Se le quitó también el `appointments` genérico el 2026-08-09 — se queda solo con `dental-sessions` + `dental-records`, `reports`, `presupuestos`. Verificado en DynamoDB.
 
 ## ✅ Resuelto (2026-08-09): las 9 especialidades ya tienen agenda propia
 
@@ -47,7 +47,13 @@ Ahora existen las 6 agendas que faltaban — `kine-sessions`, `nutrition-session
 | Campos cifrados (ZK) | `supplier-management/src/app/services/crypto.service.ts` (`ENCRYPTED_FIELDS`) | Mismos campos que `appointments` |
 | Alias a la tabla `appointment` | `supplier-management/lambda-dairi-bff/config/entities.mjs` (`KEY_ALIASES`) | El BFF resuelve la clave a `appointments` |
 
-**Ojo con el catálogo:** el `schemas` que devuelve el login viene de DynamoDB con `fields: []`, así que los campos siempre salen de `ENTITY_CATALOG`. Los `const SCHEMA_*` de `auth.service.ts` sólo tienen efecto si `schema.service.ts` los importa y los registra. `SCHEMA_APPOINTMENTS`, `SCHEMA_PSYCH_SESSIONS` y `SCHEMA_DENTAL_SESSIONS` siguen siendo consts huérfanas: nadie las importa, y las entradas de `psych-sessions`/`dental-sessions` en `ENTITY_CATALOG` están escritas inline **con `fields: []` y sin `encounterEntity`**. Consecuencia todavía vigente: el atajo "Agregar Antecedente" **no aparece** en las agendas de psicología ni de odontología, y esas dos agendas no resuelven campos de calendario desde el catálogo. Es un bug aparte, anterior a este cambio y fuera del alcance de esta corrección.
+**Ojo con el catálogo:** el `schemas` que devuelve el login viene de DynamoDB con `fields: []`, así que los campos siempre salen de `ENTITY_CATALOG`. Los `const SCHEMA_*` de `auth.service.ts` sólo tienen efecto si `schema.service.ts` los importa y los registra.
+
+## ✅ Resuelto (2026-08-09, segunda pasada): atajo "Agregar Antecedente" en psicología y odontología
+
+`SCHEMA_PSYCH_SESSIONS` y `SCHEMA_DENTAL_SESSIONS` existían con campos reales (y `dental-sessions` ya tenía `encounterEntity: 'dental-records'` correctamente definido) pero **no estaban exportadas**, y `schema.service.ts` las duplicaba inline con `fields: []` en vez de importarlas — el trabajo ya hecho nunca llegaba a producción. Se exportaron ambas, se agregó `encounterEntity: 'psych-records'` a `psych-sessions` (nunca lo había tenido) y se registraron en `ENTITY_CATALOG` igual que las 6 nuevas. Verificado en el bundle desplegado (`encounterEntity` presente en los chunks de producción).
+
+`SCHEMA_APPOINTMENTS` sigue siendo una const huérfana (nada la importa) — no es un problema porque `appointments` nunca tuvo la duplicación inline que sí tenían psych/dental; su entrada en `ENTITY_CATALOG` usa campos propios equivalentes. No se tocó.
 
 ## Pendiente: asignación automática por especialidad
 
