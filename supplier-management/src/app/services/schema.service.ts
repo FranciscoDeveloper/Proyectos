@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { EntityMeta, EntityPayload, EntitySchema } from '../models/entity-schema.model';
-import { AuthService, SCHEMA_CLINICAL_RECORDS, SCHEMA_PSYCH_RECORDS, SCHEMA_DENTAL_RECORDS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES, SCHEMA_KINE_RECORDS, SCHEMA_NUTRITION_RECORDS, SCHEMA_FONO_RECORDS, SCHEMA_OT_RECORDS, SCHEMA_MATRONA_RECORDS, SCHEMA_TECNOMED_RECORDS, SCHEMA_KINE_SESSIONS, SCHEMA_NUTRITION_SESSIONS, SCHEMA_FONO_SESSIONS, SCHEMA_OT_SESSIONS, SCHEMA_MATRONA_SESSIONS, SCHEMA_TECNOMED_SESSIONS } from './auth.service';
+import { AuthService, SCHEMA_CLINICAL_RECORDS, SCHEMA_PSYCH_RECORDS, SCHEMA_DENTAL_RECORDS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES, SCHEMA_KINE_RECORDS, SCHEMA_NUTRITION_RECORDS, SCHEMA_FONO_RECORDS, SCHEMA_OT_RECORDS, SCHEMA_MATRONA_RECORDS, SCHEMA_TECNOMED_RECORDS, SCHEMA_KINE_SESSIONS, SCHEMA_NUTRITION_SESSIONS, SCHEMA_FONO_SESSIONS, SCHEMA_OT_SESSIONS, SCHEMA_MATRONA_SESSIONS, SCHEMA_TECNOMED_SESSIONS, SCHEMA_PSYCH_SESSIONS, SCHEMA_DENTAL_SESSIONS } from './auth.service';
 
 /**
  * Provides entity schemas to the rest of the app.
@@ -800,10 +800,7 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
 
     // ─────────────────────────── SESIONES PSICOLÓGICAS ───────────────────
     'psych-sessions': {
-      schema: {
-        entity: { key: 'psych-sessions', singular: 'Sesión', plural: 'Sesiones', icon: 'calendar', moduleType: 'calendar', description: 'Agenda de sesiones terapéuticas' },
-        fields: []
-      },
+      schema: SCHEMA_PSYCH_SESSIONS,
       data: [
         { id: 1, title: 'Sesión individual — ansiedad', patientName: 'Valentina Rojas', patientEmail: 'valentina.r@email.com', startDate: '2026-03-24T10:00', endDate: '2026-03-24T10:50', sessionType: 'individual', status: 'completed', room: 'Box 1', notes: 'Avance en reestructuración cognitiva.', createdAt: '2026-03-17', updatedAt: '2026-03-24' },
         { id: 2, title: 'Evaluación psicodiagnóstica',  patientName: 'Tomás Herrera',   patientEmail: 'tomas.h@email.com',    startDate: '2026-03-26T11:00', endDate: '2026-03-26T11:50', sessionType: 'evaluation', status: 'scheduled', room: 'Box 1', notes: 'Aplicar PHQ-9 y GAD-7.', createdAt: '2026-03-20', updatedAt: '2026-03-20' },
@@ -849,10 +846,7 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
 
     // ─────────────────────────── CITAS DENTALES ─────────────────────────
     'dental-sessions': {
-      schema: {
-        entity: { key: 'dental-sessions', singular: 'Cita Dental', plural: 'Citas Dentales', icon: 'tooth', moduleType: 'calendar', description: 'Agenda de citas odontológicas' },
-        fields: []
-      },
+      schema: SCHEMA_DENTAL_SESSIONS,
       data: [
         { id: 1, title: 'Limpieza semestral',        patientName: 'Andrea Muñoz',    patientEmail: 'andrea.m@email.com',  startDate: '2026-03-24T09:00', endDate: '2026-03-24T09:40', treatmentType: 'cleaning',     status: 'completed', chair: 'Sillón 1', notes: 'Destartraje + pulido.',        createdAt: '2026-03-17', updatedAt: '2026-03-24' },
         { id: 2, title: 'Obturación pieza 36',       patientName: 'Felipe Contreras', patientEmail: 'felipe.c@email.com',  startDate: '2026-03-26T10:00', endDate: '2026-03-26T10:45', treatmentType: 'filling',      status: 'scheduled', chair: 'Sillón 2', notes: 'Caries mesial clase II.',      createdAt: '2026-03-20', updatedAt: '2026-03-20' },

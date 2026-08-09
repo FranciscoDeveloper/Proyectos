@@ -226,14 +226,16 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
 };
 
 // ─────────────────────────── PSYCH SESSIONS (calendar) ───────────────────────
-const SCHEMA_PSYCH_SESSIONS: EntitySchema = {
+export const SCHEMA_PSYCH_SESSIONS: EntitySchema = {
   entity: {
     key: 'psych-sessions',
     singular: 'Sesión',
     plural: 'Sesiones',
     icon: 'calendar',
     moduleType: 'calendar',
-    description: 'Agenda de sesiones terapéuticas'
+    description: 'Agenda de sesiones terapéuticas',
+    encounterEntity: 'psych-records',
+    encounterMatchField: 'patientName'
   },
   fields: [
     { name: 'title',       type: 'text',     label: 'Motivo de sesión',  required: true,  isTitle: true,         showInList: true,  showInDetail: true,  filterable: true, filterType: 'search', minLength: 2 },
@@ -351,7 +353,7 @@ export const SCHEMA_PSYCH_RECORDS: EntitySchema = {
 };
 
 // ─────────────────────────── DENTAL SESSIONS (calendar) ─────────────────────
-const SCHEMA_DENTAL_SESSIONS: EntitySchema = {
+export const SCHEMA_DENTAL_SESSIONS: EntitySchema = {
   entity: {
     key: 'dental-sessions',
     singular: 'Cita Dental',
