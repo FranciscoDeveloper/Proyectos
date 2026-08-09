@@ -962,6 +962,119 @@ export const SCHEMA_TECNOMED_RECORDS: EntitySchema = {
   ]
 };
 
+// ─── Agendas por especialidad (calendar) ──────────────────────────────────────
+//
+// Las 6 especialidades que no tenían agenda propia (kinesiología, nutrición,
+// fonoaudiología, terapia ocupacional, matrona, tecnología médica) caían en la
+// agenda genérica `appointments`, cuyo `encounterEntity` es `clinical-records`
+// (ficha de medicina general). El atajo "Agregar Antecedente" desde el detalle
+// de una cita las mandaba al formulario equivocado.
+//
+// Cada agenda propia es un alias más de la tabla `appointment` en el BFF (ver
+// KEY_ALIASES en lambda-dairi-bff/config/entities.mjs), así que los campos son
+// exactamente los de `appointments` — lo único que cambia es la metadata de la
+// entidad: etiquetas, y sobre todo `encounterEntity`, que apunta a la ficha de
+// la especialidad. Se construyen con una fábrica para que no puedan divergir
+// campo a campo del contrato que el BFF realmente persiste (service/dateTime/
+// durationMinutes/status/modality/notes + patientName/professionalName de join).
+//
+// Icono: todas usan `calendar`. El sidebar (shell.component.html) sólo dibuja un
+// set fijo de iconos y cae a un icono genérico de lista para cualquier otro
+// valor, así que un icono "más expresivo" por especialidad se vería peor, no
+// mejor. `dental-sessions` usa `tooth` porque ese sí existe en el set.
+function specialtyCalendarSchema(meta: {
+  key: string; singular: string; plural: string; description: string; encounterEntity: string;
+}): EntitySchema {
+  return {
+    entity: {
+      key: meta.key,
+      singular: meta.singular,
+      plural: meta.plural,
+      icon: 'calendar',
+      moduleType: 'calendar',
+      description: meta.description,
+      encounterEntity: meta.encounterEntity,
+      encounterMatchField: 'patientName'
+    },
+    fields: [
+      { name: 'service',          type: 'text',     label: 'Servicio',         required: true,  isTitle: true,         showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
+      { name: 'patientName',      type: 'text',     label: 'Paciente',         required: true,  isSubtitle: true,      showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
+      { name: 'dateTime',         type: 'datetime', label: 'Fecha y hora',     required: true,  isCalendarStart: true, showInList: true,  showInDetail: true,  sortable: true },
+      { name: 'durationMinutes',  type: 'number',   label: 'Duración (min)',   required: false,                        showInList: true,  showInDetail: true,  min: 0 },
+      { name: 'status',           type: 'select',   label: 'Estado',           required: true,  isBadge: true,         showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
+        lookupEntity: 'appointment-statuses',
+        options: [
+          { value: 'scheduled',  label: 'Agendada'    },
+          { value: 'confirmed',  label: 'Confirmada'  },
+          { value: 'completed',  label: 'Completada'  },
+          { value: 'cancelled',  label: 'Cancelada'   },
+          { value: 'no_show',    label: 'No asistió'  }
+        ],
+        badgeColors: { scheduled: '#3b82f6', confirmed: '#8b5cf6', completed: '#10b981', cancelled: '#ef4444', no_show: '#f59e0b' }
+      },
+      { name: 'modality',         type: 'select',   label: 'Modalidad',        required: false, isBadge: true,         showInList: true,  showInDetail: true,
+        lookupEntity: 'appointment-modalities',
+        options: [
+          { value: 'in_person', label: 'Presencial'    },
+          { value: 'video',     label: 'Videoconsulta' },
+          { value: 'phone',     label: 'Teléfono'      }
+        ],
+        badgeColors: { in_person: '#6366f1', video: '#0891b2', phone: '#10b981' }
+      },
+      { name: 'professionalName', type: 'text',     label: 'Profesional',      required: false,                        showInList: true,  showInDetail: true },
+      { name: 'notes',            type: 'textarea', label: 'Notas',            required: false,                        showInList: false, showInDetail: true }
+    ]
+  };
+}
+
+export const SCHEMA_KINE_SESSIONS: EntitySchema = specialtyCalendarSchema({
+  key: 'kine-sessions',
+  singular: 'Sesión Kinésica',
+  plural: 'Sesiones Kinésicas',
+  description: 'Agenda de sesiones kinésicas y rehabilitación',
+  encounterEntity: 'kine-records'
+});
+
+export const SCHEMA_NUTRITION_SESSIONS: EntitySchema = specialtyCalendarSchema({
+  key: 'nutrition-sessions',
+  singular: 'Consulta Nutricional',
+  plural: 'Consultas Nutricionales',
+  description: 'Agenda de consultas nutricionales',
+  encounterEntity: 'nutrition-records'
+});
+
+export const SCHEMA_FONO_SESSIONS: EntitySchema = specialtyCalendarSchema({
+  key: 'fono-sessions',
+  singular: 'Sesión Fonoaudiológica',
+  plural: 'Sesiones Fonoaudiológicas',
+  description: 'Agenda de sesiones fonoaudiológicas',
+  encounterEntity: 'fono-records'
+});
+
+export const SCHEMA_OT_SESSIONS: EntitySchema = specialtyCalendarSchema({
+  key: 'ot-sessions',
+  singular: 'Sesión T.O.',
+  plural: 'Sesiones T.O.',
+  description: 'Agenda de sesiones de terapia ocupacional',
+  encounterEntity: 'ot-records'
+});
+
+export const SCHEMA_MATRONA_SESSIONS: EntitySchema = specialtyCalendarSchema({
+  key: 'matrona-sessions',
+  singular: 'Consulta Obstétrica',
+  plural: 'Consultas Obstétricas',
+  description: 'Agenda de consultas obstétricas y ginecológicas',
+  encounterEntity: 'matrona-records'
+});
+
+export const SCHEMA_TECNOMED_SESSIONS: EntitySchema = specialtyCalendarSchema({
+  key: 'tecnomed-sessions',
+  singular: 'Examen',
+  plural: 'Exámenes',
+  description: 'Agenda de exámenes y procedimientos tecnomédicos',
+  encounterEntity: 'tecnomed-records'
+});
+
 // ─── Financial schemas ────────────────────────────────────────────────────────
 
 export const SCHEMA_PAYMENTS: EntitySchema = {

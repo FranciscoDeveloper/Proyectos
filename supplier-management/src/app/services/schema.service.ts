@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { EntityMeta, EntityPayload, EntitySchema } from '../models/entity-schema.model';
-import { AuthService, SCHEMA_CLINICAL_RECORDS, SCHEMA_PSYCH_RECORDS, SCHEMA_DENTAL_RECORDS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES, SCHEMA_KINE_RECORDS, SCHEMA_NUTRITION_RECORDS, SCHEMA_FONO_RECORDS, SCHEMA_OT_RECORDS, SCHEMA_MATRONA_RECORDS, SCHEMA_TECNOMED_RECORDS } from './auth.service';
+import { AuthService, SCHEMA_CLINICAL_RECORDS, SCHEMA_PSYCH_RECORDS, SCHEMA_DENTAL_RECORDS, SCHEMA_PAYMENTS, SCHEMA_EXPENSES, SCHEMA_KINE_RECORDS, SCHEMA_NUTRITION_RECORDS, SCHEMA_FONO_RECORDS, SCHEMA_OT_RECORDS, SCHEMA_MATRONA_RECORDS, SCHEMA_TECNOMED_RECORDS, SCHEMA_KINE_SESSIONS, SCHEMA_NUTRITION_SESSIONS, SCHEMA_FONO_SESSIONS, SCHEMA_OT_SESSIONS, SCHEMA_MATRONA_SESSIONS, SCHEMA_TECNOMED_SESSIONS } from './auth.service';
 
 /**
  * Provides entity schemas to the rest of the app.
@@ -894,6 +894,19 @@ export const ENTITY_CATALOG: Record<string, EntityPayload> = {
         }
       ]
     },
+
+    // ─── Agendas por especialidad ─────────────────────────────────────────
+    // Alias de la tabla `appointment` (ver KEY_ALIASES del BFF). Existen para que
+    // cada especialidad tenga etiquetas propias y, sobre todo, para que el atajo
+    // "Agregar Antecedente" (entity.encounterEntity, leído por
+    // generic-detail.component) abra la ficha de SU especialidad y no la de
+    // medicina general. `data: []` porque las filas llegan del API, no del mock.
+    'kine-sessions':      { schema: SCHEMA_KINE_SESSIONS,      data: [] },
+    'nutrition-sessions': { schema: SCHEMA_NUTRITION_SESSIONS, data: [] },
+    'fono-sessions':      { schema: SCHEMA_FONO_SESSIONS,      data: [] },
+    'ot-sessions':        { schema: SCHEMA_OT_SESSIONS,        data: [] },
+    'matrona-sessions':   { schema: SCHEMA_MATRONA_SESSIONS,   data: [] },
+    'tecnomed-sessions':  { schema: SCHEMA_TECNOMED_SESSIONS,  data: [] },
 
     // ─────────────────────────── FICHAS KINÉSICAS ────────────────────────
     'kine-records': { schema: SCHEMA_KINE_RECORDS, data: [] },

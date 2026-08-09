@@ -893,4 +893,14 @@ export const KEY_ALIASES = {
   'tecnomed-records':  'clinical-records',
   'psych-sessions':    'appointments',
   'dental-sessions':   'appointments',
+  // Agendas propias de las 6 especialidades que antes caían en la genérica
+  // `appointments`. Mismo patrón que psych/dental: una vista distinta sobre la
+  // misma tabla `appointment`, con etiquetas y `encounterEntity` propios en el
+  // frontend (ver auth.service.ts / schema.service.ts).
+  'kine-sessions':      'appointments',
+  'nutrition-sessions': 'appointments',
+  'fono-sessions':      'appointments',
+  'ot-sessions':        'appointments',
+  'matrona-sessions':   'appointments',
+  'tecnomed-sessions':  'appointments',
 };

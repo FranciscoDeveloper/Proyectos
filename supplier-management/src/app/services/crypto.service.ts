@@ -51,6 +51,16 @@ export const ENCRYPTED_FIELDS: Record<string, string[]> = {
     'currentMedications', 'diagnosisCode', 'diagnosisLabel', 'differentialDx',
     'soapSubjective', 'soapObjective', 'soapAssessment', 'soapPlan'
   ],
+  // Agendas por especialidad: alias de la misma tabla `appointment`, así que
+  // deben cifrar exactamente los mismos campos que `appointments`. Si faltaran,
+  // una nota escrita desde `kine-sessions` quedaría en claro mientras la misma
+  // fila leída como `appointments` se esperaría cifrada.
+  'kine-sessions':      ['patientEmail', 'notes'],
+  'nutrition-sessions': ['patientEmail', 'notes'],
+  'fono-sessions':      ['patientEmail', 'notes'],
+  'ot-sessions':        ['patientEmail', 'notes'],
+  'matrona-sessions':   ['patientEmail', 'notes'],
+  'tecnomed-sessions':  ['patientEmail', 'notes'],
   payments:  ['notes'],
   expenses:  ['notes'],
 };
