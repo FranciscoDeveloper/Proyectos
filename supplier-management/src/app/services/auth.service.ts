@@ -226,46 +226,8 @@ export const SCHEMA_CLINICAL_RECORDS: EntitySchema = {
 };
 
 // ─────────────────────────── PSYCH SESSIONS (calendar) ───────────────────────
-export const SCHEMA_PSYCH_SESSIONS: EntitySchema = {
-  entity: {
-    key: 'psych-sessions',
-    singular: 'Sesión',
-    plural: 'Sesiones',
-    icon: 'calendar',
-    moduleType: 'calendar',
-    description: 'Agenda de sesiones terapéuticas',
-    encounterEntity: 'psych-records',
-    encounterMatchField: 'patientName'
-  },
-  fields: [
-    { name: 'title',       type: 'text',     label: 'Motivo de sesión',  required: true,  isTitle: true,         showInList: true,  showInDetail: true,  filterable: true, filterType: 'search', minLength: 2 },
-    { name: 'patientName', type: 'text',     label: 'Paciente',          required: true,  isSubtitle: true,      showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
-    { name: 'startDate',   type: 'datetime', label: 'Fecha y hora',      required: true,  isCalendarStart: true, showInList: true,  showInDetail: true,  sortable: true },
-    { name: 'endDate',     type: 'datetime', label: 'Fin',               required: false, isCalendarEnd: true,   showInList: false, showInDetail: true },
-    { name: 'sessionType', type: 'select',   label: 'Tipo de Sesión',    required: true,  isBadge: true,         showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
-      options: [
-        { value: 'individual', label: 'Individual' },
-        { value: 'couple',     label: 'Pareja'     },
-        { value: 'family',     label: 'Familiar'   },
-        { value: 'group',      label: 'Grupal'     },
-        { value: 'evaluation', label: 'Evaluación' }
-      ],
-      badgeColors: { individual: '#6366f1', couple: '#ec4899', family: '#f59e0b', group: '#3b82f6', evaluation: '#8b5cf6' }
-    },
-    { name: 'status', type: 'select', label: 'Estado', required: true, isBadge: true, showInList: true, showInDetail: true, filterable: true, filterType: 'select',
-      options: [
-        { value: 'scheduled', label: 'Programada' },
-        { value: 'completed', label: 'Completada' },
-        { value: 'cancelled', label: 'Cancelada'  },
-        { value: 'no_show',   label: 'No asistió' }
-      ],
-      badgeColors: { scheduled: '#3b82f6', completed: '#10b981', cancelled: '#ef4444', no_show: '#f59e0b' }
-    },
-    { name: 'patientEmail', type: 'email', label: 'Email del paciente', required: false, showInList: false, showInDetail: true },
-    { name: 'room',  type: 'text',     label: 'Consulta',  required: false, showInList: true,  showInDetail: true },
-    { name: 'notes', type: 'textarea', label: 'Notas',     required: false, showInList: false, showInDetail: true }
-  ]
-};
+// Definida abajo con la fábrica `specialtyCalendarSchema`, junto a las otras
+// agendas de especialidad — ver la sección "Agendas por especialidad".
 
 // ─────────────────────────── PSYCH RECORDS (clinical-record) ─────────────────
 export const SCHEMA_PSYCH_RECORDS: EntitySchema = {
@@ -353,50 +315,8 @@ export const SCHEMA_PSYCH_RECORDS: EntitySchema = {
 };
 
 // ─────────────────────────── DENTAL SESSIONS (calendar) ─────────────────────
-export const SCHEMA_DENTAL_SESSIONS: EntitySchema = {
-  entity: {
-    key: 'dental-sessions',
-    singular: 'Cita Dental',
-    plural: 'Citas Dentales',
-    icon: 'tooth',
-    moduleType: 'calendar',
-    description: 'Agenda de citas odontológicas',
-    encounterEntity: 'dental-records',
-    encounterMatchField: 'patientName'
-  },
-  fields: [
-    { name: 'title',       type: 'text',     label: 'Procedimiento',     required: true,  isTitle: true,         showInList: true,  showInDetail: true,  filterable: true, filterType: 'search', minLength: 2 },
-    { name: 'patientName', type: 'text',     label: 'Paciente',          required: true,  isSubtitle: true,      showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
-    { name: 'startDate',   type: 'datetime', label: 'Fecha y hora',      required: true,  isCalendarStart: true, showInList: true,  showInDetail: true,  sortable: true },
-    { name: 'endDate',     type: 'datetime', label: 'Fin',               required: false, isCalendarEnd: true,   showInList: false, showInDetail: true },
-    { name: 'treatmentType', type: 'select', label: 'Tipo de Tratamiento', required: true, isBadge: true,        showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
-      options: [
-        { value: 'checkup',     label: 'Control'          },
-        { value: 'cleaning',    label: 'Limpieza'         },
-        { value: 'filling',     label: 'Obturación'       },
-        { value: 'extraction',  label: 'Extracción'       },
-        { value: 'root_canal',  label: 'Endodoncia'       },
-        { value: 'orthodontics', label: 'Ortodoncia'      },
-        { value: 'implant',     label: 'Implante'         },
-        { value: 'whitening',   label: 'Blanqueamiento'   },
-        { value: 'surgery',     label: 'Cirugía'          }
-      ],
-      badgeColors: { checkup: '#10b981', cleaning: '#3b82f6', filling: '#f59e0b', extraction: '#ef4444', root_canal: '#8b5cf6', orthodontics: '#6366f1', implant: '#14b8a6', whitening: '#ec4899', surgery: '#f97316' }
-    },
-    { name: 'status', type: 'select', label: 'Estado', required: true, isBadge: true, showInList: true, showInDetail: true, filterable: true, filterType: 'select',
-      options: [
-        { value: 'scheduled', label: 'Programada' },
-        { value: 'completed', label: 'Completada' },
-        { value: 'cancelled', label: 'Cancelada'  },
-        { value: 'no_show',   label: 'No asistió' }
-      ],
-      badgeColors: { scheduled: '#3b82f6', completed: '#10b981', cancelled: '#ef4444', no_show: '#f59e0b' }
-    },
-    { name: 'patientEmail', type: 'email', label: 'Email del paciente', required: false, showInList: false, showInDetail: true },
-    { name: 'chair',  type: 'text',     label: 'Sillón',    required: false, showInList: true,  showInDetail: true },
-    { name: 'notes',  type: 'textarea', label: 'Notas',     required: false, showInList: false, showInDetail: true }
-  ]
-};
+// Definida abajo con la fábrica `specialtyCalendarSchema`, junto a las otras
+// agendas de especialidad — ver la sección "Agendas por especialidad".
 
 // ─────────────────────────── DENTAL RECORDS (clinical-record) ────────────────
 export const SCHEMA_DENTAL_RECORDS: EntitySchema = {
@@ -986,21 +906,33 @@ export const SCHEMA_TECNOMED_RECORDS: EntitySchema = {
 // mejor. `dental-sessions` usa `tooth` porque ese sí existe en el set.
 function specialtyCalendarSchema(meta: {
   key: string; singular: string; plural: string; description: string; encounterEntity: string;
+  /** Sólo para las agendas que ya tenían un icono propio en el set del sidebar. */
+  icon?: string;
+  /** Etiqueta del campo `service` (el título de la cita) cuando la especialidad
+   *  le da un nombre propio — p.ej. "Procedimiento" en odontología. */
+  serviceLabel?: string;
 }): EntitySchema {
   return {
     entity: {
       key: meta.key,
       singular: meta.singular,
       plural: meta.plural,
-      icon: 'calendar',
+      icon: meta.icon ?? 'calendar',
       moduleType: 'calendar',
       description: meta.description,
       encounterEntity: meta.encounterEntity,
       encounterMatchField: 'patientName'
     },
     fields: [
-      { name: 'service',          type: 'text',     label: 'Servicio',         required: true,  isTitle: true,         showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
-      { name: 'patientName',      type: 'text',     label: 'Paciente',         required: true,  isSubtitle: true,      showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
+      { name: 'service',          type: 'text',     label: meta.serviceLabel ?? 'Servicio', required: true,  isTitle: true,         showInList: true,  showInDetail: true,  filterable: true, filterType: 'search' },
+      // `appointment.patient_id` es NOT NULL y es la única forma de decir de quién
+      // es la cita: `patientName` viene del JOIN con `patient` y toDb lo descarta.
+      // Con `patientName` como campo escribible el formulario de "Nueva cita"
+      // siempre respondía 500 (null value in column "patient_id"). El paciente se
+      // elige de la lista real y `patientName` queda como lectura para la agenda.
+      { name: 'patientId',        type: 'select',   label: 'Paciente',         required: true,  showInList: false, showInDetail: false,
+        lookupEntity: 'patients', lookupValueField: 'id', lookupLabelField: 'nombre' },
+      { name: 'patientName',      type: 'text',     label: 'Paciente',         required: false, isSubtitle: true,      showInList: true,  showInDetail: true,  filterable: true, filterType: 'search', displayOnly: true },
       { name: 'dateTime',         type: 'datetime', label: 'Fecha y hora',     required: true,  isCalendarStart: true, showInList: true,  showInDetail: true,  sortable: true },
       { name: 'durationMinutes',  type: 'number',   label: 'Duración (min)',   required: false,                        showInList: true,  showInDetail: true,  min: 0 },
       { name: 'status',           type: 'select',   label: 'Estado',           required: true,  isBadge: true,         showInList: true,  showInDetail: true,  filterable: true, filterType: 'select',
@@ -1023,11 +955,41 @@ function specialtyCalendarSchema(meta: {
         ],
         badgeColors: { in_person: '#6366f1', video: '#0891b2', phone: '#10b981' }
       },
-      { name: 'professionalName', type: 'text',     label: 'Profesional',      required: false,                        showInList: true,  showInDetail: true },
+      // También resuelto por JOIN (professional.name). createEntity estampa el
+      // professional_id del profesional autenticado, así que tampoco se escribe.
+      { name: 'professionalName', type: 'text',     label: 'Profesional',      required: false,                        showInList: true,  showInDetail: true, displayOnly: true },
       { name: 'notes',            type: 'textarea', label: 'Notas',            required: false,                        showInList: false, showInDetail: true }
     ]
   };
 }
+
+// psych-sessions y dental-sessions existían desde antes que la fábrica, con
+// campos heredados de los datos de demo (`title`, `startDate`, `endDate`,
+// `sessionType`/`treatmentType`, `room`/`chair`, `patientEmail`) que la tabla
+// `appointment` nunca tuvo. Mientras estuvieron duplicadas inline con
+// `fields: []` en ENTITY_CATALOG eso no se notaba; al registrarlas de verdad
+// pasaron a ser el contrato real del calendario y del formulario, y ninguno de
+// esos campos viaja de ida ni de vuelta (ver `appointments.toDb/fromDb` en
+// lambda-dairi-bff/config/entities.mjs). Ahora salen de la misma fábrica que
+// las otras seis, así que no pueden volver a divergir.
+export const SCHEMA_PSYCH_SESSIONS: EntitySchema = specialtyCalendarSchema({
+  key: 'psych-sessions',
+  singular: 'Sesión',
+  plural: 'Sesiones',
+  description: 'Agenda de sesiones terapéuticas',
+  encounterEntity: 'psych-records',
+  serviceLabel: 'Motivo de sesión'
+});
+
+export const SCHEMA_DENTAL_SESSIONS: EntitySchema = specialtyCalendarSchema({
+  key: 'dental-sessions',
+  singular: 'Cita Dental',
+  plural: 'Citas Dentales',
+  description: 'Agenda de citas odontológicas',
+  encounterEntity: 'dental-records',
+  icon: 'tooth',
+  serviceLabel: 'Procedimiento'
+});
 
 export const SCHEMA_KINE_SESSIONS: EntitySchema = specialtyCalendarSchema({
   key: 'kine-sessions',
