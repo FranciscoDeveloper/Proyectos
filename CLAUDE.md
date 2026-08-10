@@ -81,8 +81,36 @@ npm run build
 ```
 
 ```powershell
-python -m awscli s3 sync "dist/supplier-management/browser" "s3://friquelme-firstpage" --delete --region us-east-1
+# 1. Assets con hash de contenido — SIN --delete (ver aviso abajo)
+python -m awscli s3 sync "dist/supplier-management/browser" "s3://friquelme-firstpage" --region us-east-1
+
+# 2. index.html SIEMPRE con no-cache (no lleva hash en el nombre)
+python -m awscli s3 cp "dist/supplier-management/browser/index.html" "s3://friquelme-firstpage/index.html" `
+  --region us-east-1 --content-type "text/html" `
+  --cache-control "no-cache, must-revalidate" --metadata-directive REPLACE
 ```
+
+### ⚠️ NUNCA usar `--delete` en este bucket
+
+`dairi.cl` sirve desde **CloudFront**, no desde S3 directo. `index.html` no lleva
+hash en el nombre, así que CloudFront lo cachea con el TTL por defecto de la
+distribución (~24 h) — antes ni siquiera tenía cabecera `Cache-Control`.
+
+Un `s3 sync --delete` borra los `chunk-*.js` del build anterior mientras
+CloudFront sigue entregando el `index.html` viejo que los referencia. Resultado:
+**404 en los chunks y pantalla en blanco en producción durante horas**. Pasó el
+2026-08-07 y dejó la app caída (`chunk-TMP3UDNV.js` → 404, `app-root` vacío).
+
+Reglas:
+- Desplegar **sin `--delete`**: los assets con hash son inmutables y ocupan poco;
+  dejarlos permite que cualquier HTML cacheado siga funcionando.
+- `index.html` siempre con `Cache-Control: no-cache, must-revalidate` para que
+  CloudFront revalide y el deploy se propague de inmediato.
+- Si alguna vez hace falta limpiar el bucket, **invalidar CloudFront primero**
+  (`cloudfront create-invalidation --paths "/*"`) y borrar después. El usuario
+  IAM `friquelme` **no** tiene permisos de CloudFront hoy (`ListDistributions` y
+  `CreateInvalidation` dan AccessDenied), así que esa limpieza requiere otra
+  credencial.
 
 ## Bucket S3 — friquelme-firstpage
 
