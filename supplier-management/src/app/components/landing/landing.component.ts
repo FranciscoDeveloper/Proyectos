@@ -4,7 +4,7 @@ import { Title, Meta } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
 
 const SEO_TITLE = 'Dairi — Software clínico para Chile | Citas, fichas y pagos online';
-const SEO_DESCRIPTION = 'Dairi es un software de gestión clínica en la nube para clínicas médicas y dentales en Chile: agenda de citas, fichas clínicas electrónicas de 9 especialidades, reserva online con pago vía Flow.cl, transcripción de consultas con IA y sincronización con Google Calendar. Plan Starter gratis para agenda de citas, planes pagos desde $6.990/mes con 30 días de prueba.';
+const SEO_DESCRIPTION = 'Dairi es un software de gestión clínica en la nube para clínicas médicas y dentales en Chile: agenda de citas, fichas clínicas electrónicas de 9 especialidades, reserva online con pago seguro por tarjeta o Webpay, transcripción de consultas con IA y sincronización con Google Calendar. Plan Starter gratis para agenda de citas, planes pagos desde $6.990/mes con 30 días de prueba.';
 const SEO_URL = 'https://dairi.cl/';
 const SEO_IMAGE = 'https://dairi.cl/og-image.png';
 
@@ -43,7 +43,7 @@ const JSON_LD_SCRIPTS = [
       ],
       featureList: [
         'Plan gratis de agenda de citas para 1 profesional', 'Gestión de pacientes', 'Calendario de citas', 'Fichas clínicas especializadas (9 especialidades)',
-        'Reserva online con pago vía Flow.cl', 'Transcripción de consultas con IA (Deepgram Nova-3)',
+        'Reserva online con pago seguro por tarjeta o Webpay', 'Transcripción de consultas con IA (Deepgram Nova-3)',
         'Nota SOAP generada por IA (Dairi IA)', 'Sincronización con Google Calendar y Google Meet',
         'Reportes clínicos y comisiones', 'Presupuestos con cobro online',
         'Chat interno con asistente IA Dairi', 'Privacidad por profesional aplicada en servidor',

@@ -4,10 +4,10 @@
   vía los servicios Title y Meta de @angular/platform-browser:
 
     title.setTitle('Dairi — Software de gestión clínica para Chile | Citas, fichas y pagos online');
-    meta.updateTag({ name: 'description', content: 'Dairi es un software clínico en la nube para clínicas médicas y dentales en Chile: agenda de citas, fichas clínicas electrónicas de 9 especialidades, reserva online con pago vía Flow.cl, transcripción de consultas con IA y sincronización con Google Calendar. Desde $6.990/mes.' });
+    meta.updateTag({ name: 'description', content: 'Dairi es un software clínico en la nube para clínicas médicas y dentales en Chile: agenda de citas, fichas clínicas electrónicas de 9 especialidades, reserva online con pago seguro por tarjeta o Webpay, transcripción de consultas con IA y sincronización con Google Calendar. Desde $6.990/mes.' });
     meta.updateTag({ property: 'og:title', content: 'Dairi — Software de gestión clínica para Chile' });
-    meta.updateTag({ property: 'og:description', content: 'Gestión de citas, fichas clínicas y pagos online para clínicas en Chile. IA, Flow.cl y Google Calendar.' });
-    meta.updateTag({ name: 'keywords', content: 'software clínico Chile, gestión clínica, agenda médica, ficha clínica electrónica, software clínica dental Chile, reserva de horas médicas online, pagos Flow' });
+    meta.updateTag({ property: 'og:description', content: 'Gestión de citas, fichas clínicas y pagos online para clínicas en Chile. IA, pagos seguros y Google Calendar.' });
+    meta.updateTag({ name: 'keywords', content: 'software clínico Chile, gestión clínica, agenda médica, ficha clínica electrónica, software clínica dental Chile, reserva de horas médicas online, pagos online' });
 
   Structured data recomendada (agregar como <script type="application/ld+json"> en index.html):
     {
@@ -16,7 +16,7 @@
       "name": "Dairi",
       "applicationCategory": "BusinessApplication",
       "operatingSystem": "Web, Android, iOS",
-      "description": "Software de gestión clínica para Chile: citas, fichas clínicas electrónicas, reserva online con pagos vía Flow.cl, transcripción de consultas con IA y sincronización con Google Calendar.",
+      "description": "Software de gestión clínica para Chile: citas, fichas clínicas electrónicas, reserva online con pago seguro por tarjeta o Webpay, transcripción de consultas con IA y sincronización con Google Calendar.",
       "offers": { "@type": "Offer", "price": "6990", "priceCurrency": "CLP" },
       "areaServed": "CL",
       "url": "https://dairi.cl"
@@ -68,7 +68,7 @@
     ✦ Cupos limitados · Solo 50 clínicas en el plan de lanzamiento · Reserva el tuyo hoy
   </div>
   <h1>Software clínico para Chile<br><span class="gradient">citas, fichas y pagos online</span></h1>
-  <p>Agenda online, fichas clínicas especializadas y cobros con Flow — todo en un solo software. Transcripción de consultas con IA, comisiones automáticas y cada profesional ve solo sus propios datos.</p>
+  <p>Agenda online, fichas clínicas especializadas y cobros online seguros con tarjeta — todo en un solo software. Transcripción de consultas con IA, comisiones automáticas y cada profesional ve solo sus propios datos.</p>
   <div class="hero-btns">
     <a routerLink="/login" class="btn-primary">Comenzar gratis — 30 días</a>
     <a href="#features" class="btn-secondary">Ver funcionalidades →</a>
@@ -77,7 +77,7 @@
   <!-- POWERED-BY INTEGRATION STRIP -->
   <div class="powered-by">
     <span class="pb-label">Integrado con</span>
-    <span class="pb-chip pb-flow">Flow.cl</span>
+    <span class="pb-chip pb-flow">Pago online seguro</span>
     <span class="pb-chip pb-google">Google Calendar &amp; Meet</span>
     <span class="pb-chip pb-deepgram">Deepgram Nova-3</span>
   </div>
@@ -290,7 +290,7 @@
     <div class="feature-card">
       <div class="feature-icon">💸</div>
       <h3>Pagos, Comisiones y Presupuestos</h3>
-      <p>Cobros online vía Flow (Redcompra y crédito incluidos). Cálculo automático de comisiones por profesional y cotizaciones enviadas por email al paciente.</p>
+      <p>Cobros online con tarjeta o Webpay (Redcompra y crédito incluidos). Cálculo automático de comisiones por profesional y cotizaciones enviadas por email al paciente.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">💬</div>
@@ -335,8 +335,8 @@
 <!-- INTEGRATIONS -->
 <section id="integraciones">
   <div class="section-label">Integraciones nativas</div>
-  <h2 class="section-title">Integrado con Flow, Google Calendar y Deepgram Nova 3</h2>
-  <p class="section-sub">Dairi se conecta de forma nativa con las plataformas que tu clínica ya usa: pagos online con Flow.cl, agenda y videoconsultas con Google Calendar, y transcripción clínica con IA. Sin configuraciones complejas ni costos adicionales ocultos — cada integración funciona desde el primer día.</p>
+  <h2 class="section-title">Integrado con pagos online, Google Calendar y Deepgram Nova 3</h2>
+  <p class="section-sub">Dairi se conecta de forma nativa con las plataformas que tu clínica ya usa: pago online seguro con tarjeta o Webpay, agenda y videoconsultas con Google Calendar, y transcripción clínica con IA. Sin configuraciones complejas ni costos adicionales ocultos — cada integración funciona desde el primer día.</p>
   <div class="integrations-grid">
     <div class="integration-card">
       <div class="int-logo">
@@ -349,8 +349,8 @@
         </svg>
       </div>
       <div class="int-body">
-        <strong>Flow.cl — Pagos online para citas médicas</strong>
-        <p>Integración nativa con el flujo de reserva: el paciente agenda su hora y paga en el mismo paso con la pasarela de pagos chilena líder. El estado del pago se verifica y actualiza automáticamente en la agenda.</p>
+        <strong>Pago online seguro — para citas médicas</strong>
+        <p>Integración nativa con el flujo de reserva: el paciente agenda su hora y paga en el mismo paso, con tarjeta o Webpay, a través de una pasarela de pagos chilena. El estado del pago se verifica y actualiza automáticamente en la agenda.</p>
         <p><em>Beneficio: menos inasistencias y el dinero directo en tu cuenta bancaria, sin cobranza manual.</em></p>
       </div>
     </div>
@@ -436,7 +436,7 @@
         <li>Agenda de citas</li>
         <li>Los pacientes reservan su hora solos, las 24 hs</li>
         <li>Resumen diario de reservas</li>
-        <li class="feature-commission">Pagos online (2,2% por transacción)</li>
+        <li class="feature-commission">Pagos online (4% por transacción)</li>
         <li>Confirmaciones y recordatorios por email</li>
         <li>Capacitaciones y soporte incluidos</li>
         <li>Soporte por email</li>
@@ -464,7 +464,7 @@
         <li>Chat de soporte con el asistente Dairi IA</li>
         <li>Resumen diario de la actividad clínica</li>
         <li class="feature-highlight">✦ Dicta tus consultas con voz (10 h/mes)</li>
-        <li class="feature-commission">Pagos online (2% por transacción)</li>
+        <li class="feature-commission">Pagos online (3% por transacción)</li>
         <li>Confirmaciones y recordatorios por email</li>
         <li>Capacitaciones y soporte incluidos</li>
         <li>Soporte por email</li>
