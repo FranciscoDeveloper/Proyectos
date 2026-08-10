@@ -145,6 +145,24 @@ export class ClinicalEncounterFormComponent implements OnInit {
     return this.loadedRecord()?.[name] ?? '';
   }
 
+  /**
+   * ¿`bmi` es un IMC de verdad (autocalculado desde peso y talla)?
+   *
+   * Sólo en medicina general. Las otras 8 fichas reutilizan las mismas columnas
+   * como texto libre (migración 018): en odontología `bmi` es "Oclusión",
+   * `weight` "Índice de Placa" y `height` "Maloclusión"; en psicología son
+   * "Insight", "Percepción" y "Cognición". Tratarlas como IMC dejaba el campo
+   * permanentemente deshabilitado — el profesional no podía escribirlo nunca —
+   * y `recalcBmi()` podía además pisarlo con un número sacado de dos textos que
+   * no son kg ni cm. La señal está en el propio esquema: medicina general
+   * declara los tres `type: 'number'`, las especialidades `type: 'text'`.
+   */
+  readonly bmiIsCalculated = computed(() => {
+    const fields = this.schema()?.fields ?? [];
+    const isNum = (n: string) => fields.find(f => f.name === n)?.type === 'number';
+    return isNum('bmi') && isNum('weight') && isNum('height');
+  });
+
   constructor() {
     // El banner "el ingreso manual está deshabilitado" solo era cierto para el botón
     // de enviar (ver el [disabled] del submit) — los campos del formulario seguían
@@ -161,7 +179,7 @@ export class ClinicalEncounterFormComponent implements OnInit {
       if (!this.form) return;
       const locked = this.recorder.state() === 'done';
       const permanentlyDisabled = new Set<string>([
-        'bmi',
+        ...(this.bmiIsCalculated() ? ['bmi'] : []),
         ...(this.schema()?.fields.filter(f => f.isStable).map(f => f.name) ?? [])
       ]);
       Object.keys(this.form.controls).forEach(name => {
@@ -237,8 +255,9 @@ export class ClinicalEncounterFormComponent implements OnInit {
     group['encounterDate'] = [new Date().toISOString().slice(0, 10), [Validators.required]];
     this.form = this.fb.group(group);
 
-    // BMI is auto-calculated from weight and height — disable editing
-    if (this.form.get('bmi')) {
+    // BMI is auto-calculated from weight and height — disable editing.
+    // Sólo cuando `bmi` es realmente el IMC (ver bmiIsCalculated).
+    if (this.bmiIsCalculated() && this.form.get('bmi')) {
       this.form.get('bmi')!.disable({ emitEvent: false });
       this.form.get('weight')?.valueChanges.subscribe(() => this.recalcBmi());
       this.form.get('height')?.valueChanges.subscribe(() => this.recalcBmi());
