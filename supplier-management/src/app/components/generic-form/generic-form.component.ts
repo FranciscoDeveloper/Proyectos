@@ -96,6 +96,22 @@ export class GenericFormComponent implements OnInit {
         this.schema()!.fields.forEach(f => {
           if (f.type === 'tags' && Array.isArray(record[f.name])) {
             patchValue[f.name] = record[f.name].join(', ');
+          } else if (f.type === 'datetime' && typeof record[f.name] === 'string' && record[f.name]) {
+            // <input type="datetime-local"> sólo acepta "YYYY-MM-DDTHH:mm"; la API
+            // devuelve ISO completo con zona ("2026-08-25T09:30:00.000Z"), que el
+            // navegador descarta y deja el campo vacío — editar una cita para
+            // cambiar el estado obligaba a re-escribir la fecha desde cero.
+            // Se recorta sin convertir de zona a propósito: es exactamente lo que
+            // el formulario vuelve a enviar al guardar, así que la hora almacenada
+            // no se mueve por abrir el formulario.
+            patchValue[f.name] = String(record[f.name]).slice(0, 16);
+          } else if (f.type === 'select' && f.lookupEntity && record[f.name] != null && record[f.name] !== '') {
+            // getFieldOptions() convierte a string el valor de cada opción de lookup,
+            // pero la API devuelve estas FKs como número (professionalId 62,
+            // patientId 107). Al aplicar el número crudo ningún <option> coincide,
+            // el control queda en null y el <select> se veía vacío al editar — y si
+            // el campo era requerido, el formulario ya no dejaba guardar.
+            patchValue[f.name] = String(record[f.name]);
           } else {
             patchValue[f.name] = record[f.name] ?? '';
           }
