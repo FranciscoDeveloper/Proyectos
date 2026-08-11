@@ -41,7 +41,10 @@ export const handler = async (event) => {
       }
 
       const id  = randomUUID();
-      const key = `recordings/${filename}`;
+      // Encode entityKey in the path so lambda-transcribe can resolve the AI prompt per specialty
+      const safeEntityKey = (entityKey || 'default').replace(/[^a-zA-Z0-9_-]/g, '-');
+      const safeRecordId  = parseInt(String(recordId || 0)) || 0;
+      const key = `recordings/${safeEntityKey}/${safeRecordId}/${filename}`;
 
       // IMPORTANTE: no firmar Metadata (x-amz-meta-*) en la URL presignada.
       // El browser sólo envía Content-Type en el PUT; si la firma incluye
