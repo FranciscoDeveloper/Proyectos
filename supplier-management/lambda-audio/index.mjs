@@ -1,9 +1,27 @@
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "node:crypto";
+import jwt from "jsonwebtoken";
 
-const BUCKET = process.env.AUDIO_BUCKET || "budget-riquelmetapia";
-const s3     = new S3Client({ region: process.env.AWS_REGION || "us-east-1" });
+const BUCKET     = process.env.AUDIO_BUCKET || "budget-riquelmetapia";
+const s3         = new S3Client({ region: process.env.AWS_REGION || "us-east-1" });
+const JWT_SECRET = process.env.JWT_SECRET;
+
+// Neither route checked Authorization at all: /presign let anyone upload to
+// this bucket and trigger the transcribe+Bedrock pipeline for free, and
+// /confirm signed a 7-day GET URL for any `key` the caller supplied — i.e.
+// unauthenticated read access to every clinical audio recording (therapy
+// sessions included) ever stored here. This is the minimum fix: require the
+// same Bearer JWT every other endpoint in this app requires.
+function requireAuth(event) {
+  const authHeader = event?.headers?.authorization || event?.headers?.Authorization || "";
+  if (!authHeader.startsWith("Bearer ")) return null;
+  try {
+    return jwt.verify(authHeader.slice(7).trim(), JWT_SECRET);
+  } catch {
+    return null;
+  }
+}
 
 const CORS = {
   "Access-Control-Allow-Origin":  "*",
@@ -32,6 +50,7 @@ export const handler = async (event) => {
   // Genera una presigned PUT URL para que el browser suba directo a S3.
   // El binario nunca pasa por Lambda, eliminando el límite de 6 MB.
   if (rawPath.endsWith("/presign") && method === "POST") {
+    if (!requireAuth(event)) return resp(401, { message: "Token de autenticación requerido o inválido." });
     try {
       const body     = JSON.parse(event.body || "{}");
       const { filename, mimeType, entityKey, recordId, duration } = body;
@@ -70,6 +89,7 @@ export const handler = async (event) => {
   // Llamado por el frontend tras el PUT exitoso a S3.
   // Genera la presigned GET URL de reproducción y devuelve el resultado final.
   if (rawPath.endsWith("/confirm") && method === "POST") {
+    if (!requireAuth(event)) return resp(401, { message: "Token de autenticación requerido o inválido." });
     try {
       const body = JSON.parse(event.body || "{}");
       const { key, id, filename, entityKey, recordId, duration } = body;
