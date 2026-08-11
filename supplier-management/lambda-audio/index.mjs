@@ -23,6 +23,38 @@ function requireAuth(event) {
   }
 }
 
+// La S3 key lleva la especialidad y la ficha en el prefijo:
+//   recordings/{entityKey}/{recordId}/{filename}
+// `transcribe-nova-3` lee `entityKey` de ahí para elegir el prompt clínico de
+// su especialidad (config/ai-prompts.json) sin consultar la BD — esta Lambda no
+// está en la VPC y no puede hablar con RDS. `dairi-soap-processor` sigue
+// funcionando porque parsea sólo el nombre del archivo (`key.split("/").pop()`),
+// no el prefijo.
+//
+// Además es la única fuente de la key: /confirm ya NO firma la que manda el
+// cliente, la reconstruye con esta misma función. Por eso cada segmento se
+// sanitiza: sin esto, un `entityKey` con "../" dejaría firmar objetos fuera del
+// propio prefijo. Se conservan las tildes y la ñ porque el nombre del archivo
+// codifica el nombre del paciente y del profesional, y `dairi-soap-processor`
+// los usa para encontrar la ficha.
+function segment(value, fallback) {
+  const clean = String(value ?? "")
+    .replace(/[/\\]/g, "_")   // nada de separadores de ruta
+    .replace(/\.\.+/g, ".")   // nada de traversal
+    .trim();
+  return clean || fallback;
+}
+
+function buildKey(entityKey, recordId, filename) {
+  const id = Number.parseInt(String(recordId ?? ""), 10);
+  return [
+    "recordings",
+    segment(entityKey, "unknown"),
+    Number.isFinite(id) && id > 0 ? String(id) : "unknown",
+    segment(filename, "audio.webm"),
+  ].join("/");
+}
+
 const CORS = {
   "Access-Control-Allow-Origin":  "*",
   "Access-Control-Allow-Methods": "GET,POST,PUT,OPTIONS",
@@ -59,8 +91,11 @@ export const handler = async (event) => {
         return resp(400, { message: "filename y mimeType son requeridos." });
       }
 
+      // entityKey/recordId no son obligatorios a propósito: el SPA se sirve por
+      // CloudFront y un cliente con el bundle viejo en caché podría no mandarlos.
+      // Cae a "unknown" y `transcribe-nova-3` usa el prompt `default`.
       const id  = randomUUID();
-      const key = `recordings/${filename}`;
+      const key = buildKey(entityKey, recordId, filename);
 
       // IMPORTANTE: no firmar Metadata (x-amz-meta-*) en la URL presignada.
       // El browser sólo envía Content-Type en el PUT; si la firma incluye
@@ -92,11 +127,20 @@ export const handler = async (event) => {
     if (!requireAuth(event)) return resp(401, { message: "Token de autenticación requerido o inválido." });
     try {
       const body = JSON.parse(event.body || "{}");
-      const { key, id, filename, entityKey, recordId, duration } = body;
+      const { id, filename, entityKey, recordId, duration } = body;
 
-      if (!key) {
-        return resp(400, { message: "key es requerido." });
+      // `key` del body se IGNORA deliberadamente (antes se firmaba tal cual).
+      // Firmar la key del cliente convertía este endpoint en un lector universal
+      // del bucket: con un JWT cualquiera — el de una cuenta de prueba propia —
+      // se podía pedir una GET firmada de 7 días para el audio de la sesión de
+      // psicoterapia de otro profesional, sólo adivinando su ruta. La key se
+      // reconstruye con los mismos datos que usó /presign, así que un llamador
+      // sólo puede firmar dentro de su propio {entityKey}/{recordId}.
+      if (!filename) {
+        return resp(400, { message: "filename es requerido." });
       }
+
+      const key = buildKey(entityKey, recordId, filename);
 
       const url = await getSignedUrl(
         s3,
@@ -107,7 +151,8 @@ export const handler = async (event) => {
       return resp(201, {
         id:        id || randomUUID(),
         url,
-        filename:  filename || key.split("/").pop(),
+        key,
+        filename:  filename,
         duration:  parseInt(String(duration || 0)),
         entityKey: entityKey || "",
         recordId:  parseInt(String(recordId || 0)),
