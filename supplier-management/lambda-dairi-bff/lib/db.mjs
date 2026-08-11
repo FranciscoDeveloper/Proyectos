@@ -9,7 +9,7 @@ export const pool = new Pool({
   database:                process.env.DB_NAME,
   user:                    process.env.DB_USER,
   password:                process.env.DB_PASSWORD,
-  max:                     5,
+  max:                     2,  // 1 active + 1 buffer per Lambda container; prevents exhausting RDS at ~55 concurrent invocations
   idleTimeoutMillis:       30_000,
   connectionTimeoutMillis: 5_000,
   ssl: { rejectUnauthorized: false },

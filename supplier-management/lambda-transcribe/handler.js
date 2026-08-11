@@ -10,7 +10,7 @@ const { responseToTurns, turnsToTranscript } = require("./deepgram-turns");
 const s3 = new S3Client({ region: process.env.AWS_REGION ?? "us-east-1" });
 const bedrock = new BedrockRuntimeClient({ region: process.env.AWS_REGION ?? "us-east-1" });
 const deepgram = createClient(process.env.DEEPGRAM_API_KEY);
-const MODEL_ID = process.env.BEDROCK_MODEL_ID ?? "amazon.nova-lite-v1:0";
+const MODEL_ID = process.env.BEDROCK_MODEL_ID ?? "us.amazon.nova-lite-v1:0";
 const CONFIG_BUCKET = process.env.CONFIG_BUCKET ?? process.env.AUDIO_BUCKET ?? "budget-riquelmetapia";
 const CONFIG_KEY    = process.env.AI_PROMPTS_KEY ?? "config/ai-prompts.json";
 
@@ -53,12 +53,23 @@ const handler = async (event) => {
     const bucket = record.s3.bucket.name;
     const key = decodeURIComponent(record.s3.object.key.replace(/\+/g, " "));
     try {
+      const fileSize = record.s3.object.size ?? 0;
+      const MAX_AUDIO_BYTES = 200 * 1024 * 1024; // 200 MB
+      if (fileSize === 0) {
+        console.warn(`Skipping empty object: s3://${bucket}/${key}`);
+        continue;
+      }
+      if (fileSize > MAX_AUDIO_BYTES) {
+        console.warn(`Skipping oversized object (${fileSize} bytes): s3://${bucket}/${key}`);
+        continue;
+      }
+
       const entityKey      = extractEntityKey(key);
       const specialtyCfg  = getSpecialtyConfig(config, entityKey);
       const speakerLabels  = specialtyCfg.speakerLabels ?? DEFAULT_CONFIG.speakerLabels;
       const soapPrompt     = specialtyCfg.prompt ?? DEFAULT_CONFIG.prompt;
 
-      console.log(`Processing: s3://${bucket}/${key} [specialty: ${entityKey}]`);
+      console.log(`Processing: s3://${bucket}/${key} [specialty: ${entityKey}, size: ${fileSize}]`);
 
       // 1. Descargar audio
       const { Body } = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
@@ -109,8 +120,9 @@ const handler = async (event) => {
 
       console.log(`OK s3://${bucket}/${key} [specialty: ${entityKey}]`);
     } catch (err) {
+      // Log and continue — throwing would abort remaining records in the batch
+      // and S3 event triggers don't auto-retry, so throwing only wastes the batch.
       console.error(`Error procesando s3://${bucket}/${key}:`, err);
-      throw err;
     }
   }
 };
