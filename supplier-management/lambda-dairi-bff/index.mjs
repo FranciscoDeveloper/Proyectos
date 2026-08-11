@@ -108,6 +108,7 @@ export const handler = async (event, context) => {
 
   // ── Routes that need a DB client ──────────────────────────────────────────
   let client;
+  let dbError = false;
   try {
     log.info('Acquiring DB connection');
     client = await pool.connect();
@@ -168,12 +169,17 @@ export const handler = async (event, context) => {
     return response(404, { message: 'Ruta no encontrada' });
 
   } catch (error) {
+    dbError = true;
     log.error('Unhandled error', { message: error.message, code: error.code, stack: error.stack, rawPath, method });
     return response(500, { message: 'Error interno del servidor', error: error.message });
   } finally {
     if (client) {
-      client.release();
-      log.info('DB connection released');
+      // client.release(true) destroys the socket instead of recycling it — a
+      // client released after an error may still be mid-transaction, and the
+      // next request to pull it from the pool would inherit that broken state
+      // ("current transaction is aborted") for an unrelated user/request.
+      client.release(dbError);
+      log.info('DB connection released', { destroyed: dbError });
     }
   }
 };

@@ -9,7 +9,7 @@ export const pool = new Pool({
   database:                process.env.DB_NAME,
   user:                    process.env.DB_USER,
   password:                process.env.DB_PASSWORD,
-  max:                     5,
+  max:                     2, // 1 activo + 1 buffer por contenedor Lambda; con max:5 bastaban ~22 contenedores concurrentes para agotar las ~110 conexiones de db.t3.micro
   idleTimeoutMillis:       30_000,
   connectionTimeoutMillis: 5_000,
   ssl: { rejectUnauthorized: false },
