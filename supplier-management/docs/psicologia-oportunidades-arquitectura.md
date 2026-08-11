@@ -648,55 +648,881 @@ python -m awscli lambda update-function-code `
 
 ---
 
-## Parte 5 — Hoja de Ruta de Implementación
+## Parte 5 — Guía de Implementación por Fases
 
-### Fase 0 — Fundación (ya implementado en esta iteración)
+> Convención de esfuerzo: **S** = 1–2 días · **M** = 3–5 días · **L** = 1–2 semanas
 
-| Tarea | Componente | Prioridad |
-|---|---|---|
-| Crear tabla `schema_ai_config` y poblar prompts | RDS + lambda-transcribe | CRÍTICA |
-| Modificar S3 key para incluir `entity_key` en prefijo | lambda-dairi-bff audio handler | CRÍTICA |
-| Actualizar `lambda-transcribe` para leer config por especialidad | lambda-transcribe | CRÍTICA |
-| Separar prompt psicología de otros en producción | Solo config, sin código | Alta |
+---
 
-### Fase 1 — Notas de proceso y brief pre-sesión (2–4 semanas)
+### Fase 0 — Prompts por especialidad ✅ YA IMPLEMENTADO
 
-| Tarea | Componente | Esfuerzo |
-|---|---|---|
-| Crear tabla `process_notes` con política de acceso | RDS | S |
-| Endpoints CRUD `process_notes` en BFF | lambda-dairi-bff | M |
-| Tab "Notas de proceso" en `clinical-detail` (visible solo al autor) | Angular | M |
-| Endpoint `pre-session-brief` en BFF (Bedrock) | lambda-dairi-bff | M |
-| Botón Brief en `clinical-detail` para psych-sessions | Angular | S |
-
-### Fase 2 — MBC y tareas intersesión (4–8 semanas)
-
-| Tarea | Componente | Esfuerzo |
-|---|---|---|
-| Tablas `scale_template`, `scale_instance`, `scale_response` | RDS | S |
-| Poblar catálogo PHQ-9, GAD-7, PCL-5 (JSON) | RDS | M |
-| Endpoints MBC (templates, instances, trajectory) | lambda-dairi-bff | L |
-| `MbcTrajectoryComponent` con gráfico | Angular | L |
-| Tablas `intersession_task`, `mood_log` | RDS | S |
-| Endpoints CRUD tasks + mood | lambda-dairi-bff | M |
-| Tab "Entre sesiones" en `clinical-detail` | Angular | M |
-
-### Fase 3 — Generador de informes (6–10 semanas)
-
-| Tarea | Componente | Esfuerzo |
-|---|---|---|
-| Prompts por tipo de informe | Configuración | M |
-| Endpoint `/api/reports/draft` (Bedrock) | lambda-dairi-bff | M |
-| `ReportGeneratorComponent` con preview y descarga | Angular | L |
-| Plantillas DOCX para informes (opcional) | Lambda auxiliar o browser | L |
-
-### Fase 4 — Canal intersesión automatizado (futuro)
-
-| Tarea | Dependencia |
+| Archivo | Estado |
 |---|---|
-| WhatsApp Cloud API → reemplaza Chat module para notificaciones | API key Meta |
-| Portal del paciente (self-check-in de tareas y escalas) | Nuevo sub-dominio Angular |
-| SES para notificaciones de recordatorio | AWS SES verificado |
+| `supplier-management/lambda-audio/index.mjs` | Modificado — S3 key incluye `{entityKey}/{recordId}` |
+| `supplier-management/lambda-transcribe/handler.js` | Modificado — lee `config/ai-prompts.json` de S3 |
+| `supplier-management/config/ai-prompts.json` | Creado — prompts para 6 especialidades |
+
+**Pendiente de deploy** → ver Parte 4.
+
+---
+
+### Fase 1 — Notas de proceso + Brief pre-sesión
+
+**Dependencias previas**: Fase 0 deployada.
+
+#### 1.1 Migración de BD
+
+Conectar a RDS y ejecutar:
+
+```sql
+-- Ejecutar en psql contra dairi (RDS)
+CREATE TABLE IF NOT EXISTS process_notes (
+  id           SERIAL PRIMARY KEY,
+  record_id    INTEGER NOT NULL REFERENCES clinical_record(id) ON DELETE CASCADE,
+  author_id    INTEGER NOT NULL REFERENCES app_user(id),
+  session_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  content      TEXT NOT NULL,
+  content_iv   TEXT,
+  is_encrypted BOOLEAN NOT NULL DEFAULT false,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_process_notes_record_author
+  ON process_notes(record_id, author_id, session_date DESC);
+```
+
+#### 1.2 Nuevo handler BFF — `processNotesHandler.mjs`
+
+Crear archivo: `supplier-management/lambda-dairi-bff/handlers/processNotesHandler.mjs`
+
+```javascript
+// /api/process-notes/{recordId}  — CRUD de notas de proceso (solo el autor)
+import { getLogger } from '../lib/logger.mjs';
+import { response }  from '../lib/response.mjs';
+
+export async function handleProcessNotes(rawPath, method, event, tokenPayload, client) {
+  const match = rawPath.match(/^\/api\/process-notes\/(\d+)(\/(\d+))?$/);
+  if (!match) return null;
+
+  const log      = getLogger();
+  const recordId = parseInt(match[1], 10);
+  const noteId   = match[3] ? parseInt(match[3], 10) : null;
+  const userId   = tokenPayload.sub;
+  const body     = event.body ? JSON.parse(event.body) : {};
+
+  // GET /api/process-notes/{recordId} — listar notas del autor para este record
+  if (method === 'GET' && !noteId) {
+    const { rows } = await client.query(
+      `SELECT id, session_date, content, is_encrypted, created_at, updated_at
+       FROM process_notes
+       WHERE record_id = $1 AND author_id = $2
+       ORDER BY session_date DESC`,
+      [recordId, userId]
+    );
+    return response(200, rows);
+  }
+
+  // POST /api/process-notes/{recordId} — crear nota
+  if (method === 'POST' && !noteId) {
+    const { content, session_date, is_encrypted, content_iv } = body;
+    if (!content?.trim()) return response(400, { message: 'content requerido' });
+    const { rows } = await client.query(
+      `INSERT INTO process_notes (record_id, author_id, session_date, content, is_encrypted, content_iv)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, session_date, created_at`,
+      [recordId, userId, session_date || new Date().toISOString().slice(0, 10),
+       content, !!is_encrypted, content_iv || null]
+    );
+    log.info('process_note created', { recordId, noteId: rows[0].id });
+    return response(201, rows[0]);
+  }
+
+  // PATCH /api/process-notes/{recordId}/{noteId} — editar (solo autor)
+  if (method === 'PATCH' && noteId) {
+    const { content, is_encrypted, content_iv } = body;
+    const { rowCount } = await client.query(
+      `UPDATE process_notes SET content = $1, is_encrypted = $2, content_iv = $3,
+       updated_at = NOW()
+       WHERE id = $4 AND record_id = $5 AND author_id = $6`,
+      [content, !!is_encrypted, content_iv || null, noteId, recordId, userId]
+    );
+    if (!rowCount) return response(404, { message: 'Nota no encontrada o sin permisos' });
+    return response(200, { updated: true });
+  }
+
+  // DELETE /api/process-notes/{recordId}/{noteId} — eliminar (solo autor)
+  if (method === 'DELETE' && noteId) {
+    const { rowCount } = await client.query(
+      `DELETE FROM process_notes WHERE id = $1 AND record_id = $2 AND author_id = $3`,
+      [noteId, recordId, userId]
+    );
+    if (!rowCount) return response(404, { message: 'Nota no encontrada o sin permisos' });
+    return response(200, { deleted: true });
+  }
+
+  return response(405, { message: 'Método no permitido' });
+}
+```
+
+#### 1.3 Nuevo handler BFF — `preSessionBriefHandler.mjs`
+
+Crear archivo: `supplier-management/lambda-dairi-bff/handlers/preSessionBriefHandler.mjs`
+
+```javascript
+// GET /api/clinical/pre-session-brief/{recordId}
+import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
+import { getLogger } from '../lib/logger.mjs';
+import { response }  from '../lib/response.mjs';
+
+const bedrock = new BedrockRuntimeClient({ region: process.env.BEDROCK_REGION || process.env.AWS_REGION || 'us-east-1' });
+
+export async function handlePreSessionBrief(rawPath, method, client) {
+  const match = rawPath.match(/^\/api\/clinical\/pre-session-brief\/(\d+)$/);
+  if (!match || method !== 'GET') return null;
+
+  const recordId = parseInt(match[1], 10);
+  const log = getLogger();
+
+  const [recordRes, tasksRes, moodsRes, scalesRes] = await Promise.all([
+    client.query('SELECT encounters FROM clinical_record WHERE id = $1', [recordId]),
+    client.query(
+      `SELECT description, due_date FROM intersession_task
+       WHERE record_id = $1 AND completed = false ORDER BY created_at DESC LIMIT 5`,
+      [recordId]
+    ).catch(() => ({ rows: [] })),  // tabla puede no existir aún
+    client.query(
+      `SELECT mood_score, logged_at FROM mood_log
+       WHERE record_id = $1 ORDER BY logged_at DESC LIMIT 7`,
+      [recordId]
+    ).catch(() => ({ rows: [] })),
+    client.query(
+      `SELECT t.code, i.total_score, i.severity, i.administered_at
+       FROM scale_instance i JOIN scale_template t ON t.id = i.template_id
+       WHERE i.record_id = $1 ORDER BY i.administered_at DESC LIMIT 3`,
+      [recordId]
+    ).catch(() => ({ rows: [] })),
+  ]);
+
+  const encounters   = recordRes.rows[0]?.encounters ?? [];
+  const lastEncounter = encounters.slice(-1)[0];
+  const moodAvg = moodsRes.rows.length
+    ? Math.round(moodsRes.rows.reduce((s, m) => s + m.mood_score, 0) / moodsRes.rows.length * 10) / 10
+    : null;
+
+  const contextText = [
+    `Última sesión (plan): ${lastEncounter?.soap_plan ?? lastEncounter?.date ?? 'Sin registro previo'}`,
+    `Tareas pendientes: ${tasksRes.rows.map(t => t.description).join('; ') || 'ninguna'}`,
+    `Humor promedio últimos 7 días (1-10): ${moodAvg ?? 'sin datos'}`,
+    `Últimas escalas: ${scalesRes.rows.map(s => `${s.code} ${s.total_score} (${s.severity})`).join(', ') || 'no aplicadas'}`,
+  ].join('\n');
+
+  const prompt = `Eres un asistente de psicología clínica. Genera un brief de preparación de sesión en 3-4 oraciones breves que ayuden al terapeuta a retomar el hilo rápidamente. Sé concreto y clínicamente útil. No diagnostiques.\n\n${contextText}`;
+
+  try {
+    const res = await bedrock.send(new ConverseCommand({
+      modelId: process.env.BEDROCK_MODEL_ID || 'amazon.nova-lite-v1:0',
+      messages: [{ role: 'user', content: [{ text: prompt }] }],
+      inferenceConfig: { maxTokens: 512, temperature: 0.3 },
+    }));
+    return response(200, {
+      brief: res.output?.message?.content?.[0]?.text ?? '',
+      raw: { lastEncounter, pendingTasks: tasksRes.rows, moodAvg, lastScores: scalesRes.rows },
+    });
+  } catch (err) {
+    log.error('Bedrock brief error', { message: err.message });
+    return response(500, { message: 'Error generando brief', error: err.message });
+  }
+}
+```
+
+#### 1.4 Modificar `lambda-dairi-bff/index.mjs`
+
+Agregar los imports al principio del archivo (junto a los otros imports):
+
+```javascript
+import { handleProcessNotes }      from './handlers/processNotesHandler.mjs';
+import { handlePreSessionBrief }   from './handlers/preSessionBriefHandler.mjs';
+```
+
+Agregar al bloque `needsDb` (junto a las otras rutas):
+
+```javascript
+const needsDb =
+  rawPath === '/api/chat/users' ||
+  rawPath === '/api/user/config' ||
+  /^\/api\/clinical-summary\/\d+$/.test(rawPath) ||
+  /^\/api\/process-notes\/\d+/.test(rawPath) ||              // ← AGREGAR
+  /^\/api\/clinical\/pre-session-brief\/\d+$/.test(rawPath) || // ← AGREGAR
+  rawPath.startsWith('/api/admin/') ||
+  rawPath.startsWith('/api/entities/') ||
+  rawPath.startsWith('/api/suppliers');
+```
+
+Agregar las llamadas dentro del bloque `try` (antes del `log.warn` final del try):
+
+```javascript
+const notesResult = await handleProcessNotes(rawPath, method, event, tokenPayload, client);
+if (notesResult) return notesResult;
+
+const briefResult = await handlePreSessionBrief(rawPath, method, client);
+if (briefResult) return briefResult;
+```
+
+#### 1.5 Componentes Angular
+
+**Archivos a crear:**
+
+```
+src/app/components/clinical-detail/process-notes/
+  process-notes.component.ts
+  process-notes.component.html
+  process-notes.component.scss
+
+src/app/components/clinical-detail/pre-session-brief/
+  pre-session-brief.component.ts
+  pre-session-brief.component.html
+  pre-session-brief.component.scss
+```
+
+**Clave en `clinical-detail.component.ts`** — agregar condicional por schema_key:
+
+```typescript
+// Mostrar features de psicología solo si es psych-sessions
+get isPsychology(): boolean {
+  return this.entityKey === 'psych-sessions';
+}
+```
+
+**En `clinical-detail.component.html`** — agregar tabs condicionales:
+
+```html
+@if (isPsychology) {
+  <!-- Tab Notas de Proceso -->
+  <app-process-notes [recordId]="record.id" [currentUserId]="currentUserId" />
+
+  <!-- Botón Brief pre-sesión -->
+  <button class="brief-btn" (click)="openPreSessionBrief()">
+    ⚡ Brief de sesión
+  </button>
+}
+```
+
+#### 1.6 Deploy Fase 1
+
+```powershell
+# 1. Ejecutar migración SQL (conectar a RDS primero via psql o lambda db-access)
+
+# 2. Deploy lambda-dairi-bff
+cd "d:\github\Proyectos\supplier-management\lambda-dairi-bff"
+Compress-Archive -Path "index.mjs","handlers","lib","services","config","package.json","node_modules" `
+  -DestinationPath "lambda-dairi-bff.zip" -Force
+python -m awscli lambda update-function-code `
+  --function-name dairi-bff --region us-east-1 `
+  --zip-file "fileb://lambda-dairi-bff.zip" `
+  --query "LastUpdateStatus" --output text
+
+# 3. Build y deploy frontend
+nvm use 20.9.0
+cd "d:\github\Proyectos\supplier-management"
+npm run build
+python -m awscli s3 sync "dist/supplier-management/browser" "s3://friquelme-firstpage" `
+  --delete --exclude "patient-docs/*" --region us-east-1
+```
+
+---
+
+### Fase 2 — MBC (Escalas) + Tareas Intersesión
+
+**Dependencias previas**: Fase 1 completada.
+
+#### 2.1 Migración de BD
+
+```sql
+-- ── Tareas intersesión ───────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS intersession_task (
+  id           SERIAL PRIMARY KEY,
+  record_id    INTEGER NOT NULL REFERENCES clinical_record(id) ON DELETE CASCADE,
+  created_by   INTEGER NOT NULL REFERENCES app_user(id),
+  session_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  description  TEXT NOT NULL,
+  due_date     DATE,
+  completed    BOOLEAN NOT NULL DEFAULT false,
+  completed_at TIMESTAMPTZ,
+  patient_note TEXT,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_intersession_task_record
+  ON intersession_task(record_id, session_date DESC);
+
+-- ── Registro de humor ────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS mood_log (
+  id          SERIAL PRIMARY KEY,
+  record_id   INTEGER NOT NULL REFERENCES clinical_record(id) ON DELETE CASCADE,
+  logged_by   TEXT NOT NULL DEFAULT 'therapist',  -- 'therapist' | 'patient'
+  mood_score  SMALLINT NOT NULL CHECK (mood_score BETWEEN 1 AND 10),
+  mood_label  TEXT,
+  note        TEXT,
+  logged_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_mood_log_record
+  ON mood_log(record_id, logged_at DESC);
+
+-- ── Catálogo de escalas ──────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS scale_template (
+  id          SERIAL PRIMARY KEY,
+  code        TEXT UNIQUE NOT NULL,
+  name        TEXT NOT NULL,
+  description TEXT,
+  items       JSONB NOT NULL DEFAULT '[]',
+  scoring     JSONB NOT NULL DEFAULT '{}',
+  schema_keys TEXT[] NOT NULL DEFAULT '{}',
+  active      BOOLEAN NOT NULL DEFAULT true
+);
+
+-- ── Instancias de aplicación ─────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS scale_instance (
+  id              SERIAL PRIMARY KEY,
+  record_id       INTEGER NOT NULL REFERENCES clinical_record(id) ON DELETE CASCADE,
+  template_id     INTEGER NOT NULL REFERENCES scale_template(id),
+  administered_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  total_score     SMALLINT,
+  severity        TEXT,
+  administered_by TEXT NOT NULL DEFAULT 'clinician'  -- 'clinician' | 'self'
+);
+CREATE INDEX IF NOT EXISTS idx_scale_instance_record
+  ON scale_instance(record_id, administered_at DESC);
+
+-- ── Respuestas por ítem ──────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS scale_response (
+  id          SERIAL PRIMARY KEY,
+  instance_id INTEGER NOT NULL REFERENCES scale_instance(id) ON DELETE CASCADE,
+  item_id     TEXT NOT NULL,
+  value       SMALLINT NOT NULL
+);
+
+-- ── Seed: catálogo PHQ-9 y GAD-7 ────────────────────────────────────────────
+INSERT INTO scale_template (code, name, description, schema_keys, items, scoring)
+VALUES
+('PHQ-9', 'PHQ-9 — Cuestionario de Salud del Paciente', 'Depresión (9 ítems)', ARRAY['psych-sessions'],
+ '[
+   {"id":"q1","text":"Poco interés o placer en hacer las cosas"},
+   {"id":"q2","text":"Sentirse triste, deprimido/a o sin esperanzas"},
+   {"id":"q3","text":"Problemas para dormir o dormir demasiado"},
+   {"id":"q4","text":"Sentirse cansado/a o con poca energía"},
+   {"id":"q5","text":"Poco apetito o comer en exceso"},
+   {"id":"q6","text":"Sentirse mal consigo mismo/a"},
+   {"id":"q7","text":"Dificultad para concentrarse"},
+   {"id":"q8","text":"Moverse o hablar tan despacio que otros lo notan, o lo contrario"},
+   {"id":"q9","text":"Pensamientos de que estaría mejor muerto/a"}
+ ]',
+ '{"options":[{"value":0,"label":"Para nada"},{"value":1,"label":"Varios días"},{"value":2,"label":"Más de la mitad de los días"},{"value":3,"label":"Casi todos los días"}],
+   "ranges":[{"min":0,"max":4,"label":"Sin depresión","severity":"ninguna"},{"min":5,"max":9,"label":"Depresión leve","severity":"leve"},{"min":10,"max":14,"label":"Depresión moderada","severity":"moderada"},{"min":15,"max":19,"label":"Depresión moderadamente grave","severity":"moderada-grave"},{"min":20,"max":27,"label":"Depresión grave","severity":"grave"}]}'
+),
+('GAD-7', 'GAD-7 — Trastorno de Ansiedad Generalizada', 'Ansiedad (7 ítems)', ARRAY['psych-sessions'],
+ '[
+   {"id":"q1","text":"Sentirse nervioso/a, ansioso/a o al límite"},
+   {"id":"q2","text":"No poder dejar de preocuparse"},
+   {"id":"q3","text":"Preocuparse demasiado por cosas diferentes"},
+   {"id":"q4","text":"Tener dificultad para relajarse"},
+   {"id":"q5","text":"Estar tan inquieto/a que es difícil mantenerse quieto/a"},
+   {"id":"q6","text":"Irritarse o enojarse fácilmente"},
+   {"id":"q7","text":"Sentir miedo de que algo terrible podría pasar"}
+ ]',
+ '{"options":[{"value":0,"label":"Para nada"},{"value":1,"label":"Varios días"},{"value":2,"label":"Más de la mitad de los días"},{"value":3,"label":"Casi todos los días"}],
+   "ranges":[{"min":0,"max":4,"label":"Mínima ansiedad","severity":"minima"},{"min":5,"max":9,"label":"Ansiedad leve","severity":"leve"},{"min":10,"max":14,"label":"Ansiedad moderada","severity":"moderada"},{"min":15,"max":21,"label":"Ansiedad grave","severity":"grave"}]}'
+)
+ON CONFLICT (code) DO NOTHING;
+```
+
+#### 2.2 Nuevo handler BFF — `psychHandler.mjs`
+
+Crear archivo: `supplier-management/lambda-dairi-bff/handlers/psychHandler.mjs`
+
+```javascript
+// Rutas de psicología: tareas intersesión, mood logs, escalas MBC
+import { getLogger } from '../lib/logger.mjs';
+import { response }  from '../lib/response.mjs';
+
+// ── Helpers de scoring ───────────────────────────────────────────────────────
+function calcScore(responses, scoring) {
+  const total = responses.reduce((s, r) => s + (r.value ?? 0), 0);
+  const range = (scoring.ranges ?? []).find(r => total >= r.min && total <= r.max);
+  return { total, severity: range?.severity ?? 'desconocido', label: range?.label ?? '' };
+}
+
+export async function handlePsych(rawPath, method, event, tokenPayload, client) {
+  const log    = getLogger();
+  const userId = tokenPayload.sub;
+  const body   = event.body ? JSON.parse(event.body) : {};
+
+  // ── TAREAS INTERSESIÓN ───────────────────────────────────────────────────
+  // GET  /api/psych/tasks/{recordId}
+  // POST /api/psych/tasks/{recordId}
+  // POST /api/psych/tasks/{recordId}/{taskId}/complete
+  // DELETE /api/psych/tasks/{recordId}/{taskId}
+  const taskMatch = rawPath.match(/^\/api\/psych\/tasks\/(\d+)(\/(\d+)(\/complete)?)?$/);
+  if (taskMatch) {
+    const recordId = parseInt(taskMatch[1], 10);
+    const taskId   = taskMatch[3] ? parseInt(taskMatch[3], 10) : null;
+    const complete = !!taskMatch[4];
+
+    if (method === 'GET' && !taskId) {
+      const { rows } = await client.query(
+        `SELECT id, description, due_date, completed, completed_at, patient_note, session_date, created_at
+         FROM intersession_task WHERE record_id = $1 ORDER BY completed, created_at DESC`,
+        [recordId]
+      );
+      return response(200, rows);
+    }
+    if (method === 'POST' && !taskId) {
+      const { description, due_date, session_date } = body;
+      if (!description?.trim()) return response(400, { message: 'description requerido' });
+      const { rows } = await client.query(
+        `INSERT INTO intersession_task (record_id, created_by, description, due_date, session_date)
+         VALUES ($1,$2,$3,$4,$5) RETURNING id`,
+        [recordId, userId, description, due_date || null, session_date || new Date().toISOString().slice(0,10)]
+      );
+      return response(201, rows[0]);
+    }
+    if (method === 'POST' && taskId && complete) {
+      const { patient_note } = body;
+      await client.query(
+        `UPDATE intersession_task SET completed = true, completed_at = NOW(), patient_note = $1
+         WHERE id = $2 AND record_id = $3`,
+        [patient_note || null, taskId, recordId]
+      );
+      return response(200, { updated: true });
+    }
+    if (method === 'DELETE' && taskId) {
+      await client.query(`DELETE FROM intersession_task WHERE id = $1 AND record_id = $2`, [taskId, recordId]);
+      return response(200, { deleted: true });
+    }
+  }
+
+  // ── MOOD LOG ────────────────────────────────────────────────────────────
+  // GET  /api/psych/mood/{recordId}
+  // POST /api/psych/mood/{recordId}
+  const moodMatch = rawPath.match(/^\/api\/psych\/mood\/(\d+)$/);
+  if (moodMatch) {
+    const recordId = parseInt(moodMatch[1], 10);
+    if (method === 'GET') {
+      const { rows } = await client.query(
+        `SELECT id, mood_score, mood_label, note, logged_by, logged_at
+         FROM mood_log WHERE record_id = $1 ORDER BY logged_at DESC LIMIT 30`,
+        [recordId]
+      );
+      return response(200, rows);
+    }
+    if (method === 'POST') {
+      const { mood_score, mood_label, note } = body;
+      if (!mood_score || mood_score < 1 || mood_score > 10)
+        return response(400, { message: 'mood_score debe ser 1-10' });
+      const { rows } = await client.query(
+        `INSERT INTO mood_log (record_id, logged_by, mood_score, mood_label, note)
+         VALUES ($1,'therapist',$2,$3,$4) RETURNING id, logged_at`,
+        [recordId, mood_score, mood_label || null, note || null]
+      );
+      return response(201, rows[0]);
+    }
+  }
+
+  // ── ESCALAS MBC ─────────────────────────────────────────────────────────
+  // GET  /api/psych/mbc/templates?schemaKey=psych-sessions
+  // POST /api/psych/mbc/instances                  body: {recordId, templateId}
+  // POST /api/psych/mbc/instances/{id}/responses   body: {responses:[{item_id,value}]}
+  // GET  /api/psych/mbc/trajectory/{recordId}
+  if (rawPath === '/api/psych/mbc/templates' && method === 'GET') {
+    const schemaKey = event.queryStringParameters?.schemaKey;
+    const { rows } = await client.query(
+      schemaKey
+        ? `SELECT id, code, name, description, items, scoring FROM scale_template WHERE active = true AND $1 = ANY(schema_keys)`
+        : `SELECT id, code, name, description, items, scoring FROM scale_template WHERE active = true`,
+      schemaKey ? [schemaKey] : []
+    );
+    return response(200, rows);
+  }
+
+  if (rawPath === '/api/psych/mbc/instances' && method === 'POST') {
+    const { recordId, templateId } = body;
+    const { rows } = await client.query(
+      `INSERT INTO scale_instance (record_id, template_id) VALUES ($1,$2) RETURNING id, administered_at`,
+      [recordId, templateId]
+    );
+    return response(201, rows[0]);
+  }
+
+  const instanceResMatch = rawPath.match(/^\/api\/psych\/mbc\/instances\/(\d+)\/responses$/);
+  if (instanceResMatch && method === 'POST') {
+    const instanceId = parseInt(instanceResMatch[1], 10);
+    const { responses } = body;  // [{item_id, value}]
+    if (!Array.isArray(responses) || !responses.length)
+      return response(400, { message: 'responses[] requerido' });
+
+    // Obtener scoring del template
+    const { rows: [inst] } = await client.query(
+      `SELECT t.scoring FROM scale_instance i JOIN scale_template t ON t.id = i.template_id WHERE i.id = $1`,
+      [instanceId]
+    );
+
+    await client.query('BEGIN');
+    for (const r of responses) {
+      await client.query(
+        `INSERT INTO scale_response (instance_id, item_id, value) VALUES ($1,$2,$3)
+         ON CONFLICT DO NOTHING`,
+        [instanceId, r.item_id, r.value]
+      );
+    }
+    const { total, severity, label } = calcScore(responses, inst?.scoring ?? {});
+    await client.query(
+      `UPDATE scale_instance SET total_score = $1, severity = $2 WHERE id = $3`,
+      [total, severity, instanceId]
+    );
+    await client.query('COMMIT');
+    return response(200, { total, severity, label });
+  }
+
+  const trajectoryMatch = rawPath.match(/^\/api\/psych\/mbc\/trajectory\/(\d+)$/);
+  if (trajectoryMatch && method === 'GET') {
+    const recordId = parseInt(trajectoryMatch[1], 10);
+    const { rows } = await client.query(
+      `SELECT t.code, t.name, i.total_score, i.severity, i.administered_at
+       FROM scale_instance i JOIN scale_template t ON t.id = i.template_id
+       WHERE i.record_id = $1 ORDER BY i.administered_at`,
+      [recordId]
+    );
+    // Agrupar por escala para el gráfico
+    const grouped = rows.reduce((acc, r) => {
+      if (!acc[r.code]) acc[r.code] = { code: r.code, name: r.name, points: [] };
+      acc[r.code].points.push({ score: r.total_score, severity: r.severity, date: r.administered_at });
+      return acc;
+    }, {});
+    return response(200, Object.values(grouped));
+  }
+
+  return null;
+}
+```
+
+#### 2.3 Modificar `lambda-dairi-bff/index.mjs`
+
+Agregar import:
+
+```javascript
+import { handlePsych } from './handlers/psychHandler.mjs';
+```
+
+Agregar al bloque `needsDb`:
+
+```javascript
+rawPath.startsWith('/api/psych/') ||   // ← AGREGAR
+```
+
+Agregar llamada en el bloque `try`:
+
+```javascript
+const psychResult = await handlePsych(rawPath, method, event, tokenPayload, client);
+if (psychResult) return psychResult;
+```
+
+#### 2.4 Componentes Angular
+
+**Archivos a crear:**
+
+```
+src/app/components/clinical-detail/intersession-tasks/
+  intersession-tasks.component.ts
+  intersession-tasks.component.html
+  intersession-tasks.component.scss
+
+src/app/components/clinical-detail/mbc-trajectory/
+  mbc-trajectory.component.ts     ← gráfico SVG de trayectoria de scores
+  mbc-trajectory.component.html
+  mbc-trajectory.component.scss
+
+src/app/components/clinical-detail/scale-form/
+  scale-form.component.ts         ← modal con cuestionario paso a paso
+  scale-form.component.html
+  scale-form.component.scss
+```
+
+**Servicio a crear o extender**: `src/app/services/psych.service.ts`
+
+```typescript
+// psych.service.ts — endpoints /api/psych/*
+@Injectable({ providedIn: 'root' })
+export class PsychService {
+  constructor(private http: HttpClient) {}
+
+  getTasks(recordId: number) { return this.http.get<any[]>(`/api/psych/tasks/${recordId}`); }
+  createTask(recordId: number, body: any) { return this.http.post(`/api/psych/tasks/${recordId}`, body); }
+  completeTask(recordId: number, taskId: number, note?: string) {
+    return this.http.post(`/api/psych/tasks/${recordId}/${taskId}/complete`, { patient_note: note });
+  }
+  getMoodLog(recordId: number) { return this.http.get<any[]>(`/api/psych/mood/${recordId}`); }
+  logMood(recordId: number, body: any) { return this.http.post(`/api/psych/mood/${recordId}`, body); }
+  getTemplates(schemaKey = 'psych-sessions') {
+    return this.http.get<any[]>(`/api/psych/mbc/templates?schemaKey=${schemaKey}`);
+  }
+  startInstance(recordId: number, templateId: number) {
+    return this.http.post<any>('/api/psych/mbc/instances', { recordId, templateId });
+  }
+  submitResponses(instanceId: number, responses: any[]) {
+    return this.http.post<any>(`/api/psych/mbc/instances/${instanceId}/responses`, { responses });
+  }
+  getTrajectory(recordId: number) {
+    return this.http.get<any[]>(`/api/psych/mbc/trajectory/${recordId}`);
+  }
+}
+```
+
+#### 2.5 Deploy Fase 2
+
+```powershell
+# 1. Ejecutar migración SQL (tablas intersession_task, mood_log, scale_* + seed)
+
+# 2. Deploy lambda-dairi-bff (mismo comando que Fase 1)
+cd "d:\github\Proyectos\supplier-management\lambda-dairi-bff"
+Compress-Archive -Path "index.mjs","handlers","lib","services","config","package.json","node_modules" `
+  -DestinationPath "lambda-dairi-bff.zip" -Force
+python -m awscli lambda update-function-code `
+  --function-name dairi-bff --region us-east-1 `
+  --zip-file "fileb://lambda-dairi-bff.zip" `
+  --query "LastUpdateStatus" --output text
+
+# 3. Build y deploy frontend (incluye nuevos componentes Angular)
+nvm use 20.9.0
+npm run build
+python -m awscli s3 sync "dist/supplier-management/browser" "s3://friquelme-firstpage" `
+  --delete --exclude "patient-docs/*" --region us-east-1
+```
+
+---
+
+### Fase 3 — Generador de informes psicológicos
+
+**Dependencias previas**: Fase 2 completada (los informes usan datos de escalas y tareas).
+
+#### 3.1 No requiere migración de BD
+
+Los informes se generan on-demand desde datos ya existentes. No se guarda el borrador en BD.
+
+#### 3.2 Nuevo handler BFF — `reportsHandler.mjs`
+
+Crear archivo: `supplier-management/lambda-dairi-bff/handlers/reportsHandler.mjs`
+
+```javascript
+// POST /api/psych/reports/draft  — borrador de informe clínico vía Bedrock
+import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
+import { getLogger } from '../lib/logger.mjs';
+import { response }  from '../lib/response.mjs';
+
+const bedrock = new BedrockRuntimeClient({ region: process.env.BEDROCK_REGION || process.env.AWS_REGION || 'us-east-1' });
+
+const REPORT_PROMPTS = {
+  'tribunal-familia': `Eres un psicólogo clínico redactando un informe para el Tribunal de Familia de Chile.
+A partir de los datos clínicos, redacta un informe con las siguientes secciones exactas:
+1. ANTECEDENTES DEL/DE LA EVALUADO/A
+2. MOTIVO DE DERIVACIÓN / SOLICITUD
+3. METODOLOGÍA Y FUENTES DE INFORMACIÓN
+4. RESULTADOS Y HALLAZGOS CLÍNICOS (estado mental, funcionamiento, relación familiar)
+5. DIAGNÓSTICO (CIE-10 si está disponible)
+6. CONCLUSIONES Y RECOMENDACIONES
+
+Usa lenguaje técnico-forense apropiado. Escribe en tercera persona.
+No hagas afirmaciones que no estén respaldadas por los datos proporcionados.
+Incluye [COMPLETAR] donde falte información que el profesional debe agregar antes de firmar.`,
+
+  'colegio': `Eres un psicólogo clínico redactando un informe para un establecimiento educacional chileno.
+Redacta un informe con:
+1. DATOS DEL ALUMNO/A
+2. MOTIVO DE CONSULTA / DERIVACIÓN
+3. EVALUACIÓN REALIZADA
+4. DIAGNÓSTICO (si aplica, CIE-10)
+5. IMPACTO EN EL ÁMBITO ESCOLAR
+6. RECOMENDACIONES PEDAGÓGICAS Y DE APOYO
+
+Lenguaje accesible para docentes y directivos, no solo para profesionales de salud.
+Incluye [COMPLETAR] donde falte información.`,
+
+  'licencia': `Eres un psicólogo clínico emitiendo un certificado de diagnóstico para licencia médica en Chile.
+Redacta un certificado breve con:
+1. DATOS DEL/DE LA PACIENTE
+2. DIAGNÓSTICO (código CIE-10 obligatorio)
+3. DESCRIPCIÓN CLÍNICA (síntomas que justifican la licencia)
+4. ESTIMACIÓN DE DÍAS DE REPOSO NECESARIOS
+5. FECHA DE PRÓXIMA EVALUACIÓN
+
+Lenguaje formal y conciso. Incluye [COMPLETAR] para datos que el profesional debe agregar.`,
+
+  'avance-terapeutico': `Eres un psicólogo clínico redactando un informe de avance terapéutico para el profesional derivante.
+Redacta un informe con:
+1. DATOS DEL/DE LA PACIENTE
+2. MOTIVO DE DERIVACIÓN ORIGINAL
+3. PROCESO TERAPÉUTICO (número de sesiones, enfoque utilizado, temas abordados)
+4. ESTADO ACTUAL (sintomatología, funcionamiento, escalas si disponibles)
+5. PRONÓSTICO Y PLAN DE CONTINUIDAD
+
+Mantén el secreto profesional — no incluyas contenido de sesiones, solo el proceso general.`,
+};
+
+export async function handleReports(rawPath, method, event, client) {
+  if (rawPath !== '/api/psych/reports/draft' || method !== 'POST') return null;
+
+  const log = getLogger();
+  const { recordId, reportType, additionalContext } = event.body ? JSON.parse(event.body) : {};
+
+  if (!recordId || !reportType) return response(400, { message: 'recordId y reportType requeridos' });
+  const promptTemplate = REPORT_PROMPTS[reportType];
+  if (!promptTemplate) return response(400, { message: `reportType inválido: ${reportType}` });
+
+  // Recopilar datos del paciente desde BD
+  const [recordRes, scalesRes, tasksRes] = await Promise.all([
+    client.query(
+      `SELECT p.name, p.birth_date, p.gender,
+              c.diagnosis_code, c.diagnosis_label,
+              c.soap_subjective, c.soap_objective, c.soap_assessment, c.soap_plan,
+              c.encounters
+       FROM clinical_record c LEFT JOIN patient p ON p.id = c.patient_id
+       WHERE c.id = $1`, [recordId]
+    ),
+    client.query(
+      `SELECT t.code, i.total_score, i.severity, i.administered_at
+       FROM scale_instance i JOIN scale_template t ON t.id = i.template_id
+       WHERE i.record_id = $1 ORDER BY i.administered_at DESC LIMIT 6`, [recordId]
+    ).catch(() => ({ rows: [] })),
+    client.query(
+      `SELECT description, completed FROM intersession_task WHERE record_id = $1 ORDER BY created_at DESC LIMIT 5`,
+      [recordId]
+    ).catch(() => ({ rows: [] })),
+  ]);
+
+  if (!recordRes.rows.length) return response(404, { message: 'Registro no encontrado' });
+  const r = recordRes.rows[0];
+
+  const age = r.birth_date
+    ? Math.floor((Date.now() - new Date(r.birth_date)) / (365.25 * 864e5))
+    : null;
+
+  const dataBlock = [
+    `Nombre: ${r.name ?? '[COMPLETAR]'}`,
+    age ? `Edad: ${age} años` : `Fecha nacimiento: [COMPLETAR]`,
+    r.gender ? `Género: ${r.gender}` : '',
+    r.diagnosis_code ? `Diagnóstico CIE-10: ${r.diagnosis_code}${r.diagnosis_label ? ` — ${r.diagnosis_label}` : ''}` : 'Diagnóstico: [COMPLETAR]',
+    '',
+    r.soap_subjective ? `Subjetivo: ${r.soap_subjective}` : '',
+    r.soap_assessment ? `Evaluación clínica: ${r.soap_assessment}` : '',
+    r.soap_plan       ? `Plan actual: ${r.soap_plan}` : '',
+    scalesRes.rows.length ? `\nEscalas:\n${scalesRes.rows.map(s => `- ${s.code}: ${s.total_score} pts (${s.severity}) — ${new Date(s.administered_at).toLocaleDateString('es-CL')}`).join('\n')}` : '',
+    additionalContext ? `\nContexto adicional del profesional: ${additionalContext}` : '',
+  ].filter(Boolean).join('\n');
+
+  try {
+    const res = await bedrock.send(new ConverseCommand({
+      modelId: process.env.BEDROCK_MODEL_ID || 'amazon.nova-lite-v1:0',
+      system: [{ text: promptTemplate }],
+      messages: [{ role: 'user', content: [{ text: `Datos clínicos del paciente:\n${dataBlock}\n\nRedacta el informe completo.` }] }],
+      inferenceConfig: { maxTokens: 3000, temperature: 0.25 },
+    }));
+    const draft = res.output?.message?.content?.[0]?.text;
+    const warnings = [];
+    if (!r.diagnosis_code) warnings.push('Sin diagnóstico CIE-10 — el informe incluye [COMPLETAR]');
+    if (!r.name) warnings.push('Sin nombre de paciente');
+    return response(200, { draft, warnings, reportType });
+  } catch (err) {
+    log.error('Bedrock report error', { message: err.message });
+    return response(500, { message: 'Error generando borrador', error: err.message });
+  }
+}
+```
+
+#### 3.3 Modificar `lambda-dairi-bff/index.mjs`
+
+Agregar import:
+
+```javascript
+import { handleReports } from './handlers/reportsHandler.mjs';
+```
+
+Agregar al bloque `needsDb`:
+
+```javascript
+rawPath === '/api/psych/reports/draft' ||   // ← AGREGAR (ya cubierto por startsWith('/api/psych/'))
+```
+
+> Si ya se agregó `rawPath.startsWith('/api/psych/')` en Fase 2, este endpoint queda cubierto automáticamente. Solo agregar la llamada al handler:
+
+```javascript
+const reportsResult = await handleReports(rawPath, method, event, client);
+if (reportsResult) return reportsResult;
+```
+
+#### 3.4 Componente Angular — `ReportGeneratorComponent`
+
+**Archivo a crear**: `src/app/components/clinical-detail/report-generator/report-generator.component.ts`
+
+```typescript
+// Puntos clave del componente
+@Component({ selector: 'app-report-generator', ... })
+export class ReportGeneratorComponent {
+  reportTypes = [
+    { value: 'tribunal-familia',   label: 'Tribunal de Familia' },
+    { value: 'colegio',            label: 'Establecimiento Educacional' },
+    { value: 'licencia',           label: 'Licencia Médica' },
+    { value: 'avance-terapeutico', label: 'Informe de Avance' },
+  ];
+  selectedType = signal('tribunal-familia');
+  additionalContext = signal('');
+  draft = signal('');
+  loading = signal(false);
+  warnings = signal<string[]>([]);
+
+  generate() {
+    this.loading.set(true);
+    this.http.post<any>('/api/psych/reports/draft', {
+      recordId: this.recordId,
+      reportType: this.selectedType(),
+      additionalContext: this.additionalContext(),
+    }).subscribe({
+      next: r => { this.draft.set(r.draft); this.warnings.set(r.warnings); this.loading.set(false); },
+      error: () => this.loading.set(false),
+    });
+  }
+
+  copy() { navigator.clipboard.writeText(this.draft()); }
+}
+```
+
+#### 3.5 Deploy Fase 3
+
+```powershell
+# No hay migración SQL en esta fase
+
+# Deploy lambda-dairi-bff
+cd "d:\github\Proyectos\supplier-management\lambda-dairi-bff"
+Compress-Archive -Path "index.mjs","handlers","lib","services","config","package.json","node_modules" `
+  -DestinationPath "lambda-dairi-bff.zip" -Force
+python -m awscli lambda update-function-code `
+  --function-name dairi-bff --region us-east-1 `
+  --zip-file "fileb://lambda-dairi-bff.zip" `
+  --query "LastUpdateStatus" --output text
+
+# Build y deploy frontend
+nvm use 20.9.0
+npm run build
+python -m awscli s3 sync "dist/supplier-management/browser" "s3://friquelme-firstpage" `
+  --delete --exclude "patient-docs/*" --region us-east-1
+```
+
+---
+
+### Fase 4 — Canal intersesión automatizado (futuro, sin fecha)
+
+| Tarea | Prerequisito |
+|---|---|
+| WhatsApp Cloud API — envío de recordatorios de tareas | Cuenta Business de Meta aprobada |
+| Portal del paciente — auto-check-in de tareas y escalas | Sub-dominio Angular nuevo |
+| SES — emails de recordatorio | Dominio verificado en AWS SES |
 
 ---
 
