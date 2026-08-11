@@ -246,8 +246,13 @@
   height: 46px;
   display: block;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+  transition: filter 0.15s;
 
   &--lower { transform: rotate(180deg); }
+}
+
+.tooth-cell:hover .tooth-svg {
+  filter: drop-shadow(0 2px 6px rgba(37,99,235,0.18));
 }
 
 // Ivory/white tooth background fill
@@ -257,18 +262,47 @@
 }
 
 .tooth-surface {
-  stroke: rgba(148,163,184,0.5);
-  stroke-width: 0.4;
+  stroke: rgba(148,163,184,0.4);
+  stroke-width: 0.3;
   transition: fill 0.15s;
   &[fill="transparent"] { fill: rgba(248,246,240,0.0); }
 }
 
+// Anatomical developmental grooves
+.tooth-groove {
+  stroke: rgba(180,172,158,0.7);
+  stroke-width: 0.7;
+  fill: none;
+  pointer-events: none;
+  stroke-linecap: round;
+}
+
+// 3D highlight gradient overlay (pointer-events off so it doesn't block interactions)
+.tooth-highlight {
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
 // Anatomical crown border — the tooth shape outline
 .tooth-crown-border {
-  stroke: #94a3b8;
-  stroke-width: 1.2;
+  stroke: #8c9db3;
+  stroke-width: 1.1;
   stroke-linejoin: round;
   stroke-linecap: round;
+}
+
+// ── Root visualization in panel ───────────────────────────────────────────────
+
+.tooth-root-fill {
+  stroke: none;
+}
+
+.tooth-root-border {
+  stroke: #b0a898;
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0.7;
 }
 
 // Condition count badge inside SVG
@@ -330,13 +364,18 @@
   font-style: italic;
 }
 
-// ── Panel tooth icon (mini) ───────────────────────────────────────────────────
+// ── Panel tooth icon (full: crown + root) ────────────────────────────────────
 
 .panel-tooth-icon {
   width: 36px;
   height: 44px;
   flex-shrink: 0;
   filter: drop-shadow(0 1px 3px rgba(0,0,0,0.12));
+
+  &--full {
+    width: 36px;
+    height: 60px; // taller to accommodate root (viewBox 0 0 36 72)
+  }
 }
 
 // ── Quick-add bar ─────────────────────────────────────────────────────────────
@@ -814,6 +853,249 @@
     color: white;
   }
   &:hover:not(.active) { background: #f3f4f6; }
+}
+
+// ── Urgent tooth cell ─────────────────────────────────────────────────────────
+
+.tooth-cell--urgent {
+  animation: urgentPulse 2.4s ease-in-out infinite;
+  border-color: rgba(239,68,68,0.4) !important;
+}
+
+@keyframes urgentPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+  50%       { box-shadow: 0 0 0 3px rgba(239,68,68,0.2); }
+}
+
+// ── Urgency banner ────────────────────────────────────────────────────────────
+
+.urgency-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 8px 12px;
+  background: linear-gradient(90deg, #fef2f2, #fff7ed);
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #7f1d1d;
+  svg { color: #ef4444; flex-shrink: 0; }
+}
+
+.urgency-banner-title {
+  font-weight: 700;
+  margin-right: 2px;
+  color: #dc2626;
+}
+
+.urgency-item {
+  color: #92400e;
+  strong { color: #dc2626; font-weight: 700; }
+}
+
+// ── AI note panel ─────────────────────────────────────────────────────────────
+
+.ai-note-panel {
+  margin-bottom: 12px;
+  border: 1px solid #c4b5fd;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f5f3ff, #faf5ff);
+  overflow: hidden;
+}
+
+.ai-note-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(139,92,246,0.08);
+  border-bottom: 1px solid #ddd6fe;
+}
+
+.ai-note-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #6d28d9;
+  letter-spacing: 0.2px;
+  svg { width: 13px; height: 13px; }
+}
+
+.ai-note-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  font-size: 13px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  &:hover { color: #374151; background: #f3f4f6; }
+}
+
+.ai-note-body {
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #374151;
+  white-space: pre-wrap;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.ai-note-error {
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #dc2626;
+  font-style: italic;
+}
+
+// ── AI button ─────────────────────────────────────────────────────────────────
+
+.btn-ai {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 11px;
+  border-radius: 6px;
+  border: 1.5px solid #c4b5fd;
+  background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+  color: #6d28d9;
+  cursor: pointer;
+  transition: all 0.15s;
+  svg { width: 13px; height: 13px; }
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+    border-color: #a78bfa;
+  }
+
+  &--loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  &:disabled { cursor: not-allowed; }
+}
+
+// ── Plan button ───────────────────────────────────────────────────────────────
+
+.btn-plan {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 11px;
+  border-radius: 6px;
+  border: 1.5px solid #d1d5db;
+  background: #f9fafb;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s;
+  svg { width: 12px; height: 12px; }
+
+  &:hover { background: #f3f4f6; border-color: #9ca3af; }
+
+  &--active {
+    background: #1f2937;
+    color: white;
+    border-color: #1f2937;
+    &:hover { background: #374151; }
+  }
+}
+
+// ── Treatment plan panel ──────────────────────────────────────────────────────
+
+.treatment-plan-panel {
+  margin-bottom: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: white;
+  overflow: hidden;
+}
+
+.plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.plan-empty {
+  padding: 12px 14px;
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.plan-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.plan-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 12px;
+  transition: background 0.1s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: #f9fafb; }
+
+  &--urgent {
+    background: #fff7ed;
+    &:hover { background: #fef3c7; }
+  }
+}
+
+.plan-fdi {
+  font-weight: 700;
+  color: #10b981;
+  font-size: 12px;
+  min-width: 28px;
+  background: #f0fdf4;
+  padding: 1px 6px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.plan-name {
+  color: #374151;
+  font-weight: 500;
+  min-width: 100px;
+}
+
+.plan-conds {
+  color: #6b7280;
+  font-size: 11.5px;
+  flex: 1;
+}
+
+.plan-urgent-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  padding: 1px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
 }
 
 // ── Shared buttons (reuse from global if available) ───────────────────────────

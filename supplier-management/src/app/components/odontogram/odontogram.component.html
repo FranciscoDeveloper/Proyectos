@@ -9,6 +9,28 @@
       Odontograma
     </span>
     <div class="odo-toolbar-actions">
+      <button class="btn-ai"
+              [class.btn-ai--loading]="aiNoteLoading()"
+              [disabled]="aiNoteLoading()"
+              (click)="generateAiNote()"
+              title="Analizar odontograma con IA y generar resumen clínico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20z"/>
+          <path d="M12 8v4l3 3"/>
+        </svg>
+        {{ aiNoteLoading() ? 'Analizando…' : 'IA: Analizar' }}
+      </button>
+      <button class="btn-plan"
+              [class.btn-plan--active]="showTreatmentPlan()"
+              (click)="showTreatmentPlan.set(!showTreatmentPlan())"
+              title="Ver plan de tratamiento">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+          <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+          <rect x="9" y="3" width="6" height="4" rx="1"/>
+          <path d="M9 12h6M9 16h4"/>
+        </svg>
+        Plan
+      </button>
       <button class="btn-denticion"
               [class.btn-denticion--active]="showDeciduous()"
               (click)="showDeciduous.set(!showDeciduous())">
@@ -20,6 +42,51 @@
       <button class="btn-legend" (click)="showLegend.set(!showLegend())">
         {{ showLegend() ? 'Ocultar' : 'Leyenda' }}
       </button>
+    </div>
+  </div>
+
+  <!-- ── Urgency banner ── -->
+  <div class="urgency-banner" *ngIf="hasUrgencies() && !readonly">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    <span class="urgency-banner-title">Atención prioritaria:</span>
+    <span *ngFor="let u of urgencies(); let last = last" class="urgency-item">
+      <strong>{{ u.fdi }}</strong> — {{ u.reason }}<span *ngIf="!last"> · </span>
+    </span>
+  </div>
+
+  <!-- ── AI note panel ── -->
+  <div class="ai-note-panel" *ngIf="aiNote() || aiNoteError()">
+    <div class="ai-note-header">
+      <span class="ai-note-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20z"/>
+        </svg>
+        Análisis IA
+      </span>
+      <button class="ai-note-close" (click)="aiNote.set(null); aiNoteError.set(null)">✕</button>
+    </div>
+    <div class="ai-note-error" *ngIf="aiNoteError()">{{ aiNoteError() }}</div>
+    <div class="ai-note-body" *ngIf="aiNote()">{{ aiNote() }}</div>
+  </div>
+
+  <!-- ── Treatment plan panel ── -->
+  <div class="treatment-plan-panel" *ngIf="showTreatmentPlan()">
+    <div class="plan-header">
+      <span>Plan de Tratamiento — {{ treatmentPlan().length }} dientes con hallazgos</span>
+      <button class="btn-close-panel" (click)="showTreatmentPlan.set(false)">✕</button>
+    </div>
+    <div class="plan-empty" *ngIf="treatmentPlan().length === 0">Sin condiciones registradas</div>
+    <div class="plan-list">
+      <div *ngFor="let item of treatmentPlan()" class="plan-row" [class.plan-row--urgent]="isUrgent(item.fdi)">
+        <span class="plan-fdi">{{ item.fdi }}</span>
+        <span class="plan-name">{{ item.name }}</span>
+        <span class="plan-conds">{{ item.conditions.join(' · ') }}</span>
+        <span class="plan-urgent-badge" *ngIf="isUrgent(item.fdi)">⚠ Urgente</span>
+      </div>
     </div>
   </div>
 
@@ -106,6 +173,7 @@
              [class.tooth-cell--selected]="isSelected(fdi)"
              [class.tooth-cell--marked]="hasAnyCondition(fdi)"
              [class.tooth-cell--absent]="isAbsent(fdi)"
+             [class.tooth-cell--urgent]="isUrgent(fdi)"
              [title]="fdi + ' — ' + toothName(fdi)"
              (click)="selectTooth(fdi)">
           <span class="tooth-number">{{ fdi }}</span>
@@ -115,6 +183,10 @@
               <clipPath [attr.id]="clipId(fdi)">
                 <path [attr.d]="getToothCrownPath(fdi)"/>
               </clipPath>
+              <radialGradient [attr.id]="gradId(fdi)" cx="38%" cy="22%" r="62%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+                <stop offset="100%" stop-color="#ccc6bc" stop-opacity="0.5"/>
+              </radialGradient>
             </defs>
             <path class="tooth-fill" [attr.d]="getToothCrownPath(fdi)"/>
             <g [attr.clip-path]="'url(#' + clipId(fdi) + ')'">
@@ -123,6 +195,10 @@
               <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'M')"              points="0,0 9,12 9,32 0,44"/>
               <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'D')"              points="27,12 36,0 36,44 27,32"/>
               <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,centerLabel(fdi))" points="9,12 27,12 27,32 9,32"/>
+              <!-- Anatomical groove overlay -->
+              <path *ngFor="let g of getToothGroovePaths(fdi)" [attr.d]="g" class="tooth-groove"/>
+              <!-- 3D highlight gradient -->
+              <path [attr.d]="getToothCrownPath(fdi)" [attr.fill]="'url(#' + gradId(fdi) + ')'" class="tooth-highlight"/>
             </g>
             <path class="tooth-crown-border" fill="none" [attr.d]="getToothCrownPath(fdi)"/>
             <text *ngIf="toothSymbol(fdi) as sym" class="tooth-symbol"
@@ -143,6 +219,7 @@
              [class.tooth-cell--selected]="isSelected(fdi)"
              [class.tooth-cell--marked]="hasAnyCondition(fdi)"
              [class.tooth-cell--absent]="isAbsent(fdi)"
+             [class.tooth-cell--urgent]="isUrgent(fdi)"
              [title]="fdi + ' — ' + toothName(fdi)"
              (click)="selectTooth(fdi)">
           <span class="tooth-number">{{ fdi }}</span>
@@ -152,6 +229,10 @@
               <clipPath [attr.id]="clipId(fdi)">
                 <path [attr.d]="getToothCrownPath(fdi)"/>
               </clipPath>
+              <radialGradient [attr.id]="gradId(fdi)" cx="38%" cy="22%" r="62%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+                <stop offset="100%" stop-color="#ccc6bc" stop-opacity="0.5"/>
+              </radialGradient>
             </defs>
             <path class="tooth-fill" [attr.d]="getToothCrownPath(fdi)"/>
             <g [attr.clip-path]="'url(#' + clipId(fdi) + ')'">
@@ -160,6 +241,8 @@
               <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'M')"              points="0,0 9,12 9,32 0,44"/>
               <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'D')"              points="27,12 36,0 36,44 27,32"/>
               <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,centerLabel(fdi))" points="9,12 27,12 27,32 9,32"/>
+              <path *ngFor="let g of getToothGroovePaths(fdi)" [attr.d]="g" class="tooth-groove"/>
+              <path [attr.d]="getToothCrownPath(fdi)" [attr.fill]="'url(#' + gradId(fdi) + ')'" class="tooth-highlight"/>
             </g>
             <path class="tooth-crown-border" fill="none" [attr.d]="getToothCrownPath(fdi)"/>
             <text *ngIf="toothSymbol(fdi) as sym" class="tooth-symbol"
@@ -190,6 +273,7 @@
              [class.tooth-cell--selected]="isSelected(fdi)"
              [class.tooth-cell--marked]="hasAnyCondition(fdi)"
              [class.tooth-cell--absent]="isAbsent(fdi)"
+             [class.tooth-cell--urgent]="isUrgent(fdi)"
              [title]="fdi + ' — ' + toothName(fdi)"
              (click)="selectTooth(fdi)">
           <svg class="tooth-svg tooth-svg--lower" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
@@ -197,6 +281,10 @@
               <clipPath [attr.id]="clipId(fdi)">
                 <path [attr.d]="getToothCrownPath(fdi)"/>
               </clipPath>
+              <radialGradient [attr.id]="gradId(fdi)" cx="38%" cy="22%" r="62%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+                <stop offset="100%" stop-color="#ccc6bc" stop-opacity="0.5"/>
+              </radialGradient>
             </defs>
             <path class="tooth-fill" [attr.d]="getToothCrownPath(fdi)"/>
             <g [attr.clip-path]="'url(#' + clipId(fdi) + ')'">
@@ -205,6 +293,8 @@
               <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'M')"              points="0,0 9,12 9,32 0,44"/>
               <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'D')"              points="27,12 36,0 36,44 27,32"/>
               <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,centerLabel(fdi))" points="9,12 27,12 27,32 9,32"/>
+              <path *ngFor="let g of getToothGroovePaths(fdi)" [attr.d]="g" class="tooth-groove"/>
+              <path [attr.d]="getToothCrownPath(fdi)" [attr.fill]="'url(#' + gradId(fdi) + ')'" class="tooth-highlight"/>
             </g>
             <path class="tooth-crown-border" fill="none" [attr.d]="getToothCrownPath(fdi)"/>
             <text *ngIf="toothSymbol(fdi) as sym" class="tooth-symbol"
@@ -227,6 +317,7 @@
              [class.tooth-cell--selected]="isSelected(fdi)"
              [class.tooth-cell--marked]="hasAnyCondition(fdi)"
              [class.tooth-cell--absent]="isAbsent(fdi)"
+             [class.tooth-cell--urgent]="isUrgent(fdi)"
              [title]="fdi + ' — ' + toothName(fdi)"
              (click)="selectTooth(fdi)">
           <svg class="tooth-svg tooth-svg--lower" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
@@ -234,6 +325,10 @@
               <clipPath [attr.id]="clipId(fdi)">
                 <path [attr.d]="getToothCrownPath(fdi)"/>
               </clipPath>
+              <radialGradient [attr.id]="gradId(fdi)" cx="38%" cy="22%" r="62%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+                <stop offset="100%" stop-color="#ccc6bc" stop-opacity="0.5"/>
+              </radialGradient>
             </defs>
             <path class="tooth-fill" [attr.d]="getToothCrownPath(fdi)"/>
             <g [attr.clip-path]="'url(#' + clipId(fdi) + ')'">
@@ -242,6 +337,8 @@
               <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'M')"              points="0,0 9,12 9,32 0,44"/>
               <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,'D')"              points="27,12 36,0 36,44 27,32"/>
               <polygon class="tooth-surface" [attr.fill]="surfaceColor(fdi,centerLabel(fdi))" points="9,12 27,12 27,32 9,32"/>
+              <path *ngFor="let g of getToothGroovePaths(fdi)" [attr.d]="g" class="tooth-groove"/>
+              <path [attr.d]="getToothCrownPath(fdi)" [attr.fill]="'url(#' + gradId(fdi) + ')'" class="tooth-highlight"/>
             </g>
             <path class="tooth-crown-border" fill="none" [attr.d]="getToothCrownPath(fdi)"/>
             <text *ngIf="toothSymbol(fdi) as sym" class="tooth-symbol"
@@ -278,20 +375,39 @@
         </div>
       </div>
 
-      <!-- Mini tooth icon preview in panel header -->
-      <svg class="panel-tooth-icon" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
+      <!-- Full tooth illustration (crown + root) in panel header -->
+      <svg class="panel-tooth-icon panel-tooth-icon--full" viewBox="0 0 36 72" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <clipPath [attr.id]="clipId(selectedTooth()! + '-panel')">
             <path [attr.d]="getToothCrownPath(selectedTooth()!)"/>
           </clipPath>
+          <radialGradient [attr.id]="gradId(selectedTooth()! + '-panel')" cx="38%" cy="22%" r="62%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+            <stop offset="100%" stop-color="#ccc6bc" stop-opacity="0.5"/>
+          </radialGradient>
+          <linearGradient [attr.id]="gradId(selectedTooth()! + '-root')" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#e8e3d8"/>
+            <stop offset="50%" stop-color="#f5f2ec"/>
+            <stop offset="100%" stop-color="#e8e3d8"/>
+          </linearGradient>
         </defs>
+        <!-- Root -->
+        <path [attr.d]="getToothRootPath(selectedTooth()!)"
+              class="tooth-root-fill"
+              [attr.fill]="'url(#' + gradId(selectedTooth()! + '-root') + ')'"/>
+        <path [attr.d]="getToothRootPath(selectedTooth()!)" class="tooth-root-border" fill="none"/>
+        <!-- Crown -->
         <path class="tooth-fill" [attr.d]="getToothCrownPath(selectedTooth()!)"/>
         <g [attr.clip-path]="'url(#' + clipId(selectedTooth()! + '-panel') + ')'">
-          <polygon class="tooth-surface" [attr.fill]="surfaceColor(selectedTooth()!,'V')"                        points="0,0 36,0 27,12 9,12"/>
-          <polygon class="tooth-surface" [attr.fill]="surfaceColor(selectedTooth()!,'L')"                        points="9,32 27,32 36,44 0,44"/>
-          <polygon class="tooth-surface" [attr.fill]="surfaceColor(selectedTooth()!,'M')"                        points="0,0 9,12 9,32 0,44"/>
-          <polygon class="tooth-surface" [attr.fill]="surfaceColor(selectedTooth()!,'D')"                        points="27,12 36,0 36,44 27,32"/>
-          <polygon class="tooth-surface" [attr.fill]="surfaceColor(selectedTooth()!,centerLabel(selectedTooth()!))" points="9,12 27,12 27,32 9,32"/>
+          <polygon class="tooth-surface" [attr.fill]="surfaceColor(selectedTooth()!,'V')"                           points="0,0 36,0 27,12 9,12"/>
+          <polygon class="tooth-surface" [attr.fill]="surfaceColor(selectedTooth()!,'L')"                           points="9,32 27,32 36,44 0,44"/>
+          <polygon class="tooth-surface" [attr.fill]="surfaceColor(selectedTooth()!,'M')"                           points="0,0 9,12 9,32 0,44"/>
+          <polygon class="tooth-surface" [attr.fill]="surfaceColor(selectedTooth()!,'D')"                           points="27,12 36,0 36,44 27,32"/>
+          <polygon class="tooth-surface" [attr.fill]="surfaceColor(selectedTooth()!,centerLabel(selectedTooth()!))"  points="9,12 27,12 27,32 9,32"/>
+          <path *ngFor="let g of getToothGroovePaths(selectedTooth()!)" [attr.d]="g" class="tooth-groove"/>
+          <path [attr.d]="getToothCrownPath(selectedTooth()!)"
+                [attr.fill]="'url(#' + gradId(selectedTooth()! + '-panel') + ')'"
+                class="tooth-highlight"/>
         </g>
         <path class="tooth-crown-border" fill="none" [attr.d]="getToothCrownPath(selectedTooth()!)"/>
       </svg>
@@ -377,14 +493,22 @@
               <clipPath [attr.id]="clipId(selectedTooth()! + '-modal')">
                 <path [attr.d]="getToothCrownPath(selectedTooth()!)"/>
               </clipPath>
+              <radialGradient [attr.id]="gradId(selectedTooth()! + '-modal')" cx="38%" cy="22%" r="62%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+                <stop offset="100%" stop-color="#ccc6bc" stop-opacity="0.5"/>
+              </radialGradient>
             </defs>
             <path class="tooth-fill" [attr.d]="getToothCrownPath(selectedTooth()!)"/>
             <g [attr.clip-path]="'url(#' + clipId(selectedTooth()! + '-modal') + ')'">
-              <polygon class="tooth-surface preview-surface" [attr.fill]="previewSurface('V')"                          points="0,0 36,0 27,12 9,12"/>
-              <polygon class="tooth-surface preview-surface" [attr.fill]="previewSurface('L')"                          points="9,32 27,32 36,44 0,44"/>
-              <polygon class="tooth-surface preview-surface" [attr.fill]="previewSurface('M')"                          points="0,0 9,12 9,32 0,44"/>
-              <polygon class="tooth-surface preview-surface" [attr.fill]="previewSurface('D')"                          points="27,12 36,0 36,44 27,32"/>
-              <polygon class="tooth-surface preview-surface" [attr.fill]="previewSurface(centerLabel(selectedTooth()!))" points="9,12 27,12 27,32 9,32"/>
+              <polygon class="tooth-surface preview-surface" [attr.fill]="previewSurface('V')"                           points="0,0 36,0 27,12 9,12"/>
+              <polygon class="tooth-surface preview-surface" [attr.fill]="previewSurface('L')"                           points="9,32 27,32 36,44 0,44"/>
+              <polygon class="tooth-surface preview-surface" [attr.fill]="previewSurface('M')"                           points="0,0 9,12 9,32 0,44"/>
+              <polygon class="tooth-surface preview-surface" [attr.fill]="previewSurface('D')"                           points="27,12 36,0 36,44 27,32"/>
+              <polygon class="tooth-surface preview-surface" [attr.fill]="previewSurface(centerLabel(selectedTooth()!))"  points="9,12 27,12 27,32 9,32"/>
+              <path *ngFor="let g of getToothGroovePaths(selectedTooth()!)" [attr.d]="g" class="tooth-groove"/>
+              <path [attr.d]="getToothCrownPath(selectedTooth()!)"
+                    [attr.fill]="'url(#' + gradId(selectedTooth()! + '-modal') + ')'"
+                    class="tooth-highlight"/>
             </g>
             <path class="tooth-crown-border" fill="none" [attr.d]="getToothCrownPath(selectedTooth()!)"/>
           </svg>

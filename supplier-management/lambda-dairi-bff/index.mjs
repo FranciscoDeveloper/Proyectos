@@ -14,6 +14,7 @@ import { handleClinicalSummary }     from './handlers/clinicalHandler.mjs';
 import { handleUserConfig }          from './handlers/userConfigHandler.mjs';
 import { handleAdmin }               from './handlers/adminHandler.mjs';
 import { handleEntities }            from './handlers/entitiesHandler.mjs';
+import { handleDentalAi }           from './handlers/dentalAiHandler.mjs';
 
 // Cold-start log so we know what environment is configured.
 const bootLog = getLogger();
@@ -66,6 +67,10 @@ export const handler = async (event, context) => {
   } catch (err) {
     return response(401, { message: err.message });
   }
+
+  // ── Dental AI (no DB needed) ─────────────────────────────────────────────
+  const dentalAiResult = await handleDentalAi(rawPath, method, event);
+  if (dentalAiResult) return dentalAiResult;
 
   // ── Routes that use DynamoDB only (no DB client needed) ───────────────────
   const chatResult = await handleChat(rawPath, method, event, tokenPayload);

@@ -1,9 +1,10 @@
 import {
   Component, Input, Output, EventEmitter,
-  signal, computed, ChangeDetectionStrategy
+  signal, computed, ChangeDetectionStrategy, inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 
 // ─── Domain types ────────────────────────────────────────────────────────────
 
@@ -141,16 +142,23 @@ export class OdontogramComponent {
     this._data.set(v ?? this.emptyData());
   }
   @Input() readonly = false;
+  @Input() patientName: string | null = null;
   @Output() dataChange = new EventEmitter<OdontogramData>();
 
   readonly _data = signal<OdontogramData>(this.emptyData());
 
+  private http = inject(HttpClient);
+
   // ── UI state ────────────────────────────────────────────────────────────────
 
-  selectedTooth  = signal<string | null>(null);
-  panelOpen      = signal(false);
-  showLegend     = signal(false);
-  showDeciduous  = signal(false);
+  selectedTooth      = signal<string | null>(null);
+  panelOpen          = signal(false);
+  showLegend         = signal(false);
+  showDeciduous      = signal(false);
+  showTreatmentPlan  = signal(false);
+  aiNote             = signal<string | null>(null);
+  aiNoteLoading      = signal(false);
+  aiNoteError        = signal<string | null>(null);
 
   // Add-condition form
   newConvention  = signal<Convention>('lesion');
@@ -360,6 +368,64 @@ export class OdontogramComponent {
     return { version: 1, createdAt: new Date().toISOString(), teeth: {} };
   }
 
+  // ── Urgency & treatment plan ─────────────────────────────────────────────────
+
+  /** Teeth with conditions that warrant immediate clinical attention. */
+  readonly urgencies = computed<{ fdi: string; reason: string }[]>(() => {
+    const result: { fdi: string; reason: string }[] = [];
+    for (const [fdi, tooth] of Object.entries(this._data().teeth)) {
+      const active = tooth.conditions.filter(c => !c.isAnnulled);
+      if (active.some(c => c.type === 'EXTRACCION'))          result.push({ fdi, reason: 'Extracción indicada' });
+      if (active.some(c => c.type === 'LESION_PERIAPICAL'))   result.push({ fdi, reason: 'Lesión periapical' });
+      if (active.some(c => c.type === 'FRACTURA_CORONARIA'))  result.push({ fdi, reason: 'Fractura coronaria' });
+      if (active.some(c => c.type === 'FRACTURA_RADICULAR'))  result.push({ fdi, reason: 'Fractura radicular' });
+      const cariesCount = active.filter(c => c.type === 'CARIES' || c.type === 'CARIES_SECONDARY').length;
+      if (cariesCount >= 3)                                    result.push({ fdi, reason: `${cariesCount} superficies con caries` });
+    }
+    return result.sort((a, b) => parseInt(a.fdi) - parseInt(b.fdi));
+  });
+
+  readonly hasUrgencies = computed(() => this.urgencies().length > 0);
+
+  /** All teeth with active conditions, sorted by FDI number. */
+  readonly treatmentPlan = computed<{ fdi: string; name: string; conditions: string[] }[]>(() =>
+    Object.entries(this._data().teeth)
+      .filter(([, t]) => t.conditions.some(c => !c.isAnnulled))
+      .map(([fdi, t]) => ({
+        fdi,
+        name: this.toothName(fdi),
+        conditions: t.conditions.filter(c => !c.isAnnulled).map(c => this.getConditionLabel(c.type)),
+      }))
+      .sort((a, b) => parseInt(a.fdi) - parseInt(b.fdi))
+  );
+
+  isUrgent(fdi: string): boolean {
+    return this.urgencies().some(u => u.fdi === fdi);
+  }
+
+  // ── AI note generation ────────────────────────────────────────────────────────
+
+  generateAiNote(): void {
+    if (this.aiNoteLoading()) return;
+    this.aiNoteLoading.set(true);
+    this.aiNoteError.set(null);
+    this.aiNote.set(null);
+
+    this.http.post<{ note: string }>('/api/dental/ai-note', {
+      odontogramData: this._data(),
+      patientName: this.patientName ?? undefined,
+    }).subscribe({
+      next: ({ note }) => {
+        this.aiNote.set(note);
+        this.aiNoteLoading.set(false);
+      },
+      error: (err) => {
+        this.aiNoteError.set(err?.error?.message ?? 'Error al generar análisis con IA.');
+        this.aiNoteLoading.set(false);
+      },
+    });
+  }
+
   getConditionLabel(type: string): string {
     return CONDITION_CATALOG.find(c => c.type === type)?.label ?? type;
   }
@@ -428,27 +494,59 @@ export class OdontogramComponent {
 
   clipId(fdi: string): string { return `${this.clipPrefix}-${fdi}`; }
 
-  /** SVG crown path (viewBox 0 0 36 44) — differs by tooth type */
+  /** SVG crown path (viewBox 0 0 36 44) — anatomically improved Bezier curves per tooth type. */
   getToothCrownPath(fdi: string): string {
     const d = parseInt(fdi, 10) % 10;
     switch (d) {
-      // Incisivo central — rectangular chisel, flat occlusal edge
-      case 1: return 'M3,0 H33 Q36,0 36,3 V41 Q36,44 33,44 H3 Q0,44 0,41 V3 Q0,0 3,0 Z';
-      // Incisivo lateral — same but slightly narrower
-      case 2: return 'M4,1 H32 Q35,1 35,4 V41 Q35,44 32,44 H4 Q1,44 1,41 V4 Q1,1 4,1 Z';
-      // Canino — pointed single cusp
-      case 3: return 'M1,14 L18,0 L35,14 V41 Q35,44 31,44 H5 Q1,44 1,41 Z';
-      // Primer Premolar — two cusps
-      case 4: return 'M1,14 Q7,0 14,6 Q18,9 22,6 Q29,0 35,14 V41 Q35,44 31,44 H5 Q1,44 1,41 Z';
-      // Segundo Premolar — two rounded cusps
-      case 5: return 'M2,13 Q8,1 14,7 Q18,10 22,7 Q28,1 34,13 V41 Q34,44 30,44 H6 Q2,44 2,41 Z';
-      // Primer Molar — tres cúspides, el más ancho
-      case 6: return 'M0,14 Q5,1 10,6 Q14,10 18,6 Q22,10 26,6 Q31,1 36,14 V41 Q36,44 32,44 H4 Q0,44 0,41 Z';
-      // Segundo Molar — tres cúspides
-      case 7: return 'M1,13 Q6,1 11,6 Q15,10 18,6 Q21,10 25,6 Q30,1 35,13 V41 Q35,44 31,44 H5 Q1,44 1,41 Z';
-      // Molar del Juicio — compacto, 2-3 cúspides
-      case 8: return 'M4,12 Q9,1 15,7 Q18,10 21,7 Q27,1 32,12 V41 Q32,44 28,44 H8 Q4,44 4,41 Z';
-      default: return 'M3,0 H33 Q36,0 36,3 V41 Q36,44 33,44 H3 Q0,44 0,41 V3 Q0,0 3,0 Z';
+      // Central incisor — wide chisel, convex labial, tapers at cervix
+      case 1: return 'M2,0 C6,-0.5 30,-0.5 34,0 L34.5,34 C34.5,40 30,44 18,44 C6,44 1.5,40 1.5,34 Z';
+      // Lateral incisor — narrower, slightly more rounded crown
+      case 2: return 'M5,1 C9,0 27,0 31,1 L31.5,34 C31.5,40 27,44 18,44 C9,44 4.5,40 4.5,34 Z';
+      // Canine — single long pointed cusp, pronounced ridge
+      case 3: return 'M0,17 C1.5,6 9,0 18,0 C27,0 34.5,6 36,17 L33,40 C31.5,44 27,44 18,44 C9,44 4.5,44 3,40 Z';
+      // First premolar — two distinct cusps separated by central groove
+      case 4: return 'M0,16 C2,4 8,-1 13,5 C15.5,9 17,8.5 18,7.5 C19,8.5 20.5,9 23,5 C28,-1 34,4 36,16 L34.5,40 C33.5,44 28,44 18,44 C8,44 2.5,44 1.5,40 Z';
+      // Second premolar — two rounder, more equal cusps
+      case 5: return 'M1,15 C3,4 9,0 14,6 C16.5,10 17.5,9 18,8 C18.5,9 19.5,10 22,6 C27,0 33,4 35,15 L34,40 C33,44 27,44 18,44 C9,44 3,44 2,40 Z';
+      // First molar — wide, three prominent cusps with cruciform groove
+      case 6: return 'M0,17 C1,4 7,-1 12,5 C14.5,9 16.5,7.5 18,6.5 C19.5,7.5 21.5,9 24,5 C29,-1 35,4 36,17 L35.5,40 C34.5,44 29,44 18,44 C7,44 1.5,44 0.5,40 Z';
+      // Second molar — similar to first, slightly smaller
+      case 7: return 'M1,16 C3,4 8,-0.5 12.5,5.5 C15,9 17,8 18,7 C19,8 21,9 23.5,5.5 C28,-0.5 33,4 35,16 L34,40 C33,44 27,44 18,44 C9,44 3,44 2,40 Z';
+      // Third molar — compact, irregular multi-cusp crown
+      case 8: return 'M3,15 C6,4 10,0.5 14,6.5 C16,9.5 18,8 20,6.5 C24,0.5 28,4 33,15 L32,40 C31,43 27,44 18,44 C9,44 5,43 4,40 Z';
+      default: return 'M2,0 C6,-0.5 30,-0.5 34,0 L34.5,34 C34.5,40 30,44 18,44 C6,44 1.5,40 1.5,34 Z';
+    }
+  }
+
+  /** Anatomical groove line paths (clipped to crown) — adds developmental groove detail. */
+  getToothGroovePaths(fdi: string): string[] {
+    const d = parseInt(fdi, 10) % 10;
+    switch (d) {
+      case 4: return ['M18,13 L18,31'];                               // central groove
+      case 5: return ['M18,13 L18,31'];
+      case 6: return ['M18,13 L18,31', 'M11,22 L25,22'];             // cruciform grooves
+      case 7: return ['M18,13 L18,31', 'M11.5,22 L24.5,22'];
+      case 8: return ['M18,14 L18,30', 'M12,21 L24,21'];
+      default: return [];
+    }
+  }
+
+  /** Gradient ID for the per-tooth highlight gradient. */
+  gradId(fdi: string): string { return `${this.clipPrefix}-grd-${fdi}`; }
+
+  /** Root path for the detail panel (viewBox extends to y=70). */
+  getToothRootPath(fdi: string): string {
+    const d = parseInt(fdi, 10) % 10;
+    switch (d) {
+      case 1: return 'M11,44 C9,52 9,62 12,68 Q15.5,72 18,70 Q20.5,72 24,68 C27,62 27,52 25,44';
+      case 2: return 'M12,44 C10,52 10,61 13,67 Q15.5,71 18,69 Q20.5,71 23,67 C26,61 26,52 24,44';
+      case 3: return 'M10,44 C8,53 8,63 11,68 Q14.5,72 18,70 Q21.5,72 25,68 C28,63 28,53 26,44';
+      case 4: return 'M10,44 L11,52 C10,61 13,67 18,69 C23,67 26,61 25,52 L26,44';
+      case 5: return 'M11,44 L12,52 C11,60 14,66 18,68 C22,66 25,60 24,52 L25,44';
+      case 6: return 'M8,44 L10,55 C9,64 13,69 18,68 C23,69 27,64 26,55 L28,44';
+      case 7: return 'M9,44 L11,54 C10,63 14,68 18,67 C22,68 26,63 25,54 L27,44';
+      case 8: return 'M10,44 L12,53 C11,61 14,66 18,65 C22,66 25,61 24,53 L26,44';
+      default: return 'M11,44 C9,52 9,62 12,68 Q15.5,72 18,70 Q20.5,72 24,68 C27,62 27,52 25,44';
     }
   }
 
