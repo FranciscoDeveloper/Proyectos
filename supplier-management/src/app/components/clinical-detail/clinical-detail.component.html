@@ -659,6 +659,7 @@
   <app-odontogram
     [data]="odontogramData()"
     [readonly]="false"
+    [patientName]="patient()?.fullName ?? null"
     (dataChange)="saveOdontogram($event)">
   </app-odontogram>
 </div>
