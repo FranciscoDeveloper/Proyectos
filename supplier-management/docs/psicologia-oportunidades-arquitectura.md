@@ -584,9 +584,73 @@ El `.transcript.txt` también puede eliminarse o retener 30 días según configu
 
 ---
 
-## Parte 4 — Hoja de Ruta de Implementación
+## Parte 4 — Deployment de los cambios de Parte 1 (Prompts)
 
-### Fase 0 — Fundación (0–2 semanas, sin costo AWS adicional)
+Los tres archivos modificados en esta iteración requieren pasos de deploy distintos.
+
+### 1. Subir `config/ai-prompts.json` a S3
+
+Este archivo **debe estar en S3 antes de que `lambda-transcribe` procese cualquier audio**. Sin él, la lambda fallará silenciosamente al cargar la config y caerá al prompt genérico.
+
+```powershell
+# Subir al bucket de audio (budget-riquelmetapia)
+python -m awscli s3 cp supplier-management/config/ai-prompts.json ^
+  s3://budget-riquelmetapia/config/ai-prompts.json --region us-east-1
+
+# Verificar
+python -m awscli s3 ls s3://budget-riquelmetapia/config/
+```
+
+> Para actualizar los prompts en producción sin redesplegar la Lambda, solo hay que re-subir este JSON. El cache se invalida en el próximo cold start del container.
+
+### 2. Deploy `lambda-audio`
+
+```powershell
+cd "d:\github\Proyectos\supplier-management\lambda-audio"
+Compress-Archive -Path "index.mjs","package.json","node_modules" `
+  -DestinationPath "lambda-audio.zip" -Force
+python -m awscli lambda update-function-code `
+  --function-name dairi-audio `
+  --region us-east-1 `
+  --zip-file "fileb://lambda-audio.zip" `
+  --query "LastUpdateStatus" --output text
+```
+
+> **Impacto**: los nuevos audios se guardarán en `recordings/{entityKey}/{recordId}/{filename}`. Los audios ya existentes en `recordings/{filename}` siguen siendo accesibles para reproducción (el BFF solo genera presigned GET URLs a partir de la key guardada), pero `lambda-transcribe` los procesará con el prompt `default` si el path no tiene el formato nuevo.
+
+### 3. Deploy `lambda-transcribe`
+
+```powershell
+cd "d:\github\Proyectos\supplier-management\lambda-transcribe"
+Compress-Archive -Path "handler.js","deepgram-turns.js","package.json","node_modules" `
+  -DestinationPath "lambda-transcribe.zip" -Force
+python -m awscli lambda update-function-code `
+  --function-name dairi-transcribe `
+  --region us-east-1 `
+  --zip-file "fileb://lambda-transcribe.zip" `
+  --query "LastUpdateStatus" --output text
+```
+
+> Verificar que las variables de entorno `AUDIO_BUCKET` (o `CONFIG_BUCKET`) estén configuradas en la función:
+> ```powershell
+> python -m awscli lambda get-function-configuration `
+>   --function-name dairi-transcribe --region us-east-1 `
+>   --query "Environment.Variables" --output json
+> ```
+
+### Orden de deploy recomendado
+
+```
+1. s3 cp ai-prompts.json   ← primero, la lambda lo necesita en su primer invocación
+2. lambda-audio deploy     ← cambia formato de S3 key
+3. lambda-transcribe deploy ← lee la nueva key y el config
+```
+
+---
+
+## Parte 5 — Hoja de Ruta de Implementación
+
+### Fase 0 — Fundación (ya implementado en esta iteración)
 
 | Tarea | Componente | Prioridad |
 |---|---|---|
