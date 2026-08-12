@@ -149,7 +149,7 @@ Al activar (`POST /activate`):
 - **No hacer la RDS pública** — aumenta la factura AWS
 - **No crear recursos de red** (SGs, subnets, VPCs, Elastic IPs, etc.)
 - **No aumentar costos AWS** para investigación — usar mecanismos existentes
-- **db-access Lambda es auxiliar**: no agregar JWT, no tratar como endpoint de producción, restaurar a original después de cada uso diagnóstico
+- **db-access Lambda es auxiliar**: no agregar JWT, no tratar como endpoint de producción, restaurar a original después de cada uso diagnóstico. Puede usarse también para cambiar la estructura de tablas (ALTER/CREATE) y dejar ese cambio de forma permanente — no solo para lecturas diagnósticas.
 - **Apagar RDS** al terminar de trabajar con ella
 - **No usar `--no-verify`** ni saltarse hooks de git
 
