@@ -17,6 +17,7 @@ import { handleEntities }            from './handlers/entitiesHandler.mjs';
 import { handleAgenda }              from './handlers/agendaHandler.mjs';
 import { handleProfessionals }       from './handlers/professionalsHandler.mjs';
 import { handlePsych }               from './handlers/psychHandler.mjs';
+import { handleProcessNotes }        from './handlers/processNotesHandler.mjs';
 
 // Cold-start log so we know what environment is configured.
 const bootLog = getLogger();
@@ -110,7 +111,11 @@ export const handler = async (event, context) => {
     rawPath === '/api/psych/mbc/templates' ||
     rawPath === '/api/psych/mbc/instances' ||
     /^\/api\/psych\/mbc\/instances\/\d+\/responses$/.test(rawPath) ||
-    /^\/api\/psych\/mbc\/trajectory\/\d+$/.test(rawPath);
+    /^\/api\/psych\/mbc\/trajectory\/\d+$/.test(rawPath) ||
+    // Notas de proceso (Fase 1). Mismo anclaje con `$` por la misma razón: sin él
+    // `/api/process-notes/1/x` tomaría una conexión del pool solo para caer en el
+    // 404 de más abajo.
+    /^\/api\/process-notes\/\d+(?:\/\d+)?$/.test(rawPath);
 
   if (!needsDb) {
     log.warn('Path did not match any handler', { rawPath });
@@ -171,6 +176,10 @@ export const handler = async (event, context) => {
     // /api/psych/* — tareas intersesión, humor y escalas MBC (PHQ-9 / GAD-7).
     const psychResult = await handlePsych(rawPath, method, event, tokenPayload, client);
     if (psychResult) return psychResult;
+
+    // /api/process-notes/* — cuaderno privado del terapeuta (filtrado por author_id).
+    const notesResult = await handleProcessNotes(rawPath, method, event, tokenPayload, client);
+    if (notesResult) return notesResult;
 
     // /api/admin/*
     const adminResult = await handleAdmin(rawPath, method, event, tokenPayload, client);
