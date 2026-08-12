@@ -1,0 +1,12 @@
+{
+  "name": "dairi-ai-worker",
+  "version": "1.0.0",
+  "description": "DynamoDB Streams worker: genera briefs pre-sesión y borradores de informe con Bedrock, fuera de la VPC (dairi-bff no alcanza Bedrock desde dentro)",
+  "type": "module",
+  "main": "index.mjs",
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.600.0",
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/util-dynamodb": "^3.600.0"
+  }
+}

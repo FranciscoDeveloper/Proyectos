@@ -18,6 +18,8 @@ import { handleAgenda }              from './handlers/agendaHandler.mjs';
 import { handleProfessionals }       from './handlers/professionalsHandler.mjs';
 import { handlePsych }               from './handlers/psychHandler.mjs';
 import { handleProcessNotes }        from './handlers/processNotesHandler.mjs';
+import { handlePreSessionBrief }     from './handlers/preSessionBriefHandler.mjs';
+import { handleReports }             from './handlers/reportsHandler.mjs';
 
 // Cold-start log so we know what environment is configured.
 const bootLog = getLogger();
@@ -112,10 +114,14 @@ export const handler = async (event, context) => {
     rawPath === '/api/psych/mbc/instances' ||
     /^\/api\/psych\/mbc\/instances\/\d+\/responses$/.test(rawPath) ||
     /^\/api\/psych\/mbc\/trajectory\/\d+$/.test(rawPath) ||
-    // Notas de proceso (Fase 1). Mismo anclaje con `$` por la misma razón: sin él
-    // `/api/process-notes/1/x` tomaría una conexión del pool solo para caer en el
-    // 404 de más abajo.
-    /^\/api\/process-notes\/\d+(?:\/\d+)?$/.test(rawPath);
+    // Notas de proceso, brief pre-sesión e informes (Fases 1 y 3). Mismos anclajes
+    // con `$` por la misma razón: sin ellos `/api/process-notes/1/x` tomaría una
+    // conexión del pool solo para caer en el 404 de más abajo.
+    /^\/api\/process-notes\/\d+(?:\/\d+)?$/.test(rawPath) ||
+    /^\/api\/clinical\/pre-session-brief\/\d+$/.test(rawPath) ||
+    /^\/api\/clinical\/pre-session-brief\/job\/[0-9a-f-]{36}$/.test(rawPath) ||
+    rawPath === '/api/psych/reports/draft' ||
+    /^\/api\/psych\/reports\/job\/[0-9a-f-]{36}$/.test(rawPath);
 
   if (!needsDb) {
     log.warn('Path did not match any handler', { rawPath });
@@ -180,6 +186,15 @@ export const handler = async (event, context) => {
     // /api/process-notes/* — cuaderno privado del terapeuta (filtrado por author_id).
     const notesResult = await handleProcessNotes(rawPath, method, event, tokenPayload, client);
     if (notesResult) return notesResult;
+
+    // /api/clinical/pre-session-brief/* y /api/psych/reports/* — ambos encolan un
+    // trabajo en DynamoDB para `dairi-ai-worker` y devuelven 202. No llaman a Bedrock
+    // desde aquí: esta Lambda está en la VPC y no lo alcanza (ver lib/aiJobs.mjs).
+    const briefResult = await handlePreSessionBrief(rawPath, method, tokenPayload, client);
+    if (briefResult) return briefResult;
+
+    const reportsResult = await handleReports(rawPath, method, event, tokenPayload, client);
+    if (reportsResult) return reportsResult;
 
     // /api/admin/*
     const adminResult = await handleAdmin(rawPath, method, event, tokenPayload, client);
