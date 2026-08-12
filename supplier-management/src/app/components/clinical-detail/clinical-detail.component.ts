@@ -14,6 +14,9 @@ import { NativeIoService } from '../../services/native-io.service';
 import { ClinicLogoService } from '../../services/clinic-logo.service';
 import { IntersessionTasksComponent } from './intersession-tasks/intersession-tasks.component';
 import { MbcTrajectoryComponent } from './mbc-trajectory/mbc-trajectory.component';
+import { ProcessNotesComponent } from './process-notes/process-notes.component';
+import { PreSessionBriefComponent } from './pre-session-brief/pre-session-brief.component';
+import { ReportGeneratorComponent } from './report-generator/report-generator.component';
 
 interface VitalSign {
   label: string;
@@ -34,7 +37,8 @@ interface SectionField {
     selector: 'app-clinical-detail',
     imports: [
       CommonModule, RouterLink, OdontogramComponent, PeriodontogramComponent,
-      IntersessionTasksComponent, MbcTrajectoryComponent
+      IntersessionTasksComponent, MbcTrajectoryComponent,
+      ProcessNotesComponent, PreSessionBriefComponent, ReportGeneratorComponent
     ],
     templateUrl: './clinical-detail.component.html',
     styleUrl: './clinical-detail.component.scss'
@@ -525,7 +529,8 @@ export class ClinicalDetailComponent implements OnInit {
   // ── Encounter history tab ─────────────────────────────────────────────────
 
   activeTab = signal<
-    'record' | 'history' | 'documents' | 'odontogram' | 'periodontogram' | 'intersession' | 'mbc'
+    'record' | 'history' | 'documents' | 'odontogram' | 'periodontogram' |
+    'intersession' | 'mbc' | 'notes' | 'brief' | 'reports'
   >('record');
 
   // ── Dental chart detection ────────────────────────────────────────────────

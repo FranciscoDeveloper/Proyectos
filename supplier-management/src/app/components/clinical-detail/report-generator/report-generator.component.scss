@@ -1,0 +1,207 @@
+:host { display: block; }
+
+.rg-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 900px;
+}
+
+.rg-head {
+  margin-bottom: 16px;
+  h3 { font-size: 15px; font-weight: 700; color: #111827; margin: 0; }
+}
+
+.rg-sub { font-size: 12px; color: #6b7280; margin: 3px 0 0; }
+
+.rg-controls {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) 1.4fr;
+  gap: 16px;
+  align-items: start;
+
+  @media (max-width: 860px) { grid-template-columns: 1fr; }
+}
+
+.rg-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin-bottom: 5px;
+}
+
+.rg-input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: #111827;
+  background: white;
+
+  &:focus { outline: none; border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12); }
+}
+
+.rg-input--area { resize: vertical; line-height: 1.6; }
+
+.rg-hint { font-size: 11.5px; color: #9ca3af; margin: 5px 0 0; line-height: 1.5; }
+
+.rg-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 16px 0 0;
+}
+
+.rg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s;
+  svg { width: 14px; height: 14px; }
+
+  &:hover:not(:disabled) { background: #f9fafb; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.rg-btn--primary {
+  background: #8b5cf6;
+  border-color: #8b5cf6;
+  color: white;
+  &:hover:not(:disabled) { background: #7c3aed; }
+}
+
+.rg-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #6b7280;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 14px;
+}
+
+.rg-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid #ddd6fe;
+  border-top-color: #8b5cf6;
+  border-radius: 50%;
+  animation: rg-spin 0.75s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes rg-spin { to { transform: rotate(360deg); } }
+
+.rg-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-top: 14px;
+}
+
+.rg-warn-box {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  font-size: 13px;
+  line-height: 1.55;
+  padding: 11px 13px;
+  border-radius: 8px;
+  margin-top: 14px;
+  strong { display: block; }
+}
+
+.rg-review-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #92400e;
+  margin: 18px 0 12px;
+
+  svg { width: 17px; height: 17px; flex-shrink: 0; margin-top: 1px; }
+  strong { font-weight: 700; }
+  code {
+    background: #fef3c7;
+    border-radius: 4px;
+    padding: 1px 4px;
+    font-size: 11.5px;
+  }
+}
+
+.rg-warnings {
+  margin: 0 0 12px;
+  padding: 10px 12px 10px 28px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #6b7280;
+  li + li { margin-top: 3px; }
+}
+
+.rg-draft-head {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  padding: 7px 12px;
+}
+
+.rg-draft {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: #1f2937;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background: #fdfdff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0 0 8px 8px;
+  padding: 16px;
+  margin: 0;
+  max-height: 640px;
+  overflow-y: auto;
+}
+
+.rg-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #f3f4f6;
+  margin-top: 14px;
+  padding-top: 12px;
+}
+
+.rg-meta { font-size: 11.5px; color: #9ca3af; }

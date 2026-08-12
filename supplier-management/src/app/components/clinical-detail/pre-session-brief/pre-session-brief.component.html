@@ -1,0 +1,65 @@
+<div class="psb-card">
+  <div class="psb-head">
+    <div>
+      <h3>Brief de sesión</h3>
+      <p class="psb-sub">Dónde quedó el proceso, en 60 segundos</p>
+    </div>
+    <button class="psb-btn psb-btn--primary"
+            [disabled]="state() === 'working'"
+            (click)="generate()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+      {{ state() === 'done' || state() === 'timeout' ? 'Regenerar' : 'Generar brief' }}
+    </button>
+  </div>
+
+  <!-- Estado inicial -->
+  <p class="psb-empty" *ngIf="state() === 'idle'">
+    Reúne la última sesión, las tareas intersesión, el registro de ánimo y las escalas
+    aplicadas en un resumen breve para retomar el hilo. Tus notas de proceso
+    <strong>no</strong> se incluyen.
+  </p>
+
+  <!-- Generando -->
+  <div class="psb-loading" *ngIf="state() === 'working'">
+    <span class="psb-spinner"></span>
+    <span>Generando el brief… puede tardar unos segundos.</span>
+  </div>
+
+  <!-- Se agotó el polling -->
+  <div class="psb-warn-box" *ngIf="state() === 'timeout'">
+    <strong>Está tardando más de lo normal.</strong>
+    El brief puede seguir generándose. Vuelve a intentarlo en unos segundos.
+  </div>
+
+  <!-- Error -->
+  <div class="psb-error" *ngIf="state() === 'error'">{{ errorMsg() }}</div>
+
+  <!-- Resultado -->
+  <ng-container *ngIf="state() === 'done' && brief()">
+    <!-- S3 — el aviso va SIEMPRE encima del texto, no debajo ni en un tooltip: lo que
+         sigue lo escribió un modelo y el profesional tiene que revisarlo. -->
+    <div class="psb-review-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <span><strong>Borrador generado por IA — revísalo antes de usarlo.</strong>
+        Es un apoyo para preparar la sesión, no una valoración clínica.</span>
+    </div>
+
+    <ul class="psb-warnings" *ngIf="warnings().length > 0">
+      <li *ngFor="let w of warnings()">{{ w }}</li>
+    </ul>
+
+    <p class="psb-body">{{ brief() }}</p>
+
+    <div class="psb-foot">
+      <span class="psb-meta" *ngIf="generatedAt()">
+        Generado {{ generatedAt() | date:'dd MMM yyyy HH:mm' }}<span *ngIf="model()"> · {{ model() }}</span>
+      </span>
+      <button class="psb-btn" (click)="copy()">Copiar</button>
+    </div>
+  </ng-container>
+</div>

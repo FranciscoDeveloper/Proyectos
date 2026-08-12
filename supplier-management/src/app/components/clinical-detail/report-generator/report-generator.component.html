@@ -1,0 +1,88 @@
+<div class="rg-card">
+  <div class="rg-head">
+    <div>
+      <h3>Generador de informes</h3>
+      <p class="rg-sub">Borrador a partir de los datos de la ficha</p>
+    </div>
+  </div>
+
+  <div class="rg-controls">
+    <div class="rg-field">
+      <label class="rg-label" for="rg-type">Tipo de informe</label>
+      <select id="rg-type" class="rg-input"
+              [ngModel]="selectedType()" (ngModelChange)="selectedType.set($event)">
+        <option *ngFor="let t of reportTypes" [value]="t.value">{{ t.label }}</option>
+      </select>
+      <p class="rg-hint">{{ typeHint() }}</p>
+    </div>
+
+    <div class="rg-field">
+      <label class="rg-label" for="rg-ctx">Contexto adicional (opcional)</label>
+      <textarea id="rg-ctx" class="rg-input rg-input--area" rows="4"
+                placeholder="Motivo de derivación, quién solicita el informe, datos que no están en la ficha…"
+                [ngModel]="additionalContext()" (ngModelChange)="additionalContext.set($event)"></textarea>
+      <p class="rg-hint">Se envía como información del caso, no como instrucciones al modelo.</p>
+    </div>
+  </div>
+
+  <div class="rg-actions">
+    <button class="rg-btn rg-btn--primary"
+            [disabled]="state() === 'working'"
+            (click)="generate()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      {{ state() === 'done' || state() === 'timeout' ? 'Regenerar borrador' : 'Generar borrador' }}
+    </button>
+  </div>
+
+  <!-- Generando -->
+  <div class="rg-loading" *ngIf="state() === 'working'">
+    <span class="rg-spinner"></span>
+    <span>Redactando el borrador… puede tardar unos segundos.</span>
+  </div>
+
+  <!-- Se agotó el polling -->
+  <div class="rg-warn-box" *ngIf="state() === 'timeout'">
+    <strong>Está tardando más de lo normal.</strong>
+    El borrador puede seguir generándose. Vuelve a intentarlo en unos segundos.
+  </div>
+
+  <!-- Error -->
+  <div class="rg-error" *ngIf="state() === 'error'">{{ errorMsg() }}</div>
+
+  <!-- Resultado -->
+  <ng-container *ngIf="state() === 'done' && draft()">
+    <!-- S3 — este bloque va SIEMPRE encima del texto. Un informe de tribunal o un
+         certificado de licencia médica no se puede presentar como documento terminado. -->
+    <div class="rg-review-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <span>
+        <strong>Borrador generado por IA — revísalo antes de usarlo.</strong>
+        No es un documento terminado ni está listo para firmar. Verifica cada dato clínico,
+        completa lo marcado como <code>[COMPLETAR]</code> y corrige lo que corresponda:
+        la responsabilidad profesional del informe es tuya.
+      </span>
+    </div>
+
+    <ul class="rg-warnings" *ngIf="warnings().length > 0">
+      <li *ngFor="let w of warnings()">{{ w }}</li>
+    </ul>
+
+    <div class="rg-draft-head" *ngIf="reportLabel()">
+      Borrador — {{ reportLabel() }}
+    </div>
+    <pre class="rg-draft">{{ draft() }}</pre>
+
+    <div class="rg-foot">
+      <span class="rg-meta" *ngIf="generatedAt()">
+        Generado {{ generatedAt() | date:'dd MMM yyyy HH:mm' }}<span *ngIf="model()"> · {{ model() }}</span>
+      </span>
+      <button class="rg-btn" (click)="copy()">Copiar borrador</button>
+    </div>
+  </ng-container>
+</div>
