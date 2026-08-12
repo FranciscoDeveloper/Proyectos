@@ -1,0 +1,95 @@
+<div class="mbc-card">
+
+  <div class="mbc-head">
+    <div>
+      <h3>Escalas y trayectoria</h3>
+      <p class="mbc-sub">Medición basada en resultados (MBC)</p>
+    </div>
+    <div class="mbc-apply">
+      <span class="mbc-apply-label">Aplicar:</span>
+      <button *ngFor="let t of templates()" class="mbc-btn mbc-btn--primary" (click)="openScale(t)">
+        {{ t.code }}
+      </button>
+    </div>
+  </div>
+
+  <div class="mbc-error" *ngIf="error()">{{ error() }}</div>
+
+  <p class="mbc-empty" *ngIf="loading()">Cargando trayectoria…</p>
+
+  <ng-container *ngIf="!loading()">
+    <p class="mbc-empty" *ngIf="!hasData()">
+      Aún no se ha aplicado ninguna escala en esta ficha. Aplica PHQ-9 o GAD-7 para
+      empezar a construir la trayectoria.
+    </p>
+
+    <div *ngIf="hasData()">
+      <!-- ── Resumen por escala ── -->
+      <div class="mbc-summary">
+        <div class="mbc-stat" *ngFor="let s of plotted()">
+          <div class="mbc-stat-head">
+            <span class="mbc-swatch" [style.background]="s.color"></span>
+            <span class="mbc-stat-code">{{ s.code }}</span>
+          </div>
+          <div class="mbc-stat-score" *ngIf="s.last">
+            {{ s.last.score }}
+            <span class="mbc-sev" [style.background]="severityColor(s.last.severity)">
+              {{ s.last.severity }}
+            </span>
+          </div>
+          <div class="mbc-stat-delta" *ngIf="s.delta !== null" [style.color]="deltaColor(s.delta!)">
+            {{ deltaLabel(s.delta!) }} desde la primera aplicación
+          </div>
+          <div class="mbc-stat-date" *ngIf="s.last">
+            Última: {{ s.last.date | date:'dd-MM-yyyy' }} · {{ s.points.length }} aplicacion{{ s.points.length === 1 ? '' : 'es' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Gráfico SVG ── -->
+      <div class="mbc-chart">
+        <svg [attr.viewBox]="'0 0 ' + W + ' ' + H" preserveAspectRatio="xMidYMid meet" role="img"
+             aria-label="Trayectoria de puntajes de escalas">
+          <!-- Rejilla y eje Y -->
+          <g class="mbc-grid">
+            <line *ngFor="let g of gridLines()"
+                  [attr.x1]="g.x1" [attr.y1]="g.y" [attr.x2]="g.x2" [attr.y2]="g.y"/>
+          </g>
+          <g class="mbc-axis">
+            <text *ngFor="let g of gridLines()"
+                  [attr.x]="g.x1 - 7" [attr.y]="g.y + 3.5" text-anchor="end">{{ g.label }}</text>
+          </g>
+
+          <!-- Series -->
+          <g *ngFor="let s of plotted()">
+            <path [attr.d]="s.path" fill="none" [attr.stroke]="s.color" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+            <g *ngFor="let p of s.points">
+              <circle [attr.cx]="p.x" [attr.cy]="p.y" r="4.5" fill="white"
+                      [attr.stroke]="s.color" stroke-width="2.2"/>
+              <title>{{ s.code }} — {{ p.score }} ({{ p.severity }}) · {{ p.date | date:'dd-MM-yyyy' }}</title>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      <div class="mbc-legend">
+        <span class="mbc-legend-item" *ngFor="let s of plotted()">
+          <span class="mbc-swatch" [style.background]="s.color"></span>{{ s.name }}
+        </span>
+      </div>
+
+      <p class="mbc-foot">
+        Puntaje más bajo indica menor sintomatología en ambas escalas.
+      </p>
+    </div>
+  </ng-container>
+</div>
+
+<!-- Modal de aplicación -->
+<app-scale-form
+  [recordId]="recordId"
+  [template]="activeTemplate()"
+  (completed)="onCompleted($event)"
+  (closed)="onClosed()">
+</app-scale-form>

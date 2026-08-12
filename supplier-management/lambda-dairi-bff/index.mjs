@@ -16,6 +16,7 @@ import { handleAdmin }               from './handlers/adminHandler.mjs';
 import { handleEntities }            from './handlers/entitiesHandler.mjs';
 import { handleAgenda }              from './handlers/agendaHandler.mjs';
 import { handleProfessionals }       from './handlers/professionalsHandler.mjs';
+import { handlePsych }               from './handlers/psychHandler.mjs';
 
 // Cold-start log so we know what environment is configured.
 const bootLog = getLogger();
@@ -99,7 +100,17 @@ export const handler = async (event, context) => {
     rawPath.startsWith('/api/admin/') ||
     rawPath.startsWith('/api/entities/') ||
     rawPath.startsWith('/api/professionals/') ||
-    rawPath.startsWith('/api/suppliers');
+    rawPath.startsWith('/api/suppliers') ||
+    // Psicología (/api/psych/*). Anclados con `$`: un prefijo suelto haría que
+    // cualquier sufijo inventado adquiriera una conexión del pool para terminar
+    // igualmente en 404 más abajo. Cada patrón replica exactamente una ruta de
+    // psychHandler.
+    /^\/api\/psych\/tasks\/\d+(?:\/\d+(?:\/complete)?)?$/.test(rawPath) ||
+    /^\/api\/psych\/mood\/\d+$/.test(rawPath) ||
+    rawPath === '/api/psych/mbc/templates' ||
+    rawPath === '/api/psych/mbc/instances' ||
+    /^\/api\/psych\/mbc\/instances\/\d+\/responses$/.test(rawPath) ||
+    /^\/api\/psych\/mbc\/trajectory\/\d+$/.test(rawPath);
 
   if (!needsDb) {
     log.warn('Path did not match any handler', { rawPath });
@@ -156,6 +167,10 @@ export const handler = async (event, context) => {
       log.error('Professionals S3 error', { message: s3Err.message, rawPath });
       return response(500, { message: 'Error al preparar la subida de la foto', error: s3Err.message });
     }
+
+    // /api/psych/* — tareas intersesión, humor y escalas MBC (PHQ-9 / GAD-7).
+    const psychResult = await handlePsych(rawPath, method, event, tokenPayload, client);
+    if (psychResult) return psychResult;
 
     // /api/admin/*
     const adminResult = await handleAdmin(rawPath, method, event, tokenPayload, client);

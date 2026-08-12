@@ -1,0 +1,86 @@
+<div class="sf-backdrop" *ngIf="template" (click)="close()">
+  <div class="sf-modal" (click)="$event.stopPropagation()">
+
+    <!-- Cabecera -->
+    <div class="sf-head">
+      <div>
+        <h3>{{ template!.code }}</h3>
+        <p class="sf-sub">{{ template!.name }}</p>
+      </div>
+      <button class="sf-close" (click)="close()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="sf-error" *ngIf="error()">{{ error() }}</div>
+
+    <!-- ── Resultado ── -->
+    <div class="sf-result" *ngIf="result() as r; else questionnaire">
+      <div class="sf-result-score" [style.background]="severityColor(r.severity)">{{ r.total }}</div>
+      <div class="sf-result-label">{{ r.label }}</div>
+      <div class="sf-result-sev">Severidad: <strong>{{ r.severity }}</strong></div>
+      <p class="sf-result-note">
+        Puntaje registrado en la trayectoria de la ficha. Reenviar este mismo cuestionario
+        actualiza el resultado, no lo duplica.
+      </p>
+      <button class="sf-btn sf-btn--primary" (click)="close()">Cerrar</button>
+    </div>
+
+    <!-- ── Cuestionario ── -->
+    <ng-template #questionnaire>
+      <!-- Progreso -->
+      <div class="sf-progress">
+        <div class="sf-progress-bar"><span [style.width.%]="progressPct()"></span></div>
+        <div class="sf-progress-txt">{{ answeredCount() }} de {{ items().length }} respondidas</div>
+      </div>
+
+      <!-- Puntos de navegación -->
+      <div class="sf-dots">
+        <button *ngFor="let it of items(); let i = index"
+                class="sf-dot"
+                [class.active]="i === step()"
+                [class.done]="valueFor(it.id) !== undefined"
+                (click)="goTo(i)"
+                [attr.aria-label]="'Ir a la pregunta ' + (i + 1)">{{ i + 1 }}</button>
+      </div>
+
+      <ng-container *ngIf="currentItem() as item">
+        <div class="sf-question">
+          <div class="sf-question-num">Pregunta {{ step() + 1 }} de {{ items().length }}</div>
+          <div class="sf-question-txt">
+            Durante las últimas 2 semanas, ¿con qué frecuencia le ha molestado…
+          </div>
+          <div class="sf-question-item">{{ item.text }}</div>
+        </div>
+
+        <div class="sf-options">
+          <button *ngFor="let o of options()"
+                  class="sf-option"
+                  [class.selected]="valueFor(item.id) === o.value"
+                  (click)="choose(o.value)">
+            <span class="sf-option-val">{{ o.value }}</span>
+            <span class="sf-option-label">{{ o.label }}</span>
+          </button>
+        </div>
+      </ng-container>
+
+      <div class="sf-actions">
+        <button class="sf-btn" [disabled]="step() === 0" (click)="prev()">Anterior</button>
+        <button class="sf-btn" *ngIf="!isLastStep()" (click)="next()">Siguiente</button>
+        <button class="sf-btn sf-btn--primary"
+                *ngIf="isLastStep()"
+                [disabled]="!allAnswered() || submitting() || !instanceId()"
+                (click)="submit()">
+          {{ submitting() ? 'Guardando…' : 'Finalizar y calcular' }}
+        </button>
+      </div>
+
+      <p class="sf-hint" *ngIf="isLastStep() && !allAnswered()">
+        Faltan preguntas por responder.
+      </p>
+    </ng-template>
+
+  </div>
+</div>

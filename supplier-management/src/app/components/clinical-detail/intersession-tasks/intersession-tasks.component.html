@@ -1,0 +1,146 @@
+<div class="ist-grid">
+
+  <!-- ════ TAREAS INTERSESIÓN ════ -->
+  <div class="ist-card">
+    <div class="ist-head">
+      <div>
+        <h3>Tareas intersesión</h3>
+        <p class="ist-sub">Encargos entre una sesión y la siguiente</p>
+      </div>
+      <button class="ist-btn ist-btn--primary" *ngIf="!showForm()" (click)="showForm.set(true)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nueva tarea
+      </button>
+    </div>
+
+    <div class="ist-error" *ngIf="error()">{{ error() }}</div>
+
+    <!-- Formulario -->
+    <div class="ist-form" *ngIf="showForm()">
+      <label class="ist-label" for="ist-desc">Descripción</label>
+      <textarea id="ist-desc" class="ist-input" rows="3"
+                placeholder="Ej: Registrar pensamientos automáticos cada noche"
+                [ngModel]="newDesc()" (ngModelChange)="newDesc.set($event)"></textarea>
+
+      <label class="ist-label" for="ist-due">Fecha de entrega (opcional)</label>
+      <input id="ist-due" type="date" class="ist-input"
+             [ngModel]="newDueDate()" (ngModelChange)="newDueDate.set($event)">
+
+      <div class="ist-form-actions">
+        <button class="ist-btn" (click)="cancelForm()">Cancelar</button>
+        <button class="ist-btn ist-btn--primary"
+                [disabled]="!newDesc().trim() || saving()"
+                (click)="addTask()">
+          {{ saving() ? 'Guardando…' : 'Guardar tarea' }}
+        </button>
+      </div>
+    </div>
+
+    <p class="ist-empty" *ngIf="loading()">Cargando tareas…</p>
+
+    <ng-container *ngIf="!loading()">
+      <p class="ist-empty" *ngIf="tasks().length === 0">
+        No hay tareas registradas para esta ficha.
+      </p>
+
+      <!-- Pendientes -->
+      <div class="ist-section" *ngIf="pending().length > 0">
+        <div class="ist-section-title">Pendientes ({{ pending().length }})</div>
+        <div class="ist-task" *ngFor="let t of pending()" [class.ist-task--overdue]="isOverdue(t)">
+          <button class="ist-check" title="Marcar como completada" (click)="completeTask(t)">
+            <span class="ist-check-box"></span>
+          </button>
+          <div class="ist-task-body">
+            <div class="ist-task-desc">{{ t.description }}</div>
+            <div class="ist-task-meta">
+              <span>Asignada {{ t.session_date }}</span>
+              <span *ngIf="t.due_date" class="ist-due" [class.ist-due--late]="isOverdue(t)">
+                Entrega {{ t.due_date }}{{ isOverdue(t) ? ' — vencida' : '' }}
+              </span>
+            </div>
+          </div>
+          <button class="ist-del" title="Eliminar" (click)="deleteTask(t)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Completadas -->
+      <div class="ist-section" *ngIf="completed().length > 0">
+        <div class="ist-section-title">Completadas ({{ completed().length }})</div>
+        <div class="ist-task ist-task--done" *ngFor="let t of completed()">
+          <span class="ist-check ist-check--done">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </span>
+          <div class="ist-task-body">
+            <div class="ist-task-desc">{{ t.description }}</div>
+            <div class="ist-task-note" *ngIf="t.patient_note">“{{ t.patient_note }}”</div>
+            <div class="ist-task-meta">
+              <span *ngIf="t.completed_at">Completada {{ t.completed_at | date:'dd-MM-yyyy' }}</span>
+            </div>
+          </div>
+          <button class="ist-del" title="Eliminar" (click)="deleteTask(t)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- ════ REGISTRO DE HUMOR ════ -->
+  <div class="ist-card">
+    <div class="ist-head">
+      <div>
+        <h3>Registro de ánimo</h3>
+        <p class="ist-sub">Escala 1-10, últimos 30 registros</p>
+      </div>
+      <button class="ist-btn ist-btn--primary" *ngIf="!showMoodForm()" (click)="showMoodForm.set(true)">
+        Registrar
+      </button>
+    </div>
+
+    <div class="ist-form" *ngIf="showMoodForm()">
+      <label class="ist-label">Ánimo: <strong>{{ moodScore() }} — {{ moodLabel(moodScore()) }}</strong></label>
+      <div class="ist-scale">
+        <button *ngFor="let n of moodScale"
+                class="ist-scale-btn"
+                [class.active]="moodScore() === n"
+                [style.--dot]="moodColor(n)"
+                (click)="moodScore.set(n)">{{ n }}</button>
+      </div>
+
+      <label class="ist-label" for="ist-mood-note">Nota (opcional)</label>
+      <input id="ist-mood-note" class="ist-input" placeholder="Contexto del registro"
+             [ngModel]="moodNote()" (ngModelChange)="moodNote.set($event)">
+
+      <div class="ist-form-actions">
+        <button class="ist-btn" (click)="showMoodForm.set(false)">Cancelar</button>
+        <button class="ist-btn ist-btn--primary" [disabled]="savingMood()" (click)="logMood()">
+          {{ savingMood() ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+    </div>
+
+    <p class="ist-empty" *ngIf="moods().length === 0">Sin registros de ánimo.</p>
+
+    <div class="ist-mood" *ngFor="let m of moods()">
+      <span class="ist-mood-score" [style.background]="moodColor(m.mood_score)">{{ m.mood_score }}</span>
+      <div class="ist-mood-body">
+        <div class="ist-mood-label">{{ m.mood_label || moodLabel(m.mood_score) }}</div>
+        <div class="ist-mood-note" *ngIf="m.note">{{ m.note }}</div>
+      </div>
+      <span class="ist-mood-date">{{ m.logged_at | date:'dd-MM-yyyy' }}</span>
+    </div>
+  </div>
+
+</div>

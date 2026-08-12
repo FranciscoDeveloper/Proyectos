@@ -12,6 +12,8 @@ import { PeriodontogramComponent, PeriodontogramData } from '../periodontogram/p
 import { MobileService } from '../../services/mobile.service';
 import { NativeIoService } from '../../services/native-io.service';
 import { ClinicLogoService } from '../../services/clinic-logo.service';
+import { IntersessionTasksComponent } from './intersession-tasks/intersession-tasks.component';
+import { MbcTrajectoryComponent } from './mbc-trajectory/mbc-trajectory.component';
 
 interface VitalSign {
   label: string;
@@ -30,7 +32,10 @@ interface SectionField {
 
 @Component({
     selector: 'app-clinical-detail',
-    imports: [CommonModule, RouterLink, OdontogramComponent, PeriodontogramComponent],
+    imports: [
+      CommonModule, RouterLink, OdontogramComponent, PeriodontogramComponent,
+      IntersessionTasksComponent, MbcTrajectoryComponent
+    ],
     templateUrl: './clinical-detail.component.html',
     styleUrl: './clinical-detail.component.scss'
 })
@@ -519,7 +524,9 @@ export class ClinicalDetailComponent implements OnInit {
 
   // ── Encounter history tab ─────────────────────────────────────────────────
 
-  activeTab = signal<'record' | 'history' | 'documents' | 'odontogram' | 'periodontogram'>('record');
+  activeTab = signal<
+    'record' | 'history' | 'documents' | 'odontogram' | 'periodontogram' | 'intersession' | 'mbc'
+  >('record');
 
   // ── Dental chart detection ────────────────────────────────────────────────
 

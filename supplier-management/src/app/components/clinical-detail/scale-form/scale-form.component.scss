@@ -1,0 +1,233 @@
+:host { display: contents; }
+
+.sf-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.sf-modal {
+  background: white;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 22px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
+}
+
+.sf-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  h3 { font-size: 17px; font-weight: 700; color: #111827; margin: 0; }
+}
+
+.sf-sub { font-size: 12.5px; color: #6b7280; margin: 3px 0 0; }
+
+.sf-close {
+  border: none;
+  background: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 2px;
+  svg { width: 19px; height: 19px; display: block; }
+  &:hover { color: #374151; }
+}
+
+.sf-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  font-size: 13px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+
+/* ── Progreso ── */
+.sf-progress { margin-bottom: 12px; }
+
+.sf-progress-bar {
+  height: 6px;
+  background: #f3f4f6;
+  border-radius: 20px;
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    background: #8b5cf6;
+    border-radius: 20px;
+    transition: width 0.25s;
+  }
+}
+
+.sf-progress-txt {
+  font-size: 11.5px;
+  color: #9ca3af;
+  margin-top: 5px;
+}
+
+.sf-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 18px;
+}
+
+.sf-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #9ca3af;
+  cursor: pointer;
+
+  &.done   { background: #ede9fe; border-color: #ddd6fe; color: #6d28d9; }
+  &.active { border-color: #8b5cf6; color: #6d28d9; box-shadow: 0 0 0 2px rgba(139,92,246,0.18); }
+}
+
+/* ── Pregunta ── */
+.sf-question { margin-bottom: 16px; }
+
+.sf-question-num {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin-bottom: 8px;
+}
+
+.sf-question-txt {
+  font-size: 12.5px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.sf-question-item {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.45;
+}
+
+.sf-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.sf-option {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 13px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+
+  &:hover { border-color: #c4b5fd; background: #faf5ff; }
+
+  &.selected {
+    border-color: #8b5cf6;
+    background: #f5f3ff;
+    box-shadow: 0 0 0 2px rgba(139,92,246,0.14);
+  }
+}
+
+.sf-option-val {
+  flex-shrink: 0;
+  width: 25px;
+  height: 25px;
+  border-radius: 7px;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  .sf-option.selected & { background: #8b5cf6; color: white; }
+}
+
+.sf-option-label { font-size: 13.5px; color: #374151; }
+
+.sf-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.sf-btn {
+  padding: 8px 15px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: #f9fafb; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.sf-btn--primary {
+  background: #8b5cf6;
+  border-color: #8b5cf6;
+  color: white;
+  &:hover:not(:disabled) { background: #7c3aed; }
+}
+
+.sf-hint {
+  font-size: 12px;
+  color: #9ca3af;
+  text-align: right;
+  margin: 8px 0 0;
+}
+
+/* ── Resultado ── */
+.sf-result { text-align: center; padding: 12px 0 4px; }
+
+.sf-result-score {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  color: white;
+  font-size: 30px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.sf-result-label { font-size: 17px; font-weight: 700; color: #111827; }
+.sf-result-sev   { font-size: 13px; color: #6b7280; margin-top: 4px; }
+
+.sf-result-note {
+  font-size: 12px;
+  color: #9ca3af;
+  line-height: 1.5;
+  max-width: 380px;
+  margin: 14px auto 18px;
+}

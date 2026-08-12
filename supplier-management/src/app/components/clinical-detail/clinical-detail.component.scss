@@ -915,6 +915,17 @@
   }
 }
 
+/* ── Psych tabs (intersesión / escalas MBC) ── */
+.tab-btn--psych {
+  &.active {
+    background: #8b5cf6;
+  }
+}
+
+.psych-panel {
+  margin-bottom: 16px;
+}
+
 .dental-chart-panel {
   padding: 20px;
   margin-bottom: 16px;

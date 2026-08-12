@@ -154,6 +154,24 @@
       </svg>
       Periodontograma
     </button>
+    <!-- Psych-only tabs (Fase 2: puente intersesión + escalas MBC) -->
+    <button *ngIf="isPsychRecord()" class="tab-btn tab-btn--psych"
+            [class.active]="activeTab() === 'intersession'"
+            (click)="activeTab.set('intersession')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 11 12 14 22 4"/>
+        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+      </svg>
+      Intersesión
+    </button>
+    <button *ngIf="isPsychRecord()" class="tab-btn tab-btn--psych"
+            [class.active]="activeTab() === 'mbc'"
+            (click)="activeTab.set('mbc')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 3v18h18"/><polyline points="19 9 13 15 9 11 5 15"/>
+      </svg>
+      Escalas
+    </button>
   </div>
 
   <!-- ════ THREE-COLUMN LAYOUT ════ -->
@@ -716,6 +734,16 @@
     [readonly]="false"
     (dataChange)="savePeriodontogram($event)">
   </app-periodontogram>
+</div>
+
+<!-- ════ INTERSESIÓN TAB (psicología) ════ -->
+<div class="psych-panel" *ngIf="activeTab() === 'intersession' && isPsychRecord()">
+  <app-intersession-tasks [recordId]="id"></app-intersession-tasks>
+</div>
+
+<!-- ════ ESCALAS / MBC TAB (psicología) ════ -->
+<div class="psych-panel" *ngIf="activeTab() === 'mbc' && isPsychRecord()">
+  <app-mbc-trajectory [recordId]="id"></app-mbc-trajectory>
 </div>
 
 
