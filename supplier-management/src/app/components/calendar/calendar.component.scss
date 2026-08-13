@@ -803,9 +803,17 @@ $text-4:        #9ca3af;
 
 // ═══════════════════════ MONTH VIEW ══════════════════════════════════════
 
+// The header row and the day grid must resolve to the SAME 7 column widths.
+// `1fr` is shorthand for `minmax(auto, 1fr)`, so a wide, non-wrapping event chip
+// used to blow its own column out in .month-grid while .month-header-row (whose
+// cells hold only short labels) stayed uniform — day numbers then drifted a
+// column away from their weekday header. `minmax(0, 1fr)` pins both grids to
+// exactly equal columns regardless of content width.
+$month-cols: repeat(7, minmax(0, 1fr));
+
 .month-header-row {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: $month-cols;
   border-bottom: 2px solid $border;
   background: $bg-hover;
 }
@@ -822,11 +830,12 @@ $text-4:        #9ca3af;
 
 .month-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: $month-cols;
 }
 
 .month-cell {
   min-height: 104px;
+  min-width: 0;
   padding: 6px;
   border-right: 1px solid #f0f0f0;
   border-bottom: 1px solid #f0f0f0;
@@ -869,12 +878,14 @@ $text-4:        #9ca3af;
   flex-direction: column;
   gap: 2px;
   margin-top: 1px;
+  min-width: 0;
 }
 
 .month-event {
   display: flex;
   align-items: center;
   gap: 4px;
+  min-width: 0;
   padding: 2px 5px;
   border-radius: 4px;
   border-left: 3px solid;
@@ -902,6 +913,8 @@ $text-4:        #9ca3af;
 .me-title {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
   color: $text-1;
   font-weight: 500;
 }
