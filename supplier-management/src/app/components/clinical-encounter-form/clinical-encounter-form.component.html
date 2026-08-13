@@ -51,7 +51,7 @@
       <div class="stable-grid">
         <div class="stable-item" *ngFor="let f of stableFields()">
           <span class="stable-label">{{ f.label }}</span>
-          <span class="stable-value">{{ stableValue(f.name) || '—' }}</span>
+          <span class="stable-value">{{ stableDisplay(f) || '—' }}</span>
         </div>
       </div>
     </div>

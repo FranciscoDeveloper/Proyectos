@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { SchemaService } from '../../services/schema.service';
@@ -15,7 +15,10 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-clinical-encounter-form',
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './clinical-encounter-form.component.html',
-  styleUrl: './clinical-encounter-form.component.scss'
+  styleUrl: './clinical-encounter-form.component.scss',
+  // Usado por stableDisplay() para formatear las fechas del resumen de datos
+  // permanentes desde TypeScript, no desde la plantilla.
+  providers: [DatePipe]
 })
 export class ClinicalEncounterFormComponent implements OnInit {
   private route    = inject(ActivatedRoute);
@@ -24,6 +27,7 @@ export class ClinicalEncounterFormComponent implements OnInit {
   private schemaSvc = inject(SchemaService);
   private crudSvc  = inject(GenericCrudService);
   private auth     = inject(AuthService);
+  private datePipe = inject(DatePipe);
   readonly recorder = inject(AudioRecorderService);
   readonly AudioRecorderService = AudioRecorderService;
 
@@ -163,6 +167,39 @@ export class ClinicalEncounterFormComponent implements OnInit {
     const c = this.form?.get(name);
     if (c) return c.value;
     return this.loadedRecord()?.[name] ?? '';
+  }
+
+  /**
+   * Valor ya formateado de un campo estable, para pintarlo en el resumen.
+   *
+   * `stableValue()` devuelve el dato crudo tal cual viaja por la API, y el resumen lo
+   * imprimía así: el sexo salía como "female" en vez de "Femenino" y la fecha de
+   * nacimiento como "1994-05-20T00:00:00.000Z". La cabecera de la propia ficha ya
+   * resolvía las dos cosas bien dos pantallas más allá, así que aquí se reutiliza su
+   * misma lógica en vez de inventar otra:
+   *
+   *   · selects → la etiqueta de la opción cuyo `value` coincide (igual que
+   *     clinical-detail hace con gender/status/insurance).
+   *   · fechas  → DatePipe en UTC, porque son columnas DATE y en America/Santiago
+   *     (UTC-4) se pintarían un día antes.
+   *
+   * Los selects de lookup (`lookupEntity`, p.ej. Previsión) ya guardan el nombre
+   * legible como valor, así que caen bien en el camino por defecto.
+   */
+  stableDisplay(field: FieldDefinition): string {
+    const raw = this.stableValue(field.name);
+    if (raw === null || raw === undefined || raw === '') return '';
+
+    if (field.type === 'select' && field.options?.length) {
+      const opt = field.options.find(o => String(o.value) === String(raw));
+      if (opt) return opt.label;
+    }
+
+    if (field.type === 'date') {
+      return this.datePipe.transform(raw, 'd MMM yyyy', 'UTC') ?? String(raw);
+    }
+
+    return String(raw);
   }
 
   /**
