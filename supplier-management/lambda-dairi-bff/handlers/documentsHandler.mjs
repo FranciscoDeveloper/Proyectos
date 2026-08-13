@@ -18,7 +18,20 @@ import * as profScopeService from '../services/profScopeService.mjs';
 // unreachable from this VPC-attached Lambda (no NAT Gateway, and S3 Gateway
 // Endpoints are region-locked). Documents were migrated to this dedicated,
 // same-region, non-public bucket instead of adding a Lambda-to-Lambda hop.
-const s3Client    = new S3Client({ region: process.env.DOCS_BUCKET_REGION || 'us-east-1' });
+// `requestChecksumCalculation: 'WHEN_REQUIRED'` — sin esto NINGUNA subida de documento
+// funciona. Desde que el SDK v3 activó los checksums flexibles por defecto
+// ('WHEN_SUPPORTED'), presignar un PutObjectCommand añade a la URL firmada un
+// `x-amz-checksum-crc32` calculado sobre el cuerpo que el comando tiene en ese momento
+// — y al presignar el cuerpo está vacío, así que el valor es siempre `AAAAAA==`, el
+// CRC32 de cero bytes. El navegador sube después el archivo real por esa misma URL, S3
+// compara el contenido recibido contra el checksum firmado, no cuadra y el PUT muere
+// con 503 ("Error al subir el archivo." en la UI). El checksum no se puede calcular al
+// presignar porque el archivo aún no existe del lado del servidor; la integridad del
+// PUT ya la cubren TLS y la firma SigV4 de la propia URL.
+const s3Client    = new S3Client({
+  region: process.env.DOCS_BUCKET_REGION || 'us-east-1',
+  requestChecksumCalculation: 'WHEN_REQUIRED'
+});
 const DOCS_BUCKET = process.env.DOCS_BUCKET || 'dairi-medical-documents';
 const DOCS_PREFIX = 'patient-docs';
 
