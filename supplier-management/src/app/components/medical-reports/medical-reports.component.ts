@@ -60,16 +60,47 @@ export class MedicalReportsComponent {
   private _records      = this.crud.getAll('clinical-records');
   private _presupuestos = this.crud.getAll('presupuestos');
 
-  private inPeriod(data: Record<string, any>[], dateField: string): Record<string, any>[] {
+  /**
+   * Filters a dataset down to the selected window. Accepts several candidate date
+   * fields and uses the first one the row actually carries, because the three
+   * datasets on this page date themselves differently (citas by `dateTime`, fichas
+   * by `lastVisit`, presupuestos by `fechaEmision`) and older rows may only have
+   * the audit timestamps.
+   */
+  private inPeriod(data: Record<string, any>[], ...dateFields: string[]): Record<string, any>[] {
     const p = this.period();
     if (p === 'all') return data;
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - (p === '7d' ? 7 : 30));
     return data.filter(r => {
-      const d = r[dateField];
-      return d && new Date(d) >= cutoff;
+      for (const f of dateFields) {
+        const raw = r[f];
+        if (raw == null || raw === '') continue;
+        const d = new Date(raw);
+        if (isNaN(d.getTime())) continue;
+        return d >= cutoff;
+      }
+      // No usable date at all: keep the row. The BFF stamps createdAt/updatedAt
+      // on every clinical record and presupuesto, so this only fires on
+      // degenerate data — and quietly dropping a patient's record from a count
+      // is a worse failure than counting it in the wrong window.
+      return true;
     });
   }
+
+  /**
+   * Period-scoped views of the two datasets that used to ignore the selector
+   * entirely: every fichas/presupuestos figure below read the raw store, so
+   * "7 días", "30 días" and "Todo" all produced identical counts and the control
+   * was decorative.
+   */
+  private recordsInPeriod = computed(() =>
+    this.inPeriod(this._records(), 'lastVisit', 'updatedAt', 'createdAt')
+  );
+
+  private presupuestosInPeriod = computed(() =>
+    this.inPeriod(this._presupuestos(), 'fechaEmision', 'createdAt', 'updatedAt')
+  );
 
   // ══════════════════════ CITAS ══════════════════════════════════════════════
 
@@ -92,7 +123,10 @@ export class MedicalReportsComponent {
     const total = all.length || 1;
     const defs  = [
       { key: 'completed', label: 'Completada', color: '#10b981' },
-      { key: 'scheduled', label: 'Programada', color: '#3b82f6' },
+      // "Agendada" is the term the Sesiones/Citas modules use for this same
+      // `scheduled` status (see the status options in auth.service.ts). Reportes
+      // called it "Programada", so the same appointment had two names.
+      { key: 'scheduled', label: 'Agendada', color: '#3b82f6' },
       { key: 'confirmed', label: 'Confirmada', color: '#8b5cf6' },
       { key: 'cancelled', label: 'Cancelada',  color: '#ef4444' },
       { key: 'no_show',   label: 'No asistió', color: '#f59e0b' },
@@ -152,7 +186,7 @@ export class MedicalReportsComponent {
   // ══════════════════════ FICHAS CLÍNICAS ════════════════════════════════════
 
   kpiRecords = computed(() => {
-    const all      = this._records();
+    const all      = this.recordsInPeriod();
     const encounters = all.reduce((s, r) =>
       s + (Array.isArray(r['encounters']) ? r['encounters'].length : 0), 0);
     const withAlerts = all.filter(r =>
@@ -168,7 +202,7 @@ export class MedicalReportsComponent {
   });
 
   genderDonut = computed((): DonutSegment[] => {
-    const all   = this._records();
+    const all   = this.recordsInPeriod();
     const total = all.length || 1;
     const map   = new Map<string, number>();
     for (const r of all) map.set(String(r['gender'] ?? 'otro'), (map.get(String(r['gender'] ?? 'otro')) ?? 0) + 1);
@@ -180,7 +214,7 @@ export class MedicalReportsComponent {
   });
 
   ageGroupDist = computed((): BarItem[] => {
-    const all    = this._records();
+    const all    = this.recordsInPeriod();
     const groups = [
       { label: '0–17',  min: 0,  max: 17,  color: '#06b6d4' },
       { label: '18–35', min: 18, max: 35,  color: '#6366f1' },
@@ -197,7 +231,7 @@ export class MedicalReportsComponent {
   });
 
   insuranceDist = computed((): BarItem[] => {
-    const all   = this._records();
+    const all   = this.recordsInPeriod();
     const total = all.length || 1;
     const map   = new Map<string, number>();
     for (const r of all) {
@@ -222,7 +256,7 @@ export class MedicalReportsComponent {
   });
 
   topConditions = computed((): BarItem[] => {
-    const all = this._records();
+    const all = this.recordsInPeriod();
     const map = new Map<string, number>();
     for (const r of all) {
       if (Array.isArray(r['chronicConditions']))
@@ -236,7 +270,7 @@ export class MedicalReportsComponent {
   });
 
   topDiagnoses = computed((): (BarItem & { code: string })[] => {
-    const all = this._records();
+    const all = this.recordsInPeriod();
     const map = new Map<string, { code: string; label: string; count: number }>();
     for (const r of all) {
       const code  = String(r['diagnosisCode'] ?? '').trim();
@@ -259,7 +293,7 @@ export class MedicalReportsComponent {
   // ══════════════════════ PRESUPUESTOS ═══════════════════════════════════════
 
   kpiPresupuestos = computed(() => {
-    const all        = this._presupuestos();
+    const all        = this.presupuestosInPeriod();
     const now        = new Date().toISOString().slice(0, 10);
     const soon       = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
     const sent       = all.filter(p => p['status'] !== 'draft');
@@ -278,7 +312,7 @@ export class MedicalReportsComponent {
   });
 
   presupuestosStatusDonut = computed((): DonutSegment[] => {
-    const all   = this._presupuestos();
+    const all   = this.presupuestosInPeriod();
     const total = all.length || 1;
     const defs  = [
       { key: 'approved',  label: 'Aprobado',   color: '#10b981' },
@@ -300,7 +334,7 @@ export class MedicalReportsComponent {
   });
 
   topSpecialtiesBudget = computed((): AmountBar[] => {
-    const all     = this._presupuestos();
+    const all     = this.presupuestosInPeriod();
     const map     = new Map<string, number>();
     for (const p of all) {
       if (p['status'] === 'rejected') continue;
@@ -316,7 +350,7 @@ export class MedicalReportsComponent {
   });
 
   topBudgetItems = computed((): BarItem[] => {
-    const all = this._presupuestos();
+    const all = this.presupuestosInPeriod();
     const map = new Map<string, number>();
     for (const p of all) {
       for (const item of (Array.isArray(p['items']) ? p['items'] : [])) {
@@ -333,7 +367,7 @@ export class MedicalReportsComponent {
   });
 
   previsionBudgetDist = computed((): BarItem[] => {
-    const all = this._presupuestos();
+    const all = this.presupuestosInPeriod();
     const map = new Map<string, number>();
     for (const p of all) {
       const k = String(p['prevision'] ?? 'particular');
@@ -372,10 +406,11 @@ export class MedicalReportsComponent {
   readonly donutCircumference = DONUT_C;
   readonly donutR             = DONUT_R;
 
+  /** Amounts are Chilean pesos; a bare "$" left that implicit. */
   fmt(n: number): string {
-    if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-    if (n >= 1_000)     return `$${Math.round(n / 1_000)}k`;
-    return `$${n.toLocaleString('es-CL')}`;
+    if (n >= 1_000_000) return `CLP ${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 1_000)     return `CLP ${Math.round(n / 1_000)}k`;
+    return `CLP ${n.toLocaleString('es-CL')}`;
   }
 
   userName    = computed(() => this.auth.user()?.name ?? '');
@@ -384,6 +419,8 @@ export class MedicalReportsComponent {
     this.period() === '30d' ? 'Últimos 30 días' : 'Todo el período'
   );
 
+  /** Deliberately unfiltered: this drives the "no data at all" empty state, which
+   *  must not fire merely because the selected window happens to be empty. */
   hasAnyData = computed(() =>
     this._appointments().length > 0 ||
     this._records().length > 0 ||

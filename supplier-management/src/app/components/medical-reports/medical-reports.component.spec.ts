@@ -33,10 +33,59 @@ describe('MedicalReportsComponent — fmt()', () => {
   let component: MedicalReportsComponent;
   beforeEach(() => ({ component } = buildComponent()));
 
-  it('formats small values with $', () => expect(component.fmt(500)).toBe('$500'));
-  it('formats thousands as $Xk',    () => expect(component.fmt(15_000)).toBe('$15k'));
-  it('formats millions as $X.XM',   () => expect(component.fmt(1_500_000)).toBe('$1.5M'));
-  it('formats zero as $0',          () => expect(component.fmt(0)).toBe('$0'));
+  // Amounts carry an explicit CLP marker: a bare "$" does not say which peso
+  // (or dollar) the figure is in.
+  it('formats small values with CLP', () => expect(component.fmt(500)).toBe('CLP 500'));
+  it('formats thousands as CLP Xk',   () => expect(component.fmt(15_000)).toBe('CLP 15k'));
+  it('formats millions as CLP X.XM',  () => expect(component.fmt(1_500_000)).toBe('CLP 1.5M'));
+  it('formats zero as CLP 0',         () => expect(component.fmt(0)).toBe('CLP 0'));
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The 7d/30d/Todo selector used to be wired into the citas figures only; every
+// fichas and presupuestos number ignored it, so all three periods agreed.
+describe('MedicalReportsComponent — period selector actually filters', () => {
+  const daysAgo = (n: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return d.toISOString().slice(0, 10);
+  };
+
+  it('narrows the fichas count as the window shrinks', () => {
+    const { component, crud } = buildComponent();
+    seedStore(crud, 'clinical-records', [
+      { id: 1, lastVisit: daysAgo(1)   },
+      { id: 2, lastVisit: daysAgo(20)  },
+      { id: 3, lastVisit: daysAgo(200) },
+    ]);
+
+    component.setPeriod('all');
+    expect(component.kpiRecords().total).toBe(3);
+    component.setPeriod('30d');
+    expect(component.kpiRecords().total).toBe(2);
+    component.setPeriod('7d');
+    expect(component.kpiRecords().total).toBe(1);
+  });
+
+  it('narrows the presupuestos count as the window shrinks', () => {
+    const { component, crud } = buildComponent();
+    seedStore(crud, 'presupuestos', [
+      { id: 1, status: 'draft', fechaEmision: daysAgo(2)   },
+      { id: 2, status: 'draft', fechaEmision: daysAgo(45)  },
+    ]);
+
+    component.setPeriod('all');
+    expect(component.kpiPresupuestos().total).toBe(2);
+    component.setPeriod('7d');
+    expect(component.kpiPresupuestos().total).toBe(1);
+  });
+
+  it('keeps rows that carry no date at all rather than hiding them', () => {
+    const { component, crud } = buildComponent();
+    seedStore(crud, 'clinical-records', [{ id: 1 }, { id: 2 }]);
+    component.setPeriod('7d');
+    expect(component.kpiRecords().total).toBe(2);
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
