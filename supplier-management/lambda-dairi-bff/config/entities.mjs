@@ -649,10 +649,22 @@ export const ENTITY_CONFIG = {
         p.blood_type              AS "bloodType",
         p.phone,
         p.email,
-        p.address,
-        p.emergency_contact       AS "emergencyContact",
+        -- Dirección y contacto de emergencia se editan desde la ficha (7 de las 9
+        -- especialidades los exponen en su formulario), pero sólo existían como
+        -- columnas de patient: el JOIN los mostraba y toDb no los sabía escribir,
+        -- así que el PUT devolvía 200 y el dato desaparecía sin error. Ahora tienen
+        -- columna propia en clinical_record y patient queda como valor heredado --
+        -- mismo patrón COALESCE que birth_date arriba.
+        COALESCE(c.address,           p.address)           AS "address",
+        COALESCE(c.emergency_contact, p.emergency_contact) AS "emergencyContact",
         c.insurance,
         c.profession,
+        -- Demográficos propios de la ficha psicológica (Ocupación/Escolaridad/Estado
+        -- Civil). No tenían columna ni mapeo: el formulario los enviaba y toDb los
+        -- descartaba en silencio.
+        c.occupation,
+        c.education,
+        c.marital_status          AS "maritalStatus",
         c.allergies,
         c.contraindications,
         c.alert_notes             AS "alertNotes",
@@ -700,6 +712,17 @@ export const ENTITY_CONFIG = {
       if (d.birthDate            !== undefined) cols.birth_date             = d.birthDate || null;
       if (d.insurance            !== undefined) cols.insurance              = d.insurance;
       if (d.profession           !== undefined) cols.profession             = d.profession;
+      // Demográficos que el formulario de la ficha ofrece pero que no se escribían en
+      // ninguna parte: no estaban en este toDb, así que el PUT respondía 200 y los
+      // descartaba en silencio (el usuario los reescribía sesión tras sesión sin ver
+      // ningún error). `occupation`/`education`/`maritalStatus` sólo los expone la ficha
+      // psicológica; `address`/`emergencyContact` los editan 7 de las 9 especialidades y
+      // hasta ahora sólo se LEÍAN, del JOIN con patient.
+      if (d.occupation           !== undefined) cols.occupation             = d.occupation;
+      if (d.education            !== undefined) cols.education              = d.education;
+      if (d.maritalStatus        !== undefined) cols.marital_status         = d.maritalStatus;
+      if (d.address              !== undefined) cols.address                = d.address;
+      if (d.emergencyContact     !== undefined) cols.emergency_contact      = d.emergencyContact;
       if (d.allergies            !== undefined) cols.allergies              = JSON.stringify(d.allergies);
       if (d.contraindications    !== undefined) cols.contraindications      = d.contraindications;
       if (d.alertNotes           !== undefined) cols.alert_notes            = d.alertNotes;
@@ -774,6 +797,9 @@ export const ENTITY_CONFIG = {
         lastVisit:            r.lastVisit           ?? r.last_visit      ?? null,
         status:               r.status              ?? null,
         profession:           r.profession          ?? null,
+        occupation:           r.occupation          ?? null,
+        education:            r.education           ?? null,
+        maritalStatus:        r.maritalStatus       ?? r.marital_status ?? null,
         // migración 018: estas 7 columnas pasaron de integer/numeric a text porque 8
         // de las 9 fichas de especialidad las reutilizan como texto libre (p.ej.
         // "Sangrado al Sondaje" en dental, "Afecto" en psicología) — solo medicina
