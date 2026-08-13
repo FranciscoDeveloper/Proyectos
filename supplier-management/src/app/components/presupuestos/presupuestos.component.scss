@@ -832,6 +832,10 @@ $font-numeric: var(--font-numeric, 'Inter', sans-serif);
   &:hover { border-color: #1d4ed8; color: #1d4ed8; background: #dbeafe; }
 }
 
+.btn-delete {
+  &:hover { border-color: #ef4444; color: #ef4444; background: #fee2e2; }
+}
+
 .btn-send-action {
   display: inline-flex; align-items: center; gap: .4rem;
   padding: .625rem 1.25rem;
