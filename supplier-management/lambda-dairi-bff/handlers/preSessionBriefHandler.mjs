@@ -53,13 +53,29 @@ async function buildContext(client, recordId) {
         LIMIT 7`,
       [recordId]
     ),
+    // Últimas DOS aplicaciones de CADA escala, no las cuatro últimas en total.
+    //
+    // `ORDER BY administered_at DESC LIMIT 4` toma las cuatro filas más recientes sin
+    // mirar de qué escala son. En la ficha 59 eso devolvía GAD-7 = 14, PHQ-9 = 0
+    // ("ninguna", la vigente), PHQ-9 = 9 ("leve", anterior) y otro GAD-7: dos PHQ-9
+    // contradictorios, ninguno marcado como el actual. El brief salía afirmando
+    // "severidad leve de depresión" — el puntaje viejo — cuando el paciente estaba en 0.
+    // La ventana por `code` garantiza el valor vigente de cada escala; la segunda fila
+    // se etiqueta como anterior para poder hablar de evolución sin ambigüedad.
     client.query(
-      `SELECT t.code, t.name, i.total_score, i.severity, i.administered_at
-         FROM scale_instance i
-         JOIN scale_template t ON t.id = i.template_id
-        WHERE i.record_id = $1 AND i.total_score IS NOT NULL
-        ORDER BY i.administered_at DESC
-        LIMIT 4`,
+      // `::int` no es cosmético: ROW_NUMBER() devuelve bigint y node-postgres entrega los
+      // bigint como STRING para no perder precisión, así que `rn === 1` era false para
+      // todas las filas y el filtro las descartaba enteras.
+      `SELECT code, name, total_score, severity, administered_at, rn
+         FROM (
+           SELECT t.code, t.name, i.total_score, i.severity, i.administered_at,
+                  (ROW_NUMBER() OVER (PARTITION BY t.code ORDER BY i.administered_at DESC))::int AS rn
+             FROM scale_instance i
+             JOIN scale_template t ON t.id = i.template_id
+            WHERE i.record_id = $1 AND i.total_score IS NOT NULL
+         ) s
+        WHERE rn <= 2
+        ORDER BY code, rn`,
       [recordId]
     ),
     client.query(
@@ -81,7 +97,8 @@ async function buildContext(client, recordId) {
     ? Math.round((moodsRes.rows.reduce((s, m) => s + Number(m.mood_score), 0) / moodsRes.rows.length) * 10) / 10
     : null;
 
-  const fmtDate = d => (d ? new Date(d).toLocaleDateString('es-CL') : 's/f');
+  const fmtDate   = d => (d ? new Date(d).toLocaleDateString('es-CL') : 's/f');
+  const scaleLine = s => `- ${s.code}: ${s.total_score} puntos, severidad ${s.severity}, aplicada el ${fmtDate(s.administered_at)}`;
 
   const contextData = [
     `Sesiones registradas: ${encounters.length}`,
@@ -96,9 +113,22 @@ async function buildContext(client, recordId) {
     `Registro de ánimo (1-10), últimas ${moodsRes.rows.length} entradas: ${moodsRes.rows.length ? moodsRes.rows.map(m => `${m.mood_score}${m.mood_label ? ` (${m.mood_label})` : ''} el ${fmtDate(m.logged_at)}`).join(', ') : 'sin registros'}`,
     `Promedio de ánimo: ${moodAvg ?? 'sin datos'}`,
     '',
-    `Escalas aplicadas: ${scalesRes.rows.length
-      ? scalesRes.rows.map(s => `${s.code} = ${s.total_score} puntos, severidad ${s.severity}, aplicada el ${fmtDate(s.administered_at)}`).join('; ')
-      : 'ninguna aplicada'}`,
+    // Dos bloques separados con encabezado propio, no una lista con la marca incrustada
+    // en cada línea: con la marca inline el modelo confundía cuál era el valor vigente y
+    // citaba el anterior como estado actual (mismo criterio que `renderScales` en
+    // reportsHandler.mjs).
+    scalesRes.rows.length
+      ? [
+          'Escalas aplicadas — resultado más reciente de cada escala (este es el estado ' +
+          'actual del paciente):\n' +
+          scalesRes.rows.filter(s => Number(s.rn) === 1).map(scaleLine).join('\n'),
+          scalesRes.rows.some(s => Number(s.rn) === 2)
+            ? 'Escalas — resultado de la aplicación anterior de cada escala (sólo para ' +
+              'comparar la evolución; no es el estado actual):\n' +
+              scalesRes.rows.filter(s => Number(s.rn) === 2).map(scaleLine).join('\n')
+            : null,
+        ].filter(v => v !== null).join('\n\n')
+      : 'Escalas aplicadas: ninguna aplicada',
   ].filter(v => v !== null).join('\n');
 
   // Los avisos se calculan aquí, sobre los datos reales, y no los inventa el modelo.
