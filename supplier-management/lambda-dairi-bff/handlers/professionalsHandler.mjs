@@ -126,6 +126,31 @@ export async function handleProfessionals(rawPath, method, event, tokenPayload, 
   const log    = getLogger();
   const userId = tokenPayload.sub;
 
+  // ── GET /api/professionals/mine → profesionales de ESTA cuenta ─────────────
+  // Presupuestos usaba GET /api/book (el directorio público de reserva de horas,
+  // sin ningún filtro por cuenta) como selector de "Doctor / Profesional" del
+  // formulario interno — cualquier cuenta veía y podía atribuir un presupuesto
+  // a los profesionales de TODAS las demás cuentas de la plataforma. Este
+  // endpoint es lo que ese selector debió usar desde el principio: solo el
+  // titular (user_id) y los profesionales extra de la misma cuenta
+  // (owner_user_id), igual que el resto del aislamiento por cuenta.
+  if (rawPath === '/api/professionals/mine') {
+    if (method !== 'GET') return response(405, { message: 'Método no permitido' });
+    const { rows } = await client.query(
+      `SELECT p.id, p.name, COALESCE(s.label, p.specialty) AS specialty
+         FROM professional p
+         LEFT JOIN professional_specialty s ON s.value = p.specialty
+        WHERE (p.user_id = $1 OR p.owner_user_id = $1) AND p.active = true
+        ORDER BY p.name`,
+      [userId]
+    );
+    return response(200, rows.map(p => ({
+      id:           String(p.id),
+      nombre:       p.name,
+      especialidad: p.specialty ?? ''
+    })));
+  }
+
   // ── GET /api/professionals/specialties → catálogo canónico ─────────────────
   // Sustituye el array ESPECIALIDADES de 24 items hardcodeado en el componente de
   // onboarding, que no coincidía ni con este catálogo ni con el selector del

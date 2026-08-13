@@ -247,7 +247,13 @@ export class PresupuestosComponent implements OnInit {
 
   private loadProfessionals() {
     this.loadingProfs.set(true);
-    this.http.get<Professional[]>('/api/book').subscribe({
+    // /api/book es el directorio PÚBLICO de reserva de horas (todas las cuentas de la
+    // plataforma, sin autenticación) — usarlo aquí exponía en este selector el nombre y la
+    // especialidad de profesionales de otras clínicas, y dejaba emitir un presupuesto
+    // atribuido a un profesional que no pertenece a esta cuenta. /api/professionals/mine
+    // devuelve el mismo shape {id, nombre, especialidad} pero acotado al titular y a los
+    // profesionales extra de esta cuenta.
+    this.http.get<Professional[]>('/api/professionals/mine').subscribe({
       next:  list => { this.professionals.set(list); this.loadingProfs.set(false); },
       error: _    => { this.loadingProfs.set(false); }
     });
