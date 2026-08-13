@@ -232,6 +232,11 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* Without this a flex item's min-width resolves to its content size, so one
+     wide child (a data table, a long tab bar) stretched this whole column past
+     the shell — dragging the breadcrumbs and page title sideways under the
+     sidebar instead of scrolling just the wide element. */
+  min-width: 0;
 }
 
 .top-bar {
@@ -333,6 +338,12 @@
 .page-content {
   flex: 1;
   overflow-y: auto;
+  /* `overflow-y: auto` alone is not enough: per spec a non-visible value on one
+     axis forces the other to compute to `auto` too, so this container used to
+     scroll horizontally as a whole. Pinning overflow-x makes wide children
+     responsible for their own scrolling (see .tab-bar and .table-card). */
+  overflow-x: hidden;
+  min-width: 0;
   padding: 28px;
   background: #f9fafb;
 }

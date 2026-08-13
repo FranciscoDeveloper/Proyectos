@@ -221,13 +221,33 @@
   gap: 16px;
   align-items: flex-start;
 
+  /* The right column carries real clinical content (antecedentes, plan/tratamiento
+     e intervenciones). It used to be `display: none` between 769px and 1200px,
+     which silently swallowed those three sections on any laptop-width window —
+     the data was saved and editable, just invisible in the read-only view, with
+     nothing on screen to hint it existed. Never hide it; reflow it instead: at
+     narrow widths it drops below the other two columns and spans the full row. */
   @media (max-width: 1200px) {
     grid-template-columns: 200px 1fr;
-    .cd-right { display: none; }
+    .cd-right {
+      display: flex;
+      grid-column: 1 / -1;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 16px;
+
+      > * { flex: 1 1 320px; min-width: 0; }
+    }
   }
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    .cd-right { display: flex; }
+    .cd-right {
+      grid-column: auto;
+      flex-direction: column;
+      gap: 0;
+
+      > * { flex: 0 1 auto; }
+    }
   }
 }
 
@@ -866,6 +886,17 @@
   border-radius: 12px;
   padding: 5px;
   width: fit-content;
+  /* A psychology ficha carries 8 tabs, which overflow on a laptop. The bar had
+     no scroller of its own, so reaching "Informes" scrolled the whole page
+     column sideways. Now the bar scrolls itself and never exceeds its parent. */
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar { height: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }
 }
 
 .tab-btn {
@@ -881,6 +912,9 @@
   color: #6b7280;
   cursor: pointer;
   transition: all 0.18s;
+  /* Keep labels on one line inside the now-scrollable bar. */
+  flex-shrink: 0;
+  white-space: nowrap;
   svg { width: 15px; height: 15px; }
 
   &:hover { background: #f3f4f6; color: #374151; }

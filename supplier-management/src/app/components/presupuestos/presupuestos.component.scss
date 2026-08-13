@@ -211,7 +211,12 @@ $font-numeric: var(--font-numeric, 'Inter', sans-serif);
   background: #fff;
   border: 1.5px solid $border;
   border-radius: $radius;
-  overflow: hidden;
+  /* Was `overflow: hidden`, which clipped the right edge of the table with no
+     way to scroll to it — the ACTIONS column (and with it the draft-only
+     "Eliminar" button) was simply unreachable on narrower windows. Y stays
+     hidden so the rounded corners still clip. */
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .table-loading {
