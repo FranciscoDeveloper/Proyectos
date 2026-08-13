@@ -148,6 +148,12 @@ export interface EntityMeta {
   disableCreate?: boolean;
   /** Shown instead of the "Crear" button in the empty state when disableCreate is true */
   disableCreateHint?: string;
+  /**
+   * Grammatical gender of `singular`, used to agree determiners in the UI
+   * ("Nueva Sesión", not "Nuevo Sesión"). Only needed when the heuristic in
+   * `entityGender()` gets it wrong — leave unset otherwise.
+   */
+  gender?: 'm' | 'f';
 }
 
 export interface EntitySchema {
@@ -159,4 +165,132 @@ export interface EntitySchema {
 export interface EntityPayload {
   schema: EntitySchema;
   data: Record<string, any>[];
+}
+
+// ───────────────────────── Grammatical agreement ─────────────────────────────
+// Buttons used to hardcode "Nuevo {{ singular }}", which reads wrong for the
+// many feminine entities in this app ("Nuevo Sesión", "Nuevo Ficha Psicológica",
+// "Nuevo Cita"). Spanish marks gender on the head noun, which is the first word
+// of these labels, so the suffix of that word decides.
+
+/** Gender of an entity's `singular` label, honouring an explicit override. */
+export function entityGender(entity: EntityMeta): 'm' | 'f' {
+  if (entity.gender) return entity.gender;
+  const head = (entity.singular ?? '').trim().split(/\s+/)[0].toLowerCase();
+  // -a, -ión/-ción/-sión, -dad/-tad, -umbre are reliably feminine in Spanish.
+  if (/(a|ión|dad|tad|umbre)$/.test(head)) return 'f';
+  return 'm';
+}
+
+/** e.g. "Nueva Sesión" / "Nuevo Presupuesto" */
+export function newEntityLabel(entity: EntityMeta): string {
+  return `${entityGender(entity) === 'f' ? 'Nueva' : 'Nuevo'} ${entity.singular}`;
+}
+
+// ─────────────────────── Section titles per specialty ───────────────────────
+// The clinical `section` keys ('vitals', 'history', …) are structural: every
+// specialty schema reuses the same handful so the shared views can group fields.
+// The *heading* shown above each group is NOT structural — it has to read in the
+// language of the specialty ("Signos Vitales" for medicina general is nonsense
+// above a psychology mental-status exam).
+//
+// This table is the single source of truth for those headings. It used to live
+// only inside clinical-detail, so the read-only ficha said "Estado Mental" while
+// the "Nueva Atención" form right next to it still said "SIGNOS VITALES" over
+// the very same fields. Both views now read from here.
+
+export type SpecialtyKey =
+  | 'medical' | 'psych' | 'dental' | 'kine' | 'nutrition'
+  | 'fono' | 'ot' | 'midwife' | 'medtech';
+
+/** Maps a clinical-record entity key to its specialty. Unknown keys are medical. */
+export function specialtyFromEntityKey(entityKey: string): SpecialtyKey {
+  switch (entityKey) {
+    case 'dental-records':    return 'dental';
+    case 'psych-records':     return 'psych';
+    case 'kine-records':      return 'kine';
+    case 'nutrition-records': return 'nutrition';
+    case 'fono-records':      return 'fono';
+    case 'ot-records':        return 'ot';
+    case 'matrona-records':   return 'midwife';
+    case 'tecnomed-records':  return 'medtech';
+    default:                  return 'medical';
+  }
+}
+
+type TitleTable = Partial<Record<SpecialtyKey, string>> & { medical: string };
+
+const SECTION_TITLES: Record<string, TitleTable> = {
+  vitals: {
+    medical: 'Signos Vitales',
+    dental: 'Examen Clínico',
+    psych: 'Estado Mental',
+    kine: 'Evaluación Funcional',
+    nutrition: 'Evaluación Nutricional',
+    fono: 'Evaluación Fonoaudiológica',
+    ot: 'Evaluación Ocupacional',
+    midwife: 'Control Clínico',
+    medtech: 'Parámetros del Examen',
+  },
+  history: {
+    medical: 'Antecedentes Médicos',
+    dental: 'Anamnesis Dental',
+    psych: 'Antecedentes Psicológicos',
+    kine: 'Antecedentes Kinésicos',
+    nutrition: 'Anamnesis Alimentaria',
+    fono: 'Antecedentes Fonoaudiológicos',
+    ot: 'Antecedentes Ocupacionales',
+    midwife: 'Antecedentes Gíneco-Obstétricos',
+    medtech: 'Antecedentes del Paciente',
+  },
+  surgical: {
+    medical: 'Intervenciones Quirúrgicas',
+    dental: 'Tratamientos Dentales',
+    psych: 'Terapias e Intervenciones',
+    kine: 'Intervenciones y Plan Kinésico',
+    nutrition: 'Cirugías y Metas Nutricionales',
+    fono: 'Intervenciones Fonoaudiológicas',
+    ot: 'Intervenciones Terapéuticas',
+    midwife: 'Procedimientos Realizados',
+    medtech: 'Exámenes y Procedimientos',
+  },
+  medications: {
+    medical: 'Medicación Actual',
+    psych: 'Plan Terapéutico',
+    kine: 'Indicaciones y Tratamiento',
+    nutrition: 'Plan Alimentario',
+    fono: 'Indicaciones Fonoaudiológicas',
+    ot: 'Plan de Terapia Ocupacional',
+    midwife: 'Indicaciones y Fármacos',
+    medtech: 'Indicaciones del Examen',
+  },
+  soap: {
+    medical: 'Nota Clínica (SOAP)',
+    dental: 'Nota de Atención Dental',
+    psych: 'Nota de Sesión',
+    kine: 'Nota Kinésica',
+    nutrition: 'Nota Nutricional',
+    fono: 'Nota Fonoaudiológica',
+    ot: 'Nota de Terapia Ocupacional',
+    midwife: 'Nota de Control',
+    medtech: 'Registro del Examen',
+  },
+  diagnosis: {
+    medical: 'Diagnóstico',
+  },
+  alerts: {
+    medical: 'Alertas Clínicas',
+    psych: 'Factores de Riesgo',
+  },
+};
+
+/**
+ * Heading for a clinical `section` in a given specialty. Falls back to the
+ * medical wording, then to the raw section key, so a schema that invents a new
+ * section still renders something rather than blank.
+ */
+export function sectionTitle(section: string, specialty: SpecialtyKey): string {
+  const table = SECTION_TITLES[section];
+  if (!table) return section;
+  return table[specialty] ?? table.medical;
 }

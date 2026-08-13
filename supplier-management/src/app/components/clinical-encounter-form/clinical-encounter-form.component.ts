@@ -4,7 +4,10 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
-import { EntitySchema, FieldDefinition, SelectOption } from '../../models/entity-schema.model';
+import {
+  EntitySchema, FieldDefinition, SelectOption,
+  sectionTitle, specialtyFromEntityKey
+} from '../../models/entity-schema.model';
 import { AudioRecorderService } from '../../services/audio-recorder.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -94,30 +97,47 @@ export class ClinicalEncounterFormComponent implements OnInit {
       .every(f => this.form.get(f.name)?.valid ?? true);
   }
 
-  private static readonly SECTION_HEADINGS: Record<string, string> = {
-    vitals:       'Signos Vitales',
-    diagnosis:    'Diagnóstico',
-    soap:         'Nota SOAP',
-    history:      'Antecedentes',
-    surgical:     'Intervenciones Quirúrgicas',
-    medications:  'Medicación',
-    alerts:       'Alertas Clínicas',
-  };
+  /**
+   * Which specialty's wording this form should speak. The section headings used
+   * to be a hardcoded medical-only table, so a psychology account got
+   * "SIGNOS VITALES" over Apariencia/Ánimo/Afecto, "INTERVENCIONES QUIRÚRGICAS"
+   * over Terapias Previas and "MEDICACIÓN" over the Plan Terapéutico — even
+   * though the fields themselves were already psychology-appropriate and the
+   * read-only ficha next door already titled them correctly.
+   */
+  readonly specialty = computed(() => specialtyFromEntityKey(this.entityKey()));
+
+  /** Heading for a section, in this specialty's language. */
+  sectionHeading(section: string): string {
+    return sectionTitle(section, this.specialty());
+  }
 
   /** Fields grouped by section, preserving schema order. */
   readonly editableFieldsBySection = computed(() => {
+    const specialty = this.specialty();
     const groups: { section: string; label: string; fields: FieldDefinition[] }[] = [];
     for (const f of this.editableFields()) {
       const s = f.section ?? '';
       let g = groups.find(g => g.section === s);
       if (!g) {
-        g = { section: s, label: ClinicalEncounterFormComponent.SECTION_HEADINGS[s] ?? s, fields: [] };
+        g = { section: s, label: sectionTitle(s, specialty), fields: [] };
         groups.push(g);
       }
       g.fields.push(f);
     }
     return groups;
   });
+
+  /** Label for the per-section save buttons, e.g. "Guardar Estado Mental". */
+  readonly vitalsSaveLabel = computed(() => `Guardar ${sectionTitle('vitals', this.specialty())}`);
+
+  /**
+   * The background button commits history + surgical + medications + alerts in
+   * one go, so it is named for the group rather than for a single section.
+   */
+  readonly backgroundSaveLabel = computed(() =>
+    `Guardar ${sectionTitle('history', this.specialty())}`
+  );
 
   /** Campos estables del paciente, para mostrar como resumen de solo lectura */
   stableFields = computed(() =>

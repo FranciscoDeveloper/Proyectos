@@ -161,7 +161,7 @@
             <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
           </svg>
           <span *ngIf="savingVitals()" class="spinner-xs"></span>
-          {{ savingVitals() ? 'Guardando…' : 'Guardar Signos Vitales' }}
+          {{ savingVitals() ? 'Guardando…' : vitalsSaveLabel() }}
         </button>
         <span class="section-saved-tick" *ngIf="savedVitals()">✓ Guardado</span>
         <span class="section-save-error" *ngIf="vitalsError()">✗ {{ vitalsError() }}</span>
@@ -175,7 +175,7 @@
             <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
           </svg>
           <span *ngIf="savingBackground()" class="spinner-xs"></span>
-          {{ savingBackground() ? 'Guardando…' : 'Guardar Antecedentes' }}
+          {{ savingBackground() ? 'Guardando…' : backgroundSaveLabel() }}
         </button>
         <span class="section-saved-tick" *ngIf="savedBackground()">✓ Guardado</span>
         <span class="section-save-error" *ngIf="backgroundError()">✗ {{ backgroundError() }}</span>

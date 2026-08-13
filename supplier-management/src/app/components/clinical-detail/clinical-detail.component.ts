@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
-import { FieldDefinition } from '../../models/entity-schema.model';
+import { FieldDefinition, sectionTitle, specialtyFromEntityKey } from '../../models/entity-schema.model';
 import { ChatService, ChatUser } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
 import { OdontogramComponent, OdontogramData } from '../odontogram/odontogram.component';
@@ -99,19 +99,7 @@ export class ClinicalDetailComponent implements OnInit {
     };
   });
 
-  readonly specialty = computed<'medical' | 'psych' | 'dental' | 'kine' | 'nutrition' | 'fono' | 'ot' | 'midwife' | 'medtech'>(() => {
-    switch (this.entityKey) {
-      case 'dental-records':    return 'dental';
-      case 'psych-records':     return 'psych';
-      case 'kine-records':      return 'kine';
-      case 'nutrition-records': return 'nutrition';
-      case 'fono-records':      return 'fono';
-      case 'ot-records':        return 'ot';
-      case 'matrona-records':   return 'midwife';
-      case 'tecnomed-records':  return 'medtech';
-      default:                  return 'medical';
-    }
-  });
+  readonly specialty = computed(() => specialtyFromEntityKey(this.entityKey));
 
   readonly isPsychRecord = computed(() => this.specialty() === 'psych');
   readonly isNonMedical  = computed(() => this.specialty() !== 'medical');
@@ -548,47 +536,13 @@ export class ClinicalDetailComponent implements OnInit {
     this.schema?.entity.plural ?? 'Pacientes'
   );
 
-  readonly vitalsSectionTitle = computed(() => {
-    switch (this.specialty()) {
-      case 'dental':    return 'Examen Clínico';
-      case 'psych':     return 'Estado Mental';
-      case 'kine':      return 'Evaluación Funcional';
-      case 'nutrition': return 'Evaluación Nutricional';
-      case 'fono':      return 'Evaluación Fonoaudiológica';
-      case 'ot':        return 'Evaluación Ocupacional';
-      case 'midwife':   return 'Control Clínico';
-      case 'medtech':   return 'Parámetros del Examen';
-      default:          return 'Signos Vitales';
-    }
-  });
-
-  readonly historySectionTitle = computed(() => {
-    switch (this.specialty()) {
-      case 'dental':    return 'Anamnesis Dental';
-      case 'psych':     return 'Antecedentes Psicológicos';
-      case 'kine':      return 'Antecedentes Kinésicos';
-      case 'nutrition': return 'Anamnesis Alimentaria';
-      case 'fono':      return 'Antecedentes Fonoaudiológicos';
-      case 'ot':        return 'Antecedentes Ocupacionales';
-      case 'midwife':   return 'Antecedentes Gíneco-Obstétricos';
-      case 'medtech':   return 'Antecedentes del Paciente';
-      default:          return 'Antecedentes Médicos';
-    }
-  });
-
-  readonly surgicalSectionTitle = computed(() => {
-    switch (this.specialty()) {
-      case 'dental':    return 'Tratamientos Dentales';
-      case 'psych':     return 'Terapias e Intervenciones';
-      case 'kine':      return 'Intervenciones y Plan Kinésico';
-      case 'nutrition': return 'Cirugías y Metas Nutricionales';
-      case 'fono':      return 'Intervenciones Fonoaudiológicas';
-      case 'ot':        return 'Intervenciones Terapéuticas';
-      case 'midwife':   return 'Procedimientos Realizados';
-      case 'medtech':   return 'Exámenes y Procedimientos';
-      default:          return 'Intervenciones Quirúrgicas';
-    }
-  });
+  // Section headings come from the shared per-specialty table in
+  // entity-schema.model.ts so this read-only view and the "Nueva Atención" form
+  // can never drift apart again (they did: the ficha said "Estado Mental" while
+  // the form said "SIGNOS VITALES" over the identical fields).
+  readonly vitalsSectionTitle   = computed(() => sectionTitle('vitals',   this.specialty()));
+  readonly historySectionTitle  = computed(() => sectionTitle('history',  this.specialty()));
+  readonly surgicalSectionTitle = computed(() => sectionTitle('surgical', this.specialty()));
 
   readonly surgicalHistoryLabel = computed(() =>
     this.schema?.fields.find(f => f.name === 'surgicalHistory')?.label ?? 'Antecedentes Quirúrgicos'
@@ -598,19 +552,7 @@ export class ClinicalDetailComponent implements OnInit {
     this.schema?.fields.find(f => f.name === 'plannedInterventions')?.label ?? 'Intervenciones Programadas'
   );
 
-  readonly soapSectionTitle = computed(() => {
-    switch (this.specialty()) {
-      case 'dental':    return 'Nota de Atención Dental';
-      case 'psych':     return 'Nota de Sesión';
-      case 'kine':      return 'Nota Kinésica';
-      case 'nutrition': return 'Nota Nutricional';
-      case 'fono':      return 'Nota Fonoaudiológica';
-      case 'ot':        return 'Nota de Terapia Ocupacional';
-      case 'midwife':   return 'Nota de Control';
-      case 'medtech':   return 'Registro del Examen';
-      default:          return 'Nota Clínica (SOAP)';
-    }
-  });
+  readonly soapSectionTitle = computed(() => sectionTitle('soap', this.specialty()));
 
   readonly newEncounterLabel = computed(() => {
     switch (this.specialty()) {
@@ -660,11 +602,7 @@ export class ClinicalDetailComponent implements OnInit {
 
   readonly medicationSectionTitle = computed(() => {
     const fromSchema = this.schema?.fields.find(f => f.section === 'medications')?.label;
-    if (fromSchema) return fromSchema;
-    switch (this.specialty()) {
-      case 'psych': return 'Medicación y Tratamiento';
-      default:      return 'Medicación Actual';
-    }
+    return fromSchema ?? sectionTitle('medications', this.specialty());
   });
 
   readonly prescriptionButtonLabel = computed(() => {

@@ -220,15 +220,49 @@ describe('ClinicalEncounterFormComponent — editableFieldsBySection()', () => {
     if (grp) expect(grp.label).toBe('Diagnóstico');
   });
 
-  it('labels soap group "Nota SOAP"', () => {
+  it('labels soap group "Nota Clínica (SOAP)"', () => {
     const grp = component.editableFieldsBySection().find(g => g.section === 'soap');
-    if (grp) expect(grp.label).toBe('Nota SOAP');
+    if (grp) expect(grp.label).toBe('Nota Clínica (SOAP)');
   });
 
   it('all fields in each group belong to that section', () => {
     for (const grp of component.editableFieldsBySection()) {
       expect(grp.fields.every(f => f.section === grp.section)).toBe(true);
     }
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Section headings must speak the specialty's language: on a psychology ficha
+// the very same `vitals`/`surgical`/`medications` sections group mental-status,
+// therapy and treatment-plan fields, so the medical wording is simply wrong.
+describe('ClinicalEncounterFormComponent — section headings per specialty', () => {
+  const labelFor = (entityKey: string, section: string) => {
+    const { component } = buildComponent(entityKey);
+    return component.editableFieldsBySection().find(g => g.section === section)?.label;
+  };
+
+  it('uses psychology wording on psych-records', () => {
+    expect(labelFor('psych-records', 'vitals')).toBe('Estado Mental');
+    expect(labelFor('psych-records', 'surgical')).toBe('Terapias e Intervenciones');
+    expect(labelFor('psych-records', 'medications')).toBe('Plan Terapéutico');
+  });
+
+  it('leaves the medical wording untouched on clinical-records', () => {
+    expect(labelFor('clinical-records', 'vitals')).toBe('Signos Vitales');
+    expect(labelFor('clinical-records', 'surgical')).toBe('Intervenciones Quirúrgicas');
+  });
+
+  it('uses dental wording on dental-records', () => {
+    expect(labelFor('dental-records', 'vitals')).toBe('Examen Clínico');
+  });
+
+  it('names the per-section save buttons after the section', () => {
+    const { component } = buildComponent('psych-records');
+    expect(component.vitalsSaveLabel()).toBe('Guardar Estado Mental');
+
+    const { component: medical } = buildComponent('clinical-records');
+    expect(medical.vitalsSaveLabel()).toBe('Guardar Signos Vitales');
   });
 });
 
