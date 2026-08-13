@@ -62,6 +62,42 @@ function stripOwnerCols(cols, config, entityKey, profScope) {
 }
 
 /**
+ * Fecha (YYYY-MM-DD) de una atención, tolerando los dos formatos que se guardan en el
+ * JSONB `encounters`: el formulario manual escribe "2026-08-13" (input type=date) y la
+ * cola de transcripción un ISO completo con hora.
+ *
+ * @param {object} enc Atención.
+ * @returns {string|null} Fecha en YYYY-MM-DD, o null si no hay ninguna utilizable.
+ */
+function encounterDateOnly(enc) {
+  const raw = enc?.encounterDate ?? enc?.lastVisit ?? enc?.date;
+  if (!raw) return null;
+  const s = String(raw).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+}
+
+/**
+ * La atención más reciente por fecha. Comparación lexicográfica sobre YYYY-MM-DD, que
+ * para ese formato equivale a la cronológica y no arrastra ninguna zona horaria.
+ *
+ * Empates y atenciones sin fecha utilizable: gana la que esté antes en el array, es decir
+ * la escrita más recientemente (appendEncounter antepone). Así dos notas del mismo día se
+ * resuelven por orden de escritura, que es lo que espera quien las acaba de guardar.
+ *
+ * @param {object[]} encounters Atenciones, la más recientemente escrita primero.
+ * @returns {object} La atención ganadora.
+ */
+function pickLatestEncounter(encounters) {
+  let best = encounters[0];
+  let bestDate = encounterDateOnly(best) ?? '';
+  for (const enc of encounters.slice(1)) {
+    const d = encounterDateOnly(enc);
+    if (d && d > bestDate) { best = enc; bestDate = d; }
+  }
+  return best;
+}
+
+/**
  * List every row of an entity, applying per-professional filtering when the
  * entity is scoped and a professional scope is present.
  *
@@ -360,23 +396,56 @@ export async function appendEncounter(client, config, id, encounter, profScope) 
   const existing = Array.isArray(raw) ? raw : (raw ? JSON.parse(raw) : []);
 
   const newEncounter = { ...encounter, encounterDate: encounter.encounterDate ?? new Date().toISOString() };
+  // Se antepone (no se reordena por fecha) a propósito: rejectAiContent asume que la
+  // última escritura vive en el índice 0 para poder retirar la nota que acaba de generar
+  // la transcripción de voz. El orden cronológico lo resuelve quien lee el historial.
   const updated = [newEncounter, ...existing];
 
-  // Also update flat clinical columns (soap_*, vitals, diagnosis) from the encounter payload
-  const flatCols   = config.toDb ? config.toDb(encounter) : {};
+  // Las columnas planas (soap_*, examen mental, diagnóstico) son el resumen "actual" que
+  // pinta la ficha — la sección NOTA DE SESIÓN. Deben reflejar UNA atención concreta: la
+  // más reciente por encounterDate.
+  //
+  // Antes se copiaban con toDb(encounter), es decir sólo las claves que traía la atención
+  // recién escrita, dejando intactas las demás. Registrar una sesión con fecha ANTERIOR y
+  // sólo la S rellena sobrescribía soap_subjective y dejaba O/A/P de la sesión posterior:
+  // el resumen mostraba una nota SOAP mezcla de dos sesiones distintas, que nunca existió
+  // como consulta real. (El array `encounters` sí guardaba ambas correctamente, así que el
+  // historial se veía bien y sólo mentía el resumen.)
+  //
+  // Ahora gana la atención más reciente entera: se mapea esa, y toda columna que otra
+  // atención haya aportado alguna vez pero que la ganadora no traiga se pone a NULL en vez
+  // de conservar el valor de una sesión ajena.
+  const latest = pickLatestEncounter(updated);
+  const flatCols = config.toDb ? config.toDb(latest) : {};
+  if (config.toDb) {
+    const contributed = {};
+    for (const e of updated) Object.assign(contributed, config.toDb(e));
+    for (const k of Object.keys(contributed)) if (!(k in flatCols)) flatCols[k] = null;
+  }
+  // Estas dos las fija la propia sentencia más abajo; dejarlas también en el SET generado
+  // haría que Postgres rechace el UPDATE por asignar dos veces la misma columna.
+  delete flatCols.last_visit;
+  delete flatCols.encounters;
   const flatKeys   = Object.keys(flatCols);
-  const flatSet    = flatKeys.map((k, i) => `${k} = $${i + 3}`).join(', ');
+  const flatSet    = flatKeys.map((k, i) => `${k} = $${i + 4}`).join(', ');
   const flatValues = flatKeys.map(k => flatCols[k]);
+
+  // last_visit sigue a la atención ganadora, no al reloj: registrar hoy una sesión que
+  // ocurrió la semana pasada no debe mover la "Última Sesión" a hoy.
+  const lastVisit = encounterDateOnly(latest) ?? new Date().toISOString().slice(0, 10);
 
   const result = await client.query(
     `UPDATE ${config.table}
-     SET encounters = $1, last_visit = NOW(), updated_at = NOW()${flatSet ? ', ' + flatSet : ''}
+     SET encounters = $1, last_visit = $3, updated_at = NOW()${flatSet ? ', ' + flatSet : ''}
      WHERE ${pkCol} = $2
      RETURNING *`,
-    [JSON.stringify(updated), id, ...flatValues]
+    [JSON.stringify(updated), id, lastVisit, ...flatValues]
   );
 
-  log.info('appendEncounter — success', { table: config.table, id, totalEncounters: updated.length, flatUpdated: flatKeys });
+  log.info('appendEncounter — success', {
+    table: config.table, id, totalEncounters: updated.length,
+    flatUpdated: flatKeys, mirrored: latest.encounterDate, lastVisit
+  });
 
   // Re-fetch with JOIN so patient demographics are included in the response
   if (config.joinSelect) {
