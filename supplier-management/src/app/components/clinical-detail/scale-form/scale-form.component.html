@@ -21,9 +21,15 @@
       <div class="sf-result-score" [style.background]="severityColor(r.severity)">{{ r.total }}</div>
       <div class="sf-result-label">{{ r.label }}</div>
       <div class="sf-result-sev">Severidad: <strong>{{ r.severity }}</strong></div>
+      <!-- Esta nota describía la idempotencia a nivel de ÍTEM (corregir una respuesta o
+           un doble click sobre "Finalizar" reescribe la misma aplicación en vez de
+           duplicarla), pero se leía como si volver a aplicar la escala otro día también
+           actualizase el mismo registro. No es así, y no debe serlo: cada aplicación es
+           un `scale_instance` propio, que es justo lo que dibuja la trayectoria MBC. -->
       <p class="sf-result-note">
-        Puntaje registrado en la trayectoria de la ficha. Reenviar este mismo cuestionario
-        actualiza el resultado, no lo duplica.
+        Puntaje registrado en la trayectoria de la ficha. Corregir una respuesta antes de
+        cerrar actualiza esta misma aplicación; volver a aplicar la escala más adelante
+        añade un punto nuevo a la trayectoria.
       </p>
       <button class="sf-btn sf-btn--primary" (click)="close()">Cerrar</button>
     </div>
