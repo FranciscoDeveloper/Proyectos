@@ -382,7 +382,10 @@ export class ClinicalDetailComponent implements OnInit {
 
   showUploadForm = signal(false);
   newDocName     = signal('');
-  newDocCategory = signal('lab');
+  // Sin preselección: el valor por defecto era 'lab' ("Laboratorio"), que en una
+  // ficha psicológica (o kinésica, o fonoaudiológica) etiqueta mal cualquier
+  // adjunto que el profesional suba sin mirar el selector. Se obliga a elegir.
+  newDocCategory = signal('');
   newDocNotes    = signal('');
   selectedFile   = signal<File | null>(null);
   fileError      = signal('');
@@ -503,7 +506,7 @@ export class ClinicalDetailComponent implements OnInit {
     this.showUploadForm.set(false);
     this.newDocName.set('');
     this.newDocNotes.set('');
-    this.newDocCategory.set('lab');
+    this.newDocCategory.set('');
     this.selectedFile.set(null);
     this.fileError.set('');
   }

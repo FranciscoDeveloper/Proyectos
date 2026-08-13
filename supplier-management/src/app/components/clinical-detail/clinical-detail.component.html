@@ -667,8 +667,9 @@
                [value]="newDocName()" (input)="newDocName.set($any($event.target).value)">
       </div>
       <div class="docs-form-field">
-        <label>Categoría</label>
+        <label>Categoría *</label>
         <select class="doc-input" [value]="newDocCategory()" (change)="newDocCategory.set($any($event.target).value)">
+          <option value="" disabled>Selecciona una categoría…</option>
           <option *ngFor="let cat of DOC_CATEGORIES" [value]="cat.value">{{ cat.label }}</option>
         </select>
       </div>
@@ -681,7 +682,7 @@
     <div class="docs-form-actions">
       <button class="btn btn-outline btn-sm" (click)="cancelUpload()">Cancelar</button>
       <button class="btn btn-primary btn-sm"
-              [disabled]="!newDocName().trim() || !selectedFile()"
+              [disabled]="!newDocName().trim() || !selectedFile() || !newDocCategory()"
               (click)="addDocument()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>

@@ -106,7 +106,7 @@
           <tr>
             <th>N° Presupuesto</th>
             <th>Paciente</th>
-            <th>Doctor / Especialidad</th>
+            <th>Profesional / Especialidad</th>
             <th>Fecha</th>
             <th>Vence</th>
             <th>Total</th>
@@ -360,7 +360,7 @@
         <div class="form-section-title">Profesional <span class="req">*</span></div>
         <div class="form-row form-row-2">
           <div class="form-group">
-            <label>Doctor / Profesional <span class="req">*</span></label>
+            <label>Profesional <span class="req">*</span></label>
             <!-- Professional users: field locked to their own name -->
             <input *ngIf="isProfessionalView()" type="text" readonly disabled class="input-readonly"
                    [value]="form().doctorName" />

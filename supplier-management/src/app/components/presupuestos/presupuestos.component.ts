@@ -670,8 +670,16 @@ export class PresupuestosComponent implements OnInit {
     return map[current] ?? [];
   }
 
+  /**
+   * `currencyDisplay: 'code'` renders "CLP 280.000" instead of a bare "$280.000".
+   * The symbol alone is ambiguous — plenty of currencies use "$" — and these
+   * figures end up on a quote the patient receives, so the unit has to be stated.
+   */
   formatCLP(n: number): string {
-    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(Math.round(n));
+    return new Intl.NumberFormat('es-CL', {
+      style: 'currency', currency: 'CLP',
+      currencyDisplay: 'code', minimumFractionDigits: 0
+    }).format(Math.round(n));
   }
 
   trackByIdx = (_i: number) => _i;

@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
+import { newEntityLabel } from '../../models/entity-schema.model';
 
 @Component({
     selector: 'app-clinical-record',
@@ -17,6 +18,11 @@ export class ClinicalRecordComponent {
 
   readonly entityKey = this.route.snapshot.paramMap.get('entityKey')!;
   readonly schema    = this.schemaSvc.getSchema(this.entityKey);
+
+  /** "Nueva Ficha Psicológica" / "Nuevo Paciente" — agrees with the entity's gender. */
+  readonly newLabel = computed(() =>
+    this.schema ? newEntityLabel(this.schema.entity) : 'Nuevo Paciente'
+  );
 
   private readonly titleField    = this.schema?.fields.find(f => f.isTitle)    ?? null;
   private readonly subtitleField = this.schema?.fields.find(f => f.isSubtitle) ?? null;

@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { SchemaService } from '../../services/schema.service';
 import { GenericCrudService } from '../../services/generic-crud.service';
 import { AuthService } from '../../services/auth.service';
-import { EntitySchema, FieldDefinition, SelectOption } from '../../models/entity-schema.model';
+import { EntitySchema, FieldDefinition, SelectOption, newEntityLabel } from '../../models/entity-schema.model';
 
 @Component({
     selector: 'app-generic-list',
@@ -21,6 +21,12 @@ export class GenericListComponent implements OnInit {
   private auth = inject(AuthService);
 
   schema = signal<EntitySchema | null>(null);
+
+  /** "Nueva Sesión" / "Nuevo Presupuesto" — agrees with the entity's gender. */
+  readonly newLabel = computed(() => {
+    const e = this.schema()?.entity;
+    return e ? newEntityLabel(e) : 'Nuevo';
+  });
   entityKey = signal('');
   searchQuery = signal('');
   selectFilters = signal<Record<string, string>>({});
