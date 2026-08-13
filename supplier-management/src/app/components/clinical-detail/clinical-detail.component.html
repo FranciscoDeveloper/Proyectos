@@ -87,7 +87,11 @@
             <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
             <line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
-          {{ lastVisitLabel() }}: {{ patient()!.lastVisit | date:'d MMM yyyy' }}
+          <!-- ':UTC' — last_visit es una columna DATE, así que llega como medianoche UTC
+               ("2026-08-13T00:00:00.000Z"). Pintarla en America/Santiago (UTC-4) la
+               retrasaba al 12 de agosto: un día menos del que se escribió. Mismo patrón
+               que las notas de proceso, que ya lo hacían bien. -->
+          {{ lastVisitLabel() }}: {{ patient()!.lastVisit | date:'d MMM yyyy':'UTC' }}
         </span>
       </div>
     </div>
@@ -245,7 +249,9 @@
         <div class="contact-list">
           <div class="contact-row" *ngIf="patient()!.birthDate">
             <span class="contact-label">Fecha Nac.</span>
-            <span class="contact-value">{{ patient()!.birthDate | date:'d MMM yyyy' }}</span>
+            <!-- ':UTC' por lo mismo que lastVisit: birth_date es DATE. La ficha mostraba
+                 "19 May 1994" para una fecha guardada como 1994-05-20. -->
+            <span class="contact-value">{{ patient()!.birthDate | date:'d MMM yyyy':'UTC' }}</span>
           </div>
           <div class="contact-row" *ngIf="patient()!.address">
             <span class="contact-label">Dirección</span>

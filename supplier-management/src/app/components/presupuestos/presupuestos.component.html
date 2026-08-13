@@ -131,9 +131,9 @@
                 <span class="specialty-tag" *ngIf="p.specialty">{{ p.specialty }}</span>
               </div>
             </td>
-            <td class="col-date">{{ p.fechaEmision | date:'dd/MM/yyyy' }}</td>
+            <td class="col-date">{{ p.fechaEmision | date:'dd/MM/yyyy':'UTC' }}</td>
             <td class="col-date" [class.expiring]="isExpiringSoon(p)" [class.expired-date]="isExpired(p)">
-              {{ p.fechaVencimiento | date:'dd/MM/yyyy' }}
+              {{ p.fechaVencimiento | date:'dd/MM/yyyy':'UTC' }}
             </td>
             <td class="col-total">{{ formatCLP(calcTotal(p)) }}</td>
             <td class="col-status" (click)="$event.stopPropagation()">
@@ -211,8 +211,8 @@
           </div>
           <div class="info-block">
             <span class="info-label">Fechas</span>
-            <span class="info-value">Emisión: {{ p.fechaEmision | date:'dd/MM/yyyy' }}</span>
-            <span class="info-sub" [class.text-danger]="isExpired(p)">Vence: {{ p.fechaVencimiento | date:'dd/MM/yyyy' }}</span>
+            <span class="info-value">Emisión: {{ p.fechaEmision | date:'dd/MM/yyyy':'UTC' }}</span>
+            <span class="info-sub" [class.text-danger]="isExpired(p)">Vence: {{ p.fechaVencimiento | date:'dd/MM/yyyy':'UTC' }}</span>
           </div>
           <div class="info-block">
             <span class="info-label">Previsión</span>
@@ -671,8 +671,8 @@
       </div>
       <div class="print-party">
         <div class="print-party-title">FECHAS</div>
-        <div>Emisión: {{ p.fechaEmision | date:'dd/MM/yyyy' }}</div>
-        <div>Vencimiento: {{ p.fechaVencimiento | date:'dd/MM/yyyy' }}</div>
+        <div>Emisión: {{ p.fechaEmision | date:'dd/MM/yyyy':'UTC' }}</div>
+        <div>Vencimiento: {{ p.fechaVencimiento | date:'dd/MM/yyyy':'UTC' }}</div>
       </div>
     </div>
     <table class="print-table">
@@ -721,7 +721,7 @@
       <strong>Observaciones:</strong> {{ p.notes }}
     </div>
     <div class="print-footer">
-      Este presupuesto tiene validez hasta el {{ p.fechaVencimiento | date:'dd/MM/yyyy' }}. Dairi © {{ getYear() }}
+      Este presupuesto tiene validez hasta el {{ p.fechaVencimiento | date:'dd/MM/yyyy':'UTC' }}. Dairi © {{ getYear() }}
     </div>
   </div>
 </ng-template>

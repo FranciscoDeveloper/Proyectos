@@ -59,6 +59,17 @@ export interface Presupuesto {
 
 type PanelMode = 'closed' | 'create' | 'edit' | 'view';
 
+/**
+ * Recorta a "YYYY-MM-DD" un valor de fecha venido de la API, para <input type="date">.
+ *
+ * Se recorta la cadena en lugar de pasar por Date: "2026-08-13T00:00:00.000Z" convertido
+ * a hora local (UTC-4) daría el 12 de agosto, un día menos del que se guardó.
+ */
+function dateInput(value: string | null | undefined): string {
+  const s = String(value ?? '');
+  return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : s;
+}
+
 const EMPTY_ITEM = (): PresupuestoItem => ({
   description: '', quantity: 1, unitPrice: 0, discountPct: 0, subtotal: 0
 });
@@ -326,7 +337,10 @@ export class PresupuestosComponent implements OnInit {
       numero: p.numero, patientName: p.patientName, patientRut: p.patientRut,
       patientPhone: p.patientPhone, patientEmail: p.patientEmail,
       doctorName: p.doctorName, specialty: p.specialty,
-      fechaEmision: p.fechaEmision, fechaVencimiento: p.fechaVencimiento,
+      // Recortado a YYYY-MM-DD: la API devuelve estas columnas DATE como ISO completo y
+      // <input type="date"> descarta en silencio cualquier otro formato, dejando ambos
+      // campos en blanco al abrir "Editar" — y guardando así se perdían las dos fechas.
+      fechaEmision: dateInput(p.fechaEmision), fechaVencimiento: dateInput(p.fechaVencimiento),
       prevision: p.prevision, coveragePercent: p.coveragePercent,
       discountGlobal: p.discountGlobal,
       items: p.items.length ? p.items.map(i => ({ ...i })) : [EMPTY_ITEM()],

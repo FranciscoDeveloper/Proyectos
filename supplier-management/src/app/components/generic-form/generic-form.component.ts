@@ -31,6 +31,22 @@ function datetimeLocalToIso(value: string): string {
   return isNaN(d.getTime()) ? value : d.toISOString();
 }
 
+/**
+ * Recorta a "YYYY-MM-DD" lo que llega de la API para un <input type="date">.
+ *
+ * La API devuelve las columnas DATE como ISO completo ("1994-05-20T00:00:00.000Z").
+ * El control sólo acepta "YYYY-MM-DD" y ante cualquier otra cosa se deja EN BLANCO
+ * sin avisar — y guardar con el campo en blanco mandaba '' al backend, que lo
+ * traduce a NULL: no era sólo un fallo visual, borraba la fecha ya guardada.
+ *
+ * Se recorta la cadena en vez de pasar por Date para no cruzar husos: convertir
+ * "1994-05-20T00:00:00.000Z" a hora local (UTC-4) daría el 19 de mayo.
+ */
+function isoToDateInput(value: string): string {
+  const s = String(value);
+  return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : s;
+}
+
 @Component({
     selector: 'app-generic-form',
     imports: [CommonModule, ReactiveFormsModule, RouterLink],
@@ -130,6 +146,10 @@ export class GenericFormComponent implements OnInit {
             // a UTC al guardar (ver processFields), leer sin convertir desplazaría la
             // cita 4 horas en cada edición. Las dos direcciones van emparejadas.
             patchValue[f.name] = isoToDatetimeLocal(record[f.name]);
+          } else if (f.type === 'date' && typeof record[f.name] === 'string' && record[f.name]) {
+            // Ver isoToDateInput: sin esto el control se queda en blanco y guardar
+            // borraba la fecha almacenada (Fecha de Nacimiento / Última Sesión).
+            patchValue[f.name] = isoToDateInput(record[f.name]);
           } else if (f.type === 'select' && f.lookupEntity && record[f.name] != null && record[f.name] !== '') {
             // getFieldOptions() convierte a string el valor de cada opción de lookup,
             // pero la API devuelve estas FKs como número (professionalId 62,
