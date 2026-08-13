@@ -263,7 +263,16 @@ export const SCHEMA_PSYCH_RECORDS: EntitySchema = {
     { name: 'email',          type: 'email',  label: 'Email',               required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'address',        type: 'text',   label: 'Dirección',           required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
     { name: 'emergencyContact', type: 'text', label: 'Contacto Emergencia', required: false,                   showInList: false, showInDetail: true,  section: 'demographics', isStable: true },
-    { name: 'professionalId', type: 'select', label: 'Psicólogo/a', required: true, showInList: true, showInDetail: true, section: 'demographics', isStable: true, filterable: true, filterType: 'select', lookupEntity: 'medicos', lookupValueField: 'id', lookupLabelField: 'nombre' },
+    // La ficha psicológica pertenece siempre al psicólogo autenticado: nunca se
+    // elige a mano. Antes esto era un <select> obligatorio sobre `medicos`, así que
+    // el dueño de la ficha terminaba siendo quien enviara el cliente y, al ser
+    // `required`, el formulario siempre mandaba `professionalId` — con eso el
+    // auto-estampado del BFF (`createEntity`, que sólo rellena la columna cuando el
+    // body NO la trae) no llegaba a dispararse nunca. Ahora es sólo lectura y se
+    // muestra `doctorName`, el nombre que ya resuelve el JOIN del BFF — mismo patrón
+    // que `professionalName` en las agendas de especialidad. La asignación real la
+    // hace el servidor (ver OWNER_LOCKED_KEYS en crudService.mjs).
+    { name: 'doctorName', type: 'text', label: 'Psicólogo/a', required: false, displayOnly: true, showInList: true, showInDetail: true, section: 'demographics', isStable: true },
     { name: 'lastVisit',      type: 'date',   label: 'Última Sesión',       required: false,                   showInList: true,  showInDetail: true,  section: 'demographics', sortable: true, format: 'date' },
     { name: 'status',         type: 'select', label: 'Estado',              required: true,  isBadge: true,     showInList: true,  showInDetail: true,  section: 'demographics', filterable: true, filterType: 'select',
       options: [{ value: 'active', label: 'En Terapia' }, { value: 'discharged', label: 'Alta Terapéutica' }, { value: 'critical', label: 'Riesgo' }, { value: 'scheduled', label: 'Evaluación' }],
@@ -299,7 +308,9 @@ export const SCHEMA_PSYCH_RECORDS: EntitySchema = {
     { name: 'chronicConditions',  type: 'tags',     label: 'Diagnósticos Activos',  required: false, showInList: false, showInDetail: true, section: 'medications' },
 
     // ── Diagnosis (DSM-5) ────────────────────────────────────────────────
-    { name: 'diagnosisCode',  type: 'text',     label: 'Código DSM-5/CIE-10',      required: false, showInList: false, showInDetail: true, section: 'diagnosis', hideInEncounterMode: true },
+    // Sin campo `diagnosisCode`: la ficha psicológica no codifica el diagnóstico.
+    // La columna `clinical_record.diagnosis_code` sigue existiendo y el resto de las
+    // especialidades la siguen usando; aquí simplemente no se pide ni se muestra.
     { name: 'diagnosisLabel', type: 'text',     label: 'Diagnóstico Principal',     required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
     { name: 'differentialDx', type: 'textarea', label: 'Diagnóstico Diferencial',   required: false, showInList: false, showInDetail: true, section: 'diagnosis' },
 

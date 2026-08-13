@@ -230,7 +230,14 @@ export class ClinicalDetailComponent implements OnInit {
       }));
   });
 
-  readonly diagnosisCode  = computed(() => String(this.record()?.['diagnosisCode']  ?? ''));
+  // El chip del código se lee de la fila, no del esquema, así que seguía pintándose
+  // aunque la especialidad no declare el campo (la columna diagnosis_code existe para
+  // todas y la puede rellenar la transcripción). Se respeta el esquema, igual que
+  // hasDiagnosisSection(): la ficha psicológica ya no expone `diagnosisCode`.
+  private readonly hasDiagnosisCodeField = !!this.schema?.fields.some(f => f.name === 'diagnosisCode');
+  readonly diagnosisCode  = computed(() =>
+    this.hasDiagnosisCodeField ? String(this.record()?.['diagnosisCode'] ?? '') : ''
+  );
   readonly diagnosisLabel = computed(() => String(this.record()?.['diagnosisLabel'] ?? ''));
   readonly differentialDx = computed(() => String(this.record()?.['differentialDx'] ?? ''));
 

@@ -17,6 +17,51 @@ import { response } from '../lib/response.mjs';
 import * as profScopeService from './profScopeService.mjs';
 
 /**
+ * Entity keys whose owning professional is decided by the server and can never be
+ * chosen — nor changed — by the client.
+ *
+ * `psych-records`: una ficha psicológica pertenece siempre al psicólogo autenticado.
+ * El formulario ofrecía un desplegable "Psicólogo/a" obligatorio sobre `medicos`, así
+ * que el body SIEMPRE traía `professionalId` y el auto-estampado de createEntity (que
+ * sólo rellena la columna `if (!(col in cols))`) nunca llegaba a dispararse: el dueño
+ * de la ficha acababa siendo el que mandara el cliente. Quitar el desplegable arregla
+ * la UI, pero un cliente hecho a mano seguiría pudiendo reasignar la ficha de un
+ * paciente a otro profesional — de ahí que la regla viva aquí, en el servidor.
+ *
+ * Se compara contra el `entityKey` de la petición, no contra la config: las nueve
+ * fichas de especialidad comparten la config `clinical-records` (ver ENTITY_ALIASES),
+ * y esto es deliberadamente sólo para psicología.
+ */
+const OWNER_LOCKED_KEYS = new Set(['psych-records']);
+
+/**
+ * Strip the professional-ownership columns from a payload for owner-locked entities,
+ * so an update can never re-point a record at a different professional. Ownership is
+ * assigned once, at creation, from the authenticated token.
+ *
+ * Skipped when the caller holds the superadmin bypass (internal service accounts such
+ * as the SOAP-note pipeline, which legitimately writes on behalf of the treating
+ * professional — and does so through the `clinical-records` key anyway).
+ *
+ * @param {object} cols            Columns produced by config.toDb(body).
+ * @param {object} config          Entity descriptor.
+ * @param {string} entityKey       Requested entity key.
+ * @param {object|null} profScope  Resolved professional scope.
+ * @returns {string[]} Names of the columns that were dropped (for logging).
+ */
+function stripOwnerCols(cols, config, entityKey, profScope) {
+  if (!OWNER_LOCKED_KEYS.has(entityKey) || !config.profFilter || profScope?.bypass) return [];
+  const dropped = [];
+  for (const key of ['idCol', 'nameCol']) {
+    const raw = config.profFilter[key];
+    if (!raw) continue;
+    const col = raw.replace(/^\w+\./, '');
+    if (col in cols) { delete cols[col]; dropped.push(col); }
+  }
+  return dropped;
+}
+
+/**
  * List every row of an entity, applying per-professional filtering when the
  * entity is scoped and a professional scope is present.
  *
@@ -105,6 +150,13 @@ export async function createEntity(client, config, body, entityKey, profScope) {
 
   const cols = config.toDb(body);
 
+  // Owner-locked entities (psych-records): discard whatever professional the client
+  // sent, so the stamping below is the only thing that decides the owner.
+  const droppedOnCreate = stripOwnerCols(cols, config, entityKey, profScope);
+  if (droppedOnCreate.length) {
+    log.warn('createEntity — ignoring client-supplied professional owner', { entityKey, dropped: droppedOnCreate });
+  }
+
   // Let the entity override/generate columns server-side (e.g. a globally-unique
   // sequential number) — always runs with full table visibility, ignoring profFilter,
   // since values like `numero` must be unique across every professional.
@@ -112,7 +164,9 @@ export async function createEntity(client, config, body, entityKey, profScope) {
     await config.beforeInsert(client, cols);
   }
 
-  // Auto-stamp professional identity so records are always linked to the creator
+  // Auto-stamp professional identity so records are always linked to the creator.
+  // Only fills the column when the body did not carry it; for owner-locked entities
+  // stripOwnerCols() above guarantees it never does, so the stamp always wins.
   if (profScope && config.profFilter) {
     const f = config.profFilter;
     if (f.idCol && profScope.professionalId != null) {
@@ -172,6 +226,16 @@ export async function updateEntity(client, config, id, body, entityKey, profScop
   }
 
   const cols = config.toDb(body);
+
+  // Owner-locked entities (psych-records): the owning professional is stamped once at
+  // creation and is not part of the editable surface. Dropping the column here means
+  // "leave unchanged" — the UPDATE simply never mentions it — so neither the edit form
+  // (which no longer submits it) nor a hand-crafted request can re-assign the record.
+  const droppedOnUpdate = stripOwnerCols(cols, config, entityKey, profScope);
+  if (droppedOnUpdate.length) {
+    log.warn('updateEntity — ignoring client-supplied professional owner', { entityKey, id, dropped: droppedOnUpdate });
+  }
+
   const keys = Object.keys(cols);
   if (keys.length === 0) {
     log.warn('updateEntity — no valid fields', { entityKey, id, receivedKeys: Object.keys(body) });
