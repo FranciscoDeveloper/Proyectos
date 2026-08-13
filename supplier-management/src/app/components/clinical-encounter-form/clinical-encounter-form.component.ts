@@ -407,12 +407,24 @@ export class ClinicalEncounterFormComponent implements OnInit {
     // appendEncounter la refleja en la columna clinical_record.certified vía toDb, con lo
     // que una ficha que estaba pendiente por una transcripción de voz queda certificada al
     // ser reescrita manualmente.
-    const encounter: Record<string, any> = { encounterDate: raw['encounterDate'], status: 'active', soapSource: 'manual', certified: true };
-    this.schema()!.fields
-      .filter(f =>
-        !f.isStable &&
-        f.type !== 'object-list' && f.type !== 'dental-chart' && f.type !== 'periodontal-chart'
-      )
+    //
+    // Aquí NO se estampa `status`. Parecía el estado de la atención, pero nadie lee ese
+    // campo del JSONB `encounters`; en cambio appendEncounter pasa el payload entero por
+    // `toDb`, que mapea `status` a la columna `clinical_record.status` — el estado clínico
+    // del paciente. Registrar una atención devolvía así cualquier ficha a 'active': un
+    // paciente marcado 'critical' (Riesgo, en psicología) o 'pregnancy' (matrona) quedaba
+    // reclasificado en silencio. El estado se cambia editando la ficha, no al escribir una nota.
+    const encounter: Record<string, any> = { encounterDate: raw['encounterDate'], soapSource: 'manual', certified: true };
+
+    // Sólo los campos que este formulario expone de verdad (secciones de atención y de
+    // antecedentes). Antes se recorría `!f.isStable`, que dependía de que cada esquema
+    // marcase sus demográficos como estables: `psych-records` no marcaba ninguno, así que
+    // el payload viajaba con los valores por defecto invisibles de los selects de
+    // demografía (gender 'male', education 'basic', maritalStatus 'single') y los escribía
+    // en la ficha de un paciente real. Filtrar por sección lo vuelve imposible en las 9
+    // fichas, marquen o no `isStable` — `editableFields()` ya excluye object-list, los
+    // odontogramas, los autogenerados, los displayOnly y los estables.
+    this.editableFields()
       .forEach(f => {
         const v = raw[f.name];
         if (v !== undefined && v !== '' && v !== null) {
