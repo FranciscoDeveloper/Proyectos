@@ -45,6 +45,25 @@ const REPORT_TYPES = Object.assign(Object.create(null), {
 /** Tope del texto libre que el profesional agrega. Va a un prompt: se acota. */
 const MAX_ADDITIONAL_CONTEXT = 4_000;
 
+/**
+ * ¿La especialidad dueña de estos informes codifica el diagnóstico en CIE-10?
+ *
+ * No. Este handler cuelga sólo de `/api/psych/reports/draft` y la ficha psicológica no
+ * tiene campo de código: se le quitó a propósito en el commit 6cb84330 ("psicología no
+ * codifica el diagnóstico"). La columna `clinical_record.diagnosis_code` sigue existiendo
+ * porque el resto de las especialidades la usan, pero para psicología está vacía siempre.
+ *
+ * Por eso `diagnosis_code IS NULL` aquí no significa "el profesional olvidó rellenarlo"
+ * sino "este tipo de ficha no tiene dónde rellenarlo", y el aviso que salía con ese texto
+ * iba a dispararse en el 100 % de los informes de psicología, para siempre. Un aviso que
+ * siempre sale no informa de nada y enseña a saltarse la lista completa.
+ *
+ * Si otra especialidad monta su propio endpoint sobre este handler, esto pasa a ser un
+ * parámetro: la distinción que importa es "no tiene el campo" (no avisar) frente a "tiene
+ * el campo y está vacío" (avisar, es un hueco real que el profesional puede llenar).
+ */
+const SPECIALTY_CODES_DIAGNOSES = false;
+
 // K9 — cada borrador es una llamada a Bedrock con miles de tokens de salida.
 const reportRateLimit = createRateLimiter({ windowMs: 10 * 60_000, maxRequests: 6 });
 
@@ -60,6 +79,62 @@ function wrapAdditionalContext(raw) {
   const sanitized = text.replace(/<\/?contexto_profesional>/gi, '');
   return `<contexto_profesional>\n${sanitized}\n</contexto_profesional>`;
 }
+
+/**
+ * Renderiza las escalas en DOS bloques separados y encabezados, en vez de una lista con
+ * la marca "vigente"/"anterior" incrustada en cada línea.
+ *
+ * La marca por línea no bastó: nova-lite leyó "GAD-7 — aplicación anterior: 14 puntos" y
+ * escribió el informe como si 14 fuera el valor histórico y el actual faltara
+ * ("Última aplicación: [COMPLETAR]"), e hizo lo mismo con PHQ-9 citando el 9 antiguo.
+ * Separar físicamente los dos grupos elimina la ambigüedad: para el estado actual sólo
+ * hay un bloque donde mirar.
+ *
+ * @param {Array<{code:string,name:string,total_score:number,severity:string,administered_at:*,rn:number}>} rows
+ * @param {(d:*) => string} fmtDate
+ */
+function renderScales(rows, fmtDate) {
+  if (!rows.length) return 'Escalas aplicadas: ninguna registrada.';
+
+  const line = s => `- ${s.code} (${s.name}): ${s.total_score} puntos, severidad ${s.severity}, aplicada el ${fmtDate(s.administered_at)}`;
+  // Number(): la consulta ya castea `rn` a int, pero comparar el valor crudo dejaría el
+  // bloque de escalas vacío en silencio si ese cast se pierde en una edición futura.
+  const current  = rows.filter(s => Number(s.rn) === 1);
+  const previous = rows.filter(s => Number(s.rn) === 2);
+
+  // Los encabezados se redactan como etiquetas de datos y no como órdenes en mayúsculas:
+  // una versión anterior decía "ESCALAS — ESTADO ACTUAL. Estos son los valores vigentes:
+  // úsalos SIEMPRE que..." y el modelo la copiaba tal cual como título de una sección del
+  // informe, o directamente perdía los datos y escribía que no se habían proporcionado.
+  const blocks = [
+    'Escalas aplicadas — resultado más reciente de cada escala (este es el estado actual ' +
+    `del paciente):\n${current.map(line).join('\n')}`,
+  ];
+
+  if (previous.length) {
+    blocks.push(
+      'Escalas — resultado de la aplicación anterior de cada escala (sólo para comparar la ' +
+      `evolución; no es el estado actual):\n${previous.map(line).join('\n')}`
+    );
+  }
+
+  return blocks.join('\n\n');
+}
+
+/**
+ * Campos que la ficha psicológica no contiene en absoluto. Declararlos como ausentes es lo
+ * que hace que el modelo escriba `[COMPLETAR]` en vez de rellenarlos: la regla genérica
+ * "escribe [COMPLETAR] donde falte información" no bastaba porque el modelo no tenía forma
+ * de saber que faltaban — el silencio del contexto se leía como permiso para redactar.
+ * Con el código CIE-10 declararlo explícitamente fue justo lo que detuvo la invención.
+ */
+const ABSENT_FIELDS =
+  'DATOS QUE NO EXISTEN EN ESTA FICHA (no hay ninguna información sobre ellos; escribe ' +
+  '[COMPLETAR] en cada sección del documento que los pida, y no los deduzcas del resto):\n' +
+  '- Motivo de derivación y quién deriva o solicita el informe.\n' +
+  '- Institución, tribunal o establecimiento destinatario y el número de causa o expediente.\n' +
+  '- Antecedentes familiares, escolares, laborales y de tratamientos previos.\n' +
+  '- Resultados de instrumentos distintos de las escalas listadas más arriba.';
 
 /**
  * Reúne desde RDS el bloque de datos del paciente y los avisos derivados de sus huecos.
@@ -83,13 +158,29 @@ async function buildContext(client, recordId, additionalContext, reportType) {
         WHERE c.id = $1`,
       [recordId]
     ),
+    // Últimas DOS aplicaciones de CADA escala, no las seis últimas en total.
+    //
+    // El `ORDER BY administered_at DESC LIMIT 6` anterior mezclaba varias aplicaciones de
+    // la misma escala sin decir cuál era la vigente: la ficha 59 tiene PHQ-9 = 0 (ninguna),
+    // 9 (leve) y 17 (moderada-grave), y el modelo redactaba "severidad leve a moderada-grave
+    // en diferentes momentos" o citaba directamente un puntaje viejo como estado actual.
+    // Con la ventana por `code` cada escala aporta su valor vigente y, como mucho, el
+    // anterior — que se etiqueta como tal para poder describir el cambio sin confundirlo
+    // con el presente.
     client.query(
-      `SELECT t.code, t.name, i.total_score, i.severity, i.administered_at
-         FROM scale_instance i
-         JOIN scale_template t ON t.id = i.template_id
-        WHERE i.record_id = $1 AND i.total_score IS NOT NULL
-        ORDER BY i.administered_at DESC
-        LIMIT 6`,
+      // `::int` no es cosmético: ROW_NUMBER() devuelve bigint y node-postgres entrega los
+      // bigint como STRING para no perder precisión, así que `rn === 1` era false para
+      // todas las filas y el filtro las descartaba enteras.
+      `SELECT code, name, total_score, severity, administered_at, rn
+         FROM (
+           SELECT t.code, t.name, i.total_score, i.severity, i.administered_at,
+                  (ROW_NUMBER() OVER (PARTITION BY t.code ORDER BY i.administered_at DESC))::int AS rn
+             FROM scale_instance i
+             JOIN scale_template t ON t.id = i.template_id
+            WHERE i.record_id = $1 AND i.total_score IS NOT NULL
+         ) s
+        WHERE rn <= 2
+        ORDER BY code, rn`,
       [recordId]
     ),
     client.query(
@@ -116,8 +207,22 @@ async function buildContext(client, recordId, additionalContext, reportType) {
     r.gender ? `Género: ${r.gender}` : null,
     r.diagnosis_code || r.diagnosis_label
       ? `Diagnóstico: ${[r.diagnosis_code, r.diagnosis_label].filter(Boolean).join(' — ')}`
-      : 'Diagnóstico CIE-10: [COMPLETAR]',
-    r.differential_dx ? `Diagnóstico diferencial: ${r.differential_dx}` : null,
+      : 'Diagnóstico: [COMPLETAR]',
+    // Decirle al modelo, explícitamente, que el código no existe. Antes el contexto
+    // simplemente no lo mencionaba, y el modelo trataba el silencio como un hueco que
+    // debía rellenar: inventó "F10.2" (dependencia del alcohol) para una ansiedad.
+    // Un hueco declarado se puede respetar; uno tácito, no.
+    !r.diagnosis_code
+      ? 'Código CIE-10: NO DISPONIBLE. Esta ficha no registra codificación diagnóstica y en los ' +
+        'datos entregados no hay ningún código CIE-10. No existe un código que puedas citar.'
+      : null,
+    // "Diagnóstico diferencial" a secas se leía como conclusión: la ficha dice "Descartar
+    // trastorno depresivo mayor comórbido" y el informe salía con "Se descartó un Trastorno
+    // Depresivo Mayor comórbido", que afirma lo contrario. La etiqueta lleva el estado.
+    r.differential_dx
+      ? `Diagnóstico diferencial (hipótesis PENDIENTES de descartar, no confirmadas ni ` +
+        `descartadas): ${r.differential_dx}`
+      : null,
     `Número de sesiones registradas: ${encounters.length}`,
     '',
     r.soap_subjective ? `Relato del paciente (subjetivo): ${r.soap_subjective}` : null,
@@ -125,20 +230,30 @@ async function buildContext(client, recordId, additionalContext, reportType) {
     r.soap_assessment ? `Análisis clínico: ${r.soap_assessment}`                : null,
     r.soap_plan       ? `Plan de tratamiento: ${r.soap_plan}`                   : null,
     '',
-    scalesRes.rows.length
-      ? `Escalas aplicadas:\n${scalesRes.rows.map(s => `- ${s.code} (${s.name}): ${s.total_score} puntos, severidad ${s.severity}, aplicada el ${fmtDate(s.administered_at)}`).join('\n')}`
-      : 'Escalas aplicadas: ninguna registrada.',
+    renderScales(scalesRes.rows, fmtDate),
     tasksRes.rows.length
       ? `Trabajo intersesión: ${tasksRes.rows.map(t => `${t.description} (${t.completed ? 'completada' : 'pendiente'})`).join('; ')}`
       : null,
+    '',
+    ABSENT_FIELDS,
     additionalContext ? `\nContexto aportado por el profesional:\n${additionalContext}` : null,
   ].filter(v => v !== null).join('\n');
 
   const warnings = [];
   if (!r.name)             warnings.push('Sin nombre de paciente en la ficha — el borrador queda con [COMPLETAR].');
-  if (!r.diagnosis_code)   warnings.push(reportType === 'licencia'
-    ? 'Sin código CIE-10 registrado — obligatorio en certificados de licencia médica; revísalo antes de firmar.'
-    : 'Sin código CIE-10 registrado — el borrador cita el diagnóstico sin codificar.');
+
+  // El aviso del CIE-10 sólo tiene sentido si la especialidad tiene el campo y quedó vacío.
+  // En psicología no existe el campo (ver SPECIALTY_CODES_DIAGNOSES), así que el único caso
+  // que hay que decir es el del certificado de licencia médica, donde el código sí se exige
+  // por fuera de la ficha: no es "te faltó rellenarlo", es "lo tienes que escribir tú".
+  if (!r.diagnosis_code) {
+    if (SPECIALTY_CODES_DIAGNOSES)
+      warnings.push('Sin código CIE-10 registrado en la ficha — el borrador cita el diagnóstico sin codificar.');
+    else if (reportType === 'licencia')
+      warnings.push('La ficha psicológica no registra código CIE-10 y el certificado de licencia médica lo exige: ' +
+                    'el borrador lo deja como [CÓDIGO CIE-10 NO DISPONIBLE] y debes escribirlo tú antes de emitirlo.');
+  }
+
   if (age == null)         warnings.push('Sin fecha de nacimiento — la edad queda como [COMPLETAR].');
   if (!encounters.length)  warnings.push('La ficha no tiene sesiones registradas: el proceso terapéutico no se puede describir a partir de los datos.');
   if (!scalesRes.rows.length) warnings.push('Sin escalas aplicadas — el informe no incluye medición objetiva.');
@@ -212,7 +327,14 @@ export async function handleReports(rawPath, method, event, tokenPayload, client
   if (!rate.allowed)
     return response(429, { message: `Demasiadas solicitudes. Reintenta en ${rate.waitSeconds} segundos.` });
 
-  const ctx = await buildContext(client, recordId, wrapAdditionalContext(body.additionalContext), reportType);
+  // `wrapAdditionalContext` devuelve null cuando el profesional no escribió nada, y ese
+  // null viaja hasta el worker: sin bloque, el prompt de sistema ni siquiera nombra la
+  // etiqueta <contexto_profesional>. Mencionarla cuando no había contenido que envolver
+  // hacía que el modelo la escribiera en la salida con texto inventado atribuido a un
+  // "profesional derivante" que no existe.
+  const professionalContext = wrapAdditionalContext(body.additionalContext);
+
+  const ctx = await buildContext(client, recordId, professionalContext, reportType);
   if (!ctx) return response(404, { message: 'Registro no encontrado' });
 
   const jobId = await enqueueJob({
@@ -222,6 +344,7 @@ export async function handleReports(rawPath, method, event, tokenPayload, client
     contextData: ctx.contextData,
     promptType:  reportType,
     warnings:    ctx.warnings,
+    hasProfessionalContext: professionalContext !== null,
   });
 
   log.info('Report draft queued', { recordId, reportType, jobId });
