@@ -53,9 +53,14 @@ export const JOB_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-
  *                                 así que esto es TODO lo que va a tener.
  * @param {string} [job.promptType] Tipo de informe, solo para 'report-draft'.
  * @param {string[]} [job.warnings] Avisos calculados desde los datos (huecos, faltantes).
+ * @param {boolean} [job.hasProfessionalContext] Si `contextData` incluye el bloque
+ *                                 <contexto_profesional>. El worker sólo inyecta la regla
+ *                                 anti-inyección que nombra esa etiqueta cuando el bloque
+ *                                 existe: describírsela al modelo sin que exista lo llevaba
+ *                                 a inventar la sección entera.
  * @returns {Promise<string>} jobId.
  */
-export async function enqueueJob({ type, recordId, userId, contextData, promptType, warnings }) {
+export async function enqueueJob({ type, recordId, userId, contextData, promptType, warnings, hasProfessionalContext }) {
   const jobId = randomUUID();
   const item  = {
     jobId,
@@ -69,6 +74,7 @@ export async function enqueueJob({ type, recordId, userId, contextData, promptTy
   };
   if (promptType) item.promptType = String(promptType);
   if (warnings?.length) item.warnings = warnings.map(String);
+  if (hasProfessionalContext) item.hasProfessionalContext = true;
 
   await dynamo.send(new PutItemCommand({
     TableName: JOBS_TABLE,
