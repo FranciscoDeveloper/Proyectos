@@ -8,6 +8,29 @@ import { EntitySchema, FieldDefinition, SelectOption } from '../../models/entity
 import { GoogleCalendarService } from '../../services/google-calendar.service';
 import { AuthService } from '../../services/auth.service';
 
+/**
+ * ISO UTC ("2026-08-20T14:00:00.000Z") → valor para <input type="datetime-local">
+ * ("2026-08-20T10:00" en Santiago). Se usan los getters locales del Date, que es
+ * justo lo que hace el navegador al pintar una hora: el formulario muestra la hora
+ * de pared del profesional, no la UTC.
+ */
+function isoToDatetimeLocal(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return String(iso).slice(0, 16);
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+/**
+ * Valor de <input type="datetime-local"> ("2026-08-20T10:00", hora local sin zona)
+ * → ISO UTC real. `new Date(s)` interpreta como LOCAL una cadena sin zona, que es
+ * exactamente la semántica del control.
+ */
+function datetimeLocalToIso(value: string): string {
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? value : d.toISOString();
+}
+
 @Component({
     selector: 'app-generic-form',
     imports: [CommonModule, ReactiveFormsModule, RouterLink],
@@ -101,10 +124,12 @@ export class GenericFormComponent implements OnInit {
             // devuelve ISO completo con zona ("2026-08-25T09:30:00.000Z"), que el
             // navegador descarta y deja el campo vacío — editar una cita para
             // cambiar el estado obligaba a re-escribir la fecha desde cero.
-            // Se recorta sin convertir de zona a propósito: es exactamente lo que
-            // el formulario vuelve a enviar al guardar, así que la hora almacenada
-            // no se mueve por abrir el formulario.
-            patchValue[f.name] = String(record[f.name]).slice(0, 16);
+            //
+            // Antes se recortaba la cadena tal cual, o sea se metía la hora UTC en un
+            // control que significa hora local. Ahora que submit() convierte de local
+            // a UTC al guardar (ver processFields), leer sin convertir desplazaría la
+            // cita 4 horas en cada edición. Las dos direcciones van emparejadas.
+            patchValue[f.name] = isoToDatetimeLocal(record[f.name]);
           } else if (f.type === 'select' && f.lookupEntity && record[f.name] != null && record[f.name] !== '') {
             // getFieldOptions() convierte a string el valor de cada opción de lookup,
             // pero la API devuelve estas FKs como número (professionalId 62,
@@ -259,6 +284,14 @@ export class GenericFormComponent implements OnInit {
           out[f.name] = v ? String(v).split(',').map((t: string) => t.trim()).filter(Boolean) : [];
         } else if (f.type === 'number' || f.type === 'range') {
           out[f.name] = Number(v);
+        } else if (f.type === 'datetime' && v) {
+          // <input type="datetime-local"> entrega hora LOCAL sin zona ("2026-08-20T10:00").
+          // Se enviaba tal cual a una columna timestamptz, así que Postgres la leía como
+          // si ya fuera UTC: una sesión agendada a las 10:00 en Santiago se guardaba como
+          // 10:00Z y se volvía a pintar a las 06:00, 4 horas antes. El camino de lectura
+          // siempre convirtió UTC→local bien (las citas de fixture salían correctas); el
+          // que faltaba era éste.
+          out[f.name] = datetimeLocalToIso(String(v));
         } else {
           out[f.name] = v;
         }

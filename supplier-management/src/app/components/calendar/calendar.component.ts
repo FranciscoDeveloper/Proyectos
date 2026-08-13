@@ -218,10 +218,16 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
     return filteredData.map(item => {
       const startDate = this.parseDate(String(item[this.startField!.name] ?? ''));
-      const rawEnd    = this.endField ? item[this.endField.name] : null;
-      const endDate   = rawEnd
+      // Ninguna agenda declara `isCalendarEnd` — la duración se guarda como número de
+      // minutos (`durationMinutes`), no como hora de término. Sin leerla, toda cita caía
+      // en el `else` de una hora: una sesión de 50 min se pintaba del alto de 60 y se
+      // solapaba visualmente con la siguiente. Se usa la duración real cuando existe y
+      // sólo se recurre a la hora por defecto cuando no hay ni fin ni duración.
+      const rawEnd      = this.endField ? item[this.endField.name] : null;
+      const durationMin = Number(item['durationMinutes']);
+      const endDate     = rawEnd
         ? this.parseDate(String(rawEnd))
-        : new Date(startDate.getTime() + 60 * 60 * 1000);
+        : new Date(startDate.getTime() + (Number.isFinite(durationMin) && durationMin > 0 ? durationMin : 60) * 60 * 1000);
 
       const startMins = startDate.getHours() * 60 + startDate.getMinutes();
       const endMins   = endDate.getHours()   * 60 + endDate.getMinutes();
