@@ -49,19 +49,26 @@
       <div class="ist-section" *ngIf="pending().length > 0">
         <div class="ist-section-title">Pendientes ({{ pending().length }})</div>
         <div class="ist-task" *ngFor="let t of pending()" [class.ist-task--overdue]="isOverdue(t)">
-          <button class="ist-check" title="Marcar como completada" (click)="completeTask(t)">
+          <button class="ist-check" title="Marcar como completada" (click)="askCompleteTask(t)">
             <span class="ist-check-box"></span>
           </button>
           <div class="ist-task-body">
             <div class="ist-task-desc">{{ t.description }}</div>
             <div class="ist-task-meta">
-              <span>Asignada {{ t.session_date }}</span>
+              <!-- Sin DatePipe estas dos fechas salían crudas ("Asignada
+                   2026-08-13T00:00:00.000Z"). Sólo se notaba en las tareas pendientes:
+                   las completadas se pintan en el bloque de abajo, que sí formateaba
+                   `completed_at` — de ahí que las tareas de ejemplo (ya completadas) se
+                   vieran bien y cualquier tarea nueva no.
+                   ':UTC' porque session_date y due_date son columnas DATE: en
+                   America/Santiago (UTC-4) se retrasarían un día. -->
+              <span>Asignada {{ t.session_date | date:'dd-MM-yyyy':'UTC' }}</span>
               <span *ngIf="t.due_date" class="ist-due" [class.ist-due--late]="isOverdue(t)">
-                Entrega {{ t.due_date }}{{ isOverdue(t) ? ' — vencida' : '' }}
+                Entrega {{ t.due_date | date:'dd-MM-yyyy':'UTC' }}{{ isOverdue(t) ? ' — vencida' : '' }}
               </span>
             </div>
           </div>
-          <button class="ist-del" title="Eliminar" (click)="deleteTask(t)">
+          <button class="ist-del" title="Eliminar" (click)="askDeleteTask(t)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="3 6 5 6 21 6"/>
               <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
@@ -86,7 +93,7 @@
               <span *ngIf="t.completed_at">Completada {{ t.completed_at | date:'dd-MM-yyyy' }}</span>
             </div>
           </div>
-          <button class="ist-del" title="Eliminar" (click)="deleteTask(t)">
+          <button class="ist-del" title="Eliminar" (click)="askDeleteTask(t)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="3 6 5 6 21 6"/>
               <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
@@ -143,4 +150,40 @@
     </div>
   </div>
 
+</div>
+
+<!-- ══ Modal: completar tarea (nota opcional del paciente) ════════════════════
+     Sustituye al prompt() nativo: bloqueante, sin estilo y peligroso para
+     capturar texto clínico. -->
+<div class="ist-modal-overlay" *ngIf="completingTask()" (click)="cancelCompleteTask()">
+  <div class="ist-modal" (click)="$event.stopPropagation()">
+    <h3 class="ist-modal-title">Completar tarea</h3>
+    <p class="ist-modal-task">{{ completingTask()!.description }}</p>
+    <label class="ist-label" for="ist-complete-note">Nota del paciente sobre esta tarea (opcional)</label>
+    <textarea id="ist-complete-note"
+              class="ist-textarea"
+              rows="4"
+              placeholder="Cómo le fue, qué observó, qué dificultades tuvo…"
+              [ngModel]="completeNote()"
+              (ngModelChange)="completeNote.set($event)"></textarea>
+    <div class="ist-form-actions">
+      <button class="ist-btn" (click)="cancelCompleteTask()">Cancelar</button>
+      <button class="ist-btn ist-btn--primary" [disabled]="savingComplete()" (click)="confirmCompleteTask()">
+        {{ savingComplete() ? 'Guardando…' : 'Marcar como completada' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Modal: eliminar tarea ═══════════════════════════════════════════════ -->
+<div class="ist-modal-overlay" *ngIf="deletingTask()" (click)="cancelDeleteTask()">
+  <div class="ist-modal" (click)="$event.stopPropagation()">
+    <h3 class="ist-modal-title">Eliminar tarea</h3>
+    <p class="ist-modal-task">{{ deletingTask()!.description }}</p>
+    <p class="ist-modal-warn">Esta acción es permanente y no se puede deshacer.</p>
+    <div class="ist-form-actions">
+      <button class="ist-btn" (click)="cancelDeleteTask()">Cancelar</button>
+      <button class="ist-btn ist-btn--danger" (click)="confirmDeleteTask()">Eliminar</button>
+    </div>
+  </div>
 </div>

@@ -105,11 +105,25 @@ export class ProcessNotesComponent implements OnInit {
     });
   }
 
-  deleteNote(note: ProcessNote): void {
-    if (!confirm('¿Eliminar esta nota de proceso? No se puede deshacer.')) return;
+  // El confirm() nativo era bloqueante, no traducible y visualmente ajeno a la
+  // app. Se sustituye por un modal propio, igual que en tareas intersesión.
+  deletingNote = signal<ProcessNote | null>(null);
+
+  askDeleteNote(note: ProcessNote): void { this.deletingNote.set(note); }
+  cancelDeleteNote(): void { this.deletingNote.set(null); }
+
+  confirmDeleteNote(): void {
+    const note = this.deletingNote();
+    if (!note) return;
     this.psych.deleteProcessNote(this.recordId, note.id).subscribe({
-      next: () => this.notes.update(list => list.filter(n => n.id !== note.id)),
-      error: () => this.error.set('No se pudo eliminar la nota.')
+      next: () => {
+        this.notes.update(list => list.filter(n => n.id !== note.id));
+        this.deletingNote.set(null);
+      },
+      error: () => {
+        this.deletingNote.set(null);
+        this.error.set('No se pudo eliminar la nota.');
+      }
     });
   }
 

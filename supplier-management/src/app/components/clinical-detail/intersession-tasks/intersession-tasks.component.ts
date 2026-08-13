@@ -91,19 +91,64 @@ export class IntersessionTasksComponent implements OnInit {
     this.newDueDate.set('');
   }
 
-  completeTask(task: IntersessionTask): void {
-    const note = prompt('Nota del paciente sobre esta tarea (opcional):') ?? undefined;
+  // ── Completar tarea ────────────────────────────────────────────────────────
+  // La nota del paciente se capturaba con `prompt()`. Un diálogo nativo bloquea
+  // el hilo, no se puede estilar ni traducir y —lo importante aquí— es un sitio
+  // pésimo para recoger texto clínico: al ser modal del navegador, cualquier
+  // escritura dirigida a la página aterriza dentro del prompt y termina
+  // guardada en la ficha del paciente sin que nadie lo haya tecleado a
+  // propósito. Ahora es un modal de la propia app, explícito y cancelable.
+  completingTask = signal<IntersessionTask | null>(null);
+  completeNote   = signal('');
+  savingComplete = signal(false);
+
+  askCompleteTask(task: IntersessionTask): void {
+    this.completingTask.set(task);
+    this.completeNote.set('');
+  }
+
+  cancelCompleteTask(): void {
+    this.completingTask.set(null);
+    this.completeNote.set('');
+  }
+
+  confirmCompleteTask(): void {
+    const task = this.completingTask();
+    if (!task || this.savingComplete()) return;
+    this.savingComplete.set(true);
+    const note = this.completeNote().trim() || undefined;
     this.psych.completeTask(this.recordId, task.id, note).subscribe({
-      next: updated => this.tasks.update(list => list.map(t => (t.id === updated.id ? updated : t))),
-      error: () => this.error.set('No se pudo marcar la tarea como completada.')
+      next: updated => {
+        this.tasks.update(list => list.map(t => (t.id === updated.id ? updated : t)));
+        this.savingComplete.set(false);
+        this.cancelCompleteTask();
+      },
+      error: () => {
+        this.savingComplete.set(false);
+        this.cancelCompleteTask();
+        this.error.set('No se pudo marcar la tarea como completada.');
+      }
     });
   }
 
-  deleteTask(task: IntersessionTask): void {
-    if (!confirm('¿Eliminar esta tarea? No se puede deshacer.')) return;
+  // ── Eliminar tarea ─────────────────────────────────────────────────────────
+  deletingTask = signal<IntersessionTask | null>(null);
+
+  askDeleteTask(task: IntersessionTask): void { this.deletingTask.set(task); }
+  cancelDeleteTask(): void { this.deletingTask.set(null); }
+
+  confirmDeleteTask(): void {
+    const task = this.deletingTask();
+    if (!task) return;
     this.psych.deleteTask(this.recordId, task.id).subscribe({
-      next: () => this.tasks.update(list => list.filter(t => t.id !== task.id)),
-      error: () => this.error.set('No se pudo eliminar la tarea.')
+      next: () => {
+        this.tasks.update(list => list.filter(t => t.id !== task.id));
+        this.deletingTask.set(null);
+      },
+      error: () => {
+        this.deletingTask.set(null);
+        this.error.set('No se pudo eliminar la tarea.');
+      }
     });
   }
 
