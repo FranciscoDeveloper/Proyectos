@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SchemaService } from '../../services/schema.service';
@@ -21,46 +21,79 @@ export class GenericDetailComponent implements OnInit {
 
   schema = signal<EntitySchema | null>(null);
   entityKey = signal('');
-  record = signal<Record<string, any> | null>(null);
+  recordId = signal(0);
   deleteModal = signal(false);
   signatureValid = signal<boolean | null>(null);
+
+  /**
+   * Both the record itself and the linked clinical record are DERIVED from the
+   * crud stores rather than snapshotted in ngOnInit. `initStore()` is
+   * fire-and-forget, so a synchronous read right after it returns `[]` whenever
+   * that store happens to be cold. That made "Agregar Antecedente" appear or
+   * disappear on the very same URL purely according to which view the user came
+   * from (the calendar path had already warmed the clinical store; the list path
+   * had not). Deriving from the signals resolves as soon as the data lands, no
+   * matter how the page was reached.
+   */
+  record = computed<Record<string, any> | null>(() => {
+    const key = this.entityKey();
+    if (!key) return null;
+    const id = this.recordId();
+    return this.crudService.getAll(key)().find(r => r['id'] === id) ?? null;
+  });
+
   /** ID of the linked clinical record (resolved from encounterEntity config) */
-  linkedClinicalRecordId = signal<number | null>(null);
-  linkedClinicalEntityKey = signal<string>('');
+  private linkedClinical = computed<{ key: string; id: number } | null>(() => {
+    const schema = this.schema();
+    const rec = this.record();
+    const encounterEntity = schema?.entity.encounterEntity;
+    const matchField = schema?.entity.encounterMatchField;
+    if (!encounterEntity || !matchField || !rec) return null;
+
+    const patientName = String(rec[matchField] ?? '').toLowerCase();
+    if (!patientName) return null;
+
+    const clinicalSchema = this.schemaService.getSchema(encounterEntity);
+    const titleFieldName = clinicalSchema?.fields.find(f => f.isTitle)?.name ?? 'fullName';
+    const match = this.crudService
+      .getAll(encounterEntity)()
+      .find(r => String(r[titleFieldName] ?? '').toLowerCase() === patientName);
+    return match ? { key: encounterEntity, id: match['id'] } : null;
+  });
+
+  linkedClinicalRecordId = computed(() => this.linkedClinical()?.id ?? null);
+  linkedClinicalEntityKey = computed(() => this.linkedClinical()?.key ?? '');
 
   titleField = computed(() => this.schema()?.fields.find(f => f.isTitle));
   subtitleField = computed(() => this.schema()?.fields.find(f => f.isSubtitle));
   detailFields = computed(() => this.schema()?.fields.filter(f => f.showInDetail && !f.isTitle && !f.isSubtitle) ?? []);
 
+  constructor() {
+    // Re-verify the signature whenever the record actually materialises.
+    effect(() => {
+      const rec = this.record();
+      const key = this.entityKey();
+      if (rec?.['_signatureHash']) {
+        this.signatureService.verifyRecord(key, rec).then(valid => this.signatureValid.set(valid));
+      } else {
+        this.signatureValid.set(null);
+      }
+    });
+  }
+
   ngOnInit() {
     const key = this.route.snapshot.paramMap.get('entityKey') ?? '';
     const id = +(this.route.snapshot.paramMap.get('id') ?? '0');
     this.entityKey.set(key);
+    this.recordId.set(id);
     const schema = this.schemaService.getSchema(key);
     this.schema.set(schema);
     this.crudService.initStore(key);
-    const rec = this.crudService.getById(key, id) ?? null;
-    this.record.set(rec);
 
-    if (rec?.['_signatureHash']) {
-      this.signatureService.verifyRecord(key, rec).then(valid => this.signatureValid.set(valid));
-    }
-
-    // Resolve linked clinical record if schema declares an encounterEntity
+    // Warm the linked clinical store too, so the derived lookup above can settle
+    // regardless of which view navigated here.
     const encounterEntity = schema?.entity.encounterEntity;
-    const matchField = schema?.entity.encounterMatchField;
-    if (encounterEntity && matchField && rec) {
-      const patientName = String(rec[matchField] ?? '').toLowerCase();
-      this.crudService.initStore(encounterEntity);
-      const clinicalSchema = this.schemaService.getSchema(encounterEntity);
-      const titleFieldName = clinicalSchema?.fields.find(f => f.isTitle)?.name ?? 'fullName';
-      const allRecords = this.crudService.getAll(encounterEntity)();
-      const match = allRecords.find(r => String(r[titleFieldName] ?? '').toLowerCase() === patientName);
-      if (match) {
-        this.linkedClinicalRecordId.set(match['id']);
-        this.linkedClinicalEntityKey.set(encounterEntity);
-      }
-    }
+    if (encounterEntity) this.crudService.initStore(encounterEntity);
   }
 
   navigateEdit() {
