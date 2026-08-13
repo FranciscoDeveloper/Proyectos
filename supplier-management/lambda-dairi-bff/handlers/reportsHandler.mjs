@@ -61,8 +61,16 @@ function wrapAdditionalContext(raw) {
   return `<contexto_profesional>\n${sanitized}\n</contexto_profesional>`;
 }
 
-/** Reúne desde RDS el bloque de datos del paciente y los avisos derivados de sus huecos. */
-async function buildContext(client, recordId, additionalContext) {
+/**
+ * Reúne desde RDS el bloque de datos del paciente y los avisos derivados de sus huecos.
+ *
+ * `reportType` sólo se usa para redactar los avisos: el aviso del código CIE-10 afirma
+ * una obligación legal que únicamente rige para el certificado de licencia médica, y
+ * salía en los cuatro tipos de informe. Un aviso que no aplica al documento que se está
+ * redactando enseña a ignorar la lista de avisos completa, que es justo lo contrario de
+ * lo que debe conseguir.
+ */
+async function buildContext(client, recordId, additionalContext, reportType) {
   const [recordRes, scalesRes, tasksRes] = await Promise.all([
     client.query(
       `SELECT p.name, p.birth_date AS patient_birth_date, p.gender,
@@ -128,7 +136,9 @@ async function buildContext(client, recordId, additionalContext) {
 
   const warnings = [];
   if (!r.name)             warnings.push('Sin nombre de paciente en la ficha — el borrador queda con [COMPLETAR].');
-  if (!r.diagnosis_code)   warnings.push('Sin código CIE-10 registrado — obligatorio en certificados de licencia médica; revísalo antes de firmar.');
+  if (!r.diagnosis_code)   warnings.push(reportType === 'licencia'
+    ? 'Sin código CIE-10 registrado — obligatorio en certificados de licencia médica; revísalo antes de firmar.'
+    : 'Sin código CIE-10 registrado — el borrador cita el diagnóstico sin codificar.');
   if (age == null)         warnings.push('Sin fecha de nacimiento — la edad queda como [COMPLETAR].');
   if (!encounters.length)  warnings.push('La ficha no tiene sesiones registradas: el proceso terapéutico no se puede describir a partir de los datos.');
   if (!scalesRes.rows.length) warnings.push('Sin escalas aplicadas — el informe no incluye medición objetiva.');
@@ -202,7 +212,7 @@ export async function handleReports(rawPath, method, event, tokenPayload, client
   if (!rate.allowed)
     return response(429, { message: `Demasiadas solicitudes. Reintenta en ${rate.waitSeconds} segundos.` });
 
-  const ctx = await buildContext(client, recordId, wrapAdditionalContext(body.additionalContext));
+  const ctx = await buildContext(client, recordId, wrapAdditionalContext(body.additionalContext), reportType);
   if (!ctx) return response(404, { message: 'Registro no encontrado' });
 
   const jobId = await enqueueJob({
