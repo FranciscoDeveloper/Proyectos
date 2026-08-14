@@ -181,20 +181,30 @@
               }
             </div>
 
-            <!-- Profesional (solo plan Pro) -->
+            <!-- Especialidad (solo plan Pro) — valor fijo, no editable.
+                 Acá había un <select> con las 9 especialidades del directorio.
+                 Los registros nuevos son de psicología, así que no hay nada que
+                 elegir: se muestra el valor y punto. Un desplegable con una
+                 sola opción gris se lee como formulario roto.
+                 El id que se envía sale de /api/auth/professionals (ver
+                 selectPsychology en el .ts), no está escrito a mano acá. -->
             @if (!isFreePlan) {
               <div class="rp-field">
-                <label for="professionalId">Profesional</label>
-                <select
-                  id="professionalId" formControlName="professionalId"
-                  [class.rp-invalid]="isInvalid('professionalId')">
-                  <option [ngValue]="null" disabled>Selecciona un profesional</option>
-                  @for (prof of professionals(); track prof.id) {
-                    <option [ngValue]="prof.id">{{ prof.nombre }}{{ prof.especialidad ? ' — ' + prof.especialidad : '' }}</option>
-                  }
-                </select>
-                @if (isInvalid('professionalId')) {
-                  <span class="rp-error">Selecciona un profesional</span>
+                <label for="specialty">Especialidad</label>
+                <div class="rp-fixed-field" id="specialty">
+                  <span class="rp-fixed-icon">🧠</span>
+                  <span>{{ specialtyLabel() }}</span>
+                  <span class="rp-fixed-tag">Fijo</span>
+                </div>
+                @if (specialtyUnavailable()) {
+                  <span class="rp-error">
+                    No pudimos cargar la especialidad. Recarga la página e intenta de nuevo.
+                  </span>
+                } @else {
+                  <span class="rp-hint">
+                    Dairi está creando cuentas nuevas para psicología. ¿Ejerces otra especialidad?
+                    Escríbenos a <a href="mailto:contacto&#64;dairi.cl">contacto&#64;dairi.cl</a>.
+                  </span>
                 }
               </div>
             }

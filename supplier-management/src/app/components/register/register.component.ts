@@ -62,7 +62,30 @@ export class RegisterComponent implements OnInit {
   // so the signup captures which existing professional/specialty it's for — an admin
   // finishes real account setup manually afterward (see the distinct activation
   // message this produces, in lambda-auth's handleActivateDairi).
-  professionals = signal<ProfessionalOption[]>([]);
+  //
+  // Esto ERA un <select> con las 9 especialidades del directorio
+  // `dairi-professionals`. Ya no: los registros nuevos son de psicología y de
+  // psicología solamente, en línea con la landing. La entrada de psicología se
+  // sigue tomando del MISMO endpoint (/api/auth/professionals) y no de un id
+  // escrito a mano: si mañana cambia el id 2 en DynamoDB, esto sigue apuntando
+  // a la fila correcta en vez de romperse en silencio.
+  //
+  // Las cuentas ya creadas bajo otras especialidades (odontología, medicina
+  // general, kinesiología…) no se tocan: esto solo afecta el alta nueva. El
+  // backend tampoco cambió — sigue recibiendo un professionalId válido y
+  // validándolo contra la misma tabla.
+  private psychologist = signal<ProfessionalOption | null>(null);
+
+  /** Etiqueta fija que ve el usuario donde antes estaba el desplegable. */
+  readonly specialtyLabel = computed(() => this.psychologist()?.especialidad ?? 'Psicología');
+
+  /**
+   * true cuando el directorio respondió pero no traía ninguna fila de
+   * psicología (o la llamada falló). El control sigue vacío e inválido, así que
+   * el submit queda bloqueado — es preferible a mandar un registro que el
+   * backend rechazaría con "El profesional seleccionado no es válido".
+   */
+  readonly specialtyUnavailable = signal(false);
 
   form = this.fb.group({
     nombre:          ['', [Validators.required, Validators.minLength(2)]],
@@ -78,9 +101,35 @@ export class RegisterComponent implements OnInit {
   ngOnInit(): void {
     if (this.isFreePlan) return;
     this.http.get<ProfessionalOption[]>('/api/auth/professionals').subscribe({
-      next:  (list) => this.professionals.set(list ?? []),
-      error: () => this.professionals.set([])
+      next:  (list) => this.selectPsychology(list ?? []),
+      error: () => this.specialtyUnavailable.set(true)
     });
+  }
+
+  /**
+   * Elige la fila de psicología del directorio y la fija en el formulario.
+   *
+   * El match va contra `especialidad` y, como respaldo, contra `nombre`: en el
+   * directorio actual ambos valen "Psicología" (la tabla es en la práctica un
+   * catálogo de especialidades, no de personas), pero si alguien agrega un
+   * profesional real con nombre propio, la especialidad sigue siendo el campo
+   * confiable.
+   *
+   * Basta comparar el prefijo "psico" en minúsculas: el único acento de
+   * "Psicología" cae en "logía", después del prefijo, así que no hace falta
+   * normalizar tildes (y de paso "Psicologia" sin tilde también calza).
+   */
+  private selectPsychology(list: ProfessionalOption[]): void {
+    const isPsy = (s: string | null) => (s ?? '').trim().toLowerCase().startsWith('psico');
+
+    const match = list.find(p => isPsy(p.especialidad))
+               ?? list.find(p => isPsy(p.nombre));
+
+    if (!match) { this.specialtyUnavailable.set(true); return; }
+
+    this.psychologist.set(match);
+    this.specialtyUnavailable.set(false);
+    this.form.get('professionalId')?.setValue(match.id);
   }
 
   isInvalid(field: string): boolean {
