@@ -1,23 +1,27 @@
 :root {
   --primary:       #0ea5e9;
   --primary-dark:  #0284c7;
-  --primary-light: #38bdf8;
   --accent:        #06b6d4;
   --sky-50:        #f0f9ff;
   --sky-100:       #e0f2fe;
   --sky-200:       #bae6fd;
   --sky-800:       #075985;
-  --sky-900:       #0c4a6e;
   --bg:            #ffffff;
-  --surface:       #f0f9ff;
-  --surface2:      #e0f2fe;
   --text:          #0c2d48;
   --muted:         #64748b;
   --border:        #bae6fd;
-  --green:         #10b981;
-  --yellow:        #f59e0b;
-  --pink:          #ec4899;
   --radius:        14px;
+
+  /* Paleta de psicología. La sección insignia no usa el azul de marca: el azul
+     saturado + los glows fuertes leen como SaaS de productividad, y la audiencia
+     de esta página responde mejor a un registro más cálido y calmo (violeta
+     apagado sobre crema). El resto del sitio conserva el azul Dairi. */
+  --psy:           #7c5cd6;
+  --psy-dark:      #5b3fb0;
+  --psy-ink:       #4c3187;
+  --psy-tint:      #f4efff;
+  --psy-line:      #ded0fb;
+  --cream:         #fdfaf5;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,6 +29,15 @@ html { scroll-behavior: smooth; }
 body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; }
 h1, h2, h3, h4, .nav-logo, .footer-logo, .nav-cta, .btn-primary, .btn-secondary {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* El degradado azul de marca estaba repetido literal en cinco botones. Se
+   declara una vez; cada botón conserva abajo solo su tamaño, radio y sombra.
+   #psicologia lo sobreescribe con el violeta de la sección insignia. */
+.nav-cta, .btn-primary, .docs-banner-btn, .pricing-btn.solid, .mv-new-btn {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  border: none;
 }
 
 /* ── NAV ──────────────────────────────────────────────────────────── */
@@ -47,8 +60,7 @@ nav {
 }
 .nav-login:hover { color: var(--text); background: var(--sky-50); }
 .nav-cta {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff; border: none; padding: .55rem 1.4rem;
+  padding: .55rem 1.4rem;
   border-radius: 99px; cursor: pointer; font-weight: 700; font-size: .88rem;
   text-decoration: none; box-shadow: 0 4px 14px rgba(14,165,233,.35);
   transition: box-shadow .2s, transform .15s;
@@ -71,9 +83,13 @@ nav {
   font-size: .78rem; font-weight: 700; margin-bottom: 1.75rem; letter-spacing: .6px;
   animation: fadeUp .5s ease both;
 }
+/* Antes: clamp(2.5rem, 6vw, 4.5rem) sobre 900px. Con el titular de dos frases
+   se iba a cuatro líneas y empujaba el demo del producto fuera de la pantalla;
+   además el display gigante es parte del registro "SaaS a gritos" del que esta
+   página se está corriendo. Cada frase entra ahora en una línea en escritorio. */
 .hero h1 {
-  font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 900;
-  line-height: 1.1; letter-spacing: -2px; max-width: 900px;
+  font-size: clamp(2.1rem, 4.6vw, 3.4rem); font-weight: 900;
+  line-height: 1.15; letter-spacing: -1.5px; max-width: 980px;
   margin-bottom: 1.25rem;
   animation: fadeUp .55s .1s ease both;
 }
@@ -90,9 +106,8 @@ nav {
   animation: fadeUp .55s .3s ease both;
 }
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff; padding: .9rem 2.2rem; border-radius: 99px;
-  font-weight: 700; font-size: 1rem; text-decoration: none; border: none; cursor: pointer;
+  padding: .9rem 2.2rem; border-radius: 99px;
+  font-weight: 700; font-size: 1rem; text-decoration: none; cursor: pointer;
   box-shadow: 0 8px 32px rgba(14,165,233,.38); transition: transform .2s, box-shadow .2s;
   display: inline-block;
 }
@@ -144,6 +159,19 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
 .feature-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: .5rem; }
 .feature-card p  { font-size: .88rem; color: var(--muted); }
 
+/* Tarjeta de psicología. Reemplaza los style="border-color:rgba(139,92,246,.45)"
+   que iban repetidos inline en cada tarjeta y solo pintaban el borde: acá el
+   violeta también toma el ícono, el título y el hover, así la sección insignia
+   se lee como otra familia visual y no como una tarjeta azul con el borde raro. */
+.feature-card.is-psico {
+  border-color: var(--psy-line);
+  &::before { background: linear-gradient(90deg, var(--psy), #a78bfa); }
+  &:hover { border-color: var(--psy); box-shadow: 0 12px 40px rgba(124,92,214,.16); }
+  .feature-icon { background: var(--psy-tint); }
+  h3 { color: var(--psy-ink); }
+  p strong { color: var(--psy-dark); }
+}
+
 /* ── DOCS BANNER ──────────────────────────────────────────────────── */
 .docs-banner-wrap {
   padding: 0 1.5rem 3.5rem;
@@ -166,8 +194,7 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
 .docs-banner-body h3 { font-size: 1.05rem; font-weight: 800; margin-bottom: .3rem; color: var(--text); }
 .docs-banner-body p  { font-size: .88rem; color: var(--muted); margin: 0; line-height: 1.6; }
 .docs-banner-btn {
-  display: inline-block; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff; padding: .65rem 1.5rem; border-radius: 99px;
+  display: inline-block; padding: .65rem 1.5rem; border-radius: 99px;
   font-weight: 700; font-size: .88rem; text-decoration: none; white-space: nowrap;
   box-shadow: 0 4px 14px rgba(14,165,233,.3);
   transition: transform .2s, box-shadow .2s;
@@ -176,9 +203,21 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
 
 /* ── PSICOLOGÍA (sección insignia) ────────────────────────────────── */
 #psicologia {
-  background: linear-gradient(180deg, rgba(139,92,246,.05) 0%, transparent 70%);
+  background: linear-gradient(180deg, var(--psy-tint) 0%, var(--cream) 58%, #fff 100%);
+  border-top: 1px solid var(--psy-line);
+  border-bottom: 1px solid var(--psy-line);
   max-width: none;
   > * { max-width: 1100px; margin-left: auto; margin-right: auto; }
+
+  .section-label { color: var(--psy-dark); }
+  .section-sub   { max-width: 620px; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--psy), var(--psy-dark));
+    box-shadow: 0 8px 30px rgba(124,92,214,.32);
+    &:hover { box-shadow: 0 14px 40px rgba(124,92,214,.44); }
+  }
+  .legal-note { border-top-color: var(--psy-line); }
 }
 .center-cta { text-align: center; margin-top: 2.75rem; }
 .legal-note {
@@ -186,6 +225,27 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
   font-size: .8rem; line-height: 1.65; color: var(--muted);
   border-top: 1px solid var(--sky-200); padding-top: 1.25rem;
 }
+
+/* ── BANDA DE SECRETO PROFESIONAL ─────────────────────────────────
+   La confidencialidad no es una feature más para esta audiencia: es la
+   obligación que define la profesión. Va en su propio bloque, dentro de la
+   sección insignia y antes del cierre, no perdida entre tarjetas. */
+.confid-band {
+  display: flex; align-items: flex-start; gap: 1.35rem; flex-wrap: wrap;
+  margin-top: 2.5rem; padding: 1.75rem 2rem;
+  background: #fff; border: 1.5px solid var(--psy-line); border-radius: 18px;
+  box-shadow: 0 6px 26px rgba(124,92,214,.09);
+}
+.cb-icon {
+  width: 54px; height: 54px; flex-shrink: 0; font-size: 1.7rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--psy-tint); border-radius: 14px;
+}
+.cb-body { flex: 1; min-width: 240px; }
+.cb-body h3 { font-size: 1.1rem; font-weight: 800; color: var(--psy-ink); margin-bottom: .45rem; }
+.cb-body p  { font-size: .87rem; color: var(--muted); line-height: 1.7; }
+.cb-body p + p { margin-top: .55rem; }
+.cb-body strong { color: var(--psy-dark); }
 
 /* ── LISTA DE ESPECIALIDADES ──────────────────────────────────────── */
 .spec-list {
@@ -197,7 +257,7 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
   border-radius: 99px; padding: .48rem 1.1rem;
   font-size: .85rem; font-weight: 600; color: var(--sky-800);
 }
-.spec-item.is-lead { border-color: #a78bfa; background: rgba(139,92,246,.1); color: #6d28d9; }
+.spec-item.is-lead { border-color: var(--psy-line); background: var(--psy-tint); color: var(--psy-ink); }
 
 /* ── CTA SECTION ──────────────────────────────────────────────────── */
 .cta-section {
@@ -209,8 +269,16 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
   letter-spacing: -2px; margin-bottom: 1rem;
 }
 .cta-section p { color: var(--muted); font-size: 1.1rem; max-width: 520px; margin: 0 auto 2.5rem; }
-.trial-note { font-size: .9rem; color: var(--muted); margin-top: 1rem; }
-.trial-note strong { color: var(--green); font-weight: 600; }
+.trial-note { font-size: .9rem; color: var(--muted); margin-top: 1rem; max-width: 720px; margin-left: auto; margin-right: auto; }
+.trial-note strong { color: var(--text); font-weight: 700; }
+.cta-anchor {
+  font-size: 1rem !important; color: var(--psy-ink) !important;
+  background: var(--psy-tint); border: 1px solid var(--psy-line);
+  border-radius: 99px; padding: .5rem 1.35rem; line-height: 1.5;
+  display: inline-block; max-width: none !important;
+  margin: -1.25rem auto 2.25rem !important;
+  strong { font-weight: 800; }
+}
 
 /* ── PRICING GRID ─────────────────────────────────────────────────── */
 .pricing-grid {
@@ -258,9 +326,19 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
   background: #e0f2fe; border-radius: 6px; padding: .25rem .55rem;
   &::before { background: #bae6fd; color: #0369a1; }
 }
+/* La comisión por transacción se muestra al mismo tamaño y peso que el resto de
+   la lista, a propósito. Antes iba en gris y más chica —literalmente letra
+   chica— dos secciones debajo de la promesa "sin letra chica y sin costos
+   ocultos". A esta audiencia esa contradicción le cuesta caro: se marca con un
+   punto neutro en vez de un ✓ porque es un costo, no un beneficio. */
 .pricing-features li.feature-commission {
-  font-size: .78rem; color: #6b7280;
-  &::before { background: #f3f4f6; color: #9ca3af; }
+  color: var(--text);
+  &::before { content: '•'; background: #eef2f7; color: #64748b; font-size: .9rem; }
+}
+.pricing-anchor {
+  font-size: .8rem; font-weight: 700; color: var(--psy-dark);
+  background: var(--psy-tint); border-radius: 7px;
+  padding: .3rem .6rem; align-self: flex-start;
 }
 .pricing-btn {
   display: block; text-align: center; margin-top: auto;
@@ -271,10 +349,7 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
   border: 1.5px solid var(--sky-200); color: var(--sky-800); background: transparent;
 }
 .pricing-btn.outline:hover { border-color: var(--primary); color: var(--primary); background: var(--sky-50); }
-.pricing-btn.solid {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff; border: none; box-shadow: 0 6px 22px rgba(14,165,233,.35);
-}
+.pricing-btn.solid { box-shadow: 0 6px 22px rgba(14,165,233,.35); }
 .pricing-btn.solid:hover { box-shadow: 0 10px 32px rgba(14,165,233,.5); }
 
 /* ── FOOTER ───────────────────────────────────────────────────────── */
@@ -310,8 +385,6 @@ footer {
   display: flex; flex-direction: column; align-items: center; gap: .4rem;
   font-size: .75rem; color: #475569; text-align: center;
 }
-.footer-bottom a { color: #475569; text-decoration: none; }
-.footer-bottom a:hover { color: #94a3b8; }
 
 /* ── INTEGRATIONS ─────────────────────────────────────────────────── */
 #integraciones {
@@ -412,12 +485,16 @@ footer {
   cursor: pointer;
   transition: all .2s;
   font-family: 'DM Sans', system-ui, sans-serif;
-  &:hover { border-color: var(--primary); color: var(--primary-dark); }
+  &:hover { border-color: var(--psy); color: var(--psy-dark); }
+  /* Violeta y no el azul de marca: estas pestañas están justo encima del demo y
+     son la primera señal, sobre la línea de flotación, de que lo que se está
+     mirando es el producto de psicología. El interior oscuro del mockup sigue
+     azul porque así se ve la aplicación real. */
   &.active {
-    background: var(--primary);
-    border-color: var(--primary);
+    background: var(--psy);
+    border-color: var(--psy);
     color: #fff;
-    box-shadow: 0 4px 14px rgba(14,165,233,.32);
+    box-shadow: 0 4px 14px rgba(124,92,214,.34);
   }
 }
 
@@ -516,11 +593,7 @@ footer {
   font-size: .57rem;
   font-weight: 700;
 }
-.mv-live { background: rgba(16,185,129,.15); color: #10b981; }
 .mv-new-btn {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff;
-  border: none;
   border-radius: 5px;
   padding: .17rem .52rem;
   font-size: .57rem;
@@ -528,28 +601,6 @@ footer {
   cursor: pointer;
   font-family: 'DM Sans', system-ui, sans-serif;
 }
-.mv-ai-btn { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
-
-/* KPI cards */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: .48rem;
-  flex-shrink: 0;
-}
-.kpi {
-  background: #0f1e30;
-  border: 1px solid #1e3452;
-  border-radius: 8px;
-  padding: .55rem .4rem;
-  text-align: center;
-}
-.kpi-val { font-size: 1rem; font-weight: 800; line-height: 1.1; }
-.kpi-blue  { color: #38bdf8; }
-.kpi-green { color: #10b981; }
-.kpi-cyan  { color: #06b6d4; }
-.kpi-amber { color: #f59e0b; }
-.kpi-label { font-size: .53rem; color: #64748b; margin-top: .1rem; }
 
 /* Bar chart */
 .mv-chart-wrap { flex-shrink: 0; }
@@ -580,7 +631,6 @@ footer {
   background: linear-gradient(to top, #0284c7, #0ea5e9);
   box-shadow: 0 0 8px rgba(14,165,233,.5);
 }
-.mc-dim { opacity: .35; }
 .mc-today-lbl { color: #38bdf8 !important; font-weight: 700 !important; }
 
 /* Appointment table */
@@ -591,16 +641,17 @@ footer {
   overflow: hidden;
   font-size: .69rem;
 }
+/* Tabla de tareas intersesión (vista de psicología). Antes existía además una
+   variante .mvt-3 de 3 columnas porque el dashboard usaba una de 4; al salir el
+   dashboard del mockup quedó una sola forma de tabla. */
 .mvt-row {
   display: grid;
-  grid-template-columns: 2fr .75fr 1.1fr 1fr;
+  grid-template-columns: 2.2fr .9fr 1.1fr;
   padding: .4rem .62rem;
   border-bottom: 1px solid #1e3452;
   align-items: center;
   &:last-child { border-bottom: none; }
 }
-/* Variante de 3 columnas — la usa la vista de psicología (tareas intersesión). */
-.mvt-3 { grid-template-columns: 2.2fr .9fr 1.1fr; }
 .mvt-head {
   background: rgba(255,255,255,.04);
   font-size: .59rem;
@@ -618,7 +669,6 @@ footer {
 }
 .st-green { background: rgba(16,185,129,.15); color: #10b981; }
 .st-amber { background: rgba(245,158,11,.15); color: #f59e0b; }
-.st-blue  { background: rgba(14,165,233,.15); color: #38bdf8; }
 
 /* Calendar */
 .cal-nav {
@@ -767,22 +817,18 @@ footer {
   overflow: hidden;
 }
 .soap-row { display: flex; gap: .48rem; align-items: flex-start; }
-.soap-tag {
-  width: 17px;
-  height: 17px;
-  border-radius: 4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: .6rem;
-  font-weight: 800;
-  flex-shrink: 0;
-  margin-top: .04rem;
+
+/* Encabezado de la nota de proceso. Las etiquetas S/O/A/P salieron con la vista
+   de ficha médica; este bloque hoy es exclusivamente la nota privada. */
+.pn-head {
+  display: flex; align-items: center; justify-content: space-between; gap: .4rem;
+  font-size: .63rem; font-weight: 700; color: #c4b5fd;
 }
-.soap-s { background: rgba(14,165,233,.25);  color: #38bdf8; }
-.soap-o { background: rgba(16,185,129,.25);  color: #10b981; }
-.soap-a { background: rgba(245,158,11,.25);  color: #f59e0b; }
-.soap-p { background: rgba(139,92,246,.25);  color: #a78bfa; }
+.pn-pill {
+  background: rgba(139,92,246,.2); border: 1px solid rgba(139,92,246,.4);
+  color: #ddd6fe; border-radius: 99px; padding: .06rem .42rem;
+  font-size: .55rem; font-weight: 700; white-space: nowrap;
+}
 .soap-text {
   font-size: .63rem;
   color: #94a3b8;
@@ -814,7 +860,13 @@ footer {
   .nav-links { display: none; }
   .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
   .footer-bottom { flex-direction: column; gap: .5rem; text-align: center; }
+
+  /* En una sola columna el orden del DOM deja Starter arriba, y Starter es
+     justamente el plan SIN ficha clínica: el psicólogo que llega desde un aviso
+     de "software para psicólogos" leía primero la versión que no hace lo que
+     vino a buscar. En móvil manda Pro. */
   .pricing-grid { grid-template-columns: 1fr; }
+  .pricing-card.featured { order: -1; }
 
   /* Powered-by strip */
   .powered-by { gap: .4rem; }
@@ -828,12 +880,10 @@ footer {
   .mb-sidebar { display: none; }
   .mb-app { min-height: 380px; }
 
-  /* Dashboard: 2-col KPIs, hide chart */
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .mv-chart-wrap { display: none; }
-  /* Table: hide professional column (solo la tabla de 4 columnas) */
-  .mvt-row:not(.mvt-3) { grid-template-columns: 2fr .75fr 1fr; }
-  .mvt-row:not(.mvt-3) > span:nth-child(3) { display: none; }
+  /* En móvil no cabe todo el panel. Antes se escondía el gráfico y se dejaba la
+     tabla; va al revés, porque la trayectoria del PHQ-9 es justamente la imagen
+     que distingue a esta ficha y la lista de tareas se explica igual con texto. */
+  .mv-table { display: none; }
 
   /* Calendar: smaller cells, max 1 event */
   .cal-cell { min-height: 40px; }
@@ -874,6 +924,9 @@ footer {
   letter-spacing: -1px;
   line-height: 1;
 }
+
+/* Etiqueta de texto (p. ej. "PHQ-9 · GAD-7"): a 2rem/900 desborda la columna. */
+.trust-num-sm { font-size: 1.35rem; color: var(--psy-dark); letter-spacing: -.5px; }
 
 .trust-lbl {
   font-size: .75rem;
@@ -943,46 +996,7 @@ footer {
   .faq-grid { grid-template-columns: 1fr; }
 }
 
-/* ── Acuse de eliminación de cuenta ─────────────────────────────────────────
-   Banner que aparece sobre la nav al volver desde /app/cuenta con
-   ?cuenta=eliminada. ViewEncapsulation.None en este componente hace que estos
-   estilos sean globales, de ahí el nombre de clase específico. */
-.account-deleted-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 16px 28px;
-  background: #ecfdf5;
-  border-bottom: 1.5px solid #a7f3d0;
-  color: #065f46;
-
-  svg {
-    flex: 0 0 auto;
-    width: 22px;
-    height: 22px;
-    margin-top: 2px;
-    color: #059669;
-  }
-
-  strong {
-    display: block;
-    font-size: 15px;
-    font-weight: 800;
-    margin-bottom: 3px;
-  }
-
-  span {
-    display: block;
-    font-size: 13.5px;
-    line-height: 1.6;
-    color: #047857;
-    max-width: 720px;
-  }
-}
-
-@media (max-width: 640px) {
-  .account-deleted-banner {
-    padding: 14px 16px;
-    gap: 10px;
-  }
-}
+/* El acuse de eliminación de cuenta (.account-deleted-banner) vive ahora en
+   src/styles.scss. Este componente usa ViewEncapsulation.None, así que esos
+   estilos ya eran globales de hecho: tenerlos acá solo los cargaba al
+   presupuesto de 24 kB de la landing sin ser chrome de la landing. */

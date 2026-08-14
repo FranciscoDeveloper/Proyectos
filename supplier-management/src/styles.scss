@@ -355,3 +355,46 @@ textarea.form-control { resize: vertical; min-height: 100px; }
     user-select: text;
   }
 }
+
+/* ── Acuse de eliminación de cuenta ─────────────────────────────────────────
+   Banner que aparece sobre la nav de la landing al volver desde /app/cuenta con
+   ?cuenta=eliminada. Vivía en landing.component.scss, pero ese componente usa
+   ViewEncapsulation.None —o sea que estas reglas ya eran globales— y solo
+   servían para consumir el presupuesto de 24 kB de estilos de la landing. */
+.account-deleted-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 28px;
+  background: #ecfdf5;
+  border-bottom: 1.5px solid #a7f3d0;
+  color: #065f46;
+
+  svg {
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    margin-top: 2px;
+    color: #059669;
+  }
+
+  strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 800;
+    margin-bottom: 3px;
+  }
+
+  span {
+    display: block;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #047857;
+    max-width: 720px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+}

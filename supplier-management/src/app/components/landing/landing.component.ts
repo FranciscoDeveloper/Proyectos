@@ -14,7 +14,10 @@ import { DOCUMENT } from '@angular/common';
  * Google los trunca en el SERP y el anuncio pierde el gancho.
  */
 const SEO_TITLE = 'Software para psicólogos en Chile | Ficha clínica — Dairi';
-const SEO_DESCRIPTION = 'Software para psicólogos en Chile: ficha clínica psicológica, notas de proceso privadas, escalas PHQ-9 y GAD-7, agenda online y pago con tarjeta. Plan gratis y plan Pro desde $6.990 al mes. También medicina, odontología, kinesiología y 5 especialidades más.';
+// ~155 caracteres. La versión anterior pasaba de 260 —Google la truncaba a la
+// mitad— y gastaba el final en enumerar las otras 8 especialidades, que no es
+// lo que esta página vende ni lo que busca quien llega al aviso.
+const SEO_DESCRIPTION = 'Software para psicólogos en Chile: ficha psicológica, notas de proceso privadas, escalas PHQ-9 y GAD-7, agenda y pago online. Plan gratis y Pro $6.990/mes.';
 const SEO_URL = 'https://dairi.cl/';
 const SEO_IMAGE = 'https://dairi.cl/og-image.png';
 const SEO_IMAGE_ALT = 'Ficha clínica psicológica de Dairi mostrando la trayectoria de PHQ-9, las tareas intersesión y una nota de proceso privada';
@@ -45,15 +48,15 @@ const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: '¿Cuánto cuesta y hay costos ocultos?',
-    a: 'El plan Starter es gratis y no vence. El plan Pro cuesta $6.990 al mes e incluye ficha clínica, IA, cobro online y app móvil. El plan Enterprise se cotiza según el tamaño del centro. Lo único que se suma es una comisión sobre los cobros que proceses en línea: 4% en Starter, 3% en Pro y 1% en Enterprise. Si no cobras online, no la pagas.'
+    a: 'El plan Starter es gratis y no vence. El plan Pro cuesta $6.990 al mes e incluye ficha clínica, IA, cobro online y app móvil. El plan Enterprise se cotiza según el tamaño del centro. No hay cobro por paciente ni costo extra por las integraciones. Lo único que se suma es una comisión sobre las sesiones que tu paciente pague con tarjeta dentro de Dairi: 4% en Starter, 3% en Pro y 1% en Enterprise. Si cobras por transferencia o en efectivo, no pagas comisión por esa sesión.'
   },
   {
     q: '¿Dairi sirve para otras especialidades además de psicología?',
     a: 'Sí. Dairi tiene fichas específicas para nueve especialidades: psicología, medicina general, odontología, kinesiología, nutrición, fonoaudiología, terapia ocupacional, matronería y tecnología médica. En el plan Enterprise conviven varias en la misma cuenta.'
   },
   {
-    q: '¿Qué pasa con la confidencialidad de los datos de mis pacientes?',
-    a: 'Las fichas clínicas se guardan con cifrado AES-256-GCM y la clave la controlas tú, de modo que el equipo de Dairi no puede leer ese contenido. Todo el tráfico va por HTTPS y cada profesional accede solo a sus propios pacientes, con la restricción aplicada en el servidor. La arquitectura sigue los principios de la Ley N° 21.719 de Protección de Datos Personales.'
+    q: '¿Cómo protege Dairi mi secreto profesional?',
+    a: 'Las fichas clínicas se guardan con cifrado AES-256-GCM y la clave la controlas tú, de modo que el equipo de Dairi no puede leer ese contenido. Todo el tráfico va por HTTPS y cada profesional accede solo a sus propios pacientes, con la restricción aplicada en el servidor. En Chile los datos de salud son datos sensibles bajo la Ley N° 19.628 y la ficha clínica está regulada por la Ley N° 20.584; la arquitectura de Dairi sigue además los principios de la Ley N° 21.719 de Protección de Datos Personales.'
   },
   {
     q: '¿Cuánto demora empezar y necesito tarjeta de crédito?',
@@ -161,7 +164,21 @@ export class LandingComponent implements OnInit, OnDestroy {
    *  campañas de búsqueda con intención "software psicólogos". */
   activeView = 'psico';
   private rotateInterval?: ReturnType<typeof setInterval>;
-  private readonly ROTATE_VIEWS = ['psico', 'citas', 'ficha', 'dashboard'];
+
+  /**
+   * Vistas de la rotación automática del mockup del hero.
+   *
+   * 'ficha' (la ficha clínica médica, con presión arterial y "Dr. Rojas") quedó
+   * FUERA a propósito. La pestaña sigue existiendo y es clickeable —las otras 8
+   * especialidades son producto real—, pero entraba sola a los ~3 s y hacía que
+   * lo primero que viera un psicólogo llegado de un aviso de psicología fuese
+   * una consulta de medicina general.
+   *
+   * 'dashboard' ya no existe como vista del mockup. Si agregas vistas nuevas
+   * acá, verifica que el id exista en el template y que no contradiga el
+   * encuadre de psicología de la página.
+   */
+  private readonly ROTATE_VIEWS = ['psico', 'citas'];
   private rotateIdx = 0;
 
   /** Canonical que traía index.html, para restaurarlo al salir de la landing. */
@@ -169,7 +186,10 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   setActiveView(view: string): void {
     this.activeView = view;
-    this.rotateIdx  = this.ROTATE_VIEWS.indexOf(view);
+    // 'ficha' no está en ROTATE_VIEWS; indexOf devolvería -1. Da igual porque
+    // abajo se detiene la rotación, pero no se deja el índice en un valor sucio.
+    const idx = this.ROTATE_VIEWS.indexOf(view);
+    if (idx !== -1) this.rotateIdx = idx;
     if (this.rotateInterval) { clearInterval(this.rotateInterval); this.rotateInterval = undefined; }
   }
 
@@ -210,7 +230,10 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.rotateInterval = setInterval(() => {
       this.rotateIdx  = (this.rotateIdx + 1) % this.ROTATE_VIEWS.length;
       this.activeView = this.ROTATE_VIEWS[this.rotateIdx];
-    }, 3200);
+      // 4,5 s y no 3,2: da tiempo real a leer la ficha psicológica antes de
+      // pasar, y el parpadeo rápido leía como demo nerviosa en una página que
+      // justamente quiere transmitir calma.
+    }, 4500);
 
     for (const { id, content } of JSON_LD_SCRIPTS) {
       const existing = this.doc.getElementById(id);
