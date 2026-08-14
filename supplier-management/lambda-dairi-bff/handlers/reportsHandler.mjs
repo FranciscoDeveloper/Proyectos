@@ -134,7 +134,11 @@ const ABSENT_FIELDS =
   '- Motivo de derivación y quién deriva o solicita el informe.\n' +
   '- Institución, tribunal o establecimiento destinatario y el número de causa o expediente.\n' +
   '- Antecedentes familiares, escolares, laborales y de tratamientos previos.\n' +
-  '- Resultados de instrumentos distintos de las escalas listadas más arriba.';
+  '- Resultados de instrumentos distintos de las escalas listadas más arriba.\n\n' +
+  'Esta lista describe únicamente la FICHA CLÍNICA. Si más abajo hay un bloque "Contexto ' +
+  'aportado por el profesional", esa es una fuente distinta y posterior: cualquier dato que ' +
+  'ese contexto sí entregue (por ejemplo, quién solicita el informe y por qué) YA NO está ' +
+  'ausente — úsalo, no escribas [COMPLETAR] para algo que el contexto acaba de darte.';
 
 /**
  * Reúne desde RDS el bloque de datos del paciente y los avisos derivados de sus huecos.
@@ -200,11 +204,15 @@ async function buildContext(client, recordId, additionalContext, reportType) {
     : null;
 
   const fmtDate = d => (d ? new Date(d).toLocaleDateString('es-CL') : 's/f');
+  // `patient.gender` guarda el value en inglés del <select> del formulario
+  // (male/female/other) — sin traducir, el modelo lo citaba tal cual en el
+  // borrador ("Género: female").
+  const GENDER_ES = { male: 'Masculino', female: 'Femenino', other: 'Otro' };
 
   const contextData = [
     `Nombre: ${r.name ?? '[COMPLETAR]'}`,
     age != null ? `Edad: ${age} años` : 'Fecha de nacimiento: [COMPLETAR]',
-    r.gender ? `Género: ${r.gender}` : null,
+    r.gender ? `Género: ${GENDER_ES[r.gender] ?? r.gender}` : null,
     r.diagnosis_code || r.diagnosis_label
       ? `Diagnóstico: ${[r.diagnosis_code, r.diagnosis_label].filter(Boolean).join(' — ')}`
       : 'Diagnóstico: [COMPLETAR]',
