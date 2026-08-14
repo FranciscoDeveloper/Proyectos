@@ -7,17 +7,20 @@ import { DOCUMENT } from '@angular/common';
  * SEO/SEM de la landing.
  *
  * El title lidera con la frase que se compra en Google Ads y por la que compiten
- * los competidores chilenos del nicho ("software para psicólogos Chile"), sin
- * perder la cobertura multi-especialidad: hay clientes pagando fuera de psicología.
+ * los competidores chilenos del nicho ("software para psicólogos Chile").
+ *
+ * La landing ya no cubre otras especialidades: siguen siendo producto real y con
+ * clientes pagando, pero se venden por contacto directo, no desde esta página.
+ * No volver a meter "odontología", "kinesiología" y compañía en estos metadatos.
  *
  * Largos objetivo: title <= 65 caracteres, description 150-160. Si los estiras,
  * Google los trunca en el SERP y el anuncio pierde el gancho.
  */
 const SEO_TITLE = 'Software para psicólogos en Chile | Ficha clínica — Dairi';
 // ~155 caracteres. La versión anterior pasaba de 260 —Google la truncaba a la
-// mitad— y gastaba el final en enumerar las otras 8 especialidades, que no es
-// lo que esta página vende ni lo que busca quien llega al aviso.
-const SEO_DESCRIPTION = 'Software para psicólogos en Chile: ficha psicológica, notas de proceso privadas, escalas PHQ-9 y GAD-7, agenda y pago online. Plan gratis y Pro $6.990/mes.';
+// mitad— y gastaba el final en enumerar las otras 8 especialidades, que esta
+// página ya no vende ni menciona en ninguna parte.
+const SEO_DESCRIPTION = 'Software para psicólogos en Chile: ficha psicológica, notas de proceso privadas, escalas PHQ-9 y GAD-7, agenda y pago online. Plan gratis y Pro $7.990/mes.';
 const SEO_URL = 'https://dairi.cl/';
 const SEO_IMAGE = 'https://dairi.cl/og-image.png';
 const SEO_IMAGE_ALT = 'Ficha clínica psicológica de Dairi mostrando la trayectoria de PHQ-9, las tareas intersesión y una nota de proceso privada';
@@ -48,11 +51,15 @@ const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: '¿Cuánto cuesta y hay costos ocultos?',
-    a: 'El plan Starter es gratis y no vence. El plan Pro cuesta $6.990 al mes e incluye ficha clínica, IA, cobro online y app móvil. El plan Enterprise se cotiza según el tamaño del centro. No hay cobro por paciente ni costo extra por las integraciones. Lo único que se suma es una comisión sobre las sesiones que tu paciente pague con tarjeta dentro de Dairi: 4% en Starter, 3% en Pro y 1% en Enterprise. Si cobras por transferencia o en efectivo, no pagas comisión por esa sesión.'
+    a: 'El plan Starter es gratis y no vence. El plan Pro cuesta $7.990 al mes e incluye ficha psicológica, IA, cobro online y app móvil, con pacientes ilimitados. No hay cobro por paciente ni costo extra por las integraciones. Lo único que se suma es una comisión sobre las sesiones que tu paciente pague con tarjeta dentro de Dairi: 4% en Starter y 3% en Pro. Si cobras por transferencia o en efectivo, no pagas comisión por esa sesión.'
   },
   {
-    q: '¿Dairi sirve para otras especialidades además de psicología?',
-    a: 'Sí. Dairi tiene fichas específicas para nueve especialidades: psicología, medicina general, odontología, kinesiología, nutrición, fonoaudiología, terapia ocupacional, matronería y tecnología médica. En el plan Enterprise conviven varias en la misma cuenta.'
+    // Reemplaza a "¿Dairi sirve para otras especialidades además de psicología?",
+    // que enumeraba las nueve. La página dejó de nombrar especialidades distintas
+    // de psicología; el schema de FAQPage sale de este mismo array, así que la
+    // pregunta vieja habría seguido publicándose en Google aunque no se viera.
+    q: '¿Puedo traer los pacientes que ya tengo en una planilla?',
+    a: 'Sí. Dairi importa pacientes desde un archivo Excel: subes la planilla, Dairi reconoce las columnas (nombre, RUT, correo, teléfono, fecha de nacimiento, dirección) y te muestra fila por fila lo que va a crear antes de confirmar. También puedes importar citas de la misma forma.'
   },
   {
     q: '¿Cómo protege Dairi mi secreto profesional?',
@@ -60,7 +67,7 @@ const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: '¿Cuánto demora empezar y necesito tarjeta de crédito?',
-    a: 'Creas la cuenta con tu correo y entras de inmediato, sin tarjeta. Los planes pagos incluyen 30 días de prueba completa y puedes cancelar cuando quieras. También puedes cargar tus pacientes desde una planilla en vez de escribirlos uno por uno.'
+    a: 'Creas la cuenta con tu correo y entras de inmediato, sin tarjeta. El plan Pro incluye 15 días de prueba completa y puedes cancelar cuando quieras. También puedes cargar tus pacientes desde una planilla en vez de escribirlos uno por uno.'
   }
 ];
 
@@ -93,9 +100,11 @@ const JSON_LD_SCRIPTS = [
       offers: [
         { '@type': 'Offer', name: 'Starter', price: '0', priceCurrency: 'CLP',
           priceSpecification: { '@type': 'UnitPriceSpecification', price: '0', priceCurrency: 'CLP', unitCode: 'MON' } },
-        { '@type': 'Offer', name: 'Pro', price: '6990', priceCurrency: 'CLP',
-          priceSpecification: { '@type': 'UnitPriceSpecification', price: '6990', priceCurrency: 'CLP', unitCode: 'MON' } },
-        { '@type': 'Offer', name: 'Enterprise', description: 'Precio a medida, contactar ventas' }
+        // Solo Starter y Pro: la oferta Enterprise se retiró junto con su tarjeta
+        // de precios. Un Offer en el schema que no existe en la página es
+        // exactamente lo que Google marca como structured data no respaldado.
+        { '@type': 'Offer', name: 'Pro', price: '7990', priceCurrency: 'CLP',
+          priceSpecification: { '@type': 'UnitPriceSpecification', price: '7990', priceCurrency: 'CLP', unitCode: 'MON' } }
       ],
       audience: {
         '@type': 'Audience',
@@ -108,7 +117,7 @@ const JSON_LD_SCRIPTS = [
         'Resumen previo a la sesión generado por IA (borrador sujeto a revisión profesional)',
         'Borradores de informe psicológico con IA: tribunal de familia, establecimiento educacional, licencia médica y avance terapéutico (requieren revisión y firma profesional)',
         'Plan gratis de agenda de citas para 1 profesional', 'Gestión de pacientes', 'Calendario de citas',
-        'Fichas clínicas especializadas (9 especialidades)',
+        'Importación masiva de pacientes desde planilla Excel',
         'Reserva online con pago seguro con tarjeta', 'Transcripción de consultas con IA (Deepgram Nova-3)',
         'Sincronización con Google Calendar y Google Meet', 'Videoconsulta',
         'Reportes clínicos y comisiones', 'Presupuestos con cobro online',

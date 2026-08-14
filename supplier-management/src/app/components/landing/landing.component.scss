@@ -247,17 +247,9 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
 .cb-body p + p { margin-top: .55rem; }
 .cb-body strong { color: var(--psy-dark); }
 
-/* ── LISTA DE ESPECIALIDADES ──────────────────────────────────────── */
-.spec-list {
-  display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center;
-  max-width: 800px; margin: 0 auto;
-}
-.spec-item {
-  border: 1.5px solid var(--sky-200); background: var(--sky-50);
-  border-radius: 99px; padding: .48rem 1.1rem;
-  font-size: .85rem; font-weight: 600; color: var(--sky-800);
-}
-.spec-item.is-lead { border-color: var(--psy-line); background: var(--psy-tint); color: var(--psy-ink); }
+/* .spec-list / .spec-item vivían acá: eran los chips de la sección
+   #especialidades, que se eliminó del template. Sin marcado que las use, se
+   borran para no seguir pagando su peso en el budget de anyComponentStyle. */
 
 /* ── CTA SECTION ──────────────────────────────────────────────────── */
 .cta-section {
@@ -281,9 +273,13 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
 }
 
 /* ── PRICING GRID ─────────────────────────────────────────────────── */
+/* Dos columnas, no tres: la tarjeta Enterprise se eliminó de la página. Con
+   `repeat(3, 1fr)` las dos tarjetas restantes ocupaban dos tercios y dejaban un
+   hueco vacío a la derecha. El max-width baja de 900px a 660px para que dos
+   tarjetas no queden desproporcionadamente anchas. */
 .pricing-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
-  max-width: 900px; margin: 0 auto 2.5rem;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;
+  max-width: 660px; margin: 0 auto 2.5rem;
 }
 .pricing-card {
   background: #fff; border: 1.5px solid var(--sky-200); border-radius: 18px;

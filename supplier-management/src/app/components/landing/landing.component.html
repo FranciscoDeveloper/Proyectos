@@ -10,14 +10,25 @@
 
   Anclas estables — se usan como destino de campañas de Google Ads:
     #psicologia      → oferta insignia (avisos "software psicólogos Chile")
-    #especialidades  → las 9 especialidades
     #features · #integraciones · #por-que · #cta · #faq · #contacto
 
-  Jerarquía de la página (regla, no gusto): esta landing vende PSICOLOGÍA. Las
-  otras 8 especialidades existen, son producto real con clientes reales y no se
-  esconden — pero van debajo de #features, nunca en el hero, nunca en el trust
-  strip y nunca en la rotación automática del mockup. Si vuelves a subirlas,
-  vuelves a neutralizar la sección insignia.
+  El ancla #especialidades ya NO existe: la sección que listaba las 9
+  especialidades se eliminó de esta página. Si alguna campaña vieja todavía
+  apunta a /#especialidades, el navegador simplemente no hará scroll — no
+  reintroducir la sección para "arreglar" ese enlace; corregir la campaña.
+
+  Jerarquía de la página (regla, no gusto): esta landing vende PSICOLOGÍA y
+  SOLO psicología. Las otras 8 especialidades siguen existiendo en el producto
+  y siguen teniendo clientes reales —no se tocan las rutas ni las fichas—, pero
+  no se nombran en esta página: ni en el hero, ni en el trust strip, ni en el
+  mockup, ni en los planes, ni en las FAQ. Un lead que llega buscando software
+  de psicología no debe encontrarse con un catálogo de disciplinas.
+
+  Planes que muestra esta página: Starter (gratis) y Pro. Enterprise se retiró
+  del escaparate — nunca fue self-serve (ningún camino de registro crea una
+  cuenta Enterprise) y partir la oferta en tres diluía la decisión. Sigue
+  existiendo como venta asistida por contacto@dairi.cl y en los Términos y
+  Condiciones; no reintroducirlo acá sin decisión comercial explícita.
 
   Reglas de copy que NO se pueden romper:
     · La IA de Dairi produce BORRADORES que el profesional debe revisar y firmar.
@@ -59,7 +70,6 @@
   <div class="nav-links">
     <a href="#psicologia">Psicología</a>
     <a href="#features">Funcionalidades</a>
-    <a href="#especialidades">Especialidades</a>
     <a href="#cta">Precios</a>
     <a href="#faq">Preguntas</a>
     <a routerLink="/docs">Documentación</a>
@@ -74,7 +84,7 @@
 <!-- HERO -->
 <section class="hero" style="max-width:100%;">
   <div class="hero-badge">
-    ✦ Para psicólogos en Chile · Plan gratis sin vencimiento · 30 días de prueba · Sin tarjeta
+    ✦ Para psicólogos en Chile · Plan gratis sin vencimiento · 15 días de prueba · Sin tarjeta
   </div>
   <h1>Que el registro no te robe la sesión<br><span class="gradient">Software para psicólogos en Chile</span></h1>
   <p>
@@ -106,8 +116,8 @@
        "Ingresos / Stock bajo". El demo se contradecía con la página.
 
        Quedaron dos vistas, las dos de psicología: la ficha y la agenda. Las
-       otras 8 especialidades siguen contadas en #especialidades, en #features y
-       en el plan Enterprise — pero no en el escaparate del hero.
+       otras 8 especialidades siguen siendo producto real, pero esta página ya
+       no las nombra en ninguna parte.
        Regla: no agregar acá vistas de otras especialidades. -->
   <div class="mockup-scene">
     <div class="mockup-tabs">
@@ -196,7 +206,7 @@
                "Ingresos" y "Stock bajo" (inventario), que no le dicen nada a un
                psicólogo y empujaban la página al registro de SaaS de
                productividad. La funcionalidad sigue existiendo y sigue contada
-               en #features y en el plan Enterprise. -->
+               en #features. -->
 
           <!-- VIEW: AGENDA / CALENDARIO -->
           <div class="mv" [class.active]="activeView === 'citas'">
@@ -262,8 +272,8 @@
                arterial, SpO2, cefalea tensional G44.2, "Dr. Rojas"). Se quitó del
                hero: en la página que vende software de psicología era la imagen
                que más rápido desarmaba el encuadre. Las fichas de las otras 8
-               especialidades siguen siendo producto real y siguen presentadas en
-               la sección #especialidades. -->
+               especialidades siguen siendo producto real dentro de la app, pero
+               ya no se presentan en esta página. -->
 
         </div>
       </div>
@@ -275,7 +285,7 @@
      de clientes, notas de review sites ni promesas de tiempo de implementación. -->
 <div class="trust-strip">
   <div class="trust-item">
-    <span class="trust-num">$6.990</span>
+    <span class="trust-num">$7.990</span>
     <span class="trust-lbl">al mes, plan Pro</span>
   </div>
   <div class="trust-div"></div>
@@ -285,7 +295,7 @@
   </div>
   <div class="trust-div"></div>
   <div class="trust-item">
-    <span class="trust-num">30 días</span>
+    <span class="trust-num">15 días</span>
     <span class="trust-lbl">de prueba, sin tarjeta</span>
   </div>
   <div class="trust-div"></div>
@@ -447,7 +457,7 @@
     <div class="feature-card">
       <div class="feature-icon">📊</div>
       <h3>Dashboard y reportes clínicos</h3>
-      <p>Al iniciar sesión ves las citas del día, los ingresos del mes y los pacientes activos. KPIs con filtros de 7 / 30 días o historial completo, y gráficos por especialidad, profesional y previsión (Fonasa/Isapre).</p>
+      <p>Al iniciar sesión ves las citas del día, los ingresos del mes y los pacientes activos. KPIs con filtros de 7 / 30 días o historial completo, y gráficos por profesional y previsión (Fonasa/Isapre).</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🧑‍⚕️</div>
@@ -457,7 +467,12 @@
     <div class="feature-card">
       <div class="feature-icon">💬</div>
       <h3>Asistente IA y chat de equipo</h3>
-      <p>El asistente Dairi IA responde dudas operativas sobre la plataforma en todos los planes. El plan Enterprise suma el chat interno del equipo: canales y mensajes directos entre el staff.</p>
+      <!-- Antes esta frase decía que el chat de equipo era exclusivo del plan
+           Enterprise. Nunca fue cierto a nivel técnico —no existe un campo de
+           plan que separe Pro de Enterprise: ambos se crean por el mismo
+           handleRegisterDairi— y ahora Enterprise ni siquiera aparece en la
+           página. Se describe la funcionalidad sin colgarla de un plan. -->
+      <p>El asistente Dairi IA responde dudas operativas sobre la plataforma. Y si atiendes con más profesionales, el chat interno del equipo suma canales y mensajes directos entre el staff.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📱</div>
@@ -467,31 +482,18 @@
   </div>
 </section>
 
-<!-- ESPECIALIDADES — se movió acá abajo a propósito. Las otras 8 especialidades
-     son producto real con clientes reales y no se esconden, pero en ESTA página
-     no compiten por atención con psicología: iban inmediatamente después de la
-     sección insignia y la neutralizaban. El ancla #especialidades sigue viva
-     porque la usan la nav, el footer y campañas. -->
-<section id="especialidades">
-  <div class="section-label">Si tu centro mezcla disciplinas</div>
-  <h2 class="section-title">Dairi también atiende otras 8 especialidades</h2>
-  <p class="section-sub">
-    Psicología es para lo que está construido este producto, pero no es lo único que sabe hacer.
-    Cada especialidad tiene su propia ficha con los campos que realmente usa, conviven en la misma
-    cuenta y cada profesional ve solo sus propios datos.
-  </p>
-  <div class="spec-list">
-    <span class="spec-item is-lead">🧠 Psicología</span>
-    <span class="spec-item">🩺 Medicina general</span>
-    <span class="spec-item">🦷 Odontología</span>
-    <span class="spec-item">🏃 Kinesiología</span>
-    <span class="spec-item">🥗 Nutrición</span>
-    <span class="spec-item">🗣️ Fonoaudiología</span>
-    <span class="spec-item">🖐️ Terapia ocupacional</span>
-    <span class="spec-item">🤰 Matronería</span>
-    <span class="spec-item">🔬 Tecnología médica</span>
-  </div>
-</section>
+<!-- Acá vivía la sección #especialidades, que listaba las 9 especialidades del
+     producto ("Dairi también atiende otras 8 especialidades"). Se eliminó por
+     decisión comercial: esta página vende psicología y solamente psicología, y
+     un catálogo de disciplinas le decía al psicólogo que llegó del aviso que el
+     producto no es realmente para él.
+
+     Lo eliminado es la VITRINA, no el producto: odontología, kinesiología,
+     nutrición y el resto siguen funcionando en la app y siguen teniendo
+     clientes pagando. No borrar rutas, fichas ni configuración por esto.
+
+     También murió el ancla #especialidades — se sacaron los enlaces de la nav y
+     del footer para no dejar links muertos. -->
 
 <!-- DOCUMENTATION BANNER -->
 <div class="docs-banner-wrap">
@@ -582,7 +584,7 @@
     <div class="feature-card" style="border-color:rgba(14,165,233,.4);">
       <div class="feature-icon">💰</div>
       <h3>Precio en pesos, sin sorpresas</h3>
-      <p>Plan Starter gratis sin vencimiento para ordenar la agenda, y plan Pro a $6.990 al mes con ficha clínica, IA, cobro online y app móvil incluidos. Sin cobro por paciente y sin costo extra por las integraciones. Lo único que se suma es la comisión sobre lo que cobres en línea, y está a la vista en cada plan.</p>
+      <p>Plan Starter gratis sin vencimiento para ordenar la agenda, y plan Pro a $7.990 al mes con ficha clínica, IA, cobro online y app móvil incluidos. Sin cobro por paciente y sin costo extra por las integraciones. Lo único que se suma es la comisión sobre lo que cobres en línea, y está a la vista en cada plan.</p>
     </div>
     <div class="feature-card" style="border-color:rgba(16,185,129,.35);">
       <div class="feature-icon">📅</div>
@@ -595,14 +597,14 @@
 <!-- CTA FINAL -->
 <div class="cta-section" id="cta">
   <h2>Empieza gratis.<br>Sin tarjeta de crédito.</h2>
-  <p>Un plan 100% gratis para agendar tus horas, o acceso completo a la ficha psicológica por 30 días sin costo en los planes pagos.</p>
+  <p>Un plan 100% gratis para agendar tus horas, o acceso completo a la ficha psicológica por 15 días sin costo en el plan Pro.</p>
 
   <!-- Anclaje de precio. Los comparables chilenos del nicho se cotizan en el
        orden de una sesión particular al mes; Dairi Pro es una fracción de eso.
        No se nombra a nadie ni se afirma ser el más barato: solo se ubica el
        precio propio contra el ingreso propio del profesional. -->
   <p class="cta-anchor">
-    El plan Pro cuesta <strong>$6.990 al mes</strong> — menos de lo que cobras por una sola sesión.
+    El plan Pro cuesta <strong>$7.990 al mes</strong> — menos de lo que cobras por una sola sesión.
   </p>
 
   <div class="pricing-grid">
@@ -617,7 +619,10 @@
       <hr class="pricing-divider">
       <ul class="pricing-features">
         <li>1 profesional</li>
-        <li>1 especialidad clínica</li>
+        <!-- Se quitó "1 especialidad clínica": en una página que solo habla de
+             psicología, contar especialidades invita justo a la pregunta que la
+             página ya no quiere abrir ("¿cuáles otras?"). El límite del plan no
+             cambió, solo dejó de anunciarse acá. -->
         <li>Agenda de citas</li>
         <li>Los pacientes reservan su hora solos, las 24 hs</li>
         <li>Resumen diario de reservas</li>
@@ -639,7 +644,7 @@
       <div class="pricing-plan">Pro</div>
       <div class="pricing-price">
         <span class="p-currency">$</span>
-        <span class="p-amount">6.990</span>
+        <span class="p-amount">7.990</span>
         <span class="p-period">/mes</span>
       </div>
       <span class="pricing-anchor">Menos que una sesión</span>
@@ -648,12 +653,23 @@
       <ul class="pricing-features">
         <li class="feature-highlight">🧠 Ficha psicológica: notas de proceso privadas, PHQ-9 y GAD-7, tareas intersesión y registro de ánimo</li>
         <li class="feature-highlight">✦ Resumen previo a la sesión e informes con IA (borradores que revisas y firmas)</li>
-        <li class="feature-highlight">✦ Dicta tus sesiones con voz (10 h/mes)</li>
+        <!-- TOPE DE 50/MES: es una cifra comercial, NO una cuota que el sistema
+             haga cumplir hoy. El cuello de botella real es
+             POST /api/audio-recordings/presign en `lambda-audio`, que está
+             FUERA de la VPC y no puede consultar RDS para contar nada. Si
+             algún día se enforce, es ahí donde hay que hacerlo. Mientras
+             tanto, un usuario que grabe 80 sesiones en un mes no será
+             bloqueado. Antes acá decía "10 h/mes", igual de no-enforced. -->
+        <li class="feature-highlight">✦ Transcripción de voz para dictar sesiones (hasta 50 sesiones al mes)</li>
         <li>Hasta 3 profesionales</li>
-        <li>1 especialidad clínica a elección (psicología, medicina general, odontología…)</li>
+        <li>Pacientes ilimitados</li>
         <li>Fichas de pacientes y registro de atenciones</li>
         <li>Agenda de citas con vista semanal</li>
         <li>Los pacientes reservan su hora solos, las 24 hs</li>
+        <li>Citas sincronizadas con tu calendario personal</li>
+        <li>Presupuestos que llegan al correo del paciente</li>
+        <li>Carga masiva de pacientes desde planillas</li>
+        <li>Datos clínicos 100% privados y cifrados</li>
         <li>Chat de soporte con el asistente Dairi IA</li>
         <li>Resumen diario de la actividad clínica</li>
         <li class="feature-commission">Comisión de 3% solo sobre lo que cobres con tarjeta</li>
@@ -661,45 +677,27 @@
         <li>Capacitaciones y soporte incluidos</li>
         <li>Soporte por email</li>
       </ul>
-      <a routerLink="/register" class="pricing-btn solid" style="margin-top:1.25rem;">Empezar 30 días gratis</a>
+      <a routerLink="/register" class="pricing-btn solid" style="margin-top:1.25rem;">Empezar 15 días gratis</a>
     </div>
 
-    <!-- ENTERPRISE (was Pro) -->
-    <div class="pricing-card">
-      <div class="pricing-plan">Enterprise</div>
-      <div class="pricing-price">
-        <span class="p-consult">Cotiza aquí</span>
-      </div>
-      <p class="pricing-desc">Para centros de psicología y clínicas con varios profesionales y especialidades.</p>
-      <hr class="pricing-divider">
-      <ul class="pricing-features">
-        <li>Hasta 20 profesionales</li>
-        <li>Todo lo del plan Pro</li>
-        <li>Varias especialidades a la vez: psicología, dental, kinesiología, nutrición y más</li>
-        <li>Fichas especializadas según cada profesional</li>
-        <li>Informes de rendimiento y facturación</li>
-        <li>Control automático de comisiones del equipo</li>
-        <li>Presupuestos que llegan al correo del paciente</li>
-        <li>Carga masiva de pacientes desde planillas</li>
-        <li>Videoconsultas desde la misma plataforma</li>
-        <li>Citas sincronizadas con tu calendario personal</li>
-        <li>Datos clínicos 100% privados y cifrados</li>
-        <li>Chat interno del equipo: canales y mensajes directos</li>
-        <li>Asistente IA disponible en el chat del equipo</li>
-        <li>Módulo de administración y control de acceso por rol</li>
-        <li class="feature-highlight">✦ Dicta tus sesiones con voz (50 h/mes)</li>
-        <li class="feature-commission">Comisión de 1% solo sobre lo que cobres con tarjeta</li>
-        <li>Confirmaciones y recordatorios por email</li>
-        <li>Capacitaciones y soporte incluidos</li>
-        <li>Soporte prioritario</li>
-      </ul>
-      <a href="mailto:contacto&#64;dairi.cl" class="pricing-btn outline" style="margin-top:1.25rem;">Contactar ventas</a>
-    </div>
+    <!-- Acá iba la tarjeta ENTERPRISE ("Cotiza aquí", hasta 20 profesionales,
+         varias especialidades, comisión 1%). Se eliminó de la página por
+         decisión comercial: nunca fue self-serve —no existe ningún camino de
+         registro que cree una cuenta Enterprise, y el backend ni siquiera tiene
+         un campo de plan que la distinga de Pro— así que su única función acá
+         era partir la decisión en tres y desviar leads a un mailto.
+
+         Las funcionalidades que anunciaba y que sí existen (presupuestos por
+         correo, carga masiva desde planillas, sincronización de calendario,
+         cifrado) se movieron a la lista de Pro, que es donde el usuario
+         realmente las recibe. La venta a centros grandes sigue existiendo por
+         contacto@dairi.cl y en los Términos y Condiciones del registro; no
+         reponer la tarjeta sin decisión comercial explícita. -->
 
   </div>
 
   <p class="trial-note">
-    30 días de prueba completa. Después eliges el plan que más te acomode. Cancela cuando quieras,
+    15 días de prueba completa. Después eliges el plan que más te acomode. Cancela cuando quieras,
     sin preguntas. Precios en pesos chilenos, sin cobro por paciente ni por integración.
     <strong>La comisión por transacción se cobra únicamente sobre las sesiones que tu paciente
     pague con tarjeta dentro de Dairi</strong>: si cobras por transferencia o en efectivo, no
@@ -739,7 +737,6 @@
       <h4>Producto</h4>
       <ul>
         <li><a href="#psicologia">Software para psicólogos</a></li>
-        <li><a href="#especialidades">Especialidades</a></li>
         <li><a href="#features">Funcionalidades</a></li>
         <li><a href="#cta">Precios</a></li>
         <li><a href="#faq">Preguntas frecuentes</a></li>
