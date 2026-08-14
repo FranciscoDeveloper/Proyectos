@@ -11,6 +11,18 @@ import {
 import { AudioRecorderService } from '../../services/audio-recorder.service';
 import { AuthService } from '../../services/auth.service';
 
+/**
+ * "Hoy" en la fecha calendario LOCAL del navegador, como YYYY-MM-DD.
+ *
+ * `new Date().toISOString()` siempre da la fecha en UTC, aunque se ejecute en el
+ * navegador: en Chile (UTC-4) eso adelanta un día durante la tarde/noche — una
+ * atención registrada a las 23:20 quedaba fechada al día siguiente por defecto.
+ */
+function todayLocal(): string {
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+}
+
 @Component({
   selector: 'app-clinical-encounter-form',
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
@@ -278,7 +290,7 @@ export class ClinicalEncounterFormComponent implements OnInit {
               : (record[f.name] ?? '');
           });
         this.form.patchValue(patch);
-        this.form.patchValue({ encounterDate: new Date().toISOString().slice(0, 10) });
+        this.form.patchValue({ encounterDate: todayLocal() });
       }
     }
   }
@@ -309,7 +321,7 @@ export class ClinicalEncounterFormComponent implements OnInit {
       group[f.name] = [{ value: defaultVal, disabled: !!f.isStable }, validators];
     });
 
-    group['encounterDate'] = [new Date().toISOString().slice(0, 10), [Validators.required]];
+    group['encounterDate'] = [todayLocal(), [Validators.required]];
     this.form = this.fb.group(group);
 
     // BMI is auto-calculated from weight and height — disable editing.

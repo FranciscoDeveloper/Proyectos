@@ -27,6 +27,21 @@ import { switchMap, filter, take, defaultIfEmpty } from 'rxjs/operators';
  * hasta que `status` deja de ser 'pending'. `pollJob` de más abajo encapsula ese ciclo.
  */
 
+/**
+ * "Hoy" en la fecha calendario LOCAL del navegador, como YYYY-MM-DD.
+ *
+ * El backend, cuando no recibe `session_date`, lo completa con
+ * `new Date().toISOString().slice(0, 10)` — la fecha en UTC del servidor. En Chile
+ * (UTC-4) eso adelanta un día completo durante la tarde/noche local: una tarea creada
+ * a las 23:20 quedaba "Asignada" el día siguiente. El navegador sí conoce la zona
+ * horaria real de quien está usando la app, así que quien crea el registro debe
+ * mandar esta fecha explícita en vez de dejar que el servidor adivine.
+ */
+export function todayLocal(): string {
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+}
+
 export interface IntersessionTask {
   id: number;
   description: string;

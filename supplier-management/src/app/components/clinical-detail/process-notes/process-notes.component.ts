@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PsychService, ProcessNote } from '../../../services/psych.service';
+import { PsychService, ProcessNote, todayLocal } from '../../../services/psych.service';
 
 /**
  * Notas de proceso: el cuaderno de trabajo del terapeuta, separado de la ficha oficial.
@@ -62,7 +62,10 @@ export class ProcessNotesComponent implements OnInit {
     this.error.set(null);
     this.psych.createProcessNote(this.recordId, {
       content,
-      session_date: this.newDate() || null
+      // Sin fecha elegida, se manda "hoy" en hora LOCAL: dejar el campo en null hacía
+      // que el backend lo completara con la fecha UTC del servidor, que en Chile
+      // adelanta un día durante la tarde/noche (ver todayLocal()).
+      session_date: this.newDate() || todayLocal()
     }).subscribe({
       next: note => {
         // Se recarga en vez de anteponer: el orden es por session_date DESC y una nota

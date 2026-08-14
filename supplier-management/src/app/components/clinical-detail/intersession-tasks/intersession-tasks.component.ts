@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PsychService, IntersessionTask, MoodEntry } from '../../../services/psych.service';
+import { PsychService, IntersessionTask, MoodEntry, todayLocal } from '../../../services/psych.service';
 
 /**
  * "Puente entre sesiones": lo que ocurre en los 6 días y 23 horas que el paciente
@@ -72,7 +72,10 @@ export class IntersessionTasksComponent implements OnInit {
     this.saving.set(true);
     this.psych.createTask(this.recordId, {
       description,
-      due_date: this.newDueDate() || null
+      due_date: this.newDueDate() || null,
+      // Explícita: dejarla fuera hace que el backend la complete con la fecha UTC del
+      // servidor, que en Chile adelanta un día durante la tarde/noche (ver todayLocal()).
+      session_date: todayLocal()
     }).subscribe({
       next: task => {
         // Se antepone en vez de recargar: el orden del backend es
