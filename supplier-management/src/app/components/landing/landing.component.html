@@ -1,26 +1,28 @@
 <!--
-  ── SEO / GEO ──────────────────────────────────────────────────────────────
-  Angular no permite <head> en templates. Configurar en landing.component.ts
-  vía los servicios Title y Meta de @angular/platform-browser:
+  ── SEO / SEM ──────────────────────────────────────────────────────────────
+  Los <title>, meta tags, canonical y JSON-LD (Organization, SoftwareApplication,
+  FAQPage) los inyecta landing.component.ts vía Title/Meta/DOCUMENT — Angular no
+  permite <head> en templates. No duplicar aquí: index.html ya no lleva JSON-LD
+  propio para evitar dos entidades SoftwareApplication en conflicto.
 
-    title.setTitle('Dairi — Software de gestión clínica para Chile | Citas, fichas y pagos online');
-    meta.updateTag({ name: 'description', content: 'Dairi es un software clínico en la nube para clínicas médicas y dentales en Chile: agenda de citas, fichas clínicas electrónicas de 9 especialidades, reserva online con pago seguro por tarjeta o Webpay, transcripción de consultas con IA y sincronización con Google Calendar. Desde $6.990/mes.' });
-    meta.updateTag({ property: 'og:title', content: 'Dairi — Software de gestión clínica para Chile' });
-    meta.updateTag({ property: 'og:description', content: 'Gestión de citas, fichas clínicas y pagos online para clínicas en Chile. IA, pagos seguros y Google Calendar.' });
-    meta.updateTag({ name: 'keywords', content: 'software clínico Chile, gestión clínica, agenda médica, ficha clínica electrónica, software clínica dental Chile, reserva de horas médicas online, pagos online' });
+  Jerarquía semántica: un único <h1> (hero). Cada sección abre con <h2> y las
+  tarjetas dentro usan <h3>. Si agregas una sección nueva, respétalo.
 
-  Structured data recomendada (agregar como <script type="application/ld+json"> en index.html):
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Dairi",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web, Android, iOS",
-      "description": "Software de gestión clínica para Chile: citas, fichas clínicas electrónicas, reserva online con pago seguro por tarjeta o Webpay, transcripción de consultas con IA y sincronización con Google Calendar.",
-      "offers": { "@type": "Offer", "price": "6990", "priceCurrency": "CLP" },
-      "areaServed": "CL",
-      "url": "https://dairi.cl"
-    }
+  Anclas estables — se usan como destino de campañas de Google Ads:
+    #psicologia      → oferta insignia (avisos "software psicólogos Chile")
+    #especialidades  → las 9 especialidades
+    #features · #integraciones · #por-que · #cta · #faq · #contacto
+
+  Reglas de copy que NO se pueden romper:
+    · La IA de Dairi produce BORRADORES que el profesional debe revisar y firmar.
+      Nunca escribir que un informe o brief sale "listo para presentar".
+    · Dairi es software de gestión: no diagnostica, no trata y no reemplaza el
+      juicio clínico. Mantener esa distinción explícita (política de Google Ads
+      y exposición legal real: son documentos que van a tribunales).
+    · Nada de urgencia inventada, cupos ficticios, testimonios ni conteos de
+      clientes que no se puedan respaldar.
+    · Las notas de proceso se guardan sin cifrar: se afirma solo que las ve
+      únicamente quien las escribió, jamás que Dairi no puede leerlas.
   ──────────────────────────────────────────────────────────────────────────
 -->
 
@@ -49,45 +51,52 @@
 <nav>
   <div class="nav-logo">Dairi<span>.</span></div>
   <div class="nav-links">
+    <a href="#psicologia">Psicología</a>
+    <a href="#especialidades">Especialidades</a>
     <a href="#features">Funcionalidades</a>
-    <a href="#integraciones">Integraciones</a>
-    <a href="#por-que">Por qué Dairi</a>
     <a href="#cta">Precios</a>
+    <a href="#faq">Preguntas</a>
     <a routerLink="/docs">Documentación</a>
     <a href="#contacto">Contacto</a>
   </div>
   <div class="nav-actions">
     <a routerLink="/login" class="nav-login">Iniciar sesión</a>
-    <a href="#cta" class="nav-cta">Solicitar Demo</a>
+    <a routerLink="/register" class="nav-cta">Crear cuenta gratis</a>
   </div>
 </nav>
 
 <!-- HERO -->
 <section class="hero" style="max-width:100%;">
   <div class="hero-badge">
-    ✦ Cupos limitados · Solo 50 clínicas en el plan de lanzamiento · Reserva el tuyo hoy
+    ✦ Plan gratis para siempre · 30 días de prueba en los planes pagos · Sin tarjeta
   </div>
-  <h1>Software clínico para Chile<br><span class="gradient">citas, fichas y pagos online</span></h1>
-  <p>Agenda online, fichas clínicas especializadas y cobros online seguros con tarjeta — todo en un solo software. Transcripción de consultas con IA, comisiones automáticas y cada profesional ve solo sus propios datos.</p>
+  <h1>Software para psicólogos en Chile<br><span class="gradient">ficha clínica psicológica y agenda online</span></h1>
+  <p>
+    Notas de proceso privadas separadas de la ficha oficial, escalas PHQ-9 y GAD-7 con su
+    trayectoria, tareas intersesión y registro de ánimo. Con agenda online, cobro con tarjeta y
+    videoconsulta incluidos — y otras 8 especialidades clínicas en la misma plataforma.
+  </p>
   <div class="hero-btns">
-    <a routerLink="/login" class="btn-primary">Comenzar gratis — 30 días</a>
-    <a href="#features" class="btn-secondary">Ver funcionalidades →</a>
+    <a routerLink="/register" class="btn-primary">Crear mi cuenta gratis</a>
+    <a href="#psicologia" class="btn-secondary">Ver Dairi para psicología →</a>
   </div>
 
   <!-- POWERED-BY INTEGRATION STRIP -->
   <div class="powered-by">
-    <span class="pb-label">Integrado con</span>
-    <span class="pb-chip pb-flow">Pago online seguro</span>
+    <span class="pb-label">Incluye</span>
+    <span class="pb-chip pb-psico">Escalas PHQ-9 y GAD-7</span>
+    <span class="pb-chip pb-pay">Pago online seguro</span>
     <span class="pb-chip pb-google">Google Calendar &amp; Meet</span>
-    <span class="pb-chip pb-deepgram">Deepgram Nova-3</span>
+    <span class="pb-chip pb-deepgram">Transcripción de voz con IA</span>
   </div>
 
   <!-- MOCKUP SCENE -->
   <div class="mockup-scene">
     <div class="mockup-tabs">
-      <button class="mtab" [class.active]="activeView === 'dashboard'" (click)="setActiveView('dashboard')">📊 Dashboard</button>
+      <button class="mtab" [class.active]="activeView === 'psico'" (click)="setActiveView('psico')">🧠 Ficha psicológica</button>
       <button class="mtab" [class.active]="activeView === 'citas'" (click)="setActiveView('citas')">📅 Agenda</button>
-      <button class="mtab" [class.active]="activeView === 'ficha'" (click)="setActiveView('ficha')">📋 Ficha Clínica</button>
+      <button class="mtab" [class.active]="activeView === 'ficha'" (click)="setActiveView('ficha')">📋 Ficha médica</button>
+      <button class="mtab" [class.active]="activeView === 'dashboard'" (click)="setActiveView('dashboard')">📊 Dashboard</button>
     </div>
     <div class="mockup-browser">
       <div class="mb-chrome">
@@ -103,13 +112,59 @@
             <div class="mbs-item" [class.active]="activeView === 'dashboard'" (click)="setActiveView('dashboard')"><span>📊</span><span>Dashboard</span></div>
             <div class="mbs-item"><span>🧑‍⚕️</span><span>Pacientes</span></div>
             <div class="mbs-item" [class.active]="activeView === 'citas'" (click)="setActiveView('citas')"><span>📅</span><span>Citas</span></div>
-            <div class="mbs-item" [class.active]="activeView === 'ficha'" (click)="setActiveView('ficha')"><span>📋</span><span>Fichas</span></div>
+            <div class="mbs-item" [class.active]="activeView === 'ficha' || activeView === 'psico'" (click)="setActiveView('psico')"><span>📋</span><span>Fichas</span></div>
             <div class="mbs-item"><span>💊</span><span>Inventario</span></div>
             <div class="mbs-item"><span>💸</span><span>Pagos</span></div>
             <div class="mbs-item"><span>💬</span><span>Chat IA</span></div>
           </div>
         </div>
         <div class="mb-main">
+
+          <!-- VIEW: FICHA PSICOLÓGICA (vista insignia) -->
+          <div class="mv" [class.active]="activeView === 'psico'">
+            <div class="mv-header">
+              <span class="mv-title">Ficha psicológica · Sesión 12</span>
+              <span class="mv-badge">Ps. Carolina Vega</span>
+            </div>
+            <div class="pt-header">
+              <div class="pt-avatar">TH</div>
+              <div class="pt-info">
+                <div class="pt-name">Tomás Herrera</div>
+                <div class="pt-meta">Proceso individual · Ingreso mar 2026 · Sesión semanal</div>
+              </div>
+            </div>
+            <div class="vitals-grid">
+              <div class="vital"><div class="vital-val">11</div><div class="vital-lbl">PHQ-9 (leve)</div></div>
+              <div class="vital"><div class="vital-val">8</div><div class="vital-lbl">GAD-7 (leve)</div></div>
+              <div class="vital"><div class="vital-val">6,4</div><div class="vital-lbl">Ánimo /10</div></div>
+              <div class="vital"><div class="vital-val">3/4</div><div class="vital-lbl">Tareas hechas</div></div>
+            </div>
+            <div class="mv-chart-wrap">
+              <div class="mv-chart-title">Trayectoria PHQ-9 · últimas 7 aplicaciones</div>
+              <div class="mv-chart">
+                <div class="mc-col"><div class="mc-bar" style="height:85%"></div><span>1</span></div>
+                <div class="mc-col"><div class="mc-bar" style="height:78%"></div><span>3</span></div>
+                <div class="mc-col"><div class="mc-bar" style="height:70%"></div><span>5</span></div>
+                <div class="mc-col"><div class="mc-bar" style="height:58%"></div><span>7</span></div>
+                <div class="mc-col"><div class="mc-bar" style="height:50%"></div><span>9</span></div>
+                <div class="mc-col"><div class="mc-bar" style="height:44%"></div><span>10</span></div>
+                <div class="mc-col"><div class="mc-bar mc-today" style="height:38%"></div><span class="mc-today-lbl">12</span></div>
+              </div>
+            </div>
+            <div class="mv-table">
+              <div class="mvt-row mvt-3 mvt-head"><span>Tarea intersesión</span><span>Vence</span><span>Estado</span></div>
+              <div class="mvt-row mvt-3"><span>Registro de pensamientos</span><span>12 ago</span><span class="st st-green">Completada</span></div>
+              <div class="mvt-row mvt-3"><span>Higiene de sueño</span><span>13 ago</span><span class="st st-green">Completada</span></div>
+              <div class="mvt-row mvt-3"><span>Exposición gradual</span><span>16 ago</span><span class="st st-amber">Pendiente</span></div>
+            </div>
+            <div class="soap-block">
+              <div class="soap-row"><span class="soap-tag soap-p">🔒</span><span class="soap-text">Nota de proceso — privada, visible solo para ti: hipótesis sobre el patrón de evitación; contrastar en la próxima sesión antes de registrarlo en la ficha…</span></div>
+            </div>
+            <div class="ai-strip">
+              <span class="ai-chip">✦ Resumen previo a la sesión · borrador IA para revisar</span>
+              <span class="ai-chip">📄 Informe de avance · borrador IA para revisar</span>
+            </div>
+          </div>
 
           <!-- VIEW: DASHBOARD -->
           <div class="mv" [class.active]="activeView === 'dashboard'">
@@ -243,39 +298,157 @@
   </div>
 </section>
 
-<!-- TRUST STRIP -->
+<!-- TRUST STRIP — solo cifras verificables del propio producto. Nada de conteos
+     de clientes, notas de review sites ni promesas de tiempo de implementación. -->
 <div class="trust-strip">
   <div class="trust-item">
-    <span class="trust-num">9</span>
-    <span class="trust-lbl">especialidades clínicas</span>
+    <span class="trust-num">$6.990</span>
+    <span class="trust-lbl">al mes, plan Pro</span>
   </div>
   <div class="trust-div"></div>
   <div class="trust-item">
     <span class="trust-num">Gratis</span>
-    <span class="trust-lbl">plan Starter</span>
+    <span class="trust-lbl">plan Starter, sin vencimiento</span>
   </div>
   <div class="trust-div"></div>
   <div class="trust-item">
     <span class="trust-num">30 días</span>
-    <span class="trust-lbl">gratis, sin tarjeta</span>
+    <span class="trust-lbl">de prueba, sin tarjeta</span>
   </div>
   <div class="trust-div"></div>
   <div class="trust-item">
-    <span class="trust-num">&lt;24 h</span>
-    <span class="trust-lbl">para implementar</span>
+    <span class="trust-num">9</span>
+    <span class="trust-lbl">especialidades clínicas</span>
   </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     PSICOLOGÍA — sección insignia y destino de las campañas de búsqueda
+     de psicología (#psicologia). Todo lo que se afirma acá está construido
+     y en producción; el encuadre de "borrador que el profesional revisa"
+     es obligatorio, no estilístico.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section id="psicologia">
+  <div class="section-label">Ficha clínica psicológica</div>
+  <h2 class="section-title">Pensado para cómo trabaja realmente un psicólogo</h2>
+  <p class="section-sub">
+    Un proceso terapéutico no es una consulta de 15 minutos: son meses de sesiones, tareas,
+    escalas e hipótesis de trabajo. Dairi registra ese proceso completo, no solo la hora agendada.
+  </p>
+  <div class="features-grid">
+
+    <div class="feature-card" style="border-color:rgba(139,92,246,.45);">
+      <div class="feature-icon">🔒</div>
+      <h3>Notas de proceso separadas de la ficha oficial</h3>
+      <p>
+        Tu cuaderno de trabajo vive aparte del registro clínico: hipótesis, contratransferencia,
+        lo que todavía no corresponde escribir en la ficha. Las ve <strong>solo quien las
+        escribió</strong> — ni siquiera otro profesional de la misma cuenta — y quedan
+        <strong>fuera de todo lo que lee la IA</strong>: no entran al resumen previo a la sesión
+        ni a los borradores de informe.
+      </p>
+    </div>
+
+    <div class="feature-card" style="border-color:rgba(139,92,246,.45);">
+      <div class="feature-icon">📈</div>
+      <h3>PHQ-9 y GAD-7 con trayectoria en el tiempo</h3>
+      <p>
+        Aplica las escalas dentro de la plataforma, ítem por ítem. Dairi las puntúa, clasifica
+        la severidad y dibuja la trayectoria de todas las aplicaciones anteriores. Medición
+        basada en resultados de verdad: ves si el proceso avanza, no solo cómo se sintió la sesión.
+      </p>
+    </div>
+
+    <div class="feature-card" style="border-color:rgba(139,92,246,.45);">
+      <div class="feature-icon">✦</div>
+      <h3>Prepárate para la próxima sesión en segundos</h3>
+      <p>
+        Un resumen corto generado por IA con lo último de la ficha, las tareas intersesión
+        pendientes, la tendencia del ánimo y los últimos puntajes de escalas. Te reubicas en
+        segundos en vez de releer el expediente entero.
+        <strong>Es un borrador de apoyo, siempre rotulado como tal, que tú revisas</strong> —
+        no una lectura clínica ni un reemplazo de tu criterio.
+      </p>
+    </div>
+
+    <div class="feature-card" style="border-color:rgba(139,92,246,.45);">
+      <div class="feature-icon">📋</div>
+      <h3>Tareas intersesión y registro de ánimo</h3>
+      <p>
+        Asigna tareas con fecha de entrega y sigue si se completaron, con las notas que deja
+        el paciente. Sumado a un registro diario de ánimo de 1 a 10, te da visibilidad de los
+        seis días de la semana en que no estás con la persona.
+      </p>
+    </div>
+
+    <div class="feature-card" style="border-color:rgba(139,92,246,.45);">
+      <div class="feature-icon">📄</div>
+      <h3>Borradores de informe para los documentos de siempre</h3>
+      <p>
+        Informe para tribunal de familia, informe para establecimiento educacional, certificado
+        para licencia médica e informe de avance terapéutico. La IA arma el primer borrador a
+        partir de la ficha; <strong>el texto queda marcado como borrador y requiere tu revisión
+        y firma antes de usarse</strong>. Dairi te ahorra la página en blanco, no la
+        responsabilidad profesional.
+      </p>
+    </div>
+
+    <div class="feature-card" style="border-color:rgba(139,92,246,.45);">
+      <div class="feature-icon">📅</div>
+      <h3>La consulta privada, resuelta</h3>
+      <p>
+        Tus pacientes reservan hora solos las 24 horas y pagan online con tarjeta en el mismo
+        paso. Videoconsulta con enlace generado automáticamente, recordatorios por email y tu
+        agenda sincronizada con Google Calendar.
+      </p>
+    </div>
+
+  </div>
+
+  <div class="center-cta">
+    <a routerLink="/register" class="btn-primary">Probar la ficha psicológica gratis</a>
+  </div>
+
+  <p class="legal-note">
+    Dairi es un software de gestión clínica y documentación profesional. No entrega diagnósticos,
+    tratamiento ni orientación en salud mental, no atiende urgencias y no sustituye el juicio del
+    profesional tratante. Las escalas PHQ-9 y GAD-7 son instrumentos de tamizaje que interpreta el
+    profesional. Los textos generados con IA son borradores sujetos a revisión y firma profesional.
+  </p>
+</section>
+
+<!-- ESPECIALIDADES — psicología encabeza, pero las otras 8 siguen a la vista:
+     hay clientes reales fuera de psicología y no se pueden esconder. -->
+<section id="especialidades">
+  <div class="section-label">Una plataforma, nueve especialidades</div>
+  <h2 class="section-title">Psicología es nuestra especialidad insignia, no la única</h2>
+  <p class="section-sub">
+    Cada especialidad tiene su propia ficha, con los campos que realmente usa. Si tu centro
+    mezcla disciplinas, conviven en la misma cuenta y cada profesional ve solo sus propios datos.
+  </p>
+  <div class="spec-list">
+    <span class="spec-item is-lead">🧠 Psicología</span>
+    <span class="spec-item">🩺 Medicina general</span>
+    <span class="spec-item">🦷 Odontología</span>
+    <span class="spec-item">🏃 Kinesiología</span>
+    <span class="spec-item">🥗 Nutrición</span>
+    <span class="spec-item">🗣️ Fonoaudiología</span>
+    <span class="spec-item">🖐️ Terapia ocupacional</span>
+    <span class="spec-item">🤰 Matronería</span>
+    <span class="spec-item">🔬 Tecnología médica</span>
+  </div>
+</section>
 
 <!-- FEATURES -->
 <section id="features">
   <div class="section-label">Plataforma completa</div>
-  <h2 class="section-title">Todo lo que necesita tu clínica, en un solo lugar</h2>
+  <h2 class="section-title">Todo lo que necesita tu consulta, en un solo lugar</h2>
   <p class="section-sub">Sin hojas de cálculo, sin papel, sin sistemas desconectados. Dairi centraliza cada área operativa con flujos de trabajo diseñados para profesionales de la salud.</p>
   <div class="features-grid">
     <div class="feature-card">
       <div class="feature-icon">🎙️</div>
-      <h3>La ficha se escribe sola</h3>
-      <p>Graba la consulta y Deepgram Nova-3 la transcribe en español con identificación de hablantes. La IA genera la nota SOAP lista para la ficha — en segundos, sin tipear nada.</p>
+      <h3>Dicta la sesión en vez de tipearla</h3>
+      <p>Graba la consulta y Deepgram Nova-3 la transcribe en español con identificación de hablantes. La IA arma el borrador de la nota SOAP para que lo revises y lo dejes en la ficha, en vez de escribirlo desde cero.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🔒</div>
@@ -283,39 +456,29 @@
       <p>Cifrado Zero-Knowledge AES-256-GCM para fichas clínicas: la clave la tienes solo tú, ni el equipo de Dairi puede leer tus datos sensibles. Tráfico 100% cifrado vía HTTPS y arquitectura diseñada en línea con los principios de la Ley N° 21.719 de Protección de Datos Personales de Chile.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">📈</div>
-      <h3>Reportes y Analítica Clínica</h3>
-      <p>KPIs de citas, ingresos y fichas clínicas con filtros 7 / 30 días / historial. Gráficos por diagnóstico, especialidad, previsión (Fonasa/Isapre) y profesional.</p>
-    </div>
-    <div class="feature-card">
       <div class="feature-icon">💸</div>
-      <h3>Pagos, Comisiones y Presupuestos</h3>
-      <p>Cobros online con tarjeta o Webpay (Redcompra y crédito incluidos). Cálculo automático de comisiones por profesional y cotizaciones enviadas por email al paciente.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">💬</div>
-      <h3>Chat Interno con Asistente IA</h3>
-      <p>El asistente Dairi IA responde dudas operativas en todos los planes. El plan Enterprise suma el chat de equipo completo: canales y mensajes directos entre el staff.</p>
+      <h3>Cobro online, comisiones y presupuestos</h3>
+      <p>Tus pacientes pagan con tarjeta de crédito o débito al reservar. Dairi calcula solo las comisiones de cada profesional y envía presupuestos por email con su enlace de pago.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📊</div>
-      <h3>Dashboard y Analítica Clínica</h3>
-      <p>Indicadores clave al iniciar sesión: citas del día, ingresos del mes, pacientes activos. KPIs con filtros 7 / 30 días / historial, gráficos por especialidad y previsión (Fonasa/Isapre).</p>
+      <h3>Dashboard y reportes clínicos</h3>
+      <p>Al iniciar sesión ves las citas del día, los ingresos del mes y los pacientes activos. KPIs con filtros de 7 / 30 días o historial completo, y gráficos por especialidad, profesional y previsión (Fonasa/Isapre).</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🧑‍⚕️</div>
-      <h3>Gestión de Pacientes</h3>
-      <p>Expediente digital completo: datos de contacto, historial de consultas, diagnósticos y evolución clínica. Búsqueda por RUT, nombre o previsión en segundos.</p>
+      <h3>Gestión de pacientes</h3>
+      <p>Expediente digital completo: datos de contacto, historial de sesiones y evolución. Búsqueda por RUT, nombre o previsión en segundos, y cada profesional accede solo a sus propios pacientes.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">💬</div>
-      <h3>Asistente IA incluido</h3>
-      <p>Dairi IA responde dudas operativas en todos los planes. El plan Enterprise suma el chat de equipo: canales y mensajes directos entre el staff de la clínica.</p>
+      <h3>Asistente IA y chat de equipo</h3>
+      <p>El asistente Dairi IA responde dudas operativas sobre la plataforma en todos los planes. El plan Enterprise suma el chat interno del equipo: canales y mensajes directos entre el staff.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📱</div>
-      <h3>App Móvil Android e iOS</h3>
-      <p>La misma plataforma completa en tu smartphone — sin funcionalidades recortadas. Descárgala para Android e iOS y lleva tu clínica en el bolsillo.</p>
+      <h3>App móvil Android e iOS</h3>
+      <p>La misma plataforma en tu teléfono, sin funcionalidades recortadas. Revisa la agenda del día o abre una ficha entre sesión y sesión, desde donde estés.</p>
     </div>
   </div>
 </section>
@@ -326,7 +489,7 @@
     <div class="docs-banner-icon">📚</div>
     <div class="docs-banner-body">
       <h3>¿Necesitas ayuda para usar Dairi?</h3>
-      <p>Consulta nuestra documentación completa con guías paso a paso para cada módulo: pacientes, citas, fichas clínicas, transcripción IA y más.</p>
+      <p>Documentación completa con guías paso a paso para cada módulo: pacientes, citas, ficha clínica, escalas, transcripción con IA y más.</p>
     </div>
     <a routerLink="/docs" class="docs-banner-btn">Ver documentación →</a>
   </div>
@@ -335,23 +498,28 @@
 <!-- INTEGRATIONS -->
 <section id="integraciones">
   <div class="section-label">Integraciones nativas</div>
-  <h2 class="section-title">Integrado con pagos online, Google Calendar y Deepgram Nova 3</h2>
-  <p class="section-sub">Dairi se conecta de forma nativa con las plataformas que tu clínica ya usa: pago online seguro con tarjeta o Webpay, agenda y videoconsultas con Google Calendar, y transcripción clínica con IA. Sin configuraciones complejas ni costos adicionales ocultos — cada integración funciona desde el primer día.</p>
+  <h2 class="section-title">Cobro con tarjeta, Google Calendar y transcripción de voz</h2>
+  <p class="section-sub">Dairi se conecta con lo que tu consulta ya usa: pago online seguro con tarjeta, agenda y videoconsultas con Google Calendar, y transcripción de la sesión con IA. Sin configuraciones complejas ni costos adicionales ocultos — cada integración funciona desde el primer día.</p>
   <div class="integrations-grid">
     <div class="integration-card">
       <div class="int-logo">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 460" width="36" height="36" role="img" aria-label="Logo de Flow, pasarela de pagos online de Chile">
-          <text x="230" y="152" text-anchor="middle" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-weight="300" font-size="146" letter-spacing="8" fill="#131313">FLOW</text>
-          <polygon points="10,175 188,175 99,433" fill="#4CC8EF"/>
-          <polygon points="185,175 363,175 274,433" fill="#4CC8EF"/>
-          <polygon points="99,175 277,175 188,433" fill="#131313"/>
-          <polygon points="275,175 453,175 364,433" fill="#131313"/>
+        <!-- Ícono genérico de tarjeta con candado. Antes iba acá el logo del
+             procesador de pagos: no le dice nada a un lead que no lo conoce y
+             obligaba a explicar una marca ajena antes de explicar el beneficio. -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="36" height="36" role="img"
+             aria-label="Tarjeta de crédito con candado, representa el cobro online seguro de Dairi">
+          <rect x="3" y="10" width="42" height="28" rx="4" fill="#0ea5e9"/>
+          <rect x="3" y="16" width="42" height="6" fill="#0c4a6e"/>
+          <rect x="8" y="27" width="13" height="3" rx="1.5" fill="#e0f2fe"/>
+          <circle cx="35" cy="30" r="9" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+          <path d="M31.5 29v-2.5a3.5 3.5 0 0 1 7 0V29" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round"/>
+          <rect x="30.5" y="29" width="9" height="7" rx="1.5" fill="#0284c7"/>
         </svg>
       </div>
       <div class="int-body">
-        <strong>Pago online seguro — para citas médicas</strong>
-        <p>Integración nativa con el flujo de reserva: el paciente agenda su hora y paga en el mismo paso, con tarjeta o Webpay, a través de una pasarela de pagos chilena. El estado del pago se verifica y actualiza automáticamente en la agenda.</p>
-        <p><em>Beneficio: menos inasistencias y el dinero directo en tu cuenta bancaria, sin cobranza manual.</em></p>
+        <strong>Cobro online seguro — al reservar la hora</strong>
+        <p>El paciente agenda y paga en el mismo paso, con tarjeta de crédito o débito, en una pantalla de pago cifrada. Dairi nunca guarda los datos de la tarjeta y confirma el estado del pago en la agenda de forma automática.</p>
+        <p><em>Beneficio: menos horas perdidas y el dinero directo en tu cuenta bancaria, sin cobranza manual.</em></p>
       </div>
     </div>
     <div class="integration-card">
@@ -375,7 +543,7 @@
     </div>
     <div class="integration-card">
       <div class="int-logo">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 42 42" width="34" height="34" role="img" aria-label="Logo de Deepgram, inteligencia artificial de voz">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 42 42" width="34" height="34" role="img" aria-label="Logo de Deepgram, el motor de transcripción de voz con IA que usa Dairi">
           <rect x="1"  y="15" width="7" height="12" rx="3.5" fill="#13EF93"/>
           <rect x="12" y="7"  width="7" height="28" rx="3.5" fill="#13EF93"/>
           <rect x="23" y="11" width="7" height="20" rx="3.5" fill="#13EF93"/>
@@ -384,7 +552,7 @@
       </div>
       <div class="int-body">
         <strong>Deepgram Nova-3 — Transcripción de voz</strong>
-        <p>La IA de voz más precisa en español médico. Escucha la consulta, identifica quién habla y la convierte en texto listo para la ficha del paciente.</p>
+        <p>Reconocimiento de voz en español clínico: escucha la sesión, distingue quién habla y la convierte en texto que puedes revisar y volcar a la ficha del paciente.</p>
       </div>
     </div>
   </div>
@@ -392,33 +560,32 @@
 
 <!-- POR QUÉ DAIRI -->
 <section id="por-que">
-  <div class="section-label">Ventajas competitivas</div>
-  <h2 class="section-title">¿Por qué elegir Dairi?</h2>
-  <p class="section-sub">Diseñado para la realidad de las clínicas latinoamericanas. Sin letra chica, sin complicaciones, sin costos ocultos.</p>
+  <div class="section-label">Por qué Dairi</div>
+  <h2 class="section-title">Tres razones para cambiarte</h2>
+  <p class="section-sub">Hecho en Chile, en pesos, para la realidad de una consulta chilena. Sin letra chica y sin costos ocultos.</p>
   <div class="features-grid">
-    <div class="feature-card" style="border-color:rgba(19,239,147,.45);">
-      <div class="feature-icon">🎙️</div>
-      <h3>La ficha se escribe sola</h3>
-      <p>Habla con tu paciente y Dairi transcribe la consulta al instante. Recupera horas de tipeo cada semana y dedícalas a atender más pacientes.</p>
+    <div class="feature-card" style="border-color:rgba(139,92,246,.45);">
+      <div class="feature-icon">🧠</div>
+      <h3>Registra el proceso, no solo la cita</h3>
+      <p>Notas de proceso privadas, escalas con trayectoria, tareas intersesión y ánimo entre sesiones. Casi todo el software clínico está pensado para consultas puntuales; la psicoterapia funciona distinto y Dairi está construido para eso.</p>
     </div>
     <div class="feature-card" style="border-color:rgba(14,165,233,.4);">
       <div class="feature-icon">💰</div>
-      <h3>Precio justo, sin sorpresas</h3>
-      <p>Desde $6.990 al mes con todo incluido — fichas, IA, pagos online y app móvil. La mayoría de los softwares clínicos arrancan desde US$80/mes y no incluyen ni la mitad.</p>
+      <h3>Precio en pesos, sin sorpresas</h3>
+      <p>Plan Starter gratis sin vencimiento para ordenar la agenda, y plan Pro a $6.990 al mes con ficha clínica, IA, cobro online y app móvil incluidos. Sin cobro por paciente y sin costo extra por las integraciones.</p>
     </div>
     <div class="feature-card" style="border-color:rgba(16,185,129,.35);">
       <div class="feature-icon">📅</div>
-      <h3>No pierdas más pacientes</h3>
-      <p>Tus pacientes reservan y pagan online a cualquier hora, desde el celular. Se acabaron las horas perdidas por teléfonos ocupados o agendas de papel.</p>
+      <h3>Deja de perder horas</h3>
+      <p>Tus pacientes reservan y pagan desde el celular a cualquier hora, con recordatorio por email. Se acabaron los WhatsApp para coordinar y las horas que se caen sin aviso.</p>
     </div>
   </div>
 </section>
 
 <!-- CTA FINAL -->
 <div class="cta-section" id="cta">
-  <div class="cta-urgency-badge">🔥 Cupos limitados — quedan pocos disponibles</div>
   <h2>Empieza gratis.<br>Sin tarjeta de crédito.</h2>
-  <p>Un plan 100% gratis para agendar tus citas, o acceso completo a Dairi por 30 días sin costo en los planes pagos.</p>
+  <p>Un plan 100% gratis para agendar tus horas, o acceso completo a la ficha psicológica por 30 días sin costo en los planes pagos.</p>
 
   <div class="pricing-grid">
 
@@ -428,11 +595,11 @@
       <div class="pricing-price">
         <span class="p-consult">Gratis</span>
       </div>
-      <p class="pricing-desc">Para un profesional independiente que solo necesita ordenar su agenda.</p>
+      <p class="pricing-desc">Para un profesional independiente que solo necesita ordenar su agenda. Sin ficha clínica.</p>
       <hr class="pricing-divider">
       <ul class="pricing-features">
         <li>1 profesional</li>
-        <li>1 especialidad médica</li>
+        <li>1 especialidad clínica</li>
         <li>Agenda de citas</li>
         <li>Los pacientes reservan su hora solos, las 24 hs</li>
         <li>Resumen diario de reservas</li>
@@ -453,17 +620,19 @@
         <span class="p-amount">6.990</span>
         <span class="p-period">/mes</span>
       </div>
-      <p class="pricing-desc">Para clínicas pequeñas que quieren ordenarse desde el primer día.</p>
+      <p class="pricing-desc">Para el psicólogo o profesional independiente que quiere la ficha clínica completa.</p>
       <hr class="pricing-divider">
       <ul class="pricing-features">
         <li>Hasta 3 profesionales</li>
-        <li>1 especialidad médica</li>
+        <li>1 especialidad clínica a elección (psicología, medicina general, odontología…)</li>
         <li>Fichas de pacientes y registro de atenciones</li>
+        <li class="feature-highlight">🧠 Ficha psicológica: notas de proceso privadas, PHQ-9 y GAD-7, tareas intersesión y registro de ánimo</li>
+        <li class="feature-highlight">✦ Resumen previo a la sesión e informes con IA (borradores que revisas y firmas)</li>
         <li>Agenda de citas con vista semanal</li>
         <li>Los pacientes reservan su hora solos, las 24 hs</li>
         <li>Chat de soporte con el asistente Dairi IA</li>
         <li>Resumen diario de la actividad clínica</li>
-        <li class="feature-highlight">✦ Dicta tus consultas con voz (10 h/mes)</li>
+        <li class="feature-highlight">✦ Dicta tus sesiones con voz (10 h/mes)</li>
         <li class="feature-commission">Pagos online (3% por transacción)</li>
         <li>Confirmaciones y recordatorios por email</li>
         <li>Capacitaciones y soporte incluidos</li>
@@ -478,12 +647,12 @@
       <div class="pricing-price">
         <span class="p-consult">Cotiza aquí</span>
       </div>
-      <p class="pricing-desc">Para clínicas en crecimiento con varios profesionales y especialidades.</p>
+      <p class="pricing-desc">Para centros de psicología y clínicas con varios profesionales y especialidades.</p>
       <hr class="pricing-divider">
       <ul class="pricing-features">
         <li>Hasta 20 profesionales</li>
         <li>Todo lo del plan Pro</li>
-        <li>Dental, psicología, kinesiología, nutrición y más</li>
+        <li>Varias especialidades a la vez: psicología, dental, kinesiología, nutrición y más</li>
         <li>Fichas especializadas según cada profesional</li>
         <li>Informes de rendimiento y facturación</li>
         <li>Control automático de comisiones del equipo</li>
@@ -495,7 +664,7 @@
         <li>Chat interno del equipo: canales y mensajes directos</li>
         <li>Asistente IA disponible en el chat del equipo</li>
         <li>Módulo de administración y control de acceso por rol</li>
-        <li class="feature-highlight">✦ Dicta tus consultas con voz (50 h/mes)</li>
+        <li class="feature-highlight">✦ Dicta tus sesiones con voz (50 h/mes)</li>
         <li class="feature-commission">Pagos online (1% por transacción)</li>
         <li>Confirmaciones y recordatorios por email</li>
         <li>Capacitaciones y soporte incluidos</li>
@@ -506,15 +675,33 @@
 
   </div>
 
-  <p class="trial-note">30 días de prueba completa. Después elige el plan que más te acomode. Cancela cuando quieras, sin preguntas.</p>
+  <p class="trial-note">30 días de prueba completa. Después eliges el plan que más te acomode. Cancela cuando quieras, sin preguntas. Precios en pesos chilenos; la comisión por transacción se aplica solo sobre los cobros que proceses en línea.</p>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     FAQ — respalda el JSON-LD de FAQPage que inyecta landing.component.ts.
+     Si editas una pregunta o respuesta acá, actualiza también FAQ_ITEMS en
+     el .ts: Google exige que el contenido del schema esté visible en la página.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<section class="faq-section" id="faq">
+  <div class="section-label">Preguntas frecuentes</div>
+  <h2 class="section-title">Dudas antes de partir</h2>
+  <div class="faq-grid">
+    @for (item of faqItems; track item.q) {
+      <div class="faq-item">
+        <h3 class="faq-q">{{ item.q }}</h3>
+        <p class="faq-a">{{ item.a }}</p>
+      </div>
+    }
+  </div>
+</section>
 
 <!-- FOOTER -->
 <footer id="contacto">
   <div class="footer-grid">
     <div class="footer-brand">
       <div class="footer-logo">Dairi<span>.</span></div>
-      <p class="footer-tagline">Plataforma de gestión clínica y empresarial inteligente. Diseñada para equipos de salud modernos en Latinoamérica.</p>
+      <p class="footer-tagline">Software de gestión clínica para psicólogos y equipos de salud en Chile: ficha clínica, agenda online y cobro con tarjeta.</p>
       <div class="footer-legal">
         <p><strong>Servicios Informáticos Dairi Francisco Riquelme E.I.R.L.</strong></p>
       </div>
@@ -522,11 +709,12 @@
     <div class="footer-col">
       <h4>Producto</h4>
       <ul>
+        <li><a href="#psicologia">Software para psicólogos</a></li>
+        <li><a href="#especialidades">Especialidades</a></li>
         <li><a href="#features">Funcionalidades</a></li>
-        <li><a href="#por-que">Por qué Dairi</a></li>
         <li><a href="#cta">Precios</a></li>
+        <li><a href="#faq">Preguntas frecuentes</a></li>
         <li><a routerLink="/docs">Documentación</a></li>
-        <li><a href="#">Novedades</a></li>
       </ul>
     </div>
     <div class="footer-col">
@@ -536,7 +724,6 @@
       <div class="contact-item">📍 <span>Santiago, Chile</span></div>
       <div class="contact-item" style="margin-top:.75rem; gap: 1rem;">
         <a href="https://www.linkedin.com/company/111472342/admin/dashboard/" target="_blank" rel="noopener">LinkedIn</a>
-        <a href="#">Instagram</a>
         <a href="https://wa.me/56927380898" target="_blank" rel="noopener">WhatsApp</a>
       </div>
     </div>

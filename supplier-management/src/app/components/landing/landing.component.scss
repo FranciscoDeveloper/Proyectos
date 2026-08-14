@@ -37,16 +37,6 @@ nav {
   padding: 0 2rem; height: 64px;
 }
 .nav-logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); letter-spacing: -1px; }
-.nav-logo .logo-dot {
-  color: var(--accent);
-  display: inline-block;
-  animation: dotPulse 2.8s ease-in-out infinite;
-  transform-origin: center bottom;
-}
-@keyframes dotPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.22); }
-}
 .nav-links { display: flex; gap: 2rem; }
 .nav-links a { color: var(--muted); text-decoration: none; font-size: .9rem; transition: color .2s; }
 .nav-links a:hover { color: var(--text); }
@@ -184,47 +174,35 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
 }
 .docs-banner-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(14,165,233,.45); }
 
-/* ── AI SECTION ───────────────────────────────────────────────────── */
-.ai-section {
-  margin: 0 auto;
-  background: linear-gradient(135deg, var(--sky-50) 0%, rgba(6,182,212,.06) 100%);
-  border: 1.5px solid var(--sky-200); border-radius: 24px;
-  padding: 4rem 2rem; text-align: center; max-width: 1100px;
+/* ── PSICOLOGÍA (sección insignia) ────────────────────────────────── */
+#psicologia {
+  background: linear-gradient(180deg, rgba(139,92,246,.05) 0%, transparent 70%);
+  max-width: none;
+  > * { max-width: 1100px; margin-left: auto; margin-right: auto; }
 }
-.ai-badge {
-  display: inline-flex; align-items: center; gap: .4rem;
-  background: rgba(6,182,212,.1); border: 1.5px solid rgba(6,182,212,.3);
-  color: var(--primary-dark); padding: .35rem 1rem; border-radius: 99px;
-  font-size: .8rem; font-weight: 700; margin-bottom: 1.25rem; letter-spacing: .5px;
+.center-cta { text-align: center; margin-top: 2.75rem; }
+.legal-note {
+  max-width: 760px; margin: 1.75rem auto 0; text-align: center;
+  font-size: .8rem; line-height: 1.65; color: var(--muted);
+  border-top: 1px solid var(--sky-200); padding-top: 1.25rem;
 }
-.ai-section h2 {
-  font-size: clamp(1.6rem, 3.5vw, 2.4rem); font-weight: 800;
-  letter-spacing: -1px; margin-bottom: 1rem;
+
+/* ── LISTA DE ESPECIALIDADES ──────────────────────────────────────── */
+.spec-list {
+  display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center;
+  max-width: 800px; margin: 0 auto;
 }
-.ai-section p { color: var(--muted); max-width: 580px; margin: 0 auto 2rem; }
-.ai-features { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 2rem; }
-.ai-pill {
-  background: #fff; border: 1.5px solid var(--sky-200); border-radius: 99px;
-  padding: .42rem 1.1rem; font-size: .81rem; color: var(--sky-800); font-weight: 500;
+.spec-item {
+  border: 1.5px solid var(--sky-200); background: var(--sky-50);
+  border-radius: 99px; padding: .48rem 1.1rem;
+  font-size: .85rem; font-weight: 600; color: var(--sky-800);
 }
+.spec-item.is-lead { border-color: #a78bfa; background: rgba(139,92,246,.1); color: #6d28d9; }
 
 /* ── CTA SECTION ──────────────────────────────────────────────────── */
 .cta-section {
   text-align: center; padding: 6rem 1.5rem;
   background: radial-gradient(ellipse 60% 40% at 50% 110%, rgba(14,165,233,.10) 0%, transparent 65%), var(--sky-50);
-}
-.cta-urgency-badge {
-  display: inline-flex; align-items: center; gap: .4rem;
-  background: linear-gradient(135deg, #dc2626, #ef4444);
-  color: #fff; font-size: .8rem; font-weight: 700;
-  letter-spacing: .3px; padding: .38rem 1rem;
-  border-radius: 99px; margin-bottom: 1.4rem;
-  box-shadow: 0 4px 14px rgba(220,38,38,.35);
-  animation: pulse-badge 2.2s ease-in-out infinite;
-}
-@keyframes pulse-badge {
-  0%, 100% { box-shadow: 0 4px 14px rgba(220,38,38,.35); }
-  50%       { box-shadow: 0 4px 22px rgba(220,38,38,.58); }
 }
 .cta-section h2 {
   font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900;
@@ -299,22 +277,6 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
 }
 .pricing-btn.solid:hover { box-shadow: 0 10px 32px rgba(14,165,233,.5); }
 
-/* ── FAQ ──────────────────────────────────────────────────────────── */
-.faq-list {
-  max-width: 800px; margin: 2.5rem auto 0;
-  display: flex; flex-direction: column; gap: 1rem;
-}
-.faq-item {
-  border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 1.5rem 1.75rem; background: var(--sky-50);
-  transition: border-color .2s, box-shadow .2s;
-}
-.faq-item:hover {
-  border-color: var(--primary); box-shadow: 0 4px 18px rgba(14,165,233,.08);
-}
-.faq-item h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: .6rem; }
-.faq-item p  { font-size: .92rem; color: var(--muted); line-height: 1.7; }
-
 /* ── FOOTER ───────────────────────────────────────────────────────── */
 footer {
   background: var(--text); color: #e2e8f0;
@@ -350,218 +312,6 @@ footer {
 }
 .footer-bottom a { color: #475569; text-decoration: none; }
 .footer-bottom a:hover { color: #94a3b8; }
-
-/* ── HERO TRUST PILLS ─────────────────────────────────────────────── */
-.hero-trust-pills {
-  display: flex;
-  gap: .75rem;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 1.25rem;
-  animation: fadeUp .55s .4s ease both;
-}
-.hero-trust-pill {
-  font-size: .8rem;
-  font-weight: 500;
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-  gap: .3rem;
-}
-
-/* ── TRUST BAND ───────────────────────────────────────────────────── */
-.trust-band {
-  background: var(--sky-50);
-  border-top: 1px solid var(--sky-200);
-  border-bottom: 1px solid var(--sky-200);
-  padding: 1.5rem 1.5rem;
-}
-.trust-band-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  flex-wrap: wrap;
-}
-.trust-band-item {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  padding: .6rem 2rem;
-  flex: 1;
-  min-width: 200px;
-
-  svg {
-    width: 20px;
-    height: 20px;
-    color: var(--primary);
-    flex-shrink: 0;
-  }
-
-  div {
-    display: flex;
-    flex-direction: column;
-    gap: .05rem;
-  }
-
-  strong {
-    font-size: .85rem;
-    font-weight: 700;
-    color: var(--text);
-  }
-
-  span {
-    font-size: .75rem;
-    color: var(--muted);
-  }
-}
-.trust-band-sep {
-  width: 1px;
-  height: 40px;
-  background: var(--sky-200);
-  flex-shrink: 0;
-}
-@media (max-width: 700px) {
-  .trust-band-sep { display: none; }
-  .trust-band-item { min-width: 140px; padding: .5rem 1rem; }
-}
-
-/* ── AI SECTION (updated layout) ─────────────────────────────────── */
-.ai-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-  align-items: center;
-  text-align: left;
-}
-.ai-section h2 {
-  text-align: left;
-}
-.ai-section p {
-  margin: 0 0 0 0;
-  text-align: left;
-}
-@media (max-width: 760px) {
-  .ai-layout { grid-template-columns: 1fr; }
-  .ai-section h2, .ai-section p { text-align: center; }
-  .ai-phone-wrap { display: flex; justify-content: center; }
-}
-
-/* WhatsApp phone mockup */
-.ai-phone-wrap { display: flex; justify-content: flex-end; }
-.ai-phone {
-  width: 280px;
-  border-radius: 20px;
-  overflow: hidden;
-  background: #ece5dd;
-  box-shadow: 0 20px 60px rgba(0,0,0,.18), 0 0 0 1px rgba(14,165,233,.1);
-}
-.ai-phone-bar {
-  background: #075e54;
-  padding: .7rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: .65rem;
-  color: #fff;
-}
-.ai-phone-avatar {
-  width: 34px;
-  height: 34px;
-  background: #25d366;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: .9rem;
-  flex-shrink: 0;
-}
-.ai-phone-info strong {
-  display: block;
-  font-size: .82rem;
-  font-weight: 700;
-  line-height: 1.2;
-}
-.ai-phone-info span {
-  font-size: .68rem;
-  color: rgba(255,255,255,.75);
-}
-.ai-phone-chat {
-  padding: .85rem .75rem;
-  display: flex;
-  flex-direction: column;
-  gap: .5rem;
-  min-height: 220px;
-}
-.chat-bubble {
-  max-width: 85%;
-  padding: .55rem .85rem;
-  border-radius: 12px;
-  font-size: .79rem;
-  line-height: 1.5;
-  opacity: 0;
-  animation: chatReveal .35s ease forwards;
-
-  strong { font-weight: 700; }
-}
-.chat-patient {
-  background: #fff;
-  align-self: flex-start;
-  border-bottom-left-radius: 3px;
-  color: #1e293b;
-}
-.chat-bot {
-  background: #dcf8c6;
-  align-self: flex-end;
-  border-bottom-right-radius: 3px;
-  color: #1e293b;
-}
-@keyframes chatReveal {
-  from { opacity: 0; transform: translateY(6px) scale(.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* ── FAQ SECTION ──────────────────────────────────────────────────── */
-.faq-section {
-  padding: 5rem 1.5rem;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-.faq-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.25rem;
-  margin-top: 3rem;
-}
-.faq-item {
-  background: var(--bg);
-  border: 1.5px solid var(--sky-200);
-  border-radius: var(--radius);
-  padding: 1.5rem 1.75rem;
-  transition: border-color .2s, box-shadow .2s;
-
-  &:hover {
-    border-color: var(--primary);
-    box-shadow: 0 6px 24px rgba(14,165,233,.1);
-  }
-
-  h3 {
-    font-size: .95rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: .6rem;
-    line-height: 1.35;
-  }
-
-  p {
-    font-size: .84rem;
-    color: var(--muted);
-    line-height: 1.65;
-    margin: 0;
-  }
-}
 
 /* ── INTEGRATIONS ─────────────────────────────────────────────────── */
 #integraciones {
@@ -633,11 +383,10 @@ footer {
   transition: transform .15s;
   &:hover { transform: translateY(-1px); }
 }
-.pb-flow      { color: #0f7a9e; border-color: rgba(76,200,239,.45); background: rgba(76,200,239,.1); }
+.pb-pay     { color: #0f7a9e; border-color: rgba(76,200,239,.45); background: rgba(76,200,239,.1); }
 .pb-google  { color: #1a5cc8; border-color: rgba(66,133,244,.35); background: rgba(66,133,244,.08); }
-.pb-aws     { color: #a06200; border-color: rgba(255,153,0,.4);   background: rgba(255,153,0,.09); }
 .pb-deepgram{ color: #0a8a56; border-color: rgba(19,239,147,.45); background: rgba(19,239,147,.1); }
-.pb-bedrock { color: #8b5a00; border-color: rgba(255,153,0,.35);  background: rgba(255,153,0,.07); }
+.pb-psico   { color: #6d28d9; border-color: rgba(139,92,246,.4);  background: rgba(139,92,246,.1); }
 
 /* ── MOCKUP SCENE ────────────────────────────────────────────────── */
 .mockup-scene {
@@ -850,6 +599,8 @@ footer {
   align-items: center;
   &:last-child { border-bottom: none; }
 }
+/* Variante de 3 columnas — la usa la vista de psicología (tareas intersesión). */
+.mvt-3 { grid-template-columns: 2.2fr .9fr 1.1fr; }
 .mvt-head {
   background: rgba(255,255,255,.04);
   font-size: .59rem;
@@ -1080,9 +831,9 @@ footer {
   /* Dashboard: 2-col KPIs, hide chart */
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .mv-chart-wrap { display: none; }
-  /* Table: hide professional column */
-  .mvt-row { grid-template-columns: 2fr .75fr 1fr; }
-  .mvt-row > span:nth-child(3) { display: none; }
+  /* Table: hide professional column (solo la tabla de 4 columnas) */
+  .mvt-row:not(.mvt-3) { grid-template-columns: 2fr .75fr 1fr; }
+  .mvt-row:not(.mvt-3) > span:nth-child(3) { display: none; }
 
   /* Calendar: smaller cells, max 1 event */
   .cal-cell { min-height: 40px; }
