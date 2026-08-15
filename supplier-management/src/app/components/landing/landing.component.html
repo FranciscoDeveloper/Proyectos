@@ -18,10 +18,10 @@
 <!-- HERO -->
 <section class="hero" style="max-width:100%;">
   <div class="hero-badge">
-    ✦ Cupos limitados · Solo 50 clínicas en el plan de lanzamiento · Reserva el tuyo hoy
+    ✦ Funciona hoy para psicólogos — Dicta, Agenda, Cobra, todo en un lugar
   </div>
-  <h1>Software clínico para Chile<br><span class="gradient">citas, fichas y pagos online</span></h1>
-  <p>Agenda online, fichas clínicas especializadas y cobros con Flow y Transbank — todo en un solo software. Transcripción de consultas con IA, comisiones automáticas y cada profesional ve solo sus propios datos.</p>
+  <h1>Software para psicólogos<br><span class="gradient">la ficha se escribe sola, con voz</span></h1>
+  <p>Pensado para psicólogos en consulta particular: al terminar la sesión dictas y la IA redacta tu nota SOAP en 2 minutos. Suma agenda online para que tus pacientes reserven solos, videoconsultas con Google Meet integrado, previsión FONASA e ISAPRE y cobros con Flow y Transbank.</p>
   <div class="hero-btns">
     <a routerLink="/login" class="btn-primary">Comenzar gratis — 30 días</a>
     <a href="#features" class="btn-secondary">Ver funcionalidades →</a>
@@ -58,7 +58,7 @@
             <div class="mbs-item"><span>🧑‍⚕️</span><span>Pacientes</span></div>
             <div class="mbs-item" [class.active]="activeView === 'citas'" (click)="setActiveView('citas')"><span>📅</span><span>Citas</span></div>
             <div class="mbs-item" [class.active]="activeView === 'ficha'" (click)="setActiveView('ficha')"><span>📋</span><span>Fichas</span></div>
-            <div class="mbs-item"><span>💊</span><span>Inventario</span></div>
+            <div class="mbs-item"><span>🧠</span><span>Sesiones</span></div>
             <div class="mbs-item"><span>💸</span><span>Pagos</span></div>
             <div class="mbs-item"><span>💬</span><span>Chat IA</span></div>
           </div>
@@ -76,7 +76,7 @@
               <div class="kpi"><div class="kpi-val kpi-blue">12</div><div class="kpi-label">Citas hoy</div></div>
               <div class="kpi"><div class="kpi-val kpi-green">$840K</div><div class="kpi-label">Ingresos</div></div>
               <div class="kpi"><div class="kpi-val kpi-cyan">247</div><div class="kpi-label">Pacientes</div></div>
-              <div class="kpi"><div class="kpi-val kpi-amber">8</div><div class="kpi-label">Stock bajo</div></div>
+              <div class="kpi"><div class="kpi-val kpi-amber">9</div><div class="kpi-label">Notas dictadas</div></div>
             </div>
             <div class="mv-chart-wrap">
               <div class="mv-chart-title">Citas · Semana actual</div>
@@ -92,10 +92,10 @@
             </div>
             <div class="mv-table">
               <div class="mvt-row mvt-head"><span>Paciente</span><span>Hora</span><span>Profesional</span><span>Estado</span></div>
-              <div class="mvt-row"><span>María González</span><span>09:00</span><span>Dr. Rojas</span><span class="st st-green">Completada</span></div>
-              <div class="mvt-row"><span>Carlos Soto</span><span>10:30</span><span>Dra. Vidal</span><span class="st st-amber">En espera</span></div>
-              <div class="mvt-row"><span>Ana Pérez</span><span>11:15</span><span>Dr. Rojas</span><span class="st st-blue">Agendada</span></div>
-              <div class="mvt-row"><span>Luis Morales</span><span>14:00</span><span>Dra. Vidal</span><span class="st st-green">Completada</span></div>
+              <div class="mvt-row"><span>María González</span><span>09:00</span><span>Ps. Rojas</span><span class="st st-green">Completada</span></div>
+              <div class="mvt-row"><span>Carlos Soto</span><span>10:30</span><span>Ps. Vidal</span><span class="st st-amber">En espera</span></div>
+              <div class="mvt-row"><span>Ana Pérez</span><span>11:15</span><span>Ps. Rojas</span><span class="st st-blue">Agendada</span></div>
+              <div class="mvt-row"><span>Luis Morales</span><span>14:00</span><span>Ps. Vidal</span><span class="st st-green">Completada</span></div>
             </div>
           </div>
 
@@ -169,20 +169,20 @@
               <div class="pt-avatar">MG</div>
               <div class="pt-info">
                 <div class="pt-name">Mar&#237;a Gonz&#225;lez Soto</div>
-                <div class="pt-meta">RUT 12.345.678-9 &#183; 34 a&#241;os &#183; FONASA A &#183; Dr. Rojas</div>
+                <div class="pt-meta">RUT 12.345.678-9 &#183; 34 a&#241;os &#183; FONASA A &#183; Ps. Rojas</div>
               </div>
             </div>
             <div class="vitals-grid">
-              <div class="vital"><div class="vital-val">120/80</div><div class="vital-lbl">Presi&#243;n</div></div>
-              <div class="vital"><div class="vital-val">36.8&#176;C</div><div class="vital-lbl">Temp.</div></div>
-              <div class="vital"><div class="vital-val">72</div><div class="vital-lbl">FC (bpm)</div></div>
-              <div class="vital"><div class="vital-val">98%</div><div class="vital-lbl">SpO2</div></div>
+              <div class="vital"><div class="vital-val">Ansiedad</div><div class="vital-lbl">Motivo de consulta</div></div>
+              <div class="vital"><div class="vital-val">N&#176; 7</div><div class="vital-lbl">Sesi&#243;n</div></div>
+              <div class="vital"><div class="vital-val">FONASA A</div><div class="vital-lbl">Previsi&#243;n</div></div>
+              <div class="vital"><div class="vital-val">50 min</div><div class="vital-lbl">Duraci&#243;n</div></div>
             </div>
             <div class="soap-block">
-              <div class="soap-row"><span class="soap-tag soap-s">S</span><span class="soap-text">Paciente refiere cefalea persistente por 3 d&#237;as, intensidad 6/10, tipo tensional...</span></div>
-              <div class="soap-row"><span class="soap-tag soap-o">O</span><span class="soap-text">PA 120/80, T 36.8&#176;C, FC 72 bpm, SpO2 98%. Fondo de ojo sin alteraciones...</span></div>
-              <div class="soap-row"><span class="soap-tag soap-a">A</span><span class="soap-text">Cefalea tensional G44.2. Sin signos de focalidad neurol&#243;gica...</span></div>
-              <div class="soap-row"><span class="soap-tag soap-p">P</span><span class="soap-text">Paracetamol 1g c/8h &#215; 5 d&#237;as. Reposo relativo. Control en 7 d&#237;as si persiste...</span></div>
+              <div class="soap-row"><span class="soap-tag soap-s">S</span><span class="soap-text">Relata semana m&#225;s tranquila; refiere menos despertares nocturnos y menor anticipaci&#243;n ansiosa antes de reuniones...</span></div>
+              <div class="soap-row"><span class="soap-tag soap-o">O</span><span class="soap-text">Se presenta puntual, contacto visual sostenido, discurso coherente. &#193;nimo eut&#237;mico, afecto congruente. Sin ideaci&#243;n suicida...</span></div>
+              <div class="soap-row"><span class="soap-tag soap-a">A</span><span class="soap-text">Evoluci&#243;n favorable. Sintomatolog&#237;a ansiosa en descenso; mejor regulaci&#243;n frente a situaciones laborales gatillantes...</span></div>
+              <div class="soap-row"><span class="soap-tag soap-p">P</span><span class="soap-text">Continuar reestructuraci&#243;n cognitiva y registro de pensamientos. Ejercicio de respiraci&#243;n diario. Pr&#243;xima sesi&#243;n en 7 d&#237;as...</span></div>
             </div>
             <div class="ai-strip">
               <span class="ai-chip">&#129302; Nota SOAP &#183; Dairi IA</span>
@@ -200,8 +200,8 @@
 <!-- TRUST STRIP -->
 <div class="trust-strip">
   <div class="trust-item">
-    <span class="trust-num">9</span>
-    <span class="trust-lbl">especialidades clínicas</span>
+    <span class="trust-num">2 min</span>
+    <span class="trust-lbl">por nota SOAP dictada</span>
   </div>
   <div class="trust-div"></div>
   <div class="trust-item">
@@ -229,7 +229,7 @@
     <div class="feature-card">
       <div class="feature-icon">🎙️</div>
       <h3>La ficha se escribe sola</h3>
-      <p>Graba la consulta y Deepgram Nova-3 la transcribe en español con identificación de hablantes. La IA genera la nota SOAP lista para la ficha — en segundos, sin tipear nada.</p>
+      <p>Al terminar la sesión dictas lo ocurrido y Deepgram Nova-3 lo transcribe en español. La IA genera la nota SOAP lista para la ficha — en 2 minutos, sin tipear nada.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📋</div>
@@ -369,6 +369,30 @@
         <strong>Transbank Webpay — Pagos con Tarjeta</strong>
         <p>El estándar de pagos en Chile. Tus pacientes pagan con Redcompra, Crédito y prepago directamente en la reserva online — sin salir de la plataforma, sin redireccionamientos.</p>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- PSICÓLOGOS -->
+<section id="psicologos" class="psi-section">
+  <div class="section-label">Para psicólogos</div>
+  <h2 class="section-title">El único software que escucha tu sesión y escribe la nota</h2>
+  <p class="section-sub">Mientras otros softwares lo anuncian como "próximamente", en Dairi el dictado de voz → nota SOAP funciona desde hoy.</p>
+  <div class="features-grid">
+    <div class="feature-card" style="border-color:rgba(19,239,147,.45);">
+      <div class="feature-icon">🎙️</div>
+      <h3>Dictado de voz → SOAP en 2 minutos</h3>
+      <p>Escribir la nota de una sesión toma entre 15 y 20 minutos. Con Dairi dictas al terminar y la IA la estructura en subjetivo, objetivo, análisis y plan. Con 8 sesiones al día son más de 2 horas recuperadas cada jornada.</p>
+    </div>
+    <div class="feature-card" style="border-color:rgba(14,165,233,.4);">
+      <div class="feature-icon">📅</div>
+      <h3>Tus pacientes reservan solos</h3>
+      <p>Se acabó coordinar horas por WhatsApp o devolver llamadas entre sesión y sesión. Tus pacientes ven tu disponibilidad real y reservan a cualquier hora desde el celular, con confirmación y recordatorio por email.</p>
+    </div>
+    <div class="feature-card" style="border-color:rgba(139,92,246,.4);">
+      <div class="feature-icon">💻</div>
+      <h3>Videoconsulta y nota en el mismo lugar</h3>
+      <p>Al agendar una sesión online el enlace de Google Meet se genera solo y queda en tu calendario y en el del paciente. Terminas la videoconsulta, dictas la nota y queda guardada en la ficha — sin saltar entre aplicaciones.</p>
     </div>
   </div>
 </section>
@@ -521,6 +545,14 @@
     <div class="faq-item">
       <h3 class="faq-q">¿Funciona para mi especialidad?</h3>
       <p class="faq-a">Dairi incluye 9 fichas clínicas especializadas: medicina general, psicología, odontología, kinesiología, nutrición, fonoaudiología, terapia ocupacional, matrona y tecnología médica. Cada una con sus campos específicos.</p>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-q">¿Dairi registra la previsión de mis pacientes (FONASA, ISAPRE)?</h3>
+      <p class="faq-a">Sí. Cada ficha guarda la previsión del paciente — FONASA A, B, C o D, ISAPRE, Particular, CAPREDENA o DIPRECA — y queda visible en la atención. Además puedes filtrar tus reportes y KPIs por previsión para saber cuánto de tu consulta es particular y cuánto viene por convenio.</p>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-q">¿Puedo atender pacientes online?</h3>
+      <p class="faq-a">Sí. Al agendar una sesión online, Dairi genera automáticamente el enlace de Google Meet y lo sincroniza con tu calendario y el del paciente. Al terminar dictas tu nota con voz y la IA la deja lista como nota SOAP en la ficha, sin cambiar de herramienta.</p>
     </div>
     <div class="faq-item">
       <h3 class="faq-q">¿Puedo cancelar en cualquier momento?</h3>

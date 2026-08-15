@@ -3,8 +3,8 @@ import { RouterLink } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
 
-const SEO_TITLE = 'Dairi | Software de Gestión Clínica para Chile y Latinoamérica';
-const SEO_DESCRIPTION = 'Dairi es el software de gestión clínica en la nube para Chile y Latinoamérica. Administra pacientes, citas, fichas clínicas, inventario y pagos en una sola plataforma. 14 días gratis.';
+const SEO_TITLE = 'Dairi | Software para Psicólogos en Chile — Fichas, Agenda y IA';
+const SEO_DESCRIPTION = 'Software clínico para psicólogos en Chile: dicta tu sesión y la IA escribe la nota SOAP en minutos. Agenda online, videoconsultas con Google Meet, previsiones FONASA e ISAPRE y cobros con Flow y Transbank. 30 días gratis.';
 const SEO_URL = 'https://app.dairi.cl/';
 const SEO_IMAGE = 'https://app.dairi.cl/og-image.png';
 
@@ -41,8 +41,9 @@ const JSON_LD_SCRIPTS = [
       ],
       featureList: [
         'Gestión de pacientes', 'Calendario de citas', 'Fichas clínicas especializadas',
-        'Control de inventario', 'Gestión de proveedores', 'Control de pagos y gastos',
-        'Dashboard con métricas', 'Boleta electrónica SII', 'Chat interno del equipo'
+        'Dictado de voz a nota clínica con IA', 'Videoconsultas integradas con Google Meet',
+        'Agenda online para que los pacientes reserven solos', 'Control de pagos y comisiones',
+        'Dashboard con métricas', 'Chat interno del equipo'
       ],
       inLanguage: 'es-CL',
       availableOnDevice: 'Desktop, Mobile, Tablet',
@@ -58,12 +59,12 @@ const JSON_LD_SCRIPTS = [
         {
           '@type': 'Question',
           name: '¿Qué es Dairi y para qué sirve?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Dairi es un software de gestión clínica en la nube diseñado para clínicas y consultorios en Latinoamérica. Centraliza la administración de pacientes, citas, fichas clínicas, inventario de productos, proveedores y pagos en una sola plataforma accesible desde cualquier dispositivo con internet.' }
+          acceptedAnswer: { '@type': 'Answer', text: 'Dairi es un software clínico en la nube pensado para psicólogos y profesionales de la salud en consulta particular. Centraliza fichas clínicas con nota SOAP, agenda online, videoconsultas, previsiones (FONASA, ISAPRE, Particular) y control de pagos en una sola plataforma. Su diferenciador es el dictado de voz: al terminar la sesión dictas y la IA redacta la nota clínica.' }
         },
         {
           '@type': 'Question',
           name: '¿Cuánto cuesta Dairi?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Dairi tiene tres planes: Starter desde US$9/mes (hasta 5 usuarios), Pro desde US$18/mes (hasta 10 usuarios con inventario, pagos y boleta electrónica) y Enterprise con precio a consultar para organizaciones grandes. Todos los planes incluyen 14 días de prueba gratuita sin tarjeta de crédito.' }
+          acceptedAnswer: { '@type': 'Answer', text: 'Dairi tiene tres planes: Starter desde US$3/mes (hasta 3 profesionales), Pro desde US$12/mes (hasta 20 profesionales, con fichas especializadas, videoconsultas, comisiones e informes) y Enterprise con precio a consultar para redes de clínicas. Todos los planes incluyen 30 días de prueba gratuita sin tarjeta de crédito.' }
         },
         {
           '@type': 'Question',
@@ -77,13 +78,23 @@ const JSON_LD_SCRIPTS = [
         },
         {
           '@type': 'Question',
-          name: '¿Dairi emite boletas electrónicas con el SII?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Sí, el plan Pro incluye emisión de boletas electrónicas con timbre del SII y envío automático por email al paciente al finalizar la atención. Compatible con la normativa tributaria chilena vigente.' }
+          name: '¿Los psicólogos tienen que emitir boletas electrónicas?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Los psicólogos en consulta particular emiten sus boletas de honorarios directamente en sii.cl con su RUT, como lo hacen habitualmente. Dairi no emite documentos tributarios: no incluye integración con el SII. Lo que sí hace es registrar y llevar el control de los pagos recibidos por sesión, con su método de pago y previsión, para que puedas conciliar tus ingresos y ver tus reportes mensuales.' }
         },
         {
           '@type': 'Question',
-          name: '¿Funciona Dairi para clínicas pequeñas o consultorios unipersonales?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Sí. El plan Starter está diseñado para consultorios y clínicas pequeñas con hasta 5 usuarios. Incluye gestión de pacientes, citas y fichas clínicas a un precio accesible. Puedes escalar al plan Pro en cualquier momento sin perder datos.' }
+          name: '¿Funciona para psicólogos que atienden por videoconsulta?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Sí. Al agendar una sesión online, Dairi genera automáticamente el enlace de Google Meet y lo sincroniza con tu calendario y con el del paciente. Al terminar la sesión dictas tu nota con voz y la IA la convierte en una nota SOAP lista para la ficha, sin cambiar de herramienta.' }
+        },
+        {
+          '@type': 'Question',
+          name: '¿Cuánto tiempo tarda registrar una nota de sesión?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Entre 2 y 3 minutos. En vez de escribir la nota a mano (lo que suele tomar 15 a 20 minutos por sesión), dictas lo ocurrido al terminar: Deepgram Nova-3 transcribe en español y la IA de Dairi estructura la nota SOAP en subjetivo, objetivo, análisis y plan. Tú revisas, ajustas y guardas.' }
+        },
+        {
+          '@type': 'Question',
+          name: '¿Funciona Dairi para psicólogos con consulta particular unipersonal?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Sí. El plan Starter está diseñado justamente para consultas particulares con hasta 3 profesionales. Incluye fichas de pacientes, agenda con reserva online, dictado de voz y control de pagos a un precio accesible. Puedes escalar al plan Pro en cualquier momento sin perder datos.' }
         }
       ]
     }
