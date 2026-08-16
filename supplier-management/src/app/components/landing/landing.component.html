@@ -83,19 +83,24 @@
 
 <!-- HERO -->
 <section class="hero" style="max-width:100%;">
+  <!-- Los íconos de esta página son SVG inline dibujados a mano, no emoji: el
+       emoji lo pinta el sistema operativo (cambia de forma y de color entre
+       Windows, macOS, Android e iOS) y ninguna variante coincide con la paleta
+       de marca. Familia común: viewBox 0 0 24 24, trazo `currentColor`,
+       stroke-width 2, extremos redondeados, y aria-hidden porque el texto de al
+       lado ya dice lo mismo. Los destellos de IA (✦) son el único relleno
+       sólido, a propósito: son acentos, no figuras. -->
   <div class="hero-badge">
-    ✦ Para psicólogos en Chile · Plan gratis sin vencimiento · 15 días de prueba · Sin tarjeta
+    <svg class="lic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><polygon points="12,2.5 14.8,9.2 21.5,12 14.8,14.8 12,21.5 9.2,14.8 2.5,12 9.2,9.2"/></svg>
+    Para psicólogos en Chile · Plan gratis sin vencimiento · 15 días de prueba · Sin tarjeta
   </div>
   <h1>Que el registro no te robe la sesión<br><span class="gradient">Software para psicólogos en Chile</span></h1>
   <p>
-    Dairi guarda el proceso terapéutico completo: tus notas de proceso privadas aparte de la ficha
-    oficial, PHQ-9 y GAD-7 con su trayectoria, tareas intersesión y el ánimo entre sesiones. Con
-    agenda que tus pacientes reservan solos, cobro con tarjeta y videoconsulta — para que llegues
-    a la hora pensando en la persona, no en el papeleo que dejaste pendiente.
+    Notas de proceso privadas, PHQ-9 y GAD-7 con trayectoria, agenda que tus pacientes reservan
+    solos y cobro con tarjeta — para llegar pensando en la persona, no en el papeleo.
   </p>
   <div class="hero-btns">
     <a routerLink="/register" class="btn-primary">Crear mi cuenta gratis</a>
-    <a href="#psicologia" class="btn-secondary">Ver Dairi para psicología →</a>
   </div>
 
   <!-- POWERED-BY INTEGRATION STRIP -->
@@ -121,29 +126,58 @@
        Regla: no agregar acá vistas de otras especialidades. -->
   <div class="mockup-scene">
     <div class="mockup-tabs">
-      <button class="mtab" [class.active]="activeView === 'psico'" (click)="setActiveView('psico')">🧠 Ficha psicológica</button>
-      <button class="mtab" [class.active]="activeView === 'citas'" (click)="setActiveView('citas')">📅 Agenda y reservas</button>
+      <!-- Cerebro y calendario en 15 px. A este tamaño el cerebro va con los dos
+           lóbulos y sin la cisura interior: la línea del medio se empasta con el
+           contorno y ensucia la silueta. La versión de 26 px sí la lleva. -->
+      <button class="mtab" [class.active]="activeView === 'psico'" (click)="setActiveView('psico')">
+        <svg class="lic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/></svg>
+        Ficha psicológica
+      </button>
+      <button class="mtab" [class.active]="activeView === 'citas'" (click)="setActiveView('citas')">
+        <svg class="lic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/></svg>
+        Agenda y reservas
+      </button>
     </div>
     <div class="mockup-browser">
       <div class="mb-chrome">
         <span class="mb-dot mb-dot-r"></span>
         <span class="mb-dot mb-dot-y"></span>
         <span class="mb-dot mb-dot-g"></span>
-        <div class="mb-bar">🔒 app.dairi.cl</div>
+        <div class="mb-bar"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 10.5V7.5a4.5 4.5 0 0 1 9 0v3"/><rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/></svg>app.dairi.cl</div>
       </div>
       <div class="mb-app">
         <div class="mb-sidebar">
           <div class="mbs-logo">Dairi</div>
+          <!-- La barra lateral del demo llevaba emoji. Además de la
+               inconsistencia visual, 🧑‍⚕️ es una secuencia ZWJ: en los
+               sistemas que no la componen se parte en dos glifos y le rompe el
+               alto a la fila. Acá van SVG de 13 px, versiones simplificadas de
+               los mismos íconos de las tarjetas (una sola persona en vez de dos,
+               barras sin relleno): a este tamaño el detalle se empasta. -->
           <div class="mbs-nav">
-            <div class="mbs-item"><span>📊</span><span>Dashboard</span></div>
-            <div class="mbs-item"><span>🧑‍⚕️</span><span>Pacientes</span></div>
-            <div class="mbs-item" [class.active]="activeView === 'citas'" (click)="setActiveView('citas')"><span>📅</span><span>Citas</span></div>
-            <div class="mbs-item" [class.active]="activeView === 'psico'" (click)="setActiveView('psico')"><span>📋</span><span>Fichas</span></div>
+            <div class="mbs-item">
+              <svg class="lic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M7 21v-8"/><path d="M12 21V7"/><path d="M17 21v-5"/></svg><span>Dashboard</span>
+            </div>
+            <div class="mbs-item">
+              <svg class="lic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5v-1a5.5 5.5 0 0 1 5.5-5.5h4a5.5 5.5 0 0 1 5.5 5.5v1"/></svg><span>Pacientes</span>
+            </div>
+            <div class="mbs-item" [class.active]="activeView === 'citas'" (click)="setActiveView('citas')">
+              <svg class="lic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/></svg><span>Citas</span>
+            </div>
+            <div class="mbs-item" [class.active]="activeView === 'psico'" (click)="setActiveView('psico')">
+              <svg class="lic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8.5 14h6"/></svg><span>Fichas</span>
+            </div>
             <!-- Era "💊 Inventario". Un psicólogo no lleva stock; el módulo de
                  escalas sí es suyo y también existe de verdad. -->
-            <div class="mbs-item"><span>📈</span><span>Escalas</span></div>
-            <div class="mbs-item"><span>💸</span><span>Pagos</span></div>
-            <div class="mbs-item"><span>💬</span><span>Chat IA</span></div>
+            <div class="mbs-item">
+              <svg class="lic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3v18h17"/><polyline points="7.5 8 11.5 12 15 10.5 19.5 15.5"/></svg><span>Escalas</span>
+            </div>
+            <div class="mbs-item">
+              <svg class="lic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Pagos</span>
+            </div>
+            <div class="mbs-item">
+              <svg class="lic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7.5L4 19.5z"/></svg><span>Chat IA</span>
+            </div>
           </div>
         </div>
         <div class="mb-main">
@@ -191,14 +225,14 @@
                  privacidad legible. -->
             <div class="soap-block">
               <div class="pn-head">
-                <span>🔒 Nota de proceso</span>
+                <span><svg class="lic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:.28rem" aria-hidden="true"><path d="M7.5 10.5V7.5a4.5 4.5 0 0 1 9 0v3"/><rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/></svg>Nota de proceso</span>
                 <span class="pn-pill">Privada · solo tú</span>
               </div>
               <div class="soap-row"><span class="soap-text">Hipótesis sobre el patrón de evitación; contrastar en la próxima sesión antes de registrarlo en la ficha oficial. No entra a la ficha compartida ni a lo que lee la IA…</span></div>
             </div>
             <div class="ai-strip">
-              <span class="ai-chip">✦ Resumen previo a la sesión · borrador IA para revisar</span>
-              <span class="ai-chip">📄 Informe de avance · borrador IA para revisar</span>
+              <span class="ai-chip"><svg class="lic" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="margin-right:.28rem" aria-hidden="true"><polygon points="12,2.5 14.8,9.2 21.5,12 14.8,14.8 12,21.5 9.2,14.8 2.5,12 9.2,9.2"/></svg>Resumen previo a la sesión · borrador IA para revisar</span>
+              <span class="ai-chip"><svg class="lic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:.28rem" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Informe de avance · borrador IA para revisar</span>
             </div>
           </div>
 
@@ -329,7 +363,13 @@
          identidad profesional (confidencialidad, evidencia), después la carga
          de documentación, y recién al final lo operativo (agenda, cobro). -->
     <div class="feature-card is-psico">
-      <div class="feature-icon">🔒</div>
+      <!-- Cuaderno con candado, no un candado pelado: el titular no habla de
+           "seguridad" en abstracto sino de un cuaderno de trabajo que vive
+           aparte y bajo llave. El candado solo ya está usado dos veces en la
+           página (banda de secreto profesional y cifrado). -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 3v18"/><path d="M11.8 11.5v-1.2a2 2 0 0 1 4 0v1.2"/><rect x="10.8" y="11.5" width="6" height="5" rx="1.2"/></svg>
+      </div>
       <h3>Notas de proceso separadas de la ficha oficial</h3>
       <p>
         Tu cuaderno de trabajo vive aparte del registro clínico: hipótesis, contratransferencia,
@@ -341,7 +381,14 @@
     </div>
 
     <div class="feature-card is-psico">
-      <div class="feature-icon">📈</div>
+      <!-- Línea de tendencia con eje y un punto marcado en la última medición,
+           no barras: el ícono del dashboard (#features) ya es un gráfico de
+           barras y los dos tienen que distinguirse de un vistazo. La línea baja
+           a propósito — en PHQ-9 y GAD-7 el puntaje que cae es el proceso que
+           mejora, igual que la trayectoria del demo del hero. -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3v18h17"/><polyline points="7.5 8 11.5 12 15 10.5 19.5 15.5"/><circle cx="19.5" cy="15.5" r="1.6" fill="currentColor" stroke="none"/></svg>
+      </div>
       <h3>PHQ-9 y GAD-7 con trayectoria en el tiempo</h3>
       <p>
         Aplica las escalas dentro de la plataforma, ítem por ítem. Dairi las puntúa, clasifica
@@ -352,7 +399,13 @@
     </div>
 
     <div class="feature-card is-psico">
-      <div class="feature-icon">📄</div>
+      <!-- Documento con dos líneas de texto ya escritas. El punto del titular es
+           justamente que la página NO está en blanco, así que una hoja vacía
+           diría lo contrario. Sin destello de IA acá: ese acento queda
+           reservado para el resumen previo a la sesión. -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8.5 13h7"/><path d="M8.5 16.5h4.5"/></svg>
+      </div>
       <h3>Los informes ya no empiezan en una página en blanco</h3>
       <p>
         Informe para tribunal de familia, informe para establecimiento educacional, certificado
@@ -364,7 +417,15 @@
     </div>
 
     <div class="feature-card is-psico">
-      <div class="feature-icon">✦</div>
+      <!-- Reloj + destello: las dos mitades del titular. El reloj es el "antes
+           de la sesión" (te reubicas entre una hora y la siguiente) y el
+           destello marca que el resumen lo redacta la IA. Es el mismo destello
+           del chip del demo y de los bullets del plan Pro, así que en toda la
+           página el rombo de cuatro puntas significa una sola cosa: borrador
+           generado por IA. -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="14" r="7"/><path d="M10 10v4l2.8 1.7"/><polygon points="19,2 20,4.5 22.5,5.5 20,6.5 19,9 18,6.5 15.5,5.5 18,4.5" fill="currentColor" stroke="none"/></svg>
+      </div>
       <h3>Llega a la sesión sabiendo dónde quedaron</h3>
       <p>
         Un resumen corto generado por IA con lo último de la ficha, las tareas intersesión
@@ -376,7 +437,12 @@
     </div>
 
     <div class="feature-card is-psico">
-      <div class="feature-icon">📋</div>
+      <!-- Portapapeles con visto: tareas asignadas y el seguimiento de si se
+           completaron. El visto es lo que separa este ícono del documento del
+           informe — acá lo que importa no es el papel sino el cumplimiento. -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 13.5l2.2 2.2 4.3-4.3"/></svg>
+      </div>
       <h3>Tareas intersesión y registro de ánimo</h3>
       <p>
         Asigna tareas con fecha de entrega y sigue si se completaron, con las notas que deja
@@ -386,7 +452,13 @@
     </div>
 
     <div class="feature-card is-psico">
-      <div class="feature-icon">📅</div>
+      <!-- Calendario con escudo adentro. El calendario a secas ya identifica la
+           agenda general en #por-que; acá el titular dice "la consulta PRIVADA",
+           y el escudo carga esa palabra. Se prefiere escudo a candado porque es
+           un solo trazo cerrado y no compite con los dos candados de la página. -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/><path d="M12 11.7l4.2 1.6v2.8c0 2.1-1.7 3.6-4.2 4.4-2.5-.8-4.2-2.3-4.2-4.4v-2.8z"/></svg>
+      </div>
       <h3>La consulta privada, resuelta</h3>
       <p>
         Tus pacientes reservan hora solos las 24 horas y pagan online con tarjeta en el mismo
@@ -402,7 +474,13 @@
        afirma acá coincide con la FAQ y con lo que está implementado; la nota de
        proceso NO se declara ilegible para Dairi, solo inaccesible para terceros. -->
   <div class="confid-band">
-    <div class="cb-icon">🔐</div>
+    <!-- Candado con cerradura, la figura más literal de las tres de privacidad
+         que hay en la página: el cuaderno con candado es la nota de proceso, el
+         escudo con cerradura es el cifrado de la plataforma, y este candado
+         suelto es el secreto profesional como principio. -->
+    <div class="cb-icon">
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 10.5V7.5a4.5 4.5 0 0 1 9 0v3"/><rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/><circle cx="12" cy="14.8" r="1.5"/><path d="M12 16.3v2.4"/></svg>
+    </div>
     <div class="cb-body">
       <h3>El secreto profesional, sostenido por la arquitectura</h3>
       <p>
@@ -440,32 +518,62 @@
   <p class="section-sub">Sin planillas, sin papel, sin cuatro sistemas que no se hablan. Lo administrativo de una consulta se resuelve en el mismo lugar donde ya estás trabajando.</p>
   <div class="features-grid">
     <div class="feature-card">
-      <div class="feature-icon">🎙️</div>
+      <!-- Micrófono con base: dictar. Es la figura menos ambigua del set. -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="11.5" rx="3"/><path d="M5 11.5a7 7 0 0 0 14 0"/><path d="M12 18.5v3"/></svg>
+      </div>
       <h3>Dicta la sesión en vez de tipearla</h3>
       <p>Graba la consulta y Deepgram Nova-3 la transcribe en español con identificación de hablantes. La IA arma el borrador de la nota SOAP para que lo revises y lo dejes en la ficha, en vez de escribirlo desde cero.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">🔒</div>
+      <!-- Escudo con cerradura, deliberadamente distinto del cuaderno con
+           candado de #psicologia. No son el mismo concepto: aquella tarjeta
+           habla de a quién se le muestra un texto (visibilidad), y esta de
+           cifrado AES-256 con clave del usuario (la plataforma entera
+           protegida). El escudo es la superficie; la cerradura, la clave. -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.2l8.2 3.4v6.1c0 5-3.5 9.2-8.2 10.3-4.7-1.1-8.2-5.3-8.2-10.3V5.6z"/><circle cx="12" cy="10.8" r="1.9"/><path d="M12 12.7v3"/></svg>
+      </div>
       <h3>Cifrado y Protección de Datos</h3>
       <p>Cifrado Zero-Knowledge AES-256-GCM para fichas clínicas: la clave la tienes solo tú, ni el equipo de Dairi puede leer tus datos sensibles. Tráfico 100% cifrado vía HTTPS y arquitectura diseñada en línea con los principios de la Ley N° 21.719 de Protección de Datos Personales de Chile.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">💸</div>
+      <!-- Tarjeta con banda magnética: la misma figura que el ícono de la
+           integración de pago (#integraciones), redibujada en trazo para que las
+           dos lecturas del cobro en esta página sean el mismo objeto. -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/><path d="M6.5 15h4"/></svg>
+      </div>
       <h3>Cobro online, comisiones y presupuestos</h3>
       <p>Tus pacientes pagan con tarjeta de crédito o débito al reservar. Dairi calcula solo las comisiones de cada profesional y envía presupuestos por email con su enlace de pago.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">📊</div>
+      <!-- Barras sobre un eje: KPIs y cortes por profesional/previsión. Barras
+           y no línea, para que no se confunda con la trayectoria de escalas. -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20.5h18"/><rect x="4.5" y="12.5" width="4" height="8" rx="1"/><rect x="10" y="7" width="4" height="13.5" rx="1"/><rect x="15.5" y="15" width="4" height="5.5" rx="1"/></svg>
+      </div>
       <h3>Dashboard y reportes clínicos</h3>
       <p>Al iniciar sesión ves las citas del día, los ingresos del mes y los pacientes activos. KPIs con filtros de 7 / 30 días o historial completo, y gráficos por profesional y previsión (Fonasa/Isapre).</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">🧑‍⚕️</div>
+      <!-- Dos personas, sin bata ni estetoscopio: el usuario de esta página es
+           psicólogo, no médico, y el emoji anterior (🧑‍⚕️) lo dibujaba con
+           delantal clínico. Dos figuras y no una porque la tarjeta habla de la
+           cartera de pacientes, no de un paciente. -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9.5" cy="8" r="3.8"/><path d="M2.5 20.5v-1.2a5.5 5.5 0 0 1 5.5-5.5h3a5.5 5.5 0 0 1 5.5 5.5v1.2"/><path d="M17 4.6a3.6 3.6 0 0 1 0 6.9"/><path d="M18.8 14.2a4.6 4.6 0 0 1 2.7 4.2v2.1"/></svg>
+      </div>
       <h3>Gestión de pacientes</h3>
       <p>Expediente digital completo: datos de contacto, historial de sesiones y evolución. Búsqueda por RUT, nombre o previsión en segundos, y cada profesional accede solo a sus propios pacientes.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">💬</div>
+      <!-- Burbuja de conversación con el destello de IA adentro: la tarjeta
+           cuenta las dos cosas (asistente y chat de equipo) y el destello dentro
+           de la burbuja las une en vez de yuxtaponerlas. -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7.5L4 19.5z"/><polygon points="12,6.1 13,8.5 15.4,9.5 13,10.5 12,12.9 11,10.5 8.6,9.5 11,8.5" fill="currentColor" stroke="none"/></svg>
+      </div>
       <h3>Asistente IA y chat de equipo</h3>
       <!-- Antes esta frase decía que el chat de equipo era exclusivo del plan
            Enterprise. Nunca fue cierto a nivel técnico —no existe un campo de
@@ -475,7 +583,11 @@
       <p>El asistente Dairi IA responde dudas operativas sobre la plataforma. Y si atiendes con más profesionales, el chat interno del equipo suma canales y mensajes directos entre el staff.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">📱</div>
+      <!-- Silueta de teléfono con auricular e indicador: neutra entre Android e
+           iOS, que es justo lo que dice el titular. -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.8"/><path d="M10 5.5h4"/><path d="M10.5 18.5h3"/></svg>
+      </div>
       <h3>App móvil Android e iOS</h3>
       <p>La misma plataforma en tu teléfono, sin funcionalidades recortadas. Revisa la agenda del día o abre una ficha entre sesión y sesión, desde donde estés.</p>
     </div>
@@ -498,7 +610,11 @@
 <!-- DOCUMENTATION BANNER -->
 <div class="docs-banner-wrap">
   <div class="docs-banner">
-    <div class="docs-banner-icon">📚</div>
+    <!-- Libro abierto, no una pila de libros: lo que hay al otro lado del botón
+         son guías para leer, no un catálogo de tomos. -->
+    <div class="docs-banner-icon">
+      <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+    </div>
     <div class="docs-banner-body">
       <h3>¿Necesitas ayuda para usar Dairi?</h3>
       <p>Documentación completa con guías paso a paso para cada módulo: pacientes, citas, ficha clínica, escalas, transcripción con IA y más.</p>
@@ -577,17 +693,33 @@
   <p class="section-sub">Hecho en Chile, en pesos, para la realidad de una consulta chilena. Lo que cuesta está escrito completo, comisión incluida.</p>
   <div class="features-grid">
     <div class="feature-card is-psico">
-      <div class="feature-icon">🧠</div>
+      <!-- Cerebro: la marca de "psicología" en toda la página (pestaña del demo,
+           bullets del plan Pro, etiqueta de especialidad del registro). Acá va
+           en 26 px y con la cisura interior; en los tamaños chicos esa línea se
+           omite. -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/></svg>
+      </div>
       <h3>Registra el proceso, no solo la cita</h3>
       <p>Notas de proceso privadas, escalas con trayectoria, tareas intersesión y ánimo entre sesiones. Casi todo el software clínico está pensado para consultas puntuales; la psicoterapia funciona distinto y Dairi está construido para eso.</p>
     </div>
     <div class="feature-card" style="border-color:rgba(14,165,233,.4);">
-      <div class="feature-icon">💰</div>
+      <!-- Etiqueta de precio, no un signo peso ni una bolsa de monedas: el
+           titular no habla de dinero sino del precio publicado y sin letra
+           chica. La etiqueta es "esto es lo que cuesta, escrito". -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.8 2.8h7a2 2 0 0 1 1.4.6l7.4 7.4a2 2 0 0 1 0 2.8l-7 7a2 2 0 0 1-2.8 0l-7.4-7.4a2 2 0 0 1-.6-1.4v-7a2 2 0 0 1 2-2z"/><circle cx="7.3" cy="7.3" r="1.6"/></svg>
+      </div>
       <h3>Precio en pesos, sin sorpresas</h3>
       <p>Plan Starter gratis sin vencimiento para ordenar la agenda, y plan Pro a $7.990 al mes con ficha clínica, IA, cobro online y app móvil incluidos. Sin cobro por paciente y sin costo extra por las integraciones. Lo único que se suma es la comisión sobre lo que cobres en línea, y está a la vista en cada plan.</p>
     </div>
     <div class="feature-card" style="border-color:rgba(16,185,129,.35);">
-      <div class="feature-icon">📅</div>
+      <!-- Calendario con visto: la hora reservada y confirmada sola. Es el mismo
+           calendario de #psicologia pero con visto en lugar de escudo — allá el
+           acento era la privacidad de la consulta, acá es la reserva cerrada. -->
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/><path d="M9 15l2.2 2.2 4.3-4.3"/></svg>
+      </div>
       <h3>Deja de perder horas</h3>
       <p>Tus pacientes reservan y pagan desde el celular a cualquier hora, con recordatorio por email. Se acabaron los WhatsApp para coordinar y las horas que se caen sin aviso.</p>
     </div>
@@ -651,8 +783,8 @@
       <p class="pricing-desc">Para el psicólogo que atiende solo o en dupla y quiere el proceso terapéutico completo registrado.</p>
       <hr class="pricing-divider">
       <ul class="pricing-features">
-        <li class="feature-highlight">🧠 Ficha psicológica: notas de proceso privadas, PHQ-9 y GAD-7, tareas intersesión y registro de ánimo</li>
-        <li class="feature-highlight">✦ Resumen previo a la sesión e informes con IA (borradores que revisas y firmas)</li>
+        <li class="feature-highlight"><svg class="lic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/></svg>Ficha psicológica: notas de proceso privadas, PHQ-9 y GAD-7, tareas intersesión y registro de ánimo</li>
+        <li class="feature-highlight"><svg class="lic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><polygon points="12,2.5 14.8,9.2 21.5,12 14.8,14.8 12,21.5 9.2,14.8 2.5,12 9.2,9.2"/></svg>Resumen previo a la sesión e informes con IA (borradores que revisas y firmas)</li>
         <!-- TOPE DE 50/MES: es una cifra comercial, NO una cuota que el sistema
              haga cumplir hoy. El cuello de botella real es
              POST /api/audio-recordings/presign en `lambda-audio`, que está
@@ -660,7 +792,7 @@
              algún día se enforce, es ahí donde hay que hacerlo. Mientras
              tanto, un usuario que grabe 80 sesiones en un mes no será
              bloqueado. Antes acá decía "10 h/mes", igual de no-enforced. -->
-        <li class="feature-highlight">✦ Transcripción de voz para dictar sesiones (hasta 50 sesiones al mes)</li>
+        <li class="feature-highlight"><svg class="lic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><polygon points="12,2.5 14.8,9.2 21.5,12 14.8,14.8 12,21.5 9.2,14.8 2.5,12 9.2,9.2"/></svg>Transcripción de voz para dictar sesiones (hasta 50 sesiones al mes)</li>
         <li>Hasta 3 profesionales</li>
         <li>Pacientes ilimitados</li>
         <li>Fichas de pacientes y registro de atenciones</li>
@@ -745,9 +877,9 @@
     </div>
     <div class="footer-col">
       <h4>Contacto</h4>
-      <div class="contact-item">📧 <a href="mailto:contacto&#64;dairi.cl">contacto&#64;dairi.cl</a></div>
-      <div class="contact-item">📞 <a href="https://wa.me/56927380898" target="_blank" rel="noopener">+56 9 2738 0898</a></div>
-      <div class="contact-item">📍 <span>Santiago, Chile</span></div>
+      <div class="contact-item"><svg class="lic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4.5" width="20" height="15" rx="2.5"/><path d="M2.8 6.2l9.2 6.6 9.2-6.6"/></svg><a href="mailto:contacto&#64;dairi.cl">contacto&#64;dairi.cl</a></div>
+      <div class="contact-item"><svg class="lic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg><a href="https://wa.me/56927380898" target="_blank" rel="noopener">+56 9 2738 0898</a></div>
+      <div class="contact-item"><svg class="lic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10.2c0 5.8-8 11.8-8 11.8s-8-6-8-11.8a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.8"/></svg><span>Santiago, Chile</span></div>
       <div class="contact-item" style="margin-top:.75rem; gap: 1rem;">
         <!-- URL pública de la página. Antes apuntaba a /admin/dashboard/, que es
              la vista de administrador: para cualquier visitante era un enlace roto. -->
@@ -757,7 +889,11 @@
     </div>
   </div>
   <div class="footer-bottom">
-    <span>Hecho con ☁️ en AWS · Santiago, Chile</span>
+    <!-- La nube es la única figura de la página que hace de palabra ("hecho con
+         ☁️"), no de ícono de una función. Se pasa a SVG igual porque el emoji
+         de nube es de los que más cambia entre sistemas (azul en iOS, gris en
+         Windows) y era la última pieza suelta del set. -->
+    <span>Hecho con <svg class="lic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="la nube"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></svg> en AWS · Santiago, Chile</span>
     <span>© 2026 Dairi Digital Solutions. Todos los derechos reservados.</span>
   </div>
 </footer>

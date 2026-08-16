@@ -192,7 +192,12 @@
               <div class="rp-field">
                 <label for="specialty">Especialidad</label>
                 <div class="rp-fixed-field" id="specialty">
-                  <span class="rp-fixed-icon">🧠</span>
+                  <!-- Mismo cerebro SVG que usa la landing para marcar
+                       "psicología" (pestaña del demo y bullets del plan Pro).
+                       Quien llega acá viene de esa página; si el emoji del
+                       sistema le cambia la forma en el camino, la etiqueta deja
+                       de leerse como la misma cosa. -->
+                  <svg class="rp-fixed-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/></svg>
                   <span>{{ specialtyLabel() }}</span>
                   <span class="rp-fixed-tag">Fijo</span>
                 </div>

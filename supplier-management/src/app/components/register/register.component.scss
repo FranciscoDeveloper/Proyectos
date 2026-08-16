@@ -177,7 +177,7 @@
   background: var(--sky-50, #f0f9ff);
   font-size: .9rem; color: var(--sky-text); font-weight: 600;
 }
-.rp-fixed-icon { font-size: 1rem; line-height: 1; }
+.rp-fixed-icon { flex-shrink: 0; color: var(--sky-primary); }
 .rp-fixed-tag {
   margin-left: auto; font-size: .68rem; font-weight: 700;
   letter-spacing: .04em; text-transform: uppercase;

@@ -27,7 +27,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; }
-h1, h2, h3, h4, .nav-logo, .footer-logo, .nav-cta, .btn-primary, .btn-secondary {
+h1, h2, h3, h4, .nav-logo, .footer-logo, .nav-cta, .btn-primary {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
@@ -112,14 +112,6 @@ nav {
   display: inline-block;
 }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 44px rgba(14,165,233,.52); }
-.btn-secondary {
-  background: transparent; color: var(--text); padding: .9rem 2.2rem;
-  border-radius: 99px; font-weight: 600; font-size: 1rem;
-  text-decoration: none; border: 1.5px solid var(--sky-200); cursor: pointer;
-  transition: border-color .2s, background .2s;
-  display: inline-block;
-}
-.btn-secondary:hover { border-color: var(--primary); background: var(--sky-50); }
 
 /* ── SECTIONS ─────────────────────────────────────────────────────── */
 section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
@@ -151,11 +143,18 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
   box-shadow: 0 12px 48px rgba(14,165,233,.16);
 }
 .feature-card:hover::before { opacity: 1; }
+/* La insignia sigue siendo la misma caja de 52px: lo que cambió es el hijo, de
+   emoji a SVG de 26px. Por eso ya no hace falta `font-size` y sí un `color`,
+   que es de donde el trazo saca su `currentColor`. */
 .feature-icon {
-  font-size: 1.8rem; margin-bottom: 1rem;
+  color: var(--primary-dark); margin-bottom: 1rem;
   display: inline-flex; align-items: center; justify-content: center;
   width: 52px; height: 52px; background: var(--sky-100); border-radius: 12px;
 }
+/* Íconos que acompañan texto (badge del hero, chips, pestañas del demo,
+   bullets del plan, contacto del footer). Una sola regla para todos: no se
+   encogen dentro de un flex y se sientan sobre la línea base del texto. */
+.lic { flex-shrink: 0; vertical-align: -.18em; }
 .feature-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: .5rem; }
 .feature-card p  { font-size: .88rem; color: var(--muted); }
 
@@ -167,7 +166,7 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
   border-color: var(--psy-line);
   &::before { background: linear-gradient(90deg, var(--psy), #a78bfa); }
   &:hover { border-color: var(--psy); box-shadow: 0 12px 40px rgba(124,92,214,.16); }
-  .feature-icon { background: var(--psy-tint); }
+  .feature-icon { background: var(--psy-tint); color: var(--psy-dark); }
   h3 { color: var(--psy-ink); }
   p strong { color: var(--psy-dark); }
 }
@@ -186,7 +185,7 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
 }
 .docs-banner:hover { border-color: var(--primary); box-shadow: 0 8px 32px rgba(14,165,233,.12); }
 .docs-banner-icon {
-  font-size: 2rem; width: 56px; height: 56px;
+  color: var(--primary-dark); width: 56px; height: 56px;
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--sky-100); border-radius: 14px; flex-shrink: 0;
 }
@@ -237,7 +236,7 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
   box-shadow: 0 6px 26px rgba(124,92,214,.09);
 }
 .cb-icon {
-  width: 54px; height: 54px; flex-shrink: 0; font-size: 1.7rem;
+  width: 54px; height: 54px; flex-shrink: 0; color: var(--psy-dark);
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--psy-tint); border-radius: 14px;
 }
@@ -372,7 +371,7 @@ footer {
 .footer-col ul li { margin-bottom: .5rem; }
 .footer-col ul li a { color: #94a3b8; text-decoration: none; font-size: .85rem; transition: color .2s; }
 .footer-col ul li a:hover { color: #fff; }
-.footer-col .contact-item { display: flex; align-items: flex-start; gap: .5rem; color: #94a3b8; font-size: .85rem; margin-bottom: .6rem; }
+.footer-col .contact-item { display: flex; align-items: center; gap: .5rem; color: #94a3b8; font-size: .85rem; margin-bottom: .6rem; }
 .footer-col .contact-item a { color: #94a3b8; text-decoration: none; transition: color .2s; }
 .footer-col .contact-item a:hover { color: #fff; }
 .footer-bottom {
@@ -472,6 +471,7 @@ footer {
 }
 .mtab {
   background: none;
+  display: inline-flex; align-items: center; gap: .4rem;
   border: 1px solid var(--sky-200);
   border-radius: 99px;
   padding: .4rem 1.1rem;
@@ -516,6 +516,7 @@ footer {
 .mb-dot-g { background: #28c840; }
 .mb-bar {
   flex: 1;
+  display: flex; align-items: center; gap: .3rem;
   margin-left: .4rem;
   background: rgba(255,255,255,.08);
   border-radius: 5px;
