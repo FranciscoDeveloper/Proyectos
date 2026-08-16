@@ -96,8 +96,9 @@
   </div>
   <h1>Que el registro no te robe la sesión<br><span class="gradient">Software para psicólogos en Chile</span></h1>
   <p>
-    Notas de proceso privadas, PHQ-9 y GAD-7 con trayectoria, agenda que tus pacientes reservan
-    solos y cobro con tarjeta — para llegar pensando en la persona, no en el papeleo.
+    IA que transcribe tus sesiones y redacta borradores de resúmenes e informes, PHQ-9 y GAD-7
+    con trayectoria, agenda que tus pacientes reservan solos — para llegar pensando en la
+    persona, no en el papeleo.
   </p>
   <div class="hero-btns">
     <a routerLink="/register" class="btn-primary">Crear mi cuenta gratis</a>
@@ -126,15 +127,17 @@
        Regla: no agregar acá vistas de otras especialidades. -->
   <div class="mockup-scene">
     <div class="mockup-tabs">
-      <!-- Cerebro y calendario en 15 px. A este tamaño el cerebro va con los dos
-           lóbulos y sin la cisura interior: la línea del medio se empasta con el
-           contorno y ensucia la silueta. La versión de 26 px sí la lleva. -->
+      <!-- Estos dos íconos ya no son dibujos propios: son literalmente los mismos
+           `path` que shell.component.html pinta para item.icon === 'brain' y
+           'calendar', que es lo que ve un psicólogo en su barra lateral. Antes
+           acá había un cerebro estilo lucide (dos lóbulos) que la aplicación no
+           usa en ninguna parte. Si cambian los íconos del shell, cambian acá. -->
       <button class="mtab" [class.active]="activeView === 'psico'" (click)="setActiveView('psico')">
-        <svg class="lic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/></svg>
+        <svg class="lic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9.5 2a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 2.45 2 2.5 2.5 0 0 1 .05 4.95A5 5 0 0 1 12 14a5 5 0 0 1-5-4.95 2.5 2.5 0 0 1-.5-4.9A2.5 2.5 0 0 1 9.5 2z"/><path d="M12 14v3m-4 4h8m-4-4v1"/><path d="M9.5 7c0 1 .5 2 2.5 2s2.5-1 2.5-2"/></svg>
         Ficha psicológica
       </button>
       <button class="mtab" [class.active]="activeView === 'citas'" (click)="setActiveView('citas')">
-        <svg class="lic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/></svg>
+        <svg class="lic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         Agenda y reservas
       </button>
     </div>
@@ -148,91 +151,196 @@
       <div class="mb-app">
         <div class="mb-sidebar">
           <div class="mbs-logo">Dairi</div>
-          <!-- La barra lateral del demo llevaba emoji. Además de la
-               inconsistencia visual, 🧑‍⚕️ es una secuencia ZWJ: en los
-               sistemas que no la componen se parte en dos glifos y le rompe el
-               alto a la fila. Acá van SVG de 13 px, versiones simplificadas de
-               los mismos íconos de las tarjetas (una sola persona en vez de dos,
-               barras sin relleno): a este tamaño el detalle se empasta. -->
+          <!-- ═══ BARRA LATERAL — ESPEJO DE shell.component.ts ═══════════════
+               Estos seis ítems, en este orden, son exactamente lo que
+               `navItems()` (shell.component.ts) construye para una cuenta Pro de
+               psicología: Dashboard + los módulos del `schemas` del usuario
+               (psych-sessions → "Sesiones", psych-records → "Fichas
+               Psicológicas") + Reportes + Presupuestos + Chat.
+
+               Lo que había antes y NO existe en la aplicación: "Pacientes" (en
+               psicología la lista de pacientes y la ficha son la misma vista),
+               "Escalas" (es una pestaña DENTRO de la ficha, no un módulo del
+               menú), "Pagos" (el ítem real se llama "Comisiones" y sólo aparece
+               si la cuenta tiene el módulo `payments`) y "Chat IA" (el ítem se
+               llama "Chat" y es el chat de equipo/soporte, no un chat con IA).
+               Faltaban "Reportes" y "Presupuestos", que sí salen siempre en una
+               cuenta con ficha clínica — y "Presupuestos" es justamente lo que
+               promete la tarjeta de precios más abajo.
+
+               Los SVG son los `path` literales de shell.component.html para
+               item.icon = grid / calendar / brain / bar-chart / file-text / chat
+               (mismo viewBox y mismo stroke-width 2), sólo escalados a 14 px.
+               Si el shell cambia sus íconos o `navItems()` cambia la lista,
+               este bloque hay que volver a sincronizarlo. -->
           <div class="mbs-nav">
             <div class="mbs-item">
-              <svg class="lic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M7 21v-8"/><path d="M12 21V7"/><path d="M17 21v-5"/></svg><span>Dashboard</span>
-            </div>
-            <div class="mbs-item">
-              <svg class="lic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5v-1a5.5 5.5 0 0 1 5.5-5.5h4a5.5 5.5 0 0 1 5.5 5.5v1"/></svg><span>Pacientes</span>
+              <svg class="lic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span>
             </div>
             <div class="mbs-item" [class.active]="activeView === 'citas'" (click)="setActiveView('citas')">
-              <svg class="lic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/></svg><span>Citas</span>
+              <svg class="lic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Sesiones</span>
             </div>
+            <!-- La etiqueta que hoy manda el backend viene sin tilde ("Fichas
+                 Psicologicas"); es un defecto conocido de los datos, no del
+                 producto — el título de la página sí dice "Fichas Psicológicas".
+                 El demo escribe la forma correcta a propósito. -->
             <div class="mbs-item" [class.active]="activeView === 'psico'" (click)="setActiveView('psico')">
-              <svg class="lic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8.5 14h6"/></svg><span>Fichas</span>
-            </div>
-            <!-- Era "💊 Inventario". Un psicólogo no lleva stock; el módulo de
-                 escalas sí es suyo y también existe de verdad. -->
-            <div class="mbs-item">
-              <svg class="lic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3v18h17"/><polyline points="7.5 8 11.5 12 15 10.5 19.5 15.5"/></svg><span>Escalas</span>
+              <svg class="lic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9.5 2a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 2.45 2 2.5 2.5 0 0 1 .05 4.95A5 5 0 0 1 12 14a5 5 0 0 1-5-4.95 2.5 2.5 0 0 1-.5-4.9A2.5 2.5 0 0 1 9.5 2z"/><path d="M12 14v3m-4 4h8m-4-4v1"/><path d="M9.5 7c0 1 .5 2 2.5 2s2.5-1 2.5-2"/></svg><span>Fichas Psicológicas</span>
             </div>
             <div class="mbs-item">
-              <svg class="lic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/></svg><span>Pagos</span>
+              <svg class="lic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Reportes</span>
             </div>
             <div class="mbs-item">
-              <svg class="lic" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7.5L4 19.5z"/></svg><span>Chat IA</span>
+              <svg class="lic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>Presupuestos</span>
+            </div>
+            <div class="mbs-item">
+              <svg class="lic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span>Chat</span>
             </div>
           </div>
         </div>
         <div class="mb-main">
 
-          <!-- VIEW: FICHA PSICOLÓGICA (vista insignia) -->
+          <!-- ═══ VIEW: FICHA PSICOLÓGICA (vista insignia) ═══════════════════
+               Espejo simplificado de clinical-detail.component.html para una
+               ficha `psych-records`. En la aplicación real cada bloque de abajo
+               vive en SU PROPIA pestaña de esa página: Escalas monta
+               <app-mbc-trajectory>, Intersesión monta <app-intersession-tasks>
+               y Notas de proceso monta <app-process-notes>. Acá se apilan en un
+               solo panel a propósito — el demo tiene una sola pantalla y la
+               gracia es que se vean juntas las tres cosas que distinguen al
+               producto. Lo que NO se inventa es el contenido: títulos, textos
+               de apoyo, colores de serie, cortes de severidad y formato de las
+               fechas salen de esos tres componentes. Si cambian, re-sincronizar. -->
           <div class="mv" [class.active]="activeView === 'psico'">
             <div class="mv-header">
-              <span class="mv-title">Ficha psicológica · Sesión 12</span>
+              <!-- El breadcrumb real es "<plural de la entidad> › <nombre del paciente>". -->
+              <span class="mv-title">Fichas Psicológicas › Tomás Herrera</span>
               <span class="mv-badge">Ps. Carolina Vega</span>
             </div>
+            <!-- Cabecera de paciente: mismos chips que .ph-meta-row (ID con el
+                 patrón PSI-00000 que valida el esquema, edad, previsión) y el
+                 mismo badge de estado, con el color que el esquema le asigna a
+                 "En Terapia" (#10b981). El avatar real también se pinta con ese
+                 color, no con el azul de marca. -->
             <div class="pt-header">
               <div class="pt-avatar">TH</div>
               <div class="pt-info">
-                <div class="pt-name">Tomás Herrera</div>
-                <div class="pt-meta">Proceso individual · Ingreso mar 2026 · Sesión semanal</div>
+                <div class="pt-name">Tomás Herrera <span class="pt-status">En Terapia</span></div>
+                <div class="pt-meta">PSI-00042 · 34 años · Fonasa · Psicólogo/a: Ps. Carolina Vega</div>
               </div>
             </div>
+            <!-- Barra de pestañas de la ficha. Las ocho etiquetas son las ocho
+                 reales para una ficha de psicología (las cuatro últimas sólo
+                 existen si isPsychRecord()). -->
+            <div class="mv-tabs">
+              <span class="mv-tab">Ficha Psicológica</span>
+              <span class="mv-tab">Historial de Sesiones</span>
+              <span class="mv-tab">Documentos</span>
+              <span class="mv-tab">Intersesión</span>
+              <span class="mv-tab active">Escalas</span>
+              <span class="mv-tab">Notas de proceso</span>
+              <span class="mv-tab">Brief de sesión</span>
+              <span class="mv-tab">Informes</span>
+            </div>
+            <!-- Resumen por escala: es la forma de .mbc-stat. Puntaje grande,
+                 píldora de severidad con el color de severityColor() y el delta
+                 contra la primera aplicación en verde cuando mejora. Los cortes
+                 son los del catálogo real (migración 019): PHQ-9 5-9 = leve,
+                 GAD-7 5-9 = leve. Antes el demo decía "PHQ-9 11 (leve)", que con
+                 esos cortes es moderada. -->
             <div class="vitals-grid">
-              <div class="vital"><div class="vital-val">11</div><div class="vital-lbl">PHQ-9 (leve)</div></div>
-              <div class="vital"><div class="vital-val">8</div><div class="vital-lbl">GAD-7 (leve)</div></div>
-              <div class="vital"><div class="vital-val">6,4</div><div class="vital-lbl">Ánimo /10</div></div>
-              <div class="vital"><div class="vital-val">3/4</div><div class="vital-lbl">Tareas hechas</div></div>
-            </div>
-            <div class="mv-chart-wrap">
-              <div class="mv-chart-title">Trayectoria PHQ-9 · últimas 7 aplicaciones</div>
-              <div class="mv-chart">
-                <div class="mc-col"><div class="mc-bar" style="height:85%"></div><span>1</span></div>
-                <div class="mc-col"><div class="mc-bar" style="height:78%"></div><span>3</span></div>
-                <div class="mc-col"><div class="mc-bar" style="height:70%"></div><span>5</span></div>
-                <div class="mc-col"><div class="mc-bar" style="height:58%"></div><span>7</span></div>
-                <div class="mc-col"><div class="mc-bar" style="height:50%"></div><span>9</span></div>
-                <div class="mc-col"><div class="mc-bar" style="height:44%"></div><span>10</span></div>
-                <div class="mc-col"><div class="mc-bar mc-today" style="height:38%"></div><span class="mc-today-lbl">12</span></div>
+              <div class="vital">
+                <div class="vital-head"><span class="vital-sw" style="background:#8b5cf6"></span>PHQ-9</div>
+                <div class="vital-score">8 <span class="vital-sev" style="background:#3b82f6">leve</span></div>
+                <div class="vital-delta">-11 (mejora) desde la primera aplicación</div>
+              </div>
+              <div class="vital">
+                <div class="vital-head"><span class="vital-sw" style="background:#0891b2"></span>GAD-7</div>
+                <div class="vital-score">6 <span class="vital-sev" style="background:#3b82f6">leve</span></div>
+                <div class="vital-delta">-8 (mejora) desde la primera aplicación</div>
               </div>
             </div>
+            <!-- Trayectoria. El componente real dibuja UN SVG DE LÍNEAS con una
+                 serie por escala (no barras, como estaba acá): rejilla y eje Y
+                 fijos al techo del catálogo —27, el máximo del PHQ-9, para que
+                 dos fichas sean comparables—, una línea por escala con los
+                 colores de PALETTE (#8b5cf6, #0891b2) y un punto hueco por
+                 aplicación. El relleno de los puntos es el fondo de la tarjeta
+                 (blanco allá, #0f1e30 acá). El viewBox es más chato que el real
+                 (640×240) sólo para que quepa en el alto del navegador falso. -->
+            <div class="mv-chart-wrap">
+              <div class="mv-chart-title">
+                <span>Escalas y trayectoria · medición basada en resultados (MBC)</span>
+                <span class="mv-legend">
+                  <span class="vital-sw" style="background:#8b5cf6"></span>PHQ-9 — Depresión
+                  <span class="vital-sw" style="background:#0891b2;margin-left:.5rem"></span>GAD-7 — Ansiedad
+                </span>
+              </div>
+              <svg class="mv-chart" viewBox="0 0 640 72" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Trayectoria de puntajes PHQ-9 y GAD-7 a lo largo de seis aplicaciones, ambas descendentes">
+                <g class="mv-grid">
+                  <line x1="24" y1="7" x2="630" y2="7"/><line x1="24" y1="19.5" x2="630" y2="19.5"/>
+                  <line x1="24" y1="32" x2="630" y2="32"/><line x1="24" y1="44.5" x2="630" y2="44.5"/>
+                  <line x1="24" y1="57" x2="630" y2="57"/>
+                </g>
+                <g class="mv-axis">
+                  <text x="18" y="9.5" text-anchor="end">27</text><text x="18" y="22" text-anchor="end">20</text>
+                  <text x="18" y="34.5" text-anchor="end">14</text><text x="18" y="47" text-anchor="end">7</text>
+                  <text x="18" y="59.5" text-anchor="end">0</text>
+                </g>
+                <path d="M24 21.8L145 25.5L266 29.2L388 34.8L509 38.5L630 42.2" fill="none" stroke="#8b5cf6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M24 31.1L145 32.9L266 36.6L388 40.3L509 44L630 45.9" fill="none" stroke="#0891b2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <g fill="#0f1e30" stroke="#8b5cf6" stroke-width="1.8">
+                  <circle cx="24" cy="21.8" r="2.6"/><circle cx="145" cy="25.5" r="2.6"/><circle cx="266" cy="29.2" r="2.6"/>
+                  <circle cx="388" cy="34.8" r="2.6"/><circle cx="509" cy="38.5" r="2.6"/><circle cx="630" cy="42.2" r="2.6"/>
+                </g>
+                <g fill="#0f1e30" stroke="#0891b2" stroke-width="1.8">
+                  <circle cx="24" cy="31.1" r="2.6"/><circle cx="145" cy="32.9" r="2.6"/><circle cx="266" cy="36.6" r="2.6"/>
+                  <circle cx="388" cy="40.3" r="2.6"/><circle cx="509" cy="44" r="2.6"/><circle cx="630" cy="45.9" r="2.6"/>
+                </g>
+              </svg>
+              <div class="mv-chart-foot">Puntaje más bajo indica menor sintomatología en ambas escalas.</div>
+            </div>
+            <!-- Tareas intersesión. El componente real NO es una tabla con
+                 columnas "Vence / Estado": es una lista partida en "Pendientes
+                 (n)" y "Completadas (n)", con una casilla vacía o un tic, la
+                 fecha de entrega como texto suelto y —cuando el paciente la
+                 dejó— su nota entre comillas. -->
             <div class="mv-table">
-              <div class="mvt-row mvt-head"><span>Tarea intersesión</span><span>Vence</span><span>Estado</span></div>
-              <div class="mvt-row"><span>Registro de pensamientos</span><span>12 ago</span><span class="st st-green">Completada</span></div>
-              <div class="mvt-row"><span>Higiene de sueño</span><span>13 ago</span><span class="st st-green">Completada</span></div>
-              <div class="mvt-row"><span>Exposición gradual</span><span>16 ago</span><span class="st st-amber">Pendiente</span></div>
+              <div class="mvt-title">Pendientes (1)</div>
+              <div class="mvt-task">
+                <span class="mvt-box"></span>
+                <span class="mvt-body"><span class="mvt-desc">Exposición gradual a la reunión de equipo</span><span class="mvt-meta">Asignada 12-08-2026 · Entrega 19-08-2026</span></span>
+              </div>
+              <div class="mvt-title">Completadas (2)</div>
+              <div class="mvt-task">
+                <span class="mvt-box mvt-done"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <span class="mvt-body"><span class="mvt-desc">Registro de pensamientos automáticos</span><span class="mvt-note">“Me costó los primeros días, después salió solo.”</span></span>
+              </div>
+              <div class="mvt-task">
+                <span class="mvt-box mvt-done"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <span class="mvt-body"><span class="mvt-desc">Higiene de sueño</span><span class="mvt-meta">Completada 11-08-2026</span></span>
+              </div>
             </div>
             <!-- La nota de proceso es EL diferenciador de este producto y antes
                  iba disfrazada de fila SOAP genérica, con el candado como si
                  fuera la letra "P". Ahora tiene encabezado propio y el sello de
-                 privacidad legible. -->
+                 privacidad legible. El candado es el mismo path que usa
+                 .pn-privacy en process-notes.component.html. -->
             <div class="soap-block">
               <div class="pn-head">
-                <span><svg class="lic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:.28rem" aria-hidden="true"><path d="M7.5 10.5V7.5a4.5 4.5 0 0 1 9 0v3"/><rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/></svg>Nota de proceso</span>
-                <span class="pn-pill">Privada · solo tú</span>
+                <span><svg class="lic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:.28rem" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Notas de proceso</span>
+                <span class="pn-pill">Visibles solo para ti</span>
               </div>
-              <div class="soap-row"><span class="soap-text">Hipótesis sobre el patrón de evitación; contrastar en la próxima sesión antes de registrarlo en la ficha oficial. No entra a la ficha compartida ni a lo que lee la IA…</span></div>
+              <div><span class="soap-text">12 ago 2026 — Hipótesis sobre el patrón de evitación; contrastar en la próxima sesión antes de registrarlo en la ficha oficial. No aparecen en la ficha que ven otros profesionales, y no se envían al generador de informes ni al brief de sesión…</span></div>
             </div>
+            <!-- Los dos borradores de IA de la ficha, con sus nombres reales: la
+                 pestaña "Brief de sesión" (ícono rayo) y uno de los cuatro tipos
+                 de REPORT_TYPES (psych.service.ts) bajo la pestaña "Informes".
+                 El rótulo de borrador no es adorno: el generador real antepone
+                 siempre "Borrador generado por IA — revísalo antes de usarlo". -->
             <div class="ai-strip">
-              <span class="ai-chip"><svg class="lic" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="margin-right:.28rem" aria-hidden="true"><polygon points="12,2.5 14.8,9.2 21.5,12 14.8,14.8 12,21.5 9.2,14.8 2.5,12 9.2,9.2"/></svg>Resumen previo a la sesión · borrador IA para revisar</span>
-              <span class="ai-chip"><svg class="lic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:.28rem" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Informe de avance · borrador IA para revisar</span>
+              <span class="ai-chip"><svg class="lic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:.28rem" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Brief de sesión · borrador IA para revisar</span>
+              <span class="ai-chip"><svg class="lic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:.28rem" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>Informe de Avance · borrador IA para revisar</span>
             </div>
           </div>
 
@@ -242,63 +350,84 @@
                productividad. La funcionalidad sigue existiendo y sigue contada
                en #features. -->
 
-          <!-- VIEW: AGENDA / CALENDARIO -->
+          <!-- ═══ VIEW: AGENDA / CALENDARIO ══════════════════════════════════
+               Espejo de la vista "Mes" de calendar.component.html para el módulo
+               `psych-sessions`, cuyo esquema real (auth.service.ts) se llama
+               "Sesiones" en plural y "Sesión" en singular — de ahí el título y
+               el botón; antes decían "Calendario" y "+ Nueva Cita", que es el
+               vocabulario de otras especialidades, no el de psicología.
+
+               Lo que se corrigió contra el componente real:
+                 · La barra de herramientas lleva ‹ Hoy › y el selector
+                   Día/Semana/Mes; no eran dos flechas sueltas.
+                 · El mes real NO pinta el fin de semana distinto (eso es la
+                   vista Semana); acá se quitó el sombreado y el azul de Sáb/Dom.
+                 · Las celdas de relleno no van vacías: el mes real muestra los
+                   días del mes vecino atenuados (.other-month).
+                 · "Hoy" es sólo el número dentro de un círculo lleno del color
+                   primario del calendario (#6366f1), sin borde ni fondo de celda.
+                 · Cada cita lleva borde izquierdo + punto del color de su ESTADO,
+                   con los colores del propio esquema: Agendada #3b82f6,
+                   Confirmada #8b5cf6, Completada #10b981, No asistió #f59e0b.
+                   El rosa que había antes no corresponde a ningún estado.
+                 · Tope de 3 citas por celda y luego "+N más", como slice(0, 3). -->
           <div class="mv" [class.active]="activeView === 'citas'">
             <div class="mv-header">
-              <span class="mv-title">Calendario</span>
-              <span class="mv-badge">Julio 2026</span>
-              <button class="mv-new-btn">+ Nueva Cita</button>
+              <span class="mv-title">Sesiones <span class="pt-meta">Agenda de sesiones terapéuticas</span></span>
+              <button class="mv-new-btn">+ Nueva Sesión</button>
             </div>
             <div class="cal-nav">
               <button class="cal-btn">&#8249;</button>
-              <span>Julio 2026</span>
+              <button class="cal-btn">Hoy</button>
               <button class="cal-btn">&#8250;</button>
+              <span class="cal-period">Septiembre 2026</span>
+              <span class="cal-toggle"><span class="mv-tab">D&#237;a</span><span class="mv-tab">Semana</span><span class="mv-tab active">Mes</span></span>
             </div>
             <div class="cal-grid-head">
               <span>Lun</span><span>Mar</span><span>Mi&#233;</span><span>Jue</span>
-              <span>Vie</span><span class="cal-wknd">S&#225;b</span><span class="cal-wknd">Dom</span>
+              <span>Vie</span><span>S&#225;b</span><span>Dom</span>
             </div>
             <div class="cal-grid">
-              <!-- Row 1: Jul starts Wed -->
-              <div class="cal-cell cal-empty"></div>
-              <div class="cal-cell cal-empty"></div>
-              <div class="cal-cell"><div class="cal-num">1</div><div class="cal-evt cal-blue">09:00 M.Gonz&#225;lez</div></div>
-              <div class="cal-cell"><div class="cal-num">2</div><div class="cal-evt cal-green">11:30 C.Soto</div></div>
-              <div class="cal-cell"><div class="cal-num">3</div><div class="cal-evt cal-purple">10:00 A.P&#233;rez</div></div>
-              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">4</div></div>
-              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">5</div></div>
-              <!-- Row 2 -->
-              <div class="cal-cell"><div class="cal-num">6</div><div class="cal-evt cal-blue">08:30 L.Morales</div><div class="cal-evt cal-green">15:00 P.Torres</div></div>
-              <div class="cal-cell"><div class="cal-num">7</div><div class="cal-evt cal-pink">09:00 S.Rojas</div></div>
-              <div class="cal-cell"><div class="cal-num">8</div><div class="cal-evt cal-green">10:30 R.Vega</div></div>
-              <div class="cal-cell cal-today"><div class="cal-today-num">9</div><div class="cal-evt cal-blue">09:00 M.Gonz&#225;lez</div><div class="cal-evt cal-more">+3 m&#225;s</div></div>
-              <div class="cal-cell"><div class="cal-num">10</div><div class="cal-evt cal-purple">11:30 T.Ibarra</div></div>
-              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">11</div></div>
-              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">12</div></div>
-              <!-- Row 3 -->
-              <div class="cal-cell"><div class="cal-num">13</div><div class="cal-evt cal-blue">09:00 U.Rojas</div></div>
-              <div class="cal-cell"><div class="cal-num">14</div><div class="cal-evt cal-green">08:00 F.Castro</div></div>
-              <div class="cal-cell"><div class="cal-num">15</div><div class="cal-evt cal-pink">10:30 K.Mu&#241;oz</div></div>
-              <div class="cal-cell"><div class="cal-num">16</div><div class="cal-evt cal-blue">09:00 S.L&#243;pez</div><div class="cal-evt cal-more">+1 m&#225;s</div></div>
-              <div class="cal-cell"><div class="cal-num">17</div><div class="cal-evt cal-green">08:30 D.R&#237;os</div></div>
-              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">18</div></div>
-              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">19</div></div>
-              <!-- Row 4 -->
-              <div class="cal-cell"><div class="cal-num">20</div><div class="cal-evt cal-blue">09:00 Q.Lagos</div></div>
-              <div class="cal-cell"><div class="cal-num">21</div><div class="cal-evt cal-green">08:30 R.Mena</div></div>
-              <div class="cal-cell"><div class="cal-num">22</div><div class="cal-evt cal-purple">10:00 B.Salas</div></div>
-              <div class="cal-cell"><div class="cal-num">23</div><div class="cal-evt cal-pink">09:00 Y.Soria</div></div>
-              <div class="cal-cell"><div class="cal-num">24</div><div class="cal-evt cal-blue">10:30 Z.Reyes</div></div>
-              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">25</div></div>
-              <div class="cal-cell cal-weekend"><div class="cal-num cal-wknd-num">26</div></div>
-              <!-- Row 5 -->
-              <div class="cal-cell"><div class="cal-num">27</div><div class="cal-evt cal-green">08:30 A.Mora</div></div>
-              <div class="cal-cell"><div class="cal-num">28</div><div class="cal-evt cal-blue">09:00 B.L&#243;pez</div></div>
-              <div class="cal-cell"><div class="cal-num">29</div><div class="cal-evt cal-pink">10:00 C.Garc&#237;a</div></div>
-              <div class="cal-cell"><div class="cal-num">30</div><div class="cal-evt cal-blue">11:00 D.R&#237;os</div><div class="cal-evt cal-more">+2 m&#225;s</div></div>
-              <div class="cal-cell"><div class="cal-num">31</div><div class="cal-evt cal-green">09:00 E.Torres</div></div>
-              <div class="cal-cell cal-empty cal-weekend"></div>
-              <div class="cal-cell cal-empty cal-weekend"></div>
+              <!-- Fila 1 — septiembre 2026 parte un martes -->
+              <div class="cal-cell cal-other"><div class="cal-num">31</div></div>
+              <div class="cal-cell"><div class="cal-num">1</div><div class="cal-evt" style="background:#8b5cf629;border-left-color:#8b5cf6;color:#c4b5fd"><span class="cal-dot"></span>09:00 M.Gonz&#225;lez</div></div>
+              <div class="cal-cell"><div class="cal-num">2</div><div class="cal-evt" style="background:#10b98129;border-left-color:#10b981;color:#6ee7b7"><span class="cal-dot"></span>11:30 C.Soto</div></div>
+              <div class="cal-cell"><div class="cal-num">3</div><div class="cal-evt" style="background:#3b82f629;border-left-color:#3b82f6;color:#93c5fd"><span class="cal-dot"></span>10:00 A.P&#233;rez</div></div>
+              <div class="cal-cell"><div class="cal-num">4</div><div class="cal-evt" style="background:#10b98129;border-left-color:#10b981;color:#6ee7b7"><span class="cal-dot"></span>08:30 D.R&#237;os</div></div>
+              <div class="cal-cell"><div class="cal-num">5</div></div>
+              <div class="cal-cell"><div class="cal-num">6</div></div>
+              <!-- Fila 2 -->
+              <div class="cal-cell"><div class="cal-num">7</div><div class="cal-evt" style="background:#10b98129;border-left-color:#10b981;color:#6ee7b7"><span class="cal-dot"></span>08:30 L.Morales</div><div class="cal-evt" style="background:#8b5cf629;border-left-color:#8b5cf6;color:#c4b5fd"><span class="cal-dot"></span>15:00 P.Torres</div></div>
+              <div class="cal-cell"><div class="cal-num">8</div><div class="cal-evt" style="background:#f59e0b29;border-left-color:#f59e0b;color:#fcd34d"><span class="cal-dot"></span>09:00 S.Rojas</div></div>
+              <div class="cal-cell"><div class="cal-today-num">9</div><div class="cal-evt" style="background:#8b5cf629;border-left-color:#8b5cf6;color:#c4b5fd"><span class="cal-dot"></span>09:00 T.Herrera</div><div class="cal-evt cal-more">+3 m&#225;s</div></div>
+              <div class="cal-cell"><div class="cal-num">10</div><div class="cal-evt" style="background:#3b82f629;border-left-color:#3b82f6;color:#93c5fd"><span class="cal-dot"></span>11:30 T.Ibarra</div></div>
+              <div class="cal-cell"><div class="cal-num">11</div><div class="cal-evt" style="background:#3b82f629;border-left-color:#3b82f6;color:#93c5fd"><span class="cal-dot"></span>10:30 R.Vega</div></div>
+              <div class="cal-cell"><div class="cal-num">12</div></div>
+              <div class="cal-cell"><div class="cal-num">13</div></div>
+              <!-- Fila 3 -->
+              <div class="cal-cell"><div class="cal-num">14</div><div class="cal-evt" style="background:#8b5cf629;border-left-color:#8b5cf6;color:#c4b5fd"><span class="cal-dot"></span>09:00 U.Rojas</div></div>
+              <div class="cal-cell"><div class="cal-num">15</div><div class="cal-evt" style="background:#3b82f629;border-left-color:#3b82f6;color:#93c5fd"><span class="cal-dot"></span>08:00 F.Castro</div></div>
+              <div class="cal-cell"><div class="cal-num">16</div><div class="cal-evt" style="background:#f59e0b29;border-left-color:#f59e0b;color:#fcd34d"><span class="cal-dot"></span>10:30 K.Mu&#241;oz</div></div>
+              <div class="cal-cell"><div class="cal-num">17</div><div class="cal-evt" style="background:#8b5cf629;border-left-color:#8b5cf6;color:#c4b5fd"><span class="cal-dot"></span>09:00 S.L&#243;pez</div><div class="cal-evt cal-more">+1 m&#225;s</div></div>
+              <div class="cal-cell"><div class="cal-num">18</div><div class="cal-evt" style="background:#3b82f629;border-left-color:#3b82f6;color:#93c5fd"><span class="cal-dot"></span>08:30 D.R&#237;os</div></div>
+              <div class="cal-cell"><div class="cal-num">19</div></div>
+              <div class="cal-cell"><div class="cal-num">20</div></div>
+              <!-- Fila 4 -->
+              <div class="cal-cell"><div class="cal-num">21</div><div class="cal-evt" style="background:#8b5cf629;border-left-color:#8b5cf6;color:#c4b5fd"><span class="cal-dot"></span>09:00 Q.Lagos</div></div>
+              <div class="cal-cell"><div class="cal-num">22</div><div class="cal-evt" style="background:#3b82f629;border-left-color:#3b82f6;color:#93c5fd"><span class="cal-dot"></span>08:30 R.Mena</div></div>
+              <div class="cal-cell"><div class="cal-num">23</div><div class="cal-evt" style="background:#3b82f629;border-left-color:#3b82f6;color:#93c5fd"><span class="cal-dot"></span>10:00 B.Salas</div></div>
+              <div class="cal-cell"><div class="cal-num">24</div><div class="cal-evt" style="background:#8b5cf629;border-left-color:#8b5cf6;color:#c4b5fd"><span class="cal-dot"></span>09:00 Y.Soria</div></div>
+              <div class="cal-cell"><div class="cal-num">25</div><div class="cal-evt" style="background:#3b82f629;border-left-color:#3b82f6;color:#93c5fd"><span class="cal-dot"></span>10:30 Z.Reyes</div></div>
+              <div class="cal-cell"><div class="cal-num">26</div></div>
+              <div class="cal-cell"><div class="cal-num">27</div></div>
+              <!-- Fila 5 -->
+              <div class="cal-cell"><div class="cal-num">28</div><div class="cal-evt" style="background:#3b82f629;border-left-color:#3b82f6;color:#93c5fd"><span class="cal-dot"></span>08:30 A.Mora</div></div>
+              <div class="cal-cell"><div class="cal-num">29</div><div class="cal-evt" style="background:#8b5cf629;border-left-color:#8b5cf6;color:#c4b5fd"><span class="cal-dot"></span>09:00 B.L&#243;pez</div></div>
+              <div class="cal-cell"><div class="cal-num">30</div><div class="cal-evt" style="background:#3b82f629;border-left-color:#3b82f6;color:#93c5fd"><span class="cal-dot"></span>10:00 C.Garc&#237;a</div><div class="cal-evt cal-more">+2 m&#225;s</div></div>
+              <div class="cal-cell cal-other"><div class="cal-num">1</div></div>
+              <div class="cal-cell cal-other"><div class="cal-num">2</div></div>
+              <div class="cal-cell cal-other"><div class="cal-num">3</div></div>
+              <div class="cal-cell cal-other"><div class="cal-num">4</div></div>
             </div>
           </div>
 
@@ -319,7 +448,7 @@
      de clientes, notas de review sites ni promesas de tiempo de implementación. -->
 <div class="trust-strip">
   <div class="trust-item">
-    <span class="trust-num">$7.990</span>
+    <span class="trust-num">$10.990</span>
     <span class="trust-lbl">al mes, plan Pro</span>
   </div>
   <div class="trust-div"></div>
@@ -711,7 +840,7 @@
         <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.8 2.8h7a2 2 0 0 1 1.4.6l7.4 7.4a2 2 0 0 1 0 2.8l-7 7a2 2 0 0 1-2.8 0l-7.4-7.4a2 2 0 0 1-.6-1.4v-7a2 2 0 0 1 2-2z"/><circle cx="7.3" cy="7.3" r="1.6"/></svg>
       </div>
       <h3>Precio en pesos, sin sorpresas</h3>
-      <p>Plan Starter gratis sin vencimiento para ordenar la agenda, y plan Pro a $7.990 al mes con ficha clínica, IA, cobro online y app móvil incluidos. Sin cobro por paciente y sin costo extra por las integraciones. Lo único que se suma es la comisión sobre lo que cobres en línea, y está a la vista en cada plan.</p>
+      <p>Plan Starter gratis sin vencimiento para ordenar la agenda, y plan Pro a $10.990 al mes con ficha clínica, IA, cobro online y app móvil incluidos. Sin cobro por paciente y sin costo extra por las integraciones. Lo único que se suma es la comisión sobre lo que cobres en línea, y está a la vista en cada plan.</p>
     </div>
     <div class="feature-card" style="border-color:rgba(16,185,129,.35);">
       <!-- Calendario con visto: la hora reservada y confirmada sola. Es el mismo
@@ -736,7 +865,7 @@
        No se nombra a nadie ni se afirma ser el más barato: solo se ubica el
        precio propio contra el ingreso propio del profesional. -->
   <p class="cta-anchor">
-    El plan Pro cuesta <strong>$7.990 al mes</strong> — menos de lo que cobras por una sola sesión.
+    El plan Pro cuesta <strong>$10.990 al mes</strong> — menos de lo que cobras por una sola sesión.
   </p>
 
   <div class="pricing-grid">
@@ -751,6 +880,11 @@
       <hr class="pricing-divider">
       <ul class="pricing-features">
         <li>1 profesional</li>
+        <!-- Cifra comercial, no una cuota que el sistema haga cumplir hoy: el plan
+             Starter no tiene módulo de pacientes (solo agenda), así que no hay
+             ningún conteo de "pacientes" que un backend pueda limitar. Mismo
+             patrón que el tope de 50 sesiones/mes de voz en el plan Pro más abajo. -->
+        <li>Hasta 50 pacientes</li>
         <!-- Se quitó "1 especialidad clínica": en una página que solo habla de
              psicología, contar especialidades invita justo a la pregunta que la
              página ya no quiere abrir ("¿cuáles otras?"). El límite del plan no
@@ -761,7 +895,7 @@
         <li class="feature-commission">Comisión de 4% solo sobre lo que cobres con tarjeta</li>
         <li>Confirmaciones y recordatorios por email</li>
         <li>Capacitaciones y soporte incluidos</li>
-        <li>Soporte por email</li>
+        <li>Soporte vía chat en plataforma, email y WhatsApp</li>
       </ul>
       <a routerLink="/register" [queryParams]="{plan: 'agenda'}" class="pricing-btn solid" style="margin-top:1.25rem;">Empezar gratis</a>
     </div>
@@ -776,7 +910,7 @@
       <div class="pricing-plan">Pro</div>
       <div class="pricing-price">
         <span class="p-currency">$</span>
-        <span class="p-amount">7.990</span>
+        <span class="p-amount">10.990</span>
         <span class="p-period">/mes</span>
       </div>
       <span class="pricing-anchor">Menos que una sesión</span>
@@ -807,7 +941,7 @@
         <li class="feature-commission">Comisión de 3% solo sobre lo que cobres con tarjeta</li>
         <li>Confirmaciones y recordatorios por email</li>
         <li>Capacitaciones y soporte incluidos</li>
-        <li>Soporte por email</li>
+        <li>Soporte vía chat en plataforma, email y WhatsApp</li>
       </ul>
       <a routerLink="/register" class="pricing-btn solid" style="margin-top:1.25rem;">Empezar 15 días gratis</a>
     </div>

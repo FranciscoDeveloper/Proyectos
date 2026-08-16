@@ -457,6 +457,12 @@ footer {
 .pb-psico   { color: #6d28d9; border-color: rgba(139,92,246,.4);  background: rgba(139,92,246,.1); }
 
 /* ── MOCKUP SCENE ────────────────────────────────────────────────── */
+/* Superficies y bordes del navegador falso, agrupados: el componente tiene un
+   presupuesto de 24 kB de estilos y estas tres declaraciones se repetían en
+   ocho reglas distintas. */
+.mv-table, .pt-header, .soap-block, .vital, .cal-grid, .cal-toggle, .cal-btn, .cal-cell { border: 1px solid #1e3452; }
+.pt-header, .soap-block, .vital, .mb-sidebar { background: #0f1e30; }
+.mv-table, .pt-header, .soap-block { border-radius: 8px; }
 .mockup-scene {
   margin-top: 3rem;
   width: 100%;
@@ -525,15 +531,20 @@ footer {
   color: #64748b;
 }
 
+/* Las dos vistas se alternan solas cada 4,5 s, así que el marco no puede cambiar
+   de alto en cada rotación. Este mínimo es el alto natural de la ficha, que es la
+   vista más larga; el calendario lo rellena estirando .cal-grid. Si se agrega o
+   se saca contenido de la ficha, hay que volver a medirlo. */
 .mb-app {
   background: #111c2d;
   display: flex;
-  min-height: 440px;
+  min-height: 580px;
 }
 
+/* 156 px: "Fichas Psicológicas" es la etiqueta real más larga del menú y a
+   140 px se cortaba. */
 .mb-sidebar {
-  width: 140px;
-  background: #0f1e30;
+  width: 156px;
   border-right: 1px solid #1e3452;
   padding: .9rem .55rem;
   flex-shrink: 0;
@@ -553,14 +564,17 @@ footer {
   gap: .38rem;
   padding: .36rem .52rem;
   border-radius: 7px;
-  font-size: .71rem;
+  font-size: .68rem;
   color: #64748b;
   cursor: pointer;
   transition: all .15s;
   user-select: none;
+  span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   &:hover { color: #94a3b8; background: rgba(255,255,255,.04); }
-  &.active { background: rgba(14,165,233,.18); color: #38bdf8; font-weight: 700; }
 }
+/* Único color de "seleccionado" del mockup: lo comparten el menú lateral, las
+   pestañas de la ficha y el selector Día/Semana/Mes del calendario. */
+.mbs-item.active, .mv-tab.active { background: rgba(14,165,233,.18); color: #38bdf8; font-weight: 700; }
 
 .mb-main { flex: 1; overflow: hidden; position: relative; }
 
@@ -575,21 +589,26 @@ footer {
   &.active { display: flex; }
 }
 
-.mv-header {
+/* Base común de todas las filas horizontales del panel. Agrupadas para que el
+   componente siga bajo el presupuesto de 24 kB de estilos. */
+.mv-header, .mv-tabs, .cal-nav, .cal-toggle, .cal-evt, .ai-strip,
+.mv-chart-title, .mv-legend, .pn-head, .pt-header, .vital-head, .vital-score,
+.mvt-task, .mvt-box {
   display: flex;
   align-items: center;
-  gap: .5rem;
-  flex-shrink: 0;
 }
+/* El hero está centrado; dentro del navegador falso el texto va alineado a la
+   izquierda, como en la aplicación. */
+.mv { text-align: left; }
+.mv-header, .cal-nav, .mv-chart-title { gap: .5rem; }
+.mv-header, .mv-tabs, .cal-nav, .ai-strip, .mv-chart-wrap, .mv-table, .mv-tab,
+.vitals-grid, .pt-header, .cal-grid-head, .vital-sw, .cal-dot, .mvt-box, .pt-avatar { flex-shrink: 0; }
 .mv-title { font-size: .82rem; font-weight: 700; flex: 1; }
 .mv-badge {
-  background: var(--sky-100);
-  color: var(--primary-dark);
-  border-radius: 99px;
-  padding: .11rem .48rem;
-  font-size: .57rem;
-  font-weight: 700;
+  background: var(--sky-100); color: var(--primary-dark);
+  padding: .11rem .48rem; font-size: .57rem; font-weight: 700;
 }
+.mv-badge, .pn-pill, .ai-chip, .vital-sev { border-radius: 99px; }
 .mv-new-btn {
   border-radius: 5px;
   padding: .17rem .52rem;
@@ -599,86 +618,51 @@ footer {
   font-family: 'DM Sans', system-ui, sans-serif;
 }
 
-/* Bar chart */
-.mv-chart-wrap { flex-shrink: 0; }
-.mv-chart-title { font-size: .64rem; color: #94a3b8; margin-bottom: .38rem; font-weight: 600; }
-.mv-chart {
-  display: flex;
-  align-items: flex-end;
-  gap: .32rem;
-  height: 58px;
-}
-.mc-col {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .18rem;
-  height: 100%;
-  justify-content: flex-end;
-  span { font-size: .5rem; color: #64748b; }
-}
-.mc-bar {
-  width: 100%;
-  background: linear-gradient(to top, #0ea5e9, #38bdf8);
-  border-radius: 3px 3px 0 0;
-  min-height: 4px;
-}
-.mc-today {
-  background: linear-gradient(to top, #0284c7, #0ea5e9);
-  box-shadow: 0 0 8px rgba(14,165,233,.5);
-}
-.mc-today-lbl { color: #38bdf8 !important; font-weight: 700 !important; }
+/* Trayectoria MBC. Antes era un gráfico de barras de una sola serie; el
+   componente real (mbc-trajectory) dibuja un SVG de líneas con una serie por
+   escala, rejilla y eje Y. Acá el SVG viene escrito a mano en el HTML, así que
+   sólo hacen falta los estilos de rejilla y eje. */
+.mv-chart-title { flex-wrap: wrap; font-size: .62rem; margin-bottom: .3rem; }
+.mv-chart { display: block; width: 100%; height: auto; }
+.mv-grid line { stroke: #1e3452; }
+.mv-axis text { font-size: 7px; fill: #64748b; }
 
-/* Appointment table */
+/* Pestañas de la ficha (tab-bar de clinical-detail) y selector Día/Semana/Mes
+   del calendario: la misma píldora. La barra de pestañas se corta a la derecha
+   en vez de envolverse, porque en la aplicación real, con ocho pestañas,
+   tampoco caben todas y la barra hace scroll horizontal. */
+.mv-tabs { gap: .3rem; overflow: hidden; white-space: nowrap; border-bottom: 1px solid #1e3452; padding-bottom: .24rem; }
+.mv-tab { font-weight: 600; padding: .12rem .34rem; border-radius: 5px; }
+
+/* Las leyendas chicas del panel comparten tamaño y gris. */
+.mv-tab, .mvt-title, .mvt-meta, .mvt-note, .mv-chart-foot, .vital-head,
+.vital-sev, .vital-delta, .pt-status { font-size: .55rem; }
+.mv-tab, .mvt-meta, .mv-chart-foot, .mv-legend, .cal-num, .cal-more { color: #64748b; }
+
+/* Lista de tareas intersesión. Antes era una tabla de tres columnas
+   (Tarea / Vence / Estado) que el producto no tiene: la lista real va partida
+   en "Pendientes (n)" y "Completadas (n)", con casilla, descripción, fechas en
+   texto y la nota del paciente entre comillas. */
 .mv-table {
-  flex-shrink: 0;
-  border: 1px solid #1e3452;
-  border-radius: 8px;
-  overflow: hidden;
-  font-size: .69rem;
+  padding: .34rem .5rem .42rem;
 }
-/* Tabla de tareas intersesión (vista de psicología). Antes existía además una
-   variante .mvt-3 de 3 columnas porque el dashboard usaba una de 4; al salir el
-   dashboard del mockup quedó una sola forma de tabla. */
-.mvt-row {
-  display: grid;
-  grid-template-columns: 2.2fr .9fr 1.1fr;
-  padding: .4rem .62rem;
-  border-bottom: 1px solid #1e3452;
-  align-items: center;
-  &:last-child { border-bottom: none; }
+.mvt-title { margin: .22rem 0 .2rem; }
+.mvt-task { align-items: flex-start; gap: .4rem; padding: .12rem 0; }
+.mvt-box {
+  width: 12px; height: 12px; border-radius: 4px; margin-top: .08rem;
+  border: 1.5px solid #33507a; justify-content: center;
 }
-.mvt-head {
-  background: rgba(255,255,255,.04);
-  font-size: .59rem;
-  color: #94a3b8;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-}
-.st {
-  border-radius: 99px;
-  padding: .1rem .42rem;
-  font-size: .59rem;
-  font-weight: 600;
-  display: inline-block;
-}
-.st-green { background: rgba(16,185,129,.15); color: #10b981; }
-.st-amber { background: rgba(245,158,11,.15); color: #f59e0b; }
+.mvt-done { background: rgba(16,185,129,.16); border-color: #10b981; color: #10b981; }
+.mvt-body { display: flex; flex-direction: column; min-width: 0; }
+.mvt-desc { font-size: .66rem; }
+.mvt-note { font-style: italic; }
+.mvt-desc, .cal-period { color: #e2e8f0; }
+.mvt-note, .mvt-title, .mv-chart-title { color: #94a3b8; }
 
 /* Calendar */
-.cal-nav {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  font-size: .69rem;
-  color: #94a3b8;
-  flex-shrink: 0;
-}
+.cal-nav { font-size: .69rem; color: #94a3b8; }
 .cal-btn {
   background: rgba(255,255,255,.06);
-  border: 1px solid #1e3452;
   border-radius: 4px;
   color: #94a3b8;
   padding: .08rem .4rem;
@@ -686,6 +670,11 @@ footer {
   font-size: .72rem;
   line-height: 1.4;
 }
+.cal-period { font-weight: 700; }
+.cal-toggle { margin-left: auto; border-radius: 5px; overflow: hidden; }
+
+/* El encabezado de días del mes real es gris parejo: el fin de semana sólo se
+   distingue en la vista Semana, no en la de Mes. */
 .cal-grid-head {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -696,157 +685,110 @@ footer {
   letter-spacing: .5px;
   background: rgba(255,255,255,.04);
   border-radius: 5px 5px 0 0;
-  flex-shrink: 0;
   span { text-align: center; padding: .22rem 0; }
 }
-.cal-wknd { color: #38bdf8 !important; }
 
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(5, auto);
-  border: 1px solid #1e3452;
+  grid-template-rows: repeat(5, 1fr);
   border-radius: 0 0 5px 5px;
   overflow: hidden;
+  /* Estira para llenar el alto del marco, que lo fija la ficha (la vista más
+     larga). Sin esto el navegador falso cambiaba de alto en cada rotación. */
+  flex: 1;
 }
 .cal-cell {
   padding: .2rem .22rem;
-  border-right: 1px solid #1e3452;
-  border-bottom: 1px solid #1e3452;
+  border-width: 0 1px 1px 0;
   min-height: 54px;
   overflow: hidden;
   &:nth-child(7n) { border-right: none; }
 }
-.cal-num {
-  font-size: .56rem;
-  font-weight: 600;
-  color: #64748b;
-  margin-bottom: .12rem;
+.cal-num { font-size: .56rem; font-weight: 600; margin-bottom: .12rem; }
+/* .other-month del calendario real: fondo apagado y número atenuado, con el día
+   del mes vecino a la vista. No son celdas en blanco. */
+.cal-other {
+  background: rgba(255,255,255,.02);
+  .cal-num { color: #3d4d66; }
 }
-.cal-wknd-num { color: #38bdf8; }
-.cal-empty { background: rgba(255,255,255,.02); opacity: .4; }
-.cal-weekend { background: rgba(14,165,233,.03); }
-.cal-today {
-  background: rgba(14,165,233,.1);
-  border-top: 2px solid #0ea5e9 !important;
-}
+/* "Hoy" en la vista Mes es sólo el número dentro de un círculo lleno del color
+   primario del calendario (#6366f1). La celda no se pinta. */
 .cal-today-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 15px;
-  height: 15px;
-  background: #0ea5e9;
-  color: #fff;
-  border-radius: 50%;
-  font-size: .56rem;
-  font-weight: 800;
-  margin-bottom: .12rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 15px; height: 15px; margin-bottom: .12rem;
+  background: #6366f1; color: #fff; border-radius: 50%;
+  font-size: .56rem; font-weight: 800;
 }
+/* Píldora de cita: borde izquierdo grueso + punto, ambos del color del ESTADO,
+   sobre el mismo color al 10 % de opacidad — igual que .month-event. */
 .cal-evt {
-  border-radius: 2px;
-  padding: .07rem .2rem;
-  font-size: .49rem;
-  font-weight: 700;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  margin-bottom: .06rem;
+  gap: .18rem; border-radius: 3px; border-left: 2px solid;
+  padding: .07rem .2rem; margin-bottom: .06rem;
+  font-size: .49rem; font-weight: 700;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
 }
-.cal-blue   { background: rgba(59,130,246,.22);  color: #93c5fd; }
-.cal-green  { background: rgba(16,185,129,.22);  color: #6ee7b7; }
-.cal-purple { background: rgba(139,92,246,.22);  color: #c4b5fd; }
-.cal-pink   { background: rgba(236,72,153,.22);  color: #f9a8d4; }
-.cal-more   { background: rgba(14,165,233,.16);  color: #7dd3fc; }
+.cal-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+/* Los cuatro colores de estado (Agendada #3b82f6, Confirmada #8b5cf6,
+   Completada #10b981, No asistió #f59e0b) van en el atributo style de cada
+   píldora, no en clases: el calendario real también los aplica inline, con
+   [style.background]="ev.statusColor + '1a'" y [style.border-left-color]. */
+.cal-more { border-left: none; font-weight: 600; }
 
 /* Clinical record */
-.pt-header {
-  display: flex;
-  align-items: center;
-  gap: .65rem;
-  padding: .58rem;
-  background: #0f1e30;
-  border-radius: 8px;
-  border: 1px solid #1e3452;
-  flex-shrink: 0;
-}
+.pt-header { gap: .65rem; padding: .58rem; }
+/* El avatar real (.ph-avatar) se pinta con el color del ESTADO del paciente al
+   13 %, no con el azul de marca. "En Terapia" es #10b981 en el esquema. */
 .pt-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #0ea5e9, #0284c7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: .72rem;
-  font-weight: 800;
-  color: #fff;
-  flex-shrink: 0;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: 800;
 }
+/* Píldora de estado y avatar comparten el color que el esquema asigna a
+   "En Terapia" (#10b981); el avatar real usa ese mismo color, no el de marca. */
+.pt-avatar, .pt-status { background: rgba(16,185,129,.16); color: #10b981; border-radius: 99px; }
 .pt-name { font-size: .78rem; font-weight: 700; color: #f1f5f9; }
+.pt-status { padding: .04rem .4rem; font-weight: 700; vertical-align: .1em; }
 .pt-meta { font-size: .61rem; color: #64748b; margin-top: .08rem; }
 
-.vitals-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: .42rem;
-  flex-shrink: 0;
-}
-.vital {
-  background: #0f1e30;
-  border: 1px solid #1e3452;
-  border-radius: 7px;
-  padding: .48rem .38rem;
-  text-align: center;
-}
-.vital-val { font-size: .76rem; font-weight: 800; color: #38bdf8; line-height: 1.1; }
-.vital-lbl { font-size: .5rem; color: #64748b; margin-top: .08rem; }
+/* Resumen por escala — la forma de .mbc-stat: swatch + código, puntaje grande
+   con la píldora de severidad, y el delta contra la primera aplicación. */
+.vitals-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .42rem; }
+.vital { border-radius: 7px; padding: .42rem .55rem; }
+.vital-head, .mv-legend { gap: .3rem; }
+.vital-head { color: #94a3b8; }
+.vital-head, .vital-sev, .mvt-title { font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+.vital-sw { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
+.vital-score { gap: .38rem; font-size: 1rem; font-weight: 800; color: #f1f5f9; line-height: 1.2; margin-top: .1rem; }
+.vital-sev { color: #fff; padding: .04rem .38rem; }
+.vital-delta { font-weight: 600; color: #10b981; margin-top: .12rem; }
 
 .soap-block {
   flex: 1;
-  background: #0f1e30;
-  border: 1px solid #1e3452;
-  border-radius: 8px;
   padding: .52rem .62rem;
   display: flex;
   flex-direction: column;
   gap: .38rem;
   overflow: hidden;
 }
-.soap-row { display: flex; gap: .48rem; align-items: flex-start; }
-
 /* Encabezado de la nota de proceso. Las etiquetas S/O/A/P salieron con la vista
    de ficha médica; este bloque hoy es exclusivamente la nota privada. */
-.pn-head {
-  display: flex; align-items: center; justify-content: space-between; gap: .4rem;
-  font-size: .63rem; font-weight: 700; color: #c4b5fd;
-}
+.pn-head { justify-content: space-between; gap: .4rem; font-size: .63rem; font-weight: 700; color: #c4b5fd; }
 .pn-pill {
   background: rgba(139,92,246,.2); border: 1px solid rgba(139,92,246,.4);
-  color: #ddd6fe; border-radius: 99px; padding: .06rem .42rem;
+  color: #ddd6fe; padding: .06rem .42rem;
   font-size: .55rem; font-weight: 700; white-space: nowrap;
 }
 .soap-text {
-  font-size: .63rem;
-  color: #94a3b8;
-  line-height: 1.45;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  font-size: .63rem; color: #94a3b8; line-height: 1.45; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
 }
 
-.ai-strip {
-  display: flex;
-  gap: .45rem;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-}
+.ai-strip { gap: .45rem; flex-wrap: wrap; }
 .ai-chip {
   font-size: .61rem;
   font-weight: 600;
   padding: .2rem .62rem;
-  border-radius: 99px;
   background: rgba(139,92,246,.15);
   color: #c4b5fd;
   border: 1px solid rgba(139,92,246,.3);
@@ -875,20 +817,29 @@ footer {
 
   /* Hide sidebar on mobile */
   .mb-sidebar { display: none; }
-  .mb-app { min-height: 380px; }
+  .mb-app { min-height: 490px; }
 
   /* En móvil no cabe todo el panel. Antes se escondía el gráfico y se dejaba la
      tabla; va al revés, porque la trayectoria del PHQ-9 es justamente la imagen
      que distingue a esta ficha y la lista de tareas se explica igual con texto. */
   .mv-table { display: none; }
 
-  /* Calendar: smaller cells, max 1 event */
-  .cal-cell { min-height: 40px; }
-  .cal-evt:not(:first-child) { display: none; }
+  /* La barra de pestañas de la ficha y el selector Día/Semana/Mes se cortarían
+     de todos modos a este ancho; el selector se va y las pestañas quedan
+     mostrando las primeras, que es lo que hace la aplicación real. */
+  .cal-toggle { display: none; }
 
-  /* Clinical: 2-col vitals, hide last 2 SOAP rows */
-  .vitals-grid { grid-template-columns: repeat(2, 1fr); }
-  .soap-row:nth-child(n+3) { display: none; }
+  /* Calendar: celdas más bajas y una sola cita por día. El selector anterior
+     era .cal-evt:not(:first-child), y como el primer hijo de la celda es
+     siempre .cal-num, en móvil no se veía NINGUNA cita. */
+  .cal-cell { min-height: 40px; }
+  .cal-evt ~ .cal-evt { display: none; }
+
+  /* El resumen de escalas ya viene en dos columnas; en móvil va apilado para que
+     el puntaje y su severidad no se aprieten. */
+  .vitals-grid { grid-template-columns: 1fr; gap: .3rem; }
+  /* A este ancho el eje del gráfico queda de 5 px por etiqueta y se empasta. */
+  .mv-legend, .mv-axis { display: none; }
 }
 
 /* ── TRUST STRIP ──────────────────────────────────────────────────── */

@@ -20,7 +20,7 @@ const SEO_TITLE = 'Software para psicólogos en Chile | Ficha clínica — Dairi
 // ~155 caracteres. La versión anterior pasaba de 260 —Google la truncaba a la
 // mitad— y gastaba el final en enumerar las otras 8 especialidades, que esta
 // página ya no vende ni menciona en ninguna parte.
-const SEO_DESCRIPTION = 'Software para psicólogos en Chile: ficha psicológica, notas de proceso privadas, escalas PHQ-9 y GAD-7, agenda y pago online. Plan gratis y Pro $7.990/mes.';
+const SEO_DESCRIPTION = 'Software para psicólogos en Chile: ficha psicológica, notas de proceso privadas, escalas PHQ-9 y GAD-7, agenda y pago online. Plan gratis y Pro $10.990/mes.';
 const SEO_URL = 'https://dairi.cl/';
 const SEO_IMAGE = 'https://dairi.cl/og-image.png';
 const SEO_IMAGE_ALT = 'Ficha clínica psicológica de Dairi mostrando la trayectoria de PHQ-9, las tareas intersesión y una nota de proceso privada';
@@ -51,7 +51,7 @@ const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: '¿Cuánto cuesta y hay costos ocultos?',
-    a: 'El plan Starter es gratis y no vence. El plan Pro cuesta $7.990 al mes e incluye ficha psicológica, IA, cobro online y app móvil, con pacientes ilimitados. No hay cobro por paciente ni costo extra por las integraciones. Lo único que se suma es una comisión sobre las sesiones que tu paciente pague con tarjeta dentro de Dairi: 4% en Starter y 3% en Pro. Si cobras por transferencia o en efectivo, no pagas comisión por esa sesión.'
+    a: 'El plan Starter es gratis y no vence. El plan Pro cuesta $10.990 al mes e incluye ficha psicológica, IA, cobro online y app móvil, con pacientes ilimitados. No hay cobro por paciente ni costo extra por las integraciones. Lo único que se suma es una comisión sobre las sesiones que tu paciente pague con tarjeta dentro de Dairi: 4% en Starter y 3% en Pro. Si cobras por transferencia o en efectivo, no pagas comisión por esa sesión.'
   },
   {
     // Reemplaza a "¿Dairi sirve para otras especialidades además de psicología?",
@@ -103,8 +103,8 @@ const JSON_LD_SCRIPTS = [
         // Solo Starter y Pro: la oferta Enterprise se retiró junto con su tarjeta
         // de precios. Un Offer en el schema que no existe en la página es
         // exactamente lo que Google marca como structured data no respaldado.
-        { '@type': 'Offer', name: 'Pro', price: '7990', priceCurrency: 'CLP',
-          priceSpecification: { '@type': 'UnitPriceSpecification', price: '7990', priceCurrency: 'CLP', unitCode: 'MON' } }
+        { '@type': 'Offer', name: 'Pro', price: '10990', priceCurrency: 'CLP',
+          priceSpecification: { '@type': 'UnitPriceSpecification', price: '10990', priceCurrency: 'CLP', unitCode: 'MON' } }
       ],
       audience: {
         '@type': 'Audience',
