@@ -1,30 +1,43 @@
 :root {
   --primary:       #0ea5e9;
   --primary-dark:  #0284c7;
-  --primary-light: #38bdf8;
   --accent:        #06b6d4;
   --sky-50:        #f0f9ff;
   --sky-100:       #e0f2fe;
   --sky-200:       #bae6fd;
   --sky-800:       #075985;
-  --sky-900:       #0c4a6e;
   --bg:            #ffffff;
-  --surface:       #f0f9ff;
-  --surface2:      #e0f2fe;
   --text:          #0c2d48;
   --muted:         #64748b;
   --border:        #bae6fd;
-  --green:         #10b981;
-  --yellow:        #f59e0b;
-  --pink:          #ec4899;
   --radius:        14px;
+
+  /* Paleta de psicología. La sección insignia no usa el azul de marca: el azul
+     saturado + los glows fuertes leen como SaaS de productividad, y la audiencia
+     de esta página responde mejor a un registro más cálido y calmo (violeta
+     apagado sobre crema). El resto del sitio conserva el azul Dairi. */
+  --psy:           #7c5cd6;
+  --psy-dark:      #5b3fb0;
+  --psy-ink:       #4c3187;
+  --psy-tint:      #f4efff;
+  --psy-line:      #ded0fb;
+  --cream:         #fdfaf5;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; }
-h1, h2, h3, h4, .nav-logo, .footer-logo, .nav-cta, .btn-primary, .btn-secondary {
+h1, h2, h3, h4, .nav-logo, .footer-logo, .nav-cta, .btn-primary {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* El degradado azul de marca estaba repetido literal en cinco botones. Se
+   declara una vez; cada botón conserva abajo solo su tamaño, radio y sombra.
+   #psicologia lo sobreescribe con el violeta de la sección insignia. */
+.nav-cta, .btn-primary, .docs-banner-btn, .pricing-btn.solid, .mv-new-btn {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  border: none;
 }
 
 /* ── NAV ──────────────────────────────────────────────────────────── */
@@ -37,16 +50,6 @@ nav {
   padding: 0 2rem; height: 64px;
 }
 .nav-logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); letter-spacing: -1px; }
-.nav-logo .logo-dot {
-  color: var(--accent);
-  display: inline-block;
-  animation: dotPulse 2.8s ease-in-out infinite;
-  transform-origin: center bottom;
-}
-@keyframes dotPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.22); }
-}
 .nav-links { display: flex; gap: 2rem; }
 .nav-links a { color: var(--muted); text-decoration: none; font-size: .9rem; transition: color .2s; }
 .nav-links a:hover { color: var(--text); }
@@ -57,8 +60,7 @@ nav {
 }
 .nav-login:hover { color: var(--text); background: var(--sky-50); }
 .nav-cta {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff; border: none; padding: .55rem 1.4rem;
+  padding: .55rem 1.4rem;
   border-radius: 99px; cursor: pointer; font-weight: 700; font-size: .88rem;
   text-decoration: none; box-shadow: 0 4px 14px rgba(14,165,233,.35);
   transition: box-shadow .2s, transform .15s;
@@ -81,9 +83,13 @@ nav {
   font-size: .78rem; font-weight: 700; margin-bottom: 1.75rem; letter-spacing: .6px;
   animation: fadeUp .5s ease both;
 }
+/* Antes: clamp(2.5rem, 6vw, 4.5rem) sobre 900px. Con el titular de dos frases
+   se iba a cuatro líneas y empujaba el demo del producto fuera de la pantalla;
+   además el display gigante es parte del registro "SaaS a gritos" del que esta
+   página se está corriendo. Cada frase entra ahora en una línea en escritorio. */
 .hero h1 {
-  font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 900;
-  line-height: 1.1; letter-spacing: -2px; max-width: 900px;
+  font-size: clamp(2.1rem, 4.6vw, 3.4rem); font-weight: 900;
+  line-height: 1.15; letter-spacing: -1.5px; max-width: 980px;
   margin-bottom: 1.25rem;
   animation: fadeUp .55s .1s ease both;
 }
@@ -100,21 +106,12 @@ nav {
   animation: fadeUp .55s .3s ease both;
 }
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff; padding: .9rem 2.2rem; border-radius: 99px;
-  font-weight: 700; font-size: 1rem; text-decoration: none; border: none; cursor: pointer;
+  padding: .9rem 2.2rem; border-radius: 99px;
+  font-weight: 700; font-size: 1rem; text-decoration: none; cursor: pointer;
   box-shadow: 0 8px 32px rgba(14,165,233,.38); transition: transform .2s, box-shadow .2s;
   display: inline-block;
 }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 44px rgba(14,165,233,.52); }
-.btn-secondary {
-  background: transparent; color: var(--text); padding: .9rem 2.2rem;
-  border-radius: 99px; font-weight: 600; font-size: 1rem;
-  text-decoration: none; border: 1.5px solid var(--sky-200); cursor: pointer;
-  transition: border-color .2s, background .2s;
-  display: inline-block;
-}
-.btn-secondary:hover { border-color: var(--primary); background: var(--sky-50); }
 
 /* ── SECTIONS ─────────────────────────────────────────────────────── */
 section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
@@ -146,13 +143,33 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
   box-shadow: 0 12px 48px rgba(14,165,233,.16);
 }
 .feature-card:hover::before { opacity: 1; }
+/* La insignia sigue siendo la misma caja de 52px: lo que cambió es el hijo, de
+   emoji a SVG de 26px. Por eso ya no hace falta `font-size` y sí un `color`,
+   que es de donde el trazo saca su `currentColor`. */
 .feature-icon {
-  font-size: 1.8rem; margin-bottom: 1rem;
+  color: var(--primary-dark); margin-bottom: 1rem;
   display: inline-flex; align-items: center; justify-content: center;
   width: 52px; height: 52px; background: var(--sky-100); border-radius: 12px;
 }
+/* Íconos que acompañan texto (badge del hero, chips, pestañas del demo,
+   bullets del plan, contacto del footer). Una sola regla para todos: no se
+   encogen dentro de un flex y se sientan sobre la línea base del texto. */
+.lic { flex-shrink: 0; vertical-align: -.18em; }
 .feature-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: .5rem; }
 .feature-card p  { font-size: .88rem; color: var(--muted); }
+
+/* Tarjeta de psicología. Reemplaza los style="border-color:rgba(139,92,246,.45)"
+   que iban repetidos inline en cada tarjeta y solo pintaban el borde: acá el
+   violeta también toma el ícono, el título y el hover, así la sección insignia
+   se lee como otra familia visual y no como una tarjeta azul con el borde raro. */
+.feature-card.is-psico {
+  border-color: var(--psy-line);
+  &::before { background: linear-gradient(90deg, var(--psy), #a78bfa); }
+  &:hover { border-color: var(--psy); box-shadow: 0 12px 40px rgba(124,92,214,.16); }
+  .feature-icon { background: var(--psy-tint); color: var(--psy-dark); }
+  h3 { color: var(--psy-ink); }
+  p strong { color: var(--psy-dark); }
+}
 
 /* ── DOCS BANNER ──────────────────────────────────────────────────── */
 .docs-banner-wrap {
@@ -168,7 +185,7 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
 }
 .docs-banner:hover { border-color: var(--primary); box-shadow: 0 8px 32px rgba(14,165,233,.12); }
 .docs-banner-icon {
-  font-size: 2rem; width: 56px; height: 56px;
+  color: var(--primary-dark); width: 56px; height: 56px;
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--sky-100); border-radius: 14px; flex-shrink: 0;
 }
@@ -176,68 +193,92 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
 .docs-banner-body h3 { font-size: 1.05rem; font-weight: 800; margin-bottom: .3rem; color: var(--text); }
 .docs-banner-body p  { font-size: .88rem; color: var(--muted); margin: 0; line-height: 1.6; }
 .docs-banner-btn {
-  display: inline-block; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff; padding: .65rem 1.5rem; border-radius: 99px;
+  display: inline-block; padding: .65rem 1.5rem; border-radius: 99px;
   font-weight: 700; font-size: .88rem; text-decoration: none; white-space: nowrap;
   box-shadow: 0 4px 14px rgba(14,165,233,.3);
   transition: transform .2s, box-shadow .2s;
 }
 .docs-banner-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(14,165,233,.45); }
 
-/* ── AI SECTION ───────────────────────────────────────────────────── */
-.ai-section {
-  margin: 0 auto;
-  background: linear-gradient(135deg, var(--sky-50) 0%, rgba(6,182,212,.06) 100%);
-  border: 1.5px solid var(--sky-200); border-radius: 24px;
-  padding: 4rem 2rem; text-align: center; max-width: 1100px;
+/* ── PSICOLOGÍA (sección insignia) ────────────────────────────────── */
+#psicologia {
+  background: linear-gradient(180deg, var(--psy-tint) 0%, var(--cream) 58%, #fff 100%);
+  border-top: 1px solid var(--psy-line);
+  border-bottom: 1px solid var(--psy-line);
+  max-width: none;
+  > * { max-width: 1100px; margin-left: auto; margin-right: auto; }
+
+  .section-label { color: var(--psy-dark); }
+  .section-sub   { max-width: 620px; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--psy), var(--psy-dark));
+    box-shadow: 0 8px 30px rgba(124,92,214,.32);
+    &:hover { box-shadow: 0 14px 40px rgba(124,92,214,.44); }
+  }
+  .legal-note { border-top-color: var(--psy-line); }
 }
-.ai-badge {
-  display: inline-flex; align-items: center; gap: .4rem;
-  background: rgba(6,182,212,.1); border: 1.5px solid rgba(6,182,212,.3);
-  color: var(--primary-dark); padding: .35rem 1rem; border-radius: 99px;
-  font-size: .8rem; font-weight: 700; margin-bottom: 1.25rem; letter-spacing: .5px;
+.center-cta { text-align: center; margin-top: 2.75rem; }
+.legal-note {
+  max-width: 760px; margin: 1.75rem auto 0; text-align: center;
+  font-size: .8rem; line-height: 1.65; color: var(--muted);
+  border-top: 1px solid var(--sky-200); padding-top: 1.25rem;
 }
-.ai-section h2 {
-  font-size: clamp(1.6rem, 3.5vw, 2.4rem); font-weight: 800;
-  letter-spacing: -1px; margin-bottom: 1rem;
+
+/* ── BANDA DE SECRETO PROFESIONAL ─────────────────────────────────
+   La confidencialidad no es una feature más para esta audiencia: es la
+   obligación que define la profesión. Va en su propio bloque, dentro de la
+   sección insignia y antes del cierre, no perdida entre tarjetas. */
+.confid-band {
+  display: flex; align-items: flex-start; gap: 1.35rem; flex-wrap: wrap;
+  margin-top: 2.5rem; padding: 1.75rem 2rem;
+  background: #fff; border: 1.5px solid var(--psy-line); border-radius: 18px;
+  box-shadow: 0 6px 26px rgba(124,92,214,.09);
 }
-.ai-section p { color: var(--muted); max-width: 580px; margin: 0 auto 2rem; }
-.ai-features { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 2rem; }
-.ai-pill {
-  background: #fff; border: 1.5px solid var(--sky-200); border-radius: 99px;
-  padding: .42rem 1.1rem; font-size: .81rem; color: var(--sky-800); font-weight: 500;
+.cb-icon {
+  width: 54px; height: 54px; flex-shrink: 0; color: var(--psy-dark);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--psy-tint); border-radius: 14px;
 }
+.cb-body { flex: 1; min-width: 240px; }
+.cb-body h3 { font-size: 1.1rem; font-weight: 800; color: var(--psy-ink); margin-bottom: .45rem; }
+.cb-body p  { font-size: .87rem; color: var(--muted); line-height: 1.7; }
+.cb-body p + p { margin-top: .55rem; }
+.cb-body strong { color: var(--psy-dark); }
+
+/* .spec-list / .spec-item vivían acá: eran los chips de la sección
+   #especialidades, que se eliminó del template. Sin marcado que las use, se
+   borran para no seguir pagando su peso en el budget de anyComponentStyle. */
 
 /* ── CTA SECTION ──────────────────────────────────────────────────── */
 .cta-section {
   text-align: center; padding: 6rem 1.5rem;
   background: radial-gradient(ellipse 60% 40% at 50% 110%, rgba(14,165,233,.10) 0%, transparent 65%), var(--sky-50);
 }
-.cta-urgency-badge {
-  display: inline-flex; align-items: center; gap: .4rem;
-  background: linear-gradient(135deg, #dc2626, #ef4444);
-  color: #fff; font-size: .8rem; font-weight: 700;
-  letter-spacing: .3px; padding: .38rem 1rem;
-  border-radius: 99px; margin-bottom: 1.4rem;
-  box-shadow: 0 4px 14px rgba(220,38,38,.35);
-  animation: pulse-badge 2.2s ease-in-out infinite;
-}
-@keyframes pulse-badge {
-  0%, 100% { box-shadow: 0 4px 14px rgba(220,38,38,.35); }
-  50%       { box-shadow: 0 4px 22px rgba(220,38,38,.58); }
-}
 .cta-section h2 {
   font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900;
   letter-spacing: -2px; margin-bottom: 1rem;
 }
 .cta-section p { color: var(--muted); font-size: 1.1rem; max-width: 520px; margin: 0 auto 2.5rem; }
-.trial-note { font-size: .9rem; color: var(--muted); margin-top: 1rem; }
-.trial-note strong { color: var(--green); font-weight: 600; }
+.trial-note { font-size: .9rem; color: var(--muted); margin-top: 1rem; max-width: 720px; margin-left: auto; margin-right: auto; }
+.trial-note strong { color: var(--text); font-weight: 700; }
+.cta-anchor {
+  font-size: 1rem !important; color: var(--psy-ink) !important;
+  background: var(--psy-tint); border: 1px solid var(--psy-line);
+  border-radius: 99px; padding: .5rem 1.35rem; line-height: 1.5;
+  display: inline-block; max-width: none !important;
+  margin: -1.25rem auto 2.25rem !important;
+  strong { font-weight: 800; }
+}
 
 /* ── PRICING GRID ─────────────────────────────────────────────────── */
+/* Dos columnas, no tres: la tarjeta Enterprise se eliminó de la página. Con
+   `repeat(3, 1fr)` las dos tarjetas restantes ocupaban dos tercios y dejaban un
+   hueco vacío a la derecha. El max-width baja de 900px a 660px para que dos
+   tarjetas no queden desproporcionadamente anchas. */
 .pricing-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
-  max-width: 900px; margin: 0 auto 2.5rem;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;
+  max-width: 660px; margin: 0 auto 2.5rem;
 }
 .pricing-card {
   background: #fff; border: 1.5px solid var(--sky-200); border-radius: 18px;
@@ -280,9 +321,19 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
   background: #e0f2fe; border-radius: 6px; padding: .25rem .55rem;
   &::before { background: #bae6fd; color: #0369a1; }
 }
+/* La comisión por transacción se muestra al mismo tamaño y peso que el resto de
+   la lista, a propósito. Antes iba en gris y más chica —literalmente letra
+   chica— dos secciones debajo de la promesa "sin letra chica y sin costos
+   ocultos". A esta audiencia esa contradicción le cuesta caro: se marca con un
+   punto neutro en vez de un ✓ porque es un costo, no un beneficio. */
 .pricing-features li.feature-commission {
-  font-size: .78rem; color: #6b7280;
-  &::before { background: #f3f4f6; color: #9ca3af; }
+  color: var(--text);
+  &::before { content: '•'; background: #eef2f7; color: #64748b; font-size: .9rem; }
+}
+.pricing-anchor {
+  font-size: .8rem; font-weight: 700; color: var(--psy-dark);
+  background: var(--psy-tint); border-radius: 7px;
+  padding: .3rem .6rem; align-self: flex-start;
 }
 .pricing-btn {
   display: block; text-align: center; margin-top: auto;
@@ -293,27 +344,8 @@ section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
   border: 1.5px solid var(--sky-200); color: var(--sky-800); background: transparent;
 }
 .pricing-btn.outline:hover { border-color: var(--primary); color: var(--primary); background: var(--sky-50); }
-.pricing-btn.solid {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff; border: none; box-shadow: 0 6px 22px rgba(14,165,233,.35);
-}
+.pricing-btn.solid { box-shadow: 0 6px 22px rgba(14,165,233,.35); }
 .pricing-btn.solid:hover { box-shadow: 0 10px 32px rgba(14,165,233,.5); }
-
-/* ── FAQ ──────────────────────────────────────────────────────────── */
-.faq-list {
-  max-width: 800px; margin: 2.5rem auto 0;
-  display: flex; flex-direction: column; gap: 1rem;
-}
-.faq-item {
-  border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 1.5rem 1.75rem; background: var(--sky-50);
-  transition: border-color .2s, box-shadow .2s;
-}
-.faq-item:hover {
-  border-color: var(--primary); box-shadow: 0 4px 18px rgba(14,165,233,.08);
-}
-.faq-item h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: .6rem; }
-.faq-item p  { font-size: .92rem; color: var(--muted); line-height: 1.7; }
 
 /* ── FOOTER ───────────────────────────────────────────────────────── */
 footer {
@@ -339,7 +371,7 @@ footer {
 .footer-col ul li { margin-bottom: .5rem; }
 .footer-col ul li a { color: #94a3b8; text-decoration: none; font-size: .85rem; transition: color .2s; }
 .footer-col ul li a:hover { color: #fff; }
-.footer-col .contact-item { display: flex; align-items: flex-start; gap: .5rem; color: #94a3b8; font-size: .85rem; margin-bottom: .6rem; }
+.footer-col .contact-item { display: flex; align-items: center; gap: .5rem; color: #94a3b8; font-size: .85rem; margin-bottom: .6rem; }
 .footer-col .contact-item a { color: #94a3b8; text-decoration: none; transition: color .2s; }
 .footer-col .contact-item a:hover { color: #fff; }
 .footer-bottom {
@@ -347,220 +379,6 @@ footer {
   border-top: 1px solid rgba(255,255,255,.08); padding: 1.5rem 0;
   display: flex; flex-direction: column; align-items: center; gap: .4rem;
   font-size: .75rem; color: #475569; text-align: center;
-}
-.footer-bottom a { color: #475569; text-decoration: none; }
-.footer-bottom a:hover { color: #94a3b8; }
-
-/* ── HERO TRUST PILLS ─────────────────────────────────────────────── */
-.hero-trust-pills {
-  display: flex;
-  gap: .75rem;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 1.25rem;
-  animation: fadeUp .55s .4s ease both;
-}
-.hero-trust-pill {
-  font-size: .8rem;
-  font-weight: 500;
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-  gap: .3rem;
-}
-
-/* ── TRUST BAND ───────────────────────────────────────────────────── */
-.trust-band {
-  background: var(--sky-50);
-  border-top: 1px solid var(--sky-200);
-  border-bottom: 1px solid var(--sky-200);
-  padding: 1.5rem 1.5rem;
-}
-.trust-band-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  flex-wrap: wrap;
-}
-.trust-band-item {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  padding: .6rem 2rem;
-  flex: 1;
-  min-width: 200px;
-
-  svg {
-    width: 20px;
-    height: 20px;
-    color: var(--primary);
-    flex-shrink: 0;
-  }
-
-  div {
-    display: flex;
-    flex-direction: column;
-    gap: .05rem;
-  }
-
-  strong {
-    font-size: .85rem;
-    font-weight: 700;
-    color: var(--text);
-  }
-
-  span {
-    font-size: .75rem;
-    color: var(--muted);
-  }
-}
-.trust-band-sep {
-  width: 1px;
-  height: 40px;
-  background: var(--sky-200);
-  flex-shrink: 0;
-}
-@media (max-width: 700px) {
-  .trust-band-sep { display: none; }
-  .trust-band-item { min-width: 140px; padding: .5rem 1rem; }
-}
-
-/* ── AI SECTION (updated layout) ─────────────────────────────────── */
-.ai-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-  align-items: center;
-  text-align: left;
-}
-.ai-section h2 {
-  text-align: left;
-}
-.ai-section p {
-  margin: 0 0 0 0;
-  text-align: left;
-}
-@media (max-width: 760px) {
-  .ai-layout { grid-template-columns: 1fr; }
-  .ai-section h2, .ai-section p { text-align: center; }
-  .ai-phone-wrap { display: flex; justify-content: center; }
-}
-
-/* WhatsApp phone mockup */
-.ai-phone-wrap { display: flex; justify-content: flex-end; }
-.ai-phone {
-  width: 280px;
-  border-radius: 20px;
-  overflow: hidden;
-  background: #ece5dd;
-  box-shadow: 0 20px 60px rgba(0,0,0,.18), 0 0 0 1px rgba(14,165,233,.1);
-}
-.ai-phone-bar {
-  background: #075e54;
-  padding: .7rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: .65rem;
-  color: #fff;
-}
-.ai-phone-avatar {
-  width: 34px;
-  height: 34px;
-  background: #25d366;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: .9rem;
-  flex-shrink: 0;
-}
-.ai-phone-info strong {
-  display: block;
-  font-size: .82rem;
-  font-weight: 700;
-  line-height: 1.2;
-}
-.ai-phone-info span {
-  font-size: .68rem;
-  color: rgba(255,255,255,.75);
-}
-.ai-phone-chat {
-  padding: .85rem .75rem;
-  display: flex;
-  flex-direction: column;
-  gap: .5rem;
-  min-height: 220px;
-}
-.chat-bubble {
-  max-width: 85%;
-  padding: .55rem .85rem;
-  border-radius: 12px;
-  font-size: .79rem;
-  line-height: 1.5;
-  opacity: 0;
-  animation: chatReveal .35s ease forwards;
-
-  strong { font-weight: 700; }
-}
-.chat-patient {
-  background: #fff;
-  align-self: flex-start;
-  border-bottom-left-radius: 3px;
-  color: #1e293b;
-}
-.chat-bot {
-  background: #dcf8c6;
-  align-self: flex-end;
-  border-bottom-right-radius: 3px;
-  color: #1e293b;
-}
-@keyframes chatReveal {
-  from { opacity: 0; transform: translateY(6px) scale(.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* ── FAQ SECTION ──────────────────────────────────────────────────── */
-.faq-section {
-  padding: 5rem 1.5rem;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-.faq-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.25rem;
-  margin-top: 3rem;
-}
-.faq-item {
-  background: var(--bg);
-  border: 1.5px solid var(--sky-200);
-  border-radius: var(--radius);
-  padding: 1.5rem 1.75rem;
-  transition: border-color .2s, box-shadow .2s;
-
-  &:hover {
-    border-color: var(--primary);
-    box-shadow: 0 6px 24px rgba(14,165,233,.1);
-  }
-
-  h3 {
-    font-size: .95rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: .6rem;
-    line-height: 1.35;
-  }
-
-  p {
-    font-size: .84rem;
-    color: var(--muted);
-    line-height: 1.65;
-    margin: 0;
-  }
 }
 
 /* ── INTEGRATIONS ─────────────────────────────────────────────────── */
@@ -633,14 +451,18 @@ footer {
   transition: transform .15s;
   &:hover { transform: translateY(-1px); }
 }
-.pb-flow      { color: #0f7a9e; border-color: rgba(76,200,239,.45); background: rgba(76,200,239,.1); }
-.pb-transbank { color: #1E1E64; border-color: rgba(227,6,19,.35);   background: rgba(227,6,19,.07); }
+.pb-pay     { color: #0f7a9e; border-color: rgba(76,200,239,.45); background: rgba(76,200,239,.1); }
 .pb-google  { color: #1a5cc8; border-color: rgba(66,133,244,.35); background: rgba(66,133,244,.08); }
-.pb-aws     { color: #a06200; border-color: rgba(255,153,0,.4);   background: rgba(255,153,0,.09); }
 .pb-deepgram{ color: #0a8a56; border-color: rgba(19,239,147,.45); background: rgba(19,239,147,.1); }
-.pb-bedrock { color: #8b5a00; border-color: rgba(255,153,0,.35);  background: rgba(255,153,0,.07); }
+.pb-psico   { color: #6d28d9; border-color: rgba(139,92,246,.4);  background: rgba(139,92,246,.1); }
 
 /* ── MOCKUP SCENE ────────────────────────────────────────────────── */
+/* Superficies y bordes del navegador falso, agrupados: el componente tiene un
+   presupuesto de 24 kB de estilos y estas tres declaraciones se repetían en
+   ocho reglas distintas. */
+.mv-table, .pt-header, .soap-block, .vital, .cal-toggle, .cal-btn { border: 1px solid #1e3452; }
+.pt-header, .soap-block, .vital, .mb-sidebar { background: #0f1e30; }
+.mv-table, .pt-header, .soap-block { border-radius: 8px; }
 .mockup-scene {
   margin-top: 3rem;
   width: 100%;
@@ -655,6 +477,7 @@ footer {
 }
 .mtab {
   background: none;
+  display: inline-flex; align-items: center; gap: .4rem;
   border: 1px solid var(--sky-200);
   border-radius: 99px;
   padding: .4rem 1.1rem;
@@ -664,12 +487,16 @@ footer {
   cursor: pointer;
   transition: all .2s;
   font-family: 'DM Sans', system-ui, sans-serif;
-  &:hover { border-color: var(--primary); color: var(--primary-dark); }
+  &:hover { border-color: var(--psy); color: var(--psy-dark); }
+  /* Violeta y no el azul de marca: estas pestañas están justo encima del demo y
+     son la primera señal, sobre la línea de flotación, de que lo que se está
+     mirando es el producto de psicología. El interior oscuro del mockup sigue
+     azul porque así se ve la aplicación real. */
   &.active {
-    background: var(--primary);
-    border-color: var(--primary);
+    background: var(--psy);
+    border-color: var(--psy);
     color: #fff;
-    box-shadow: 0 4px 14px rgba(14,165,233,.32);
+    box-shadow: 0 4px 14px rgba(124,92,214,.34);
   }
 }
 
@@ -695,6 +522,7 @@ footer {
 .mb-dot-g { background: #28c840; }
 .mb-bar {
   flex: 1;
+  display: flex; align-items: center; gap: .3rem;
   margin-left: .4rem;
   background: rgba(255,255,255,.08);
   border-radius: 5px;
@@ -703,15 +531,20 @@ footer {
   color: #64748b;
 }
 
+/* Las dos vistas se alternan solas cada 4,5 s, así que el marco no puede cambiar
+   de alto en cada rotación. Este mínimo es el alto natural de la ficha, que es la
+   vista más larga; la agenda lo rellena estirando .dayv-body. Si se agrega o
+   se saca contenido de la ficha, hay que volver a medirlo. */
 .mb-app {
   background: #111c2d;
   display: flex;
-  min-height: 440px;
+  min-height: 580px;
 }
 
+/* 156 px: "Fichas Psicológicas" es la etiqueta real más larga del menú y a
+   140 px se cortaba. */
 .mb-sidebar {
-  width: 140px;
-  background: #0f1e30;
+  width: 156px;
   border-right: 1px solid #1e3452;
   padding: .9rem .55rem;
   flex-shrink: 0;
@@ -731,14 +564,17 @@ footer {
   gap: .38rem;
   padding: .36rem .52rem;
   border-radius: 7px;
-  font-size: .71rem;
+  font-size: .68rem;
   color: #64748b;
   cursor: pointer;
   transition: all .15s;
   user-select: none;
+  span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   &:hover { color: #94a3b8; background: rgba(255,255,255,.04); }
-  &.active { background: rgba(14,165,233,.18); color: #38bdf8; font-weight: 700; }
 }
+/* Único color de "seleccionado" del mockup: lo comparten el menú lateral, las
+   pestañas de la ficha y el selector Día/Semana/Mes del calendario. */
+.mbs-item.active, .mv-tab.active { background: rgba(14,165,233,.18); color: #38bdf8; font-weight: 700; }
 
 .mb-main { flex: 1; overflow: hidden; position: relative; }
 
@@ -753,26 +589,27 @@ footer {
   &.active { display: flex; }
 }
 
-.mv-header {
+/* Base común de todas las filas horizontales del panel. Agrupadas para que el
+   componente siga bajo el presupuesto de 24 kB de estilos. */
+.mv-header, .mv-tabs, .cal-nav, .cal-toggle, .ai-strip,
+.mv-chart-title, .mv-legend, .pn-head, .pt-header, .vital-head, .vital-score,
+.mvt-task, .mvt-box {
   display: flex;
   align-items: center;
-  gap: .5rem;
-  flex-shrink: 0;
 }
+/* El hero está centrado; dentro del navegador falso el texto va alineado a la
+   izquierda, como en la aplicación. */
+.mv { text-align: left; }
+.mv-header, .cal-nav, .mv-chart-title { gap: .5rem; }
+.mv-header, .mv-tabs, .cal-nav, .ai-strip, .mv-chart-wrap, .mv-table, .mv-tab,
+.vitals-grid, .pt-header, .vital-sw, .mvt-box, .pt-avatar { flex-shrink: 0; }
 .mv-title { font-size: .82rem; font-weight: 700; flex: 1; }
 .mv-badge {
-  background: var(--sky-100);
-  color: var(--primary-dark);
-  border-radius: 99px;
-  padding: .11rem .48rem;
-  font-size: .57rem;
-  font-weight: 700;
+  background: var(--sky-100); color: var(--primary-dark);
+  padding: .11rem .48rem; font-size: .57rem; font-weight: 700;
 }
-.mv-live { background: rgba(16,185,129,.15); color: #10b981; }
+.mv-badge, .pn-pill, .ai-chip, .vital-sev { border-radius: 99px; }
 .mv-new-btn {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff;
-  border: none;
   border-radius: 5px;
   padding: .17rem .52rem;
   font-size: .57rem;
@@ -780,108 +617,52 @@ footer {
   cursor: pointer;
   font-family: 'DM Sans', system-ui, sans-serif;
 }
-.mv-ai-btn { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
 
-/* KPI cards */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: .48rem;
-  flex-shrink: 0;
-}
-.kpi {
-  background: #0f1e30;
-  border: 1px solid #1e3452;
-  border-radius: 8px;
-  padding: .55rem .4rem;
-  text-align: center;
-}
-.kpi-val { font-size: 1rem; font-weight: 800; line-height: 1.1; }
-.kpi-blue  { color: #38bdf8; }
-.kpi-green { color: #10b981; }
-.kpi-cyan  { color: #06b6d4; }
-.kpi-amber { color: #f59e0b; }
-.kpi-label { font-size: .53rem; color: #64748b; margin-top: .1rem; }
+/* Trayectoria MBC. Antes era un gráfico de barras de una sola serie; el
+   componente real (mbc-trajectory) dibuja un SVG de líneas con una serie por
+   escala, rejilla y eje Y. Acá el SVG viene escrito a mano en el HTML, así que
+   sólo hacen falta los estilos de rejilla y eje. */
+.mv-chart-title { flex-wrap: wrap; font-size: .62rem; margin-bottom: .3rem; }
+.mv-chart { display: block; width: 100%; height: auto; }
+.mv-grid line { stroke: #1e3452; }
+.mv-axis text { font-size: 7px; fill: #64748b; }
 
-/* Bar chart */
-.mv-chart-wrap { flex-shrink: 0; }
-.mv-chart-title { font-size: .64rem; color: #94a3b8; margin-bottom: .38rem; font-weight: 600; }
-.mv-chart {
-  display: flex;
-  align-items: flex-end;
-  gap: .32rem;
-  height: 58px;
-}
-.mc-col {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .18rem;
-  height: 100%;
-  justify-content: flex-end;
-  span { font-size: .5rem; color: #64748b; }
-}
-.mc-bar {
-  width: 100%;
-  background: linear-gradient(to top, #0ea5e9, #38bdf8);
-  border-radius: 3px 3px 0 0;
-  min-height: 4px;
-}
-.mc-today {
-  background: linear-gradient(to top, #0284c7, #0ea5e9);
-  box-shadow: 0 0 8px rgba(14,165,233,.5);
-}
-.mc-dim { opacity: .35; }
-.mc-today-lbl { color: #38bdf8 !important; font-weight: 700 !important; }
+/* Pestañas de la ficha (tab-bar de clinical-detail) y selector Día/Semana/Mes
+   del calendario: la misma píldora. La barra de pestañas se corta a la derecha
+   en vez de envolverse, porque en la aplicación real, con ocho pestañas,
+   tampoco caben todas y la barra hace scroll horizontal. */
+.mv-tabs { gap: .3rem; overflow: hidden; white-space: nowrap; border-bottom: 1px solid #1e3452; padding-bottom: .24rem; }
+.mv-tab { font-weight: 600; padding: .12rem .34rem; border-radius: 5px; }
 
-/* Appointment table */
+/* Las leyendas chicas del panel comparten tamaño y gris. */
+.mv-tab, .mvt-title, .mvt-meta, .mvt-note, .mv-chart-foot, .vital-head,
+.vital-sev, .vital-delta, .pt-status { font-size: .55rem; }
+.mv-tab, .mvt-meta, .mv-chart-foot, .mv-legend { color: #64748b; }
+
+/* Lista de tareas intersesión. Antes era una tabla de tres columnas
+   (Tarea / Vence / Estado) que el producto no tiene: la lista real va partida
+   en "Pendientes (n)" y "Completadas (n)", con casilla, descripción, fechas en
+   texto y la nota del paciente entre comillas. */
 .mv-table {
-  flex-shrink: 0;
-  border: 1px solid #1e3452;
-  border-radius: 8px;
-  overflow: hidden;
-  font-size: .69rem;
+  padding: .34rem .5rem .42rem;
 }
-.mvt-row {
-  display: grid;
-  grid-template-columns: 2fr .75fr 1.1fr 1fr;
-  padding: .4rem .62rem;
-  border-bottom: 1px solid #1e3452;
-  align-items: center;
-  &:last-child { border-bottom: none; }
+.mvt-title { margin: .22rem 0 .2rem; }
+.mvt-task { align-items: flex-start; gap: .4rem; padding: .12rem 0; }
+.mvt-box {
+  width: 12px; height: 12px; border-radius: 4px; margin-top: .08rem;
+  border: 1.5px solid #33507a; justify-content: center;
 }
-.mvt-head {
-  background: rgba(255,255,255,.04);
-  font-size: .59rem;
-  color: #94a3b8;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-}
-.st {
-  border-radius: 99px;
-  padding: .1rem .42rem;
-  font-size: .59rem;
-  font-weight: 600;
-  display: inline-block;
-}
-.st-green { background: rgba(16,185,129,.15); color: #10b981; }
-.st-amber { background: rgba(245,158,11,.15); color: #f59e0b; }
-.st-blue  { background: rgba(14,165,233,.15); color: #38bdf8; }
+.mvt-done { background: rgba(16,185,129,.16); border-color: #10b981; color: #10b981; }
+.mvt-body { display: flex; flex-direction: column; min-width: 0; }
+.mvt-desc { font-size: .66rem; }
+.mvt-note { font-style: italic; }
+.mvt-desc, .cal-period { color: #e2e8f0; }
+.mvt-note, .mvt-title, .mv-chart-title { color: #94a3b8; }
 
 /* Calendar */
-.cal-nav {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  font-size: .69rem;
-  color: #94a3b8;
-  flex-shrink: 0;
-}
+.cal-nav { font-size: .69rem; color: #94a3b8; }
 .cal-btn {
   background: rgba(255,255,255,.06);
-  border: 1px solid #1e3452;
   border-radius: 4px;
   color: #94a3b8;
   padding: .08rem .4rem;
@@ -889,171 +670,144 @@ footer {
   font-size: .72rem;
   line-height: 1.4;
 }
-.cal-grid-head {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  font-size: .54rem;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  background: rgba(255,255,255,.04);
-  border-radius: 5px 5px 0 0;
-  flex-shrink: 0;
-  span { text-align: center; padding: .22rem 0; }
-}
-.cal-wknd { color: #38bdf8 !important; }
+.cal-period { font-weight: 700; }
+.cal-toggle { margin-left: auto; border-radius: 5px; overflow: hidden; }
 
-.cal-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(5, auto);
-  border: 1px solid #1e3452;
-  border-radius: 0 0 5px 5px;
-  overflow: hidden;
+/* Los cuatro colores de estado (Agendada #3b82f6, Confirmada #8b5cf6,
+   Completada #10b981, No asistió #f59e0b) van en el atributo style de cada
+   sesión, no en clases: el calendario real también los aplica inline, con
+   [style.background]="ev.statusColor + '18'" y [style.border-left-color]. Acá
+   el tinte va al 17 % y no al 9 %: a 52 px/hora (contra los 72 px de la app) el
+   9 % deja ver las líneas de media hora ATRAVESANDO la sesión. Es una
+   corrección de legibilidad por la escala del mock, no otro estado. */
+
+/* ── Vista Día de la agenda ────────────────────────────────────────────
+   Reescala HOUR_HEIGHT (72 px en calendar.component.ts) a 52 px para que
+   la jornada quepa en el marco. Igual que en el componente real, las
+   posiciones `top` y los `height` de cada sesión van inline en el HTML:
+   allá los calcula el TS (ev.topPx / ev.heightPx), acá están fijos. */
+.dayv-head { display: flex; flex-shrink: 0; }
+.dayv-gutter-head { width: 30px; flex-shrink: 0; }
+.dayv-head-main {
+  display: flex; align-items: baseline; gap: .3rem; flex: 1;
+  padding: .16rem .35rem; border-bottom: 1px solid #1e3452;
 }
-.cal-cell {
-  padding: .2rem .22rem;
-  border-right: 1px solid #1e3452;
-  border-bottom: 1px solid #1e3452;
-  min-height: 54px;
-  overflow: hidden;
-  &:nth-child(7n) { border-right: none; }
+.dayv-dow { font-size: .55rem; color: #64748b; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .04em; }
+.dayv-num { font-size: .9rem; font-weight: 800; color: #38bdf8; }
+.dayv-month { font-size: .55rem; color: #64748b; }
+.dayv-count {
+  margin-left: auto; align-self: center; border-radius: 999px;
+  background: rgba(14,165,233,.16); color: #7dd3fc;
+  font-size: .5rem; font-weight: 700; padding: .08rem .32rem;
 }
-.cal-num {
-  font-size: .56rem;
-  font-weight: 600;
-  color: #64748b;
-  margin-bottom: .12rem;
+
+.dayv-body { display: flex; flex: 1; overflow: hidden; position: relative; }
+.dayv-gutter { width: 30px; flex-shrink: 0; }
+.dayv-slot {
+  height: 52px; font-size: .46rem; color: #64748b;
+  text-align: right; padding-right: .22rem; transform: translateY(-.3em);
 }
-.cal-wknd-num { color: #38bdf8; }
-.cal-empty { background: rgba(255,255,255,.02); opacity: .4; }
-.cal-weekend { background: rgba(14,165,233,.03); }
-.cal-today {
-  background: rgba(14,165,233,.1);
-  border-top: 2px solid #0ea5e9 !important;
+.dayv-col { position: relative; flex: 1; border-left: 1px solid #1e3452; }
+.dayv-hline, .dayv-hhline, .dayv-now { position: absolute; left: 0; right: 0; height: 0; }
+.dayv-hline  { border-top: 1px solid #1e3452; }
+.dayv-hhline { border-top: 1px dashed rgba(30,52,82,.32); }
+
+/* Línea de la hora actual: sólo se pinta si el día mostrado es hoy. */
+.dayv-now { border-top: 1.5px solid #ef4444; z-index: 3; }
+.dayv-now-dot {
+  position: absolute; left: -3px; top: -3.5px;
+  width: 6px; height: 6px; border-radius: 50%; background: #ef4444;
 }
-.cal-today-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 15px;
-  height: 15px;
-  background: #0ea5e9;
-  color: #fff;
-  border-radius: 50%;
-  font-size: .56rem;
-  font-weight: 800;
-  margin-bottom: .12rem;
+
+.dayv-evt {
+  position: absolute; left: 3px; right: 4px; z-index: 2;
+  display: flex; align-items: center; gap: .26rem; overflow: hidden;
+  border-left: 2px solid; border-radius: 4px; padding: .14rem .26rem;
 }
-.cal-evt {
-  border-radius: 2px;
-  padding: .07rem .2rem;
-  font-size: .49rem;
-  font-weight: 700;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  margin-bottom: .06rem;
+.dayv-av {
+  width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .42rem; font-weight: 800; color: #06121f;
 }
-.cal-blue   { background: rgba(59,130,246,.22);  color: #93c5fd; }
-.cal-green  { background: rgba(16,185,129,.22);  color: #6ee7b7; }
-.cal-purple { background: rgba(139,92,246,.22);  color: #c4b5fd; }
-.cal-pink   { background: rgba(236,72,153,.22);  color: #f9a8d4; }
-.cal-more   { background: rgba(14,165,233,.16);  color: #7dd3fc; }
+.dayv-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.dayv-time { font-size: .44rem; color: #94a3b8; font-weight: 600;
+  display: flex; align-items: center; gap: .16rem; }
+.dayv-name {
+  font-size: .53rem; font-weight: 700; color: #e2e8f0;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.dayv-sub { font-weight: 500; color: #64748b; }
+.dayv-cam { color: #7dd3fc; flex-shrink: 0; }
+.dayv-badge {
+  flex-shrink: 0; font-size: .44rem; font-weight: 700;
+  padding: .06rem .28rem; border-radius: 999px;
+}
+
+/* Hueco bloqueado. No es una sesión: no lleva avatar ni estado. */
+.dayv-off {
+  position: absolute; left: 3px; right: 4px; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 4px; border: 1px dashed #1e3452;
+  font-size: .46rem; font-weight: 600; color: #475569;
+  background: repeating-linear-gradient(45deg,
+    rgba(148,163,184,.05) 0 4px, transparent 4px 8px);
+}
 
 /* Clinical record */
-.pt-header {
-  display: flex;
-  align-items: center;
-  gap: .65rem;
-  padding: .58rem;
-  background: #0f1e30;
-  border-radius: 8px;
-  border: 1px solid #1e3452;
-  flex-shrink: 0;
-}
+.pt-header { gap: .65rem; padding: .58rem; }
+/* El avatar real (.ph-avatar) se pinta con el color del ESTADO del paciente al
+   13 %, no con el azul de marca. "En Terapia" es #10b981 en el esquema. */
 .pt-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #0ea5e9, #0284c7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: .72rem;
-  font-weight: 800;
-  color: #fff;
-  flex-shrink: 0;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: 800;
 }
+/* Píldora de estado y avatar comparten el color que el esquema asigna a
+   "En Terapia" (#10b981); el avatar real usa ese mismo color, no el de marca. */
+.pt-avatar, .pt-status { background: rgba(16,185,129,.16); color: #10b981; border-radius: 99px; }
 .pt-name { font-size: .78rem; font-weight: 700; color: #f1f5f9; }
+.pt-status { padding: .04rem .4rem; font-weight: 700; vertical-align: .1em; }
 .pt-meta { font-size: .61rem; color: #64748b; margin-top: .08rem; }
 
-.vitals-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: .42rem;
-  flex-shrink: 0;
-}
-.vital {
-  background: #0f1e30;
-  border: 1px solid #1e3452;
-  border-radius: 7px;
-  padding: .48rem .38rem;
-  text-align: center;
-}
-.vital-val { font-size: .76rem; font-weight: 800; color: #38bdf8; line-height: 1.1; }
-.vital-lbl { font-size: .5rem; color: #64748b; margin-top: .08rem; }
+/* Resumen por escala — la forma de .mbc-stat: swatch + código, puntaje grande
+   con la píldora de severidad, y el delta contra la primera aplicación. */
+.vitals-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .42rem; }
+.vital { border-radius: 7px; padding: .42rem .55rem; }
+.vital-head, .mv-legend { gap: .3rem; }
+.vital-head { color: #94a3b8; }
+.vital-head, .vital-sev, .mvt-title { font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+.vital-sw { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
+.vital-score { gap: .38rem; font-size: 1rem; font-weight: 800; color: #f1f5f9; line-height: 1.2; margin-top: .1rem; }
+.vital-sev { color: #fff; padding: .04rem .38rem; }
+.vital-delta { font-weight: 600; color: #10b981; margin-top: .12rem; }
 
 .soap-block {
   flex: 1;
-  background: #0f1e30;
-  border: 1px solid #1e3452;
-  border-radius: 8px;
   padding: .52rem .62rem;
   display: flex;
   flex-direction: column;
   gap: .38rem;
   overflow: hidden;
 }
-.soap-row { display: flex; gap: .48rem; align-items: flex-start; }
-.soap-tag {
-  width: 17px;
-  height: 17px;
-  border-radius: 4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: .6rem;
-  font-weight: 800;
-  flex-shrink: 0;
-  margin-top: .04rem;
+/* Encabezado de la nota de proceso. Las etiquetas S/O/A/P salieron con la vista
+   de ficha médica; este bloque hoy es exclusivamente la nota privada. */
+.pn-head { justify-content: space-between; gap: .4rem; font-size: .63rem; font-weight: 700; color: #c4b5fd; }
+.pn-pill {
+  background: rgba(139,92,246,.2); border: 1px solid rgba(139,92,246,.4);
+  color: #ddd6fe; padding: .06rem .42rem;
+  font-size: .55rem; font-weight: 700; white-space: nowrap;
 }
-.soap-s { background: rgba(14,165,233,.25);  color: #38bdf8; }
-.soap-o { background: rgba(16,185,129,.25);  color: #10b981; }
-.soap-a { background: rgba(245,158,11,.25);  color: #f59e0b; }
-.soap-p { background: rgba(139,92,246,.25);  color: #a78bfa; }
 .soap-text {
-  font-size: .63rem;
-  color: #94a3b8;
-  line-height: 1.45;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  font-size: .63rem; color: #94a3b8; line-height: 1.45; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
 }
 
-.ai-strip {
-  display: flex;
-  gap: .45rem;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-}
+.ai-strip { gap: .45rem; flex-wrap: wrap; }
 .ai-chip {
   font-size: .61rem;
   font-weight: 600;
   padding: .2rem .62rem;
-  border-radius: 99px;
   background: rgba(139,92,246,.15);
   color: #c4b5fd;
   border: 1px solid rgba(139,92,246,.3);
@@ -1064,7 +818,13 @@ footer {
   .nav-links { display: none; }
   .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
   .footer-bottom { flex-direction: column; gap: .5rem; text-align: center; }
+
+  /* En una sola columna el orden del DOM deja Starter arriba, y Starter es
+     justamente el plan SIN ficha clínica: el psicólogo que llega desde un aviso
+     de "software para psicólogos" leía primero la versión que no hace lo que
+     vino a buscar. En móvil manda Pro. */
   .pricing-grid { grid-template-columns: 1fr; }
+  .pricing-card.featured { order: -1; }
 
   /* Powered-by strip */
   .powered-by { gap: .4rem; }
@@ -1076,22 +836,27 @@ footer {
 
   /* Hide sidebar on mobile */
   .mb-sidebar { display: none; }
-  .mb-app { min-height: 380px; }
+  .mb-app { min-height: 490px; }
 
-  /* Dashboard: 2-col KPIs, hide chart */
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .mv-chart-wrap { display: none; }
-  /* Table: hide professional column */
-  .mvt-row { grid-template-columns: 2fr .75fr 1fr; }
-  .mvt-row > span:nth-child(3) { display: none; }
+  /* En móvil no cabe todo el panel. Antes se escondía el gráfico y se dejaba la
+     tabla; va al revés, porque la trayectoria del PHQ-9 es justamente la imagen
+     que distingue a esta ficha y la lista de tareas se explica igual con texto. */
+  .mv-table { display: none; }
 
-  /* Calendar: smaller cells, max 1 event */
-  .cal-cell { min-height: 40px; }
-  .cal-evt:not(:first-child) { display: none; }
+  /* La barra de pestañas de la ficha y el selector Día/Semana/Mes se cortarían
+     de todos modos a este ancho; el selector se va y las pestañas quedan
+     mostrando las primeras, que es lo que hace la aplicación real. */
+  .cal-toggle { display: none; }
 
-  /* Clinical: 2-col vitals, hide last 2 SOAP rows */
-  .vitals-grid { grid-template-columns: repeat(2, 1fr); }
-  .soap-row:nth-child(n+3) { display: none; }
+  /* Agenda: a este ancho el badge de estado y el subtítulo del tipo de
+     sesión se empastan contra el nombre, que es el dato que importa. */
+  .dayv-badge, .dayv-sub, .dayv-month { display: none; }
+
+  /* El resumen de escalas ya viene en dos columnas; en móvil va apilado para que
+     el puntaje y su severidad no se aprieten. */
+  .vitals-grid { grid-template-columns: 1fr; gap: .3rem; }
+  /* A este ancho el eje del gráfico queda de 5 px por etiqueta y se empasta. */
+  .mv-legend, .mv-axis { display: none; }
 }
 
 /* ── TRUST STRIP ──────────────────────────────────────────────────── */
@@ -1124,6 +889,9 @@ footer {
   letter-spacing: -1px;
   line-height: 1;
 }
+
+/* Etiqueta de texto (p. ej. "PHQ-9 · GAD-7"): a 2rem/900 desborda la columna. */
+.trust-num-sm { font-size: 1.35rem; color: var(--psy-dark); letter-spacing: -.5px; }
 
 .trust-lbl {
   font-size: .75rem;
@@ -1192,3 +960,8 @@ footer {
 @media (max-width: 640px) {
   .faq-grid { grid-template-columns: 1fr; }
 }
+
+/* El acuse de eliminación de cuenta (.account-deleted-banner) vive ahora en
+   src/styles.scss. Este componente usa ViewEncapsulation.None, así que esos
+   estilos ya eran globales de hecho: tenerlos acá solo los cargaba al
+   presupuesto de 24 kB de la landing sin ser chrome de la landing. */

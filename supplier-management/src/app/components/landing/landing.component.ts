@@ -1,12 +1,75 @@
 import { Component, OnInit, OnDestroy, ViewEncapsulation, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
 
-const SEO_TITLE = 'Dairi | Software para Psicólogos en Chile — Fichas, Agenda y IA';
-const SEO_DESCRIPTION = 'Software clínico para psicólogos en Chile: dicta tu sesión y la IA escribe la nota SOAP en minutos. Agenda online, videoconsultas con Google Meet, previsiones FONASA e ISAPRE y cobros con Flow y Transbank. 30 días gratis.';
-const SEO_URL = 'https://app.dairi.cl/';
-const SEO_IMAGE = 'https://app.dairi.cl/og-image.png';
+/**
+ * SEO/SEM de la landing.
+ *
+ * El title lidera con la frase que se compra en Google Ads y por la que compiten
+ * los competidores chilenos del nicho ("software para psicólogos Chile").
+ *
+ * La landing ya no cubre otras especialidades: siguen siendo producto real y con
+ * clientes pagando, pero se venden por contacto directo, no desde esta página.
+ * No volver a meter "odontología", "kinesiología" y compañía en estos metadatos.
+ *
+ * Largos objetivo: title <= 65 caracteres, description 150-160. Si los estiras,
+ * Google los trunca en el SERP y el anuncio pierde el gancho.
+ */
+const SEO_TITLE = 'Software para psicólogos en Chile | Ficha clínica — Dairi';
+// ~155 caracteres. La versión anterior pasaba de 260 —Google la truncaba a la
+// mitad— y gastaba el final en enumerar las otras 8 especialidades, que esta
+// página ya no vende ni menciona en ninguna parte.
+const SEO_DESCRIPTION = 'Software para psicólogos en Chile: ficha psicológica, notas de proceso privadas, escalas PHQ-9 y GAD-7, agenda y pago online. Plan gratis y Pro $10.990/mes.';
+const SEO_URL = 'https://dairi.cl/';
+const SEO_IMAGE = 'https://dairi.cl/og-image.png';
+const SEO_IMAGE_ALT = 'Ficha clínica psicológica de Dairi mostrando la trayectoria de PHQ-9, las tareas intersesión y una nota de proceso privada';
+
+/**
+ * Preguntas frecuentes. Fuente única para la sección visible del template y para
+ * el JSON-LD de FAQPage: Google descalifica el rich result si el schema declara
+ * texto que no está en la página, así que no se pueden editar por separado.
+ */
+export interface FaqItem { q: string; a: string; }
+
+const FAQ_ITEMS: FaqItem[] = [
+  {
+    q: '¿Sirve Dairi para un psicólogo que atiende solo, en consulta particular?',
+    a: 'Sí. El plan Pro está pensado para eso: un profesional (hasta tres) con la ficha psicológica completa, agenda online, reserva y pago por parte del paciente, y videoconsulta. El plan Starter es gratis sin vencimiento si por ahora solo necesitas ordenar la agenda.'
+  },
+  {
+    q: '¿Qué son las notas de proceso y en qué se diferencian de la ficha clínica?',
+    a: 'La ficha clínica es el registro oficial del paciente y la comparten los profesionales que lo atienden. Las notas de proceso son tu cuaderno de trabajo: hipótesis, impresiones y lo que aún no corresponde registrar. En Dairi viven en un espacio aparte que solo puede leer quien las escribió, y quedan excluidas de todo lo que procesa la IA.'
+  },
+  {
+    q: '¿Puedo aplicar PHQ-9 y GAD-7 dentro de la plataforma?',
+    a: 'Sí. Se aplican ítem por ítem dentro de la ficha, Dairi calcula el puntaje, indica el rango de severidad y grafica la trayectoria de todas las aplicaciones anteriores. Son instrumentos de tamizaje: la interpretación clínica siempre la hace el profesional.'
+  },
+  {
+    q: '¿Los informes que genera la IA se pueden presentar directamente?',
+    a: 'No. Dairi genera un borrador a partir de la información de la ficha —para tribunal de familia, establecimiento educacional, licencia médica o avance terapéutico— y lo entrega rotulado como borrador. Debe ser revisado, corregido y firmado por el profesional antes de cualquier uso. Dairi no emite documentos clínicos ni opiniones profesionales.'
+  },
+  {
+    q: '¿Cuánto cuesta y hay costos ocultos?',
+    a: 'El plan Starter es gratis y no vence. El plan Pro cuesta $10.990 al mes e incluye ficha psicológica, IA, cobro online y app móvil, con pacientes ilimitados. No hay cobro por paciente ni costo extra por las integraciones. Lo único que se suma es una comisión sobre las sesiones que tu paciente pague con tarjeta dentro de Dairi: 4% en Starter y 3% en Pro. Si cobras por transferencia o en efectivo, no pagas comisión por esa sesión.'
+  },
+  {
+    // Reemplaza a "¿Dairi sirve para otras especialidades además de psicología?",
+    // que enumeraba las nueve. La página dejó de nombrar especialidades distintas
+    // de psicología; el schema de FAQPage sale de este mismo array, así que la
+    // pregunta vieja habría seguido publicándose en Google aunque no se viera.
+    q: '¿Puedo traer los pacientes que ya tengo en una planilla?',
+    a: 'Sí. Dairi importa pacientes desde un archivo Excel: subes la planilla, Dairi reconoce las columnas (nombre, RUT, correo, teléfono, fecha de nacimiento, dirección) y te muestra fila por fila lo que va a crear antes de confirmar. También puedes importar citas de la misma forma.'
+  },
+  {
+    q: '¿Cómo protege Dairi mi secreto profesional?',
+    a: 'Las fichas clínicas se guardan con cifrado AES-256-GCM y la clave la controlas tú, de modo que el equipo de Dairi no puede leer ese contenido. Todo el tráfico va por HTTPS y cada profesional accede solo a sus propios pacientes, con la restricción aplicada en el servidor. En Chile los datos de salud son datos sensibles bajo la Ley N° 19.628 y la ficha clínica está regulada por la Ley N° 20.584; la arquitectura de Dairi sigue además los principios de la Ley N° 21.719 de Protección de Datos Personales.'
+  },
+  {
+    q: '¿Cuánto demora empezar y necesito tarjeta de crédito?',
+    a: 'Creas la cuenta con tu correo y entras de inmediato, sin tarjeta. El plan Pro incluye 15 días de prueba completa y puedes cancelar cuando quieras. También puedes cargar tus pacientes desde una planilla en vez de escribirlos uno por uno.'
+  }
+];
 
 const JSON_LD_SCRIPTS = [
   {
@@ -16,8 +79,8 @@ const JSON_LD_SCRIPTS = [
       '@type': 'Organization',
       name: 'Dairi',
       legalName: 'Servicios Informáticos Dairi Francisco Riquelme E.I.R.L.',
-      url: 'https://app.dairi.cl',
-      logo: 'https://app.dairi.cl/favicon.ico',
+      url: 'https://dairi.cl',
+      logo: 'https://dairi.cl/favicon.ico',
       email: 'contacto@dairi.cl',
       address: { '@type': 'PostalAddress', addressLocality: 'Santiago', addressCountry: 'CL' },
       sameAs: []
@@ -30,24 +93,41 @@ const JSON_LD_SCRIPTS = [
       '@type': 'SoftwareApplication',
       name: 'Dairi',
       applicationCategory: 'BusinessApplication',
-      operatingSystem: 'Web',
+      operatingSystem: 'Web, Android, iOS',
       description: SEO_DESCRIPTION,
       url: SEO_URL,
+      areaServed: 'CL',
       offers: [
-        { '@type': 'Offer', name: 'Starter', price: '3', priceCurrency: 'USD',
-          priceSpecification: { '@type': 'UnitPriceSpecification', price: '3', priceCurrency: 'USD', unitCode: 'MON' } },
-        { '@type': 'Offer', name: 'Pro', price: '12', priceCurrency: 'USD',
-          priceSpecification: { '@type': 'UnitPriceSpecification', price: '12', priceCurrency: 'USD', unitCode: 'MON' } }
+        { '@type': 'Offer', name: 'Starter', price: '0', priceCurrency: 'CLP',
+          priceSpecification: { '@type': 'UnitPriceSpecification', price: '0', priceCurrency: 'CLP', unitCode: 'MON' } },
+        // Solo Starter y Pro: la oferta Enterprise se retiró junto con su tarjeta
+        // de precios. Un Offer en el schema que no existe en la página es
+        // exactamente lo que Google marca como structured data no respaldado.
+        { '@type': 'Offer', name: 'Pro', price: '10990', priceCurrency: 'CLP',
+          priceSpecification: { '@type': 'UnitPriceSpecification', price: '10990', priceCurrency: 'CLP', unitCode: 'MON' } }
       ],
+      audience: {
+        '@type': 'Audience',
+        audienceType: 'Psicólogos, psicoterapeutas y profesionales de la salud en Chile'
+      },
       featureList: [
-        'Gestión de pacientes', 'Calendario de citas', 'Fichas clínicas especializadas',
-        'Dictado de voz a nota clínica con IA', 'Videoconsultas integradas con Google Meet',
-        'Agenda online para que los pacientes reserven solos', 'Control de pagos y comisiones',
-        'Dashboard con métricas', 'Chat interno del equipo'
+        'Ficha clínica psicológica', 'Notas de proceso privadas del terapeuta, separadas de la ficha oficial',
+        'Escalas PHQ-9 y GAD-7 con puntuación automática y trayectoria en el tiempo',
+        'Tareas intersesión con seguimiento de cumplimiento', 'Registro diario de ánimo del paciente',
+        'Resumen previo a la sesión generado por IA (borrador sujeto a revisión profesional)',
+        'Borradores de informe psicológico con IA: tribunal de familia, establecimiento educacional, licencia médica y avance terapéutico (requieren revisión y firma profesional)',
+        'Plan gratis de agenda de citas para 1 profesional', 'Gestión de pacientes', 'Calendario de citas',
+        'Importación masiva de pacientes desde planilla Excel',
+        'Reserva online con pago seguro con tarjeta', 'Transcripción de consultas con IA (Deepgram Nova-3)',
+        'Sincronización con Google Calendar y Google Meet', 'Videoconsulta',
+        'Reportes clínicos y comisiones', 'Presupuestos con cobro online',
+        'Chat interno con asistente IA Dairi', 'Privacidad por profesional aplicada en servidor',
+        'Cifrado AES-256-GCM de fichas clínicas',
+        'App móvil Android e iOS', 'Dashboard con métricas en tiempo real'
       ],
       inLanguage: 'es-CL',
       availableOnDevice: 'Desktop, Mobile, Tablet',
-      softwareVersion: '1.0'
+      softwareVersion: '2.0'
     }
   },
   {
@@ -55,48 +135,11 @@ const JSON_LD_SCRIPTS = [
     content: {
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
-      mainEntity: [
-        {
-          '@type': 'Question',
-          name: '¿Qué es Dairi y para qué sirve?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Dairi es un software clínico en la nube pensado para psicólogos y profesionales de la salud en consulta particular. Centraliza fichas clínicas con nota SOAP, agenda online, videoconsultas, previsiones (FONASA, ISAPRE, Particular) y control de pagos en una sola plataforma. Su diferenciador es el dictado de voz: al terminar la sesión dictas y la IA redacta la nota clínica.' }
-        },
-        {
-          '@type': 'Question',
-          name: '¿Cuánto cuesta Dairi?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Dairi tiene tres planes: Starter desde US$3/mes (hasta 3 profesionales), Pro desde US$12/mes (hasta 20 profesionales, con fichas especializadas, videoconsultas, comisiones e informes) y Enterprise con precio a consultar para redes de clínicas. Todos los planes incluyen 30 días de prueba gratuita sin tarjeta de crédito.' }
-        },
-        {
-          '@type': 'Question',
-          name: '¿Dairi es seguro para almacenar fichas clínicas?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Sí. Dairi utiliza autenticación JWT, HTTPS forzado, cifrado AES-256 en base de datos y arquitectura serverless en AWS. Los datos clínicos están almacenados en servidores en la nube con backups automáticos y acceso restringido por roles.' }
-        },
-        {
-          '@type': 'Question',
-          name: '¿Cuánto tiempo toma implementar Dairi en mi clínica?',
-          acceptedAnswer: { '@type': 'Answer', text: 'La implementación toma menos de 24 horas. Al ser una plataforma 100% en la nube, no requiere instalaciones ni servidores propios. El onboarding guiado te permite configurar tu clínica, agregar profesionales y comenzar a registrar pacientes el mismo día.' }
-        },
-        {
-          '@type': 'Question',
-          name: '¿Los psicólogos tienen que emitir boletas electrónicas?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Los psicólogos en consulta particular emiten sus boletas de honorarios directamente en sii.cl con su RUT, como lo hacen habitualmente. Dairi no emite documentos tributarios: no incluye integración con el SII. Lo que sí hace es registrar y llevar el control de los pagos recibidos por sesión, con su método de pago y previsión, para que puedas conciliar tus ingresos y ver tus reportes mensuales.' }
-        },
-        {
-          '@type': 'Question',
-          name: '¿Funciona para psicólogos que atienden por videoconsulta?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Sí. Al agendar una sesión online, Dairi genera automáticamente el enlace de Google Meet y lo sincroniza con tu calendario y con el del paciente. Al terminar la sesión dictas tu nota con voz y la IA la convierte en una nota SOAP lista para la ficha, sin cambiar de herramienta.' }
-        },
-        {
-          '@type': 'Question',
-          name: '¿Cuánto tiempo tarda registrar una nota de sesión?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Entre 2 y 3 minutos. En vez de escribir la nota a mano (lo que suele tomar 15 a 20 minutos por sesión), dictas lo ocurrido al terminar: Deepgram Nova-3 transcribe en español y la IA de Dairi estructura la nota SOAP en subjetivo, objetivo, análisis y plan. Tú revisas, ajustas y guardas.' }
-        },
-        {
-          '@type': 'Question',
-          name: '¿Funciona Dairi para psicólogos con consulta particular unipersonal?',
-          acceptedAnswer: { '@type': 'Answer', text: 'Sí. El plan Starter está diseñado justamente para consultas particulares con hasta 3 profesionales. Incluye fichas de pacientes, agenda con reserva online, dictado de voz y control de pagos a un precio accesible. Puedes escalar al plan Pro en cualquier momento sin perder datos.' }
-        }
-      ]
+      mainEntity: FAQ_ITEMS.map(({ q, a }) => ({
+        '@type': 'Question',
+        name: q,
+        acceptedAnswer: { '@type': 'Answer', text: a }
+      }))
     }
   }
 ];
@@ -112,15 +155,50 @@ export class LandingComponent implements OnInit, OnDestroy {
   private titleSvc = inject(Title);
   private metaSvc  = inject(Meta);
   private doc      = inject(DOCUMENT);
+  private route    = inject(ActivatedRoute);
 
-  activeView = 'dashboard';
+  /**
+   * Set when the user arrives here right after deleting their account
+   * (/app/cuenta navigates to `/?cuenta=eliminada`). Drives the acknowledgment
+   * banner at the top of the template — a silent redirect after an irreversible
+   * action reads like the action failed.
+   */
+  readonly accountDeleted =
+    this.route.snapshot.queryParamMap.get('cuenta') === 'eliminada';
+
+  /** Fuente única de las FAQ: la sección visible y el JSON-LD de FAQPage salen de acá. */
+  readonly faqItems = FAQ_ITEMS;
+
+  /** Arranca en la ficha psicológica: es la oferta insignia y el destino de las
+   *  campañas de búsqueda con intención "software psicólogos". */
+  activeView = 'psico';
   private rotateInterval?: ReturnType<typeof setInterval>;
-  private readonly ROTATE_VIEWS = ['dashboard', 'citas', 'ficha'];
+
+  /**
+   * Vistas de la rotación automática del mockup del hero.
+   *
+   * 'ficha' (la ficha clínica médica, con presión arterial y "Dr. Rojas") quedó
+   * FUERA a propósito. La pestaña sigue existiendo y es clickeable —las otras 8
+   * especialidades son producto real—, pero entraba sola a los ~3 s y hacía que
+   * lo primero que viera un psicólogo llegado de un aviso de psicología fuese
+   * una consulta de medicina general.
+   *
+   * 'dashboard' ya no existe como vista del mockup. Si agregas vistas nuevas
+   * acá, verifica que el id exista en el template y que no contradiga el
+   * encuadre de psicología de la página.
+   */
+  private readonly ROTATE_VIEWS = ['psico', 'citas'];
   private rotateIdx = 0;
+
+  /** Canonical que traía index.html, para restaurarlo al salir de la landing. */
+  private previousCanonical?: string;
 
   setActiveView(view: string): void {
     this.activeView = view;
-    this.rotateIdx  = this.ROTATE_VIEWS.indexOf(view);
+    // 'ficha' no está en ROTATE_VIEWS; indexOf devolvería -1. Da igual porque
+    // abajo se detiene la rotación, pero no se deja el índice en un valor sucio.
+    const idx = this.ROTATE_VIEWS.indexOf(view);
+    if (idx !== -1) this.rotateIdx = idx;
     if (this.rotateInterval) { clearInterval(this.rotateInterval); this.rotateInterval = undefined; }
   }
 
@@ -128,7 +206,8 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.titleSvc.setTitle(SEO_TITLE);
 
     this.metaSvc.updateTag({ name: 'description',        content: SEO_DESCRIPTION });
-    this.metaSvc.updateTag({ name: 'robots',             content: 'index, follow' });
+    this.metaSvc.updateTag({ name: 'robots',             content: 'index, follow, max-snippet:-1, max-image-preview:large' });
+    this.metaSvc.updateTag({ name: 'keywords',           content: 'software para psicólogos Chile, ficha clínica psicológica, agenda online psicólogos, software gestión consulta psicológica, software clínico Chile, ficha clínica electrónica, PHQ-9, GAD-7, reserva de horas online, software para psicoterapia' });
 
     this.metaSvc.updateTag({ property: 'og:type',        content: 'website' });
     this.metaSvc.updateTag({ property: 'og:locale',      content: 'es_CL' });
@@ -137,16 +216,33 @@ export class LandingComponent implements OnInit, OnDestroy {
     this.metaSvc.updateTag({ property: 'og:description', content: SEO_DESCRIPTION });
     this.metaSvc.updateTag({ property: 'og:url',         content: SEO_URL });
     this.metaSvc.updateTag({ property: 'og:image',       content: SEO_IMAGE });
+    this.metaSvc.updateTag({ property: 'og:image:alt',   content: SEO_IMAGE_ALT });
+    this.metaSvc.updateTag({ property: 'og:image:width',  content: '1200' });
+    this.metaSvc.updateTag({ property: 'og:image:height', content: '630' });
 
     this.metaSvc.updateTag({ name: 'twitter:card',        content: 'summary_large_image' });
     this.metaSvc.updateTag({ name: 'twitter:title',       content: SEO_TITLE });
     this.metaSvc.updateTag({ name: 'twitter:description', content: SEO_DESCRIPTION });
     this.metaSvc.updateTag({ name: 'twitter:image',       content: SEO_IMAGE });
+    this.metaSvc.updateTag({ name: 'twitter:image:alt',   content: SEO_IMAGE_ALT });
+
+    // Canonical. index.html trae uno apuntando a app.dairi.cl (el host de la
+    // aplicación); dejarlo así en la landing le pide a Google que indexe otra URL
+    // en vez de esta, que es la que reciben los anuncios. Se sobreescribe acá y
+    // ngOnDestroy lo devuelve a su valor original al salir de la ruta.
+    const canonical = this.doc.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (canonical) {
+      this.previousCanonical = canonical.href;
+      canonical.href = SEO_URL;
+    }
 
     this.rotateInterval = setInterval(() => {
       this.rotateIdx  = (this.rotateIdx + 1) % this.ROTATE_VIEWS.length;
       this.activeView = this.ROTATE_VIEWS[this.rotateIdx];
-    }, 3200);
+      // 4,5 s y no 3,2: da tiempo real a leer la ficha psicológica antes de
+      // pasar, y el parpadeo rápido leía como demo nerviosa en una página que
+      // justamente quiere transmitir calma.
+    }, 4500);
 
     for (const { id, content } of JSON_LD_SCRIPTS) {
       const existing = this.doc.getElementById(id);
@@ -163,6 +259,11 @@ export class LandingComponent implements OnInit, OnDestroy {
     if (this.rotateInterval) clearInterval(this.rotateInterval);
     for (const { id } of JSON_LD_SCRIPTS) {
       this.doc.getElementById(id)?.remove();
+    }
+    if (this.previousCanonical !== undefined) {
+      const canonical = this.doc.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+      if (canonical) canonical.href = this.previousCanonical;
+      this.previousCanonical = undefined;
     }
   }
 }
